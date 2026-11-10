@@ -108,9 +108,9 @@ export const ReuseHubPage: FC = () => {
           <Typography
             sx={{
               fontFamily: "'Quicksand', sans-serif",
-              fontSize: '1.625rem',
-              fontWeight: 700,
-              color: '#384735',
+              fontSize: '1.75rem',
+              fontWeight: 800,
+              color: '#0f172a',
               lineHeight: 1.2,
             }}
           >
@@ -121,17 +121,15 @@ export const ReuseHubPage: FC = () => {
               fontFamily: "'Quicksand', sans-serif",
               fontSize: '0.8125rem',
               fontWeight: 500,
-              color: '#5a5751',
+              color: '#64748b',
               mt: 0.5,
-              lineHeight: 1.4,
+              lineHeight: 1.45,
             }}
           >
-            Verified refurbished electronics and reusable hardware
-            <br />
-            within your barangay.
+            Verified refurbished electronics and reusable hardware within your barangay.
           </Typography>
         </Box>
-        <StatusBadge label="48 Verified" variant="available" size="sm" />
+        <StatusBadge label="48 Verified" variant="electric" size="sm" />
       </Box>
 
       {/* Search Input Bar */}
@@ -143,33 +141,40 @@ export const ReuseHubPage: FC = () => {
           placeholder="Search devices (phones, laptops, chargers)..."
           startAdornment={
             <InputAdornment position="start">
-              <SearchRoundedIcon sx={{ color: '#5a5751', fontSize: 20 }} />
+              <SearchRoundedIcon sx={{ color: '#64748b', fontSize: 20 }} />
             </InputAdornment>
           }
           endAdornment={
             <InputAdornment position="end">
-              <MicRoundedIcon sx={{ color: '#78716c', fontSize: 20, cursor: 'pointer' }} />
+              <MicRoundedIcon sx={{ color: '#64748b', fontSize: 20, cursor: 'pointer' }} />
             </InputAdornment>
           }
           sx={{
-            borderRadius: 3.5,
+            borderRadius: 3,
             backgroundColor: '#ffffff',
             fontSize: '0.8125rem',
             fontFamily: "'Quicksand', sans-serif",
-            '& fieldset': { borderColor: '#e8f0e6' },
+            '& fieldset': { borderColor: '#e2e8f0' },
+            '&:hover fieldset': { borderColor: '#cbd5e1' },
           }}
         />
         <Button
           variant="outlined"
+          aria-label="Filter"
           sx={{
             minWidth: 46,
             width: 46,
-            borderRadius: 3.5,
-            borderColor: '#e8f0e6',
-            color: '#384735',
+            borderRadius: 3,
+            borderColor: '#e2e8f0',
+            color: '#0f172a',
             p: 1.25,
             flexShrink: 0,
             backgroundColor: '#ffffff',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            '&:hover': {
+              backgroundColor: '#f8fafc',
+              borderColor: '#cbd5e1',
+            },
           }}
         >
           <FilterListRoundedIcon sx={{ fontSize: 20 }} />
@@ -186,33 +191,42 @@ export const ReuseHubPage: FC = () => {
           '::-webkit-scrollbar': { display: 'none' },
         }}
       >
-        {CATEGORIES.map((cat) => (
-          <Chip
-            key={cat}
-            label={cat}
-            onClick={() => setSelectedCategory(cat)}
-            sx={{
-              fontFamily: "'Quicksand', sans-serif",
-              fontWeight: 700,
-              fontSize: '0.8125rem',
-              backgroundColor: selectedCategory === cat ? '#4f5f4b' : '#ffffff',
-              color: selectedCategory === cat ? '#ffffff' : '#4f5f4b',
-              border: selectedCategory === cat ? 'none' : '1px solid #e8f0e6',
-              cursor: 'pointer',
-              borderRadius: 9999,
-              px: 0.5,
-            }}
-          />
-        ))}
+        {CATEGORIES.map((cat) => {
+          const isSel = selectedCategory === cat
+          return (
+            <Chip
+              key={cat}
+              label={cat}
+              onClick={() => setSelectedCategory(cat)}
+              sx={{
+                fontFamily: "'Quicksand', sans-serif",
+                fontWeight: 700,
+                fontSize: '0.8125rem',
+                backgroundColor: isSel ? '#0f172a' : '#ffffff',
+                color: isSel ? '#ffffff' : '#0f172a',
+                border: isSel ? '1px solid #0f172a' : '1px solid #e2e8f0',
+                cursor: 'pointer',
+                borderRadius: 9999,
+                px: 0.5,
+                boxShadow: isSel ? '0 1px 3px rgba(15,23,42,0.15)' : 'none',
+                '&:hover': {
+                  backgroundColor: isSel ? '#1e293b' : '#f8fafc',
+                },
+              }}
+            />
+          )
+        })}
       </Box>
 
       {/* Eco Impact Notice Banner */}
       <Card
         sx={{
-          borderRadius: 4,
-          backgroundColor: '#ebf2eb',
-          border: '1px solid #ceebc4',
-          p: 1.75,
+          borderRadius: 3.5,
+          backgroundColor: '#0f172a',
+          color: '#ffffff',
+          border: '1px solid #1e293b',
+          p: 2,
+          boxShadow: '0 2px 6px rgba(15,23,42,0.15)',
         }}
       >
         <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
@@ -221,8 +235,8 @@ export const ReuseHubPage: FC = () => {
               width: 38,
               height: 38,
               borderRadius: '50%',
-              backgroundColor: '#4f5f4b',
-              color: '#ffffff',
+              backgroundColor: '#abf06b',
+              color: '#0f172a',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -234,13 +248,13 @@ export const ReuseHubPage: FC = () => {
           <Typography
             sx={{
               fontFamily: "'Quicksand', sans-serif",
-              color: '#1e1b16',
+              color: '#f8fafc',
               fontSize: '0.75rem',
               fontWeight: 500,
-              lineHeight: 1.4,
+              lineHeight: 1.45,
             }}
           >
-            Choosing reused electronics diverted <strong>14.2 kg</strong> of toxic waste in Pasig this week.
+            Choosing reused electronics diverted <strong style={{ color: '#abf06b' }}>14.2 kg</strong> of toxic waste in Pasig this week.
           </Typography>
         </Box>
       </Card>
@@ -252,13 +266,13 @@ export const ReuseHubPage: FC = () => {
             key={item.id}
             sx={{
               p: 1.75,
-              borderRadius: 4,
-              border: '1px solid #ede8e1',
+              borderRadius: 3.5,
+              border: '1px solid #e2e8f0',
               backgroundColor: '#ffffff',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
               cursor: 'pointer',
-              transition: 'transform 0.15s ease',
-              '&:hover': { transform: 'translateY(-2px)' },
+              transition: 'all 0.15s ease',
+              '&:hover': { borderColor: '#0f172a', transform: 'translateY(-1px)' },
             }}
             onClick={() => navigate(`/reuse/${item.id}`)}
           >
@@ -266,11 +280,12 @@ export const ReuseHubPage: FC = () => {
               {/* Product Thumbnail */}
               <Box
                 sx={{
-                  width: 88,
-                  height: 88,
-                  borderRadius: 3,
+                  width: 90,
+                  height: 90,
+                  borderRadius: 2.5,
                   overflow: 'hidden',
-                  backgroundColor: '#f4ede4',
+                  backgroundColor: '#f1f5f9',
+                  border: '1px solid #e2e8f0',
                   flexShrink: 0,
                   position: 'relative',
                 }}
@@ -296,7 +311,7 @@ export const ReuseHubPage: FC = () => {
                         fontFamily: "'Quicksand', sans-serif",
                         fontWeight: 700,
                         fontSize: '0.9375rem',
-                        color: '#292524',
+                        color: '#0f172a',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -305,14 +320,14 @@ export const ReuseHubPage: FC = () => {
                     >
                       {item.title}
                     </Typography>
-                    <StatusBadge label={item.status} variant="available" size="sm" />
+                    <StatusBadge label={item.status} variant="electric" size="sm" />
                   </Box>
 
                   <Typography
                     sx={{
                       fontFamily: "'Quicksand', sans-serif",
                       fontSize: '0.75rem',
-                      color: '#78716c',
+                      color: '#64748b',
                       fontWeight: 600,
                       mt: 0.3,
                     }}
@@ -321,12 +336,12 @@ export const ReuseHubPage: FC = () => {
                   </Typography>
 
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.3 }}>
-                    <LocationOnOutlinedIcon sx={{ fontSize: 13, color: '#78716c' }} />
+                    <LocationOnOutlinedIcon sx={{ fontSize: 13, color: '#64748b' }} />
                     <Typography
                       sx={{
                         fontFamily: "'Quicksand', sans-serif",
                         fontSize: '0.6875rem',
-                        color: '#78716c',
+                        color: '#64748b',
                         fontWeight: 500,
                       }}
                     >
@@ -339,9 +354,9 @@ export const ReuseHubPage: FC = () => {
                   <Typography
                     sx={{
                       fontFamily: "'Quicksand', sans-serif",
-                      fontWeight: 700,
+                      fontWeight: 800,
                       fontSize: '0.875rem',
-                      color: '#4f5f4b',
+                      color: '#0f172a',
                     }}
                   >
                     {item.price}
@@ -360,11 +375,13 @@ export const ReuseHubPage: FC = () => {
                       px: 1.75,
                       fontSize: '0.75rem',
                       fontWeight: 700,
-                      color: '#4f5f4b',
-                      borderColor: '#4f5f4b',
+                      color: '#0f172a',
+                      borderColor: '#e2e8f0',
+                      backgroundColor: '#ffffff',
                       '&:hover': {
-                        backgroundColor: '#4f5f4b',
+                        backgroundColor: '#0f172a',
                         color: '#ffffff',
+                        borderColor: '#0f172a',
                       },
                     }}
                   >
@@ -380,24 +397,24 @@ export const ReuseHubPage: FC = () => {
       {/* Circular Donation Callout Banner */}
       <Card
         sx={{
-          borderRadius: 4,
+          borderRadius: 3.5,
           backgroundColor: '#ffffff',
-          border: '1.5px dashed #4f5f4b',
-          p: 2,
+          border: '1.5px dashed #0f172a',
+          p: 2.25,
           display: 'flex',
           flexDirection: 'column',
           gap: 1.25,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <VolunteerActivismOutlinedIcon sx={{ color: '#4f5f4b', fontSize: 20 }} />
+          <VolunteerActivismOutlinedIcon sx={{ color: '#0f172a', fontSize: 20 }} />
           <Typography
             sx={{
               fontFamily: "'Quicksand', sans-serif",
               fontWeight: 700,
               fontSize: '0.6875rem',
               letterSpacing: '0.08em',
-              color: '#4f5f4b',
+              color: '#0f172a',
               textTransform: 'uppercase',
             }}
           >
@@ -408,9 +425,9 @@ export const ReuseHubPage: FC = () => {
         <Typography
           sx={{
             fontFamily: "'Quicksand', sans-serif",
-            fontWeight: 700,
+            fontWeight: 800,
             fontSize: '1rem',
-            color: '#292524',
+            color: '#0f172a',
           }}
         >
           Have idle electronics?
@@ -420,8 +437,8 @@ export const ReuseHubPage: FC = () => {
           sx={{
             fontFamily: "'Quicksand', sans-serif",
             fontSize: '0.75rem',
-            color: '#78716c',
-            lineHeight: 1.4,
+            color: '#64748b',
+            lineHeight: 1.45,
           }}
         >
           List your spare cables, unused screens, or old tablets to support your community and reduce e-waste.
@@ -432,13 +449,14 @@ export const ReuseHubPage: FC = () => {
           onClick={() => navigate('/scan')}
           sx={{
             mt: 0.5,
-            backgroundColor: '#4f5f4b',
+            backgroundColor: '#0f172a',
             color: '#ffffff',
             fontWeight: 700,
             fontSize: '0.8125rem',
             borderRadius: 9999,
             py: 1,
-            '&:hover': { backgroundColor: '#384735' },
+            boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
+            '&:hover': { backgroundColor: '#1e293b' },
           }}
         >
           List an Item

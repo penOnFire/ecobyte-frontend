@@ -24,42 +24,48 @@ export const ReservationPassPage: FC = () => {
   const navigate = useNavigate()
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5 }}>
       {/* ── Top Bar ── */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <IconButton
           size="small"
           onClick={() => navigate(-1)}
+          aria-label="Back"
           sx={{
-            width: 36,
-            height: 36,
+            width: 38,
+            height: 38,
             backgroundColor: '#ffffff',
-            border: '1px solid #ede8e1',
+            border: '1px solid #e2e8f0',
             borderRadius: '50%',
-            color: '#292524',
+            color: '#0f172a',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            '&:hover': { backgroundColor: '#f8fafc' },
           }}
         >
           <ArrowBackRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
 
         <Box sx={{ textAlign: 'center' }}>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1.0625rem', color: '#292524' }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1.0625rem', color: '#0f172a' }}>
             Reservation Pass
           </Typography>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#78716c', letterSpacing: '0.04em' }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#64748b', letterSpacing: '0.06em' }}>
             • STEP 1 OF 2
           </Typography>
         </Box>
 
         <IconButton
           size="small"
+          aria-label="More options"
           sx={{
-            width: 36,
-            height: 36,
+            width: 38,
+            height: 38,
             backgroundColor: '#ffffff',
-            border: '1px solid #ede8e1',
+            border: '1px solid #e2e8f0',
             borderRadius: '50%',
-            color: '#292524',
+            color: '#0f172a',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            '&:hover': { backgroundColor: '#f8fafc' },
           }}
         >
           <MoreVertRoundedIcon sx={{ fontSize: 18 }} />
@@ -67,16 +73,16 @@ export const ReservationPassPage: FC = () => {
       </Box>
 
       {/* ── Item Mini Card ── */}
-      <Card sx={{ p: 2, borderRadius: 4, border: '1px solid #ede8e1' }}>
+      <Card sx={{ p: 2, borderRadius: 3.5, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
           <Box
             sx={{
-              width: 54,
-              height: 54,
-              borderRadius: 3,
+              width: 56,
+              height: 56,
+              borderRadius: 2.5,
               overflow: 'hidden',
-              backgroundColor: '#faf3ea',
-              border: '1px solid #ede4d8',
+              backgroundColor: '#f1f5f9',
+              border: '1px solid #e2e8f0',
               flexShrink: 0,
             }}
           >
@@ -89,20 +95,20 @@ export const ReservationPassPage: FC = () => {
           </Box>
           <Box sx={{ flex: 1 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1rem', color: '#292524' }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>
                 Keychron K2 V2
               </Typography>
-              <StatusBadge label="Reserved" variant="live" size="sm" />
+              <StatusBadge label="Reserved" variant="electric" size="sm" />
             </Box>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78716c', mt: 0.2 }}>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.2 }}>
               Mechanical Keyboard • 75% Layout
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#4f5f4b', fontWeight: 600 }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#0f172a', fontWeight: 600 }}>
                 📍 San Antonio Hub
               </Typography>
-              <Box sx={{ px: 0.75, py: 0.15, backgroundColor: '#faf8f5', borderRadius: 1, border: '1px solid #ede8e1' }}>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.625rem', color: '#78716c', fontWeight: 700 }}>
+              <Box sx={{ px: 0.75, py: 0.15, backgroundColor: '#f1f5f9', borderRadius: 1, border: '1px solid #e2e8f0' }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.625rem', color: '#64748b', fontWeight: 700 }}>
                   #CIR-84920
                 </Typography>
               </Box>
@@ -114,12 +120,14 @@ export const ReservationPassPage: FC = () => {
       {/* ── Official Pick-Up Code Ticket ── */}
       <Box
         sx={{
-          borderRadius: 4,
-          backgroundColor: '#f5eee6',
-          border: '1.5px solid #e5dace',
+          borderRadius: 3.5,
+          backgroundColor: '#0f172a',
+          border: '1.5px solid #1e293b',
+          color: '#ffffff',
           position: 'relative',
           overflow: 'hidden',
-          p: 2.25,
+          p: 2.5,
+          boxShadow: '0 4px 14px rgba(15,23,42,0.25)',
         }}
       >
         <Typography
@@ -127,11 +135,11 @@ export const ReservationPassPage: FC = () => {
             fontFamily: "'Quicksand', sans-serif",
             fontWeight: 700,
             fontSize: '0.6875rem',
-            color: '#78716c',
+            color: '#abf06b',
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
             textAlign: 'center',
-            mb: 1.5,
+            mb: 1.75,
           }}
         >
           🎟️ OFFICIAL PICK-UP CODE
@@ -140,58 +148,57 @@ export const ReservationPassPage: FC = () => {
         {/* Code Box */}
         <Box
           sx={{
-            backgroundColor: '#ffffff',
-            borderRadius: 3.5,
-            p: 1.5,
+            backgroundColor: '#020617',
+            borderRadius: 3,
+            p: 1.75,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            border: '1px solid #ede4d8',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+            border: '1px solid #334155',
           }}
         >
           <Typography
             sx={{
               fontFamily: "'Courier New', monospace",
               fontWeight: 800,
-              fontSize: '1.5rem',
+              fontSize: '1.625rem',
               letterSpacing: '0.15em',
-              color: '#384735',
+              color: '#abf06b',
               pl: 1,
             }}
           >
             ECO - 4821
           </Typography>
-          <IconButton size="small" sx={{ color: '#78716c' }}>
+          <IconButton size="small" aria-label="Copy code" sx={{ color: '#94a3b8', '&:hover': { color: '#ffffff' } }}>
             <ContentCopyRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
         </Box>
 
         {/* Dashed cutline with semicircles */}
         <Box sx={{ position: 'relative', my: 2 }}>
-          <Box sx={{ borderTop: '2px dashed #dccfc0' }} />
+          <Box sx={{ borderTop: '2px dashed #334155' }} />
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
-          <QrCodeScannerRoundedIcon sx={{ fontSize: 18, color: '#4f5f4b' }} />
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#292524', fontWeight: 600 }}>
+          <QrCodeScannerRoundedIcon sx={{ fontSize: 18, color: '#abf06b' }} />
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#cbd5e1', fontWeight: 600 }}>
             Present this code to the barangay officer at desk
           </Typography>
         </Box>
       </Box>
 
       {/* ── Pick-up Schedule Details ── */}
-      <Card sx={{ p: 2, borderRadius: 4, border: '1px solid #ede8e1' }}>
+      <Card sx={{ p: 2, borderRadius: 3.5, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           {/* Date */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CalendarTodayRoundedIcon sx={{ fontSize: 18, color: '#78716c' }} />
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#78716c' }}>
+              <CalendarTodayRoundedIcon sx={{ fontSize: 18, color: '#64748b' }} />
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#64748b' }}>
                 Pick-up date
               </Typography>
             </Box>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#292524', fontWeight: 700 }}>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#0f172a', fontWeight: 700 }}>
               Fri, Oct 23, 2024
             </Typography>
           </Box>
@@ -199,16 +206,16 @@ export const ReservationPassPage: FC = () => {
           {/* Collection Place */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <LocationOnOutlinedIcon sx={{ fontSize: 18, color: '#78716c' }} />
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#78716c' }}>
+              <LocationOnOutlinedIcon sx={{ fontSize: 18, color: '#64748b' }} />
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#64748b' }}>
                 Collection Place
               </Typography>
             </Box>
             <Box sx={{ textAlign: 'right' }}>
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#292524', fontWeight: 700 }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#0f172a', fontWeight: 700 }}>
                 Barangay San Antonio
               </Typography>
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#78716c' }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b' }}>
                 E-Waste Hub Desk 2
               </Typography>
             </Box>
@@ -218,7 +225,7 @@ export const ReservationPassPage: FC = () => {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <AccessTimeRoundedIcon sx={{ fontSize: 18, color: '#b45309' }} />
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#78716c' }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#64748b' }}>
                 Held until
               </Typography>
             </Box>
@@ -226,10 +233,8 @@ export const ReservationPassPage: FC = () => {
               <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#dc2626', fontWeight: 700 }}>
                 Oct 23, 5:00 PM
               </Typography>
-              <Box sx={{ display: 'inline-block', backgroundColor: '#ebf2eb', px: 0.75, py: 0.15, borderRadius: 1, mt: 0.25 }}>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.625rem', color: '#384735', fontWeight: 700 }}>
-                  2 days remaining
-                </Typography>
+              <Box sx={{ mt: 0.25 }}>
+                <StatusBadge label="2 days remaining" variant="electric" size="sm" />
               </Box>
             </Box>
           </Box>
@@ -237,10 +242,10 @@ export const ReservationPassPage: FC = () => {
       </Card>
 
       {/* ── Instruction Subcard ── */}
-      <Card sx={{ p: 1.75, borderRadius: 3.5, backgroundColor: '#faf3ea', border: '1px solid #ede4d8' }}>
+      <Card sx={{ p: 1.75, borderRadius: 3, backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
         <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'flex-start' }}>
-          <InfoOutlinedIcon sx={{ fontSize: 18, color: '#78350f', mt: 0.2 }} />
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78350f', lineHeight: 1.5, fontWeight: 500 }}>
+          <InfoOutlinedIcon sx={{ fontSize: 18, color: '#0f172a', mt: 0.2 }} />
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#0f172a', lineHeight: 1.5, fontWeight: 500 }}>
             <strong>Next step:</strong> When receiving the item at the hub, take a quick proof photo to complete your claim.
           </Typography>
         </Box>
@@ -253,14 +258,16 @@ export const ReservationPassPage: FC = () => {
           variant="contained"
           size="large"
           onClick={() => navigate('/proof-of-claim')}
-          startIcon={<CameraAltRoundedIcon sx={{ fontSize: 20 }} />}
+          startIcon={<CameraAltRoundedIcon sx={{ fontSize: 20, color: '#abf06b' }} />}
           endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
           sx={{
             py: 1.6,
-            backgroundColor: '#4f5f4b',
+            backgroundColor: '#0f172a',
             color: '#ffffff',
             fontWeight: 700,
             fontSize: '0.9375rem',
+            boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
+            '&:hover': { backgroundColor: '#1e293b' },
           }}
         >
           Upload Proof Photo
@@ -269,7 +276,7 @@ export const ReservationPassPage: FC = () => {
           sx={{
             fontFamily: "'Quicksand', sans-serif",
             fontSize: '0.6875rem',
-            color: '#78716c',
+            color: '#64748b',
             textAlign: 'center',
             mt: 1,
           }}
@@ -280,4 +287,3 @@ export const ReservationPassPage: FC = () => {
     </Box>
   )
 }
-

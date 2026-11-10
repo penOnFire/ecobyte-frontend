@@ -39,42 +39,48 @@ export const ScanDevicePage: FC = () => {
   const [currentAngle, setCurrentAngle] = useState('back')
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5 }}>
       {/* ── Header ── */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <IconButton
           size="small"
           onClick={() => navigate(-1)}
+          aria-label="Back"
           sx={{
-            width: 36,
-            height: 36,
+            width: 38,
+            height: 38,
             backgroundColor: '#ffffff',
-            border: '1px solid #ede8e1',
+            border: '1px solid #e2e8f0',
             borderRadius: '50%',
-            color: '#292524',
+            color: '#0f172a',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            '&:hover': { backgroundColor: '#f8fafc' },
           }}
         >
           <ArrowBackRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
 
         <Box sx={{ textAlign: 'center' }}>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1.0625rem', color: '#292524' }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1.0625rem', color: '#0f172a' }}>
             Scan Device
           </Typography>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#78716c' }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#64748b' }}>
             Multi-Angle AI Camera
           </Typography>
         </Box>
 
         <IconButton
           size="small"
+          aria-label="Toggle flash"
           sx={{
-            width: 36,
-            height: 36,
+            width: 38,
+            height: 38,
             backgroundColor: '#ffffff',
-            border: '1px solid #ede8e1',
+            border: '1px solid #e2e8f0',
             borderRadius: '50%',
-            color: '#292524',
+            color: '#0f172a',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            '&:hover': { backgroundColor: '#f8fafc' },
           }}
         >
           <FlashOnRoundedIcon sx={{ fontSize: 18 }} />
@@ -84,21 +90,36 @@ export const ScanDevicePage: FC = () => {
       {/* ── Camera Viewport Card ── */}
       <Box
         sx={{
-          borderRadius: 5,
-          backgroundColor: '#d8e4d6',
-          border: '1.5px solid #c0d3bd',
+          borderRadius: 4,
+          backgroundColor: '#020617',
+          border: '1.5px solid #1e293b',
           p: 2,
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          minHeight: 290,
+          minHeight: 300,
           overflow: 'hidden',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
         }}
       >
-        {/* Decorative corner brackets */}
-        <Box sx={{ position: 'absolute', top: 16, left: 16, width: 24, height: 24, borderTop: '2.5px solid #78957a', borderLeft: '2.5px solid #78957a', borderRadius: '4px 0 0 0' }} />
-        <Box sx={{ position: 'absolute', top: 16, right: 16, width: 24, height: 24, borderTop: '2.5px solid #78957a', borderRight: '2.5px solid #78957a', borderRadius: '0 4px 0 0' }} />
+        {/* Subtle grid background */}
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: 'radial-gradient(#1e293b 1px, transparent 1px)',
+            backgroundSize: '20px 20px',
+            opacity: 0.6,
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Decorative electric lime corner brackets */}
+        <Box sx={{ position: 'absolute', top: 16, left: 16, width: 22, height: 22, borderTop: '2.5px solid #abf06b', borderLeft: '2.5px solid #abf06b', borderRadius: '4px 0 0 0' }} />
+        <Box sx={{ position: 'absolute', top: 16, right: 16, width: 22, height: 22, borderTop: '2.5px solid #abf06b', borderRight: '2.5px solid #abf06b', borderRadius: '0 4px 0 0' }} />
+        <Box sx={{ position: 'absolute', bottom: 16, left: 16, width: 22, height: 22, borderBottom: '2.5px solid #abf06b', borderLeft: '2.5px solid #abf06b', borderRadius: '0 0 0 4px' }} />
+        <Box sx={{ position: 'absolute', bottom: 16, right: 16, width: 22, height: 22, borderBottom: '2.5px solid #abf06b', borderRight: '2.5px solid #abf06b', borderRadius: '0 0 4px 0' }} />
 
         {/* Top HUD badge */}
         <Box sx={{ display: 'flex', justifyContent: 'center', zIndex: 2 }}>
@@ -107,16 +128,26 @@ export const ScanDevicePage: FC = () => {
               display: 'inline-flex',
               alignItems: 'center',
               gap: 0.75,
-              backgroundColor: '#1e293b',
+              backgroundColor: 'rgba(15, 23, 42, 0.85)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              backdropFilter: 'blur(8px)',
               color: '#ffffff',
-              px: 1.5,
-              py: 0.5,
+              px: 1.75,
+              py: 0.6,
               borderRadius: 9999,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
             }}
           >
-            <Box sx={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#38c194' }} />
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', letterSpacing: '0.04em' }}>
+            <Box
+              sx={{
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                backgroundColor: '#abf06b',
+                boxShadow: '0 0 8px #abf06b',
+              }}
+            />
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', letterSpacing: '0.06em' }}>
               OPTICAL LOCK: 98.4%
             </Typography>
           </Box>
@@ -132,6 +163,7 @@ export const ScanDevicePage: FC = () => {
             my: 'auto',
             position: 'relative',
             zIndex: 1,
+            py: 2,
           }}
         >
           {/* Laser scanning beam */}
@@ -140,9 +172,9 @@ export const ScanDevicePage: FC = () => {
               position: 'absolute',
               width: '100%',
               height: 2,
-              backgroundColor: '#38c194',
-              boxShadow: '0 0 10px #38c194, 0 0 4px #38c194',
-              top: '45%',
+              backgroundColor: '#abf06b',
+              boxShadow: '0 0 12px #abf06b, 0 0 4px #abf06b',
+              top: '48%',
               zIndex: 3,
             }}
           />
@@ -150,14 +182,14 @@ export const ScanDevicePage: FC = () => {
           {/* Smartphone outline */}
           <Box
             sx={{
-              width: 120,
-              height: 180,
-              backgroundColor: '#1e293b',
+              width: 124,
+              height: 184,
+              backgroundColor: '#0f172a',
               borderRadius: 4,
               border: '2px solid #334155',
               position: 'relative',
               p: 1.25,
-              boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+              boxShadow: '0 8px 28px rgba(0,0,0,0.4)',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
@@ -166,20 +198,20 @@ export const ScanDevicePage: FC = () => {
             {/* Camera bump */}
             <Box
               sx={{
-                width: 44,
-                height: 48,
+                width: 46,
+                height: 50,
                 borderRadius: 2.5,
-                backgroundColor: '#0f172a',
-                border: '1px solid #334155',
+                backgroundColor: '#020617',
+                border: '1.5px solid #334155',
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
                 gap: 0.5,
                 p: 0.5,
               }}
             >
-              <Box sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: '#1e293b', border: '1.5px solid #475569' }} />
-              <Box sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: '#1e293b', border: '1.5px solid #475569' }} />
-              <Box sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: '#1e293b', border: '1.5px solid #475569' }} />
+              <Box sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: '#0f172a', border: '1.5px solid #475569' }} />
+              <Box sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: '#0f172a', border: '1.5px solid #475569' }} />
+              <Box sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: '#0f172a', border: '1.5px solid #475569' }} />
             </Box>
 
             {/* Target reticle */}
@@ -187,16 +219,16 @@ export const ScanDevicePage: FC = () => {
               sx={{
                 alignSelf: 'center',
                 my: 'auto',
-                width: 50,
-                height: 50,
+                width: 52,
+                height: 52,
                 borderRadius: '50%',
-                border: '1.5px dashed rgba(56, 193, 148, 0.6)',
+                border: '1.5px dashed rgba(171, 240, 107, 0.7)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#38c194' }} />
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#abf06b' }} />
             </Box>
           </Box>
         </Box>
@@ -204,9 +236,11 @@ export const ScanDevicePage: FC = () => {
         {/* Bottom HUD bar */}
         <Box
           sx={{
-            backgroundColor: '#1e293b',
+            backgroundColor: 'rgba(15, 23, 42, 0.85)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(8px)',
             borderRadius: 9999,
-            px: 1.5,
+            px: 1.75,
             py: 0.75,
             display: 'flex',
             alignItems: 'center',
@@ -215,8 +249,8 @@ export const ScanDevicePage: FC = () => {
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-            <AspectRatioRoundedIcon sx={{ fontSize: 16, color: '#38c194' }} />
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#38c194' }}>
+            <AspectRatioRoundedIcon sx={{ fontSize: 16, color: '#abf06b' }} />
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#abf06b' }}>
               4:3 Auto-Focus
             </Typography>
           </Box>
@@ -234,10 +268,11 @@ export const ScanDevicePage: FC = () => {
           startIcon={<CameraAltRoundedIcon sx={{ fontSize: 20 }} />}
           sx={{
             py: 1.4,
-            backgroundColor: '#4f5f4b',
+            backgroundColor: '#0f172a',
             color: '#ffffff',
             fontSize: '0.875rem',
-            '&:hover': { backgroundColor: '#384735' },
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            '&:hover': { backgroundColor: '#1e293b' },
           }}
         >
           Capture angle
@@ -248,10 +283,12 @@ export const ScanDevicePage: FC = () => {
           startIcon={<RefreshRoundedIcon sx={{ fontSize: 18 }} />}
           sx={{
             py: 1.4,
-            borderColor: '#ede8e1',
-            color: '#292524',
+            borderColor: '#e2e8f0',
+            color: '#0f172a',
             backgroundColor: '#ffffff',
             fontSize: '0.875rem',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            '&:hover': { backgroundColor: '#f8fafc', borderColor: '#cbd5e1' },
           }}
         >
           Retake
@@ -261,18 +298,18 @@ export const ScanDevicePage: FC = () => {
       {/* ── Angles Progress ── */}
       <Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#292524' }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
             Angles
           </Typography>
           <Box
             sx={{
-              backgroundColor: '#ede8e1',
+              backgroundColor: '#0f172a',
               px: 1.25,
               py: 0.35,
               borderRadius: 9999,
             }}
           >
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#78716c' }}>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#abf06b' }}>
               2/6 completed
             </Typography>
           </Box>
@@ -293,22 +330,23 @@ export const ScanDevicePage: FC = () => {
                   px: 1.5,
                   borderRadius: 9999,
                   border: isCompleted
-                    ? '1.5px solid #c4d9c0'
+                    ? '1.5px solid #e2e8f0'
                     : isActive
-                      ? '1.5px solid #4f5f4b'
-                      : '1.5px solid #ede8e1',
+                      ? '1.5px solid #0f172a'
+                      : '1.5px solid #e2e8f0',
                   backgroundColor: isCompleted
-                    ? '#ebf2eb'
+                    ? '#f8fafc'
                     : isActive
-                      ? '#4f5f4b'
+                      ? '#0f172a'
                       : '#ffffff',
-                  color: isActive ? '#ffffff' : '#292524',
+                  color: isActive ? '#ffffff' : '#0f172a',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 0.6,
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
+                  boxShadow: isActive ? '0 2px 6px rgba(15,23,42,0.15)' : 'none',
                 }}
               >
                 <Typography
@@ -321,8 +359,8 @@ export const ScanDevicePage: FC = () => {
                 >
                   {angle.label}
                 </Typography>
-                {isCompleted && <CheckRoundedIcon sx={{ fontSize: 16, color: '#384735' }} />}
-                {isActive && <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#38c194' }} />}
+                {isCompleted && <CheckRoundedIcon sx={{ fontSize: 16, color: '#0f172a' }} />}
+                {isActive && <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#abf06b' }} />}
               </Box>
             )
           })}
@@ -333,33 +371,33 @@ export const ScanDevicePage: FC = () => {
       <Card
         sx={{
           p: 2,
-          borderRadius: 4,
-          backgroundColor: '#faf3ea',
-          border: '1.5px solid #ede4d8',
+          borderRadius: 3.5,
+          backgroundColor: '#f8fafc',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
         }}
       >
-        <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'flex-start', mb: 1.5 }}>
+        <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'center', mb: 1.5 }}>
           <Box
             sx={{
               width: 32,
               height: 32,
               borderRadius: '50%',
-              backgroundColor: '#ffffff',
-              border: '1px solid #dccfc0',
+              backgroundColor: '#0f172a',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
             }}
           >
-            <RefreshRoundedIcon sx={{ fontSize: 18, color: '#4f5f4b' }} />
+            <RefreshRoundedIcon sx={{ fontSize: 18, color: '#abf06b' }} />
           </Box>
           <Typography
             sx={{
               fontFamily: "'Quicksand', sans-serif",
               fontWeight: 700,
               fontSize: '0.8125rem',
-              color: '#292524',
+              color: '#0f172a',
               lineHeight: 1.45,
             }}
           >
@@ -368,20 +406,20 @@ export const ScanDevicePage: FC = () => {
         </Box>
 
         {/* Segmented mini progress bar (6 segments) */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0.5, mb: 1 }}>
-          <Box sx={{ height: 4, borderRadius: 9999, backgroundColor: '#78957a' }} />
-          <Box sx={{ height: 4, borderRadius: 9999, backgroundColor: '#4f5f4b' }} />
-          <Box sx={{ height: 4, borderRadius: 9999, backgroundColor: '#e2d7c9' }} />
-          <Box sx={{ height: 4, borderRadius: 9999, backgroundColor: '#e2d7c9' }} />
-          <Box sx={{ height: 4, borderRadius: 9999, backgroundColor: '#e2d7c9' }} />
-          <Box sx={{ height: 4, borderRadius: 9999, backgroundColor: '#e2d7c9' }} />
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0.5, mb: 1.25 }}>
+          <Box sx={{ height: 4, borderRadius: 9999, backgroundColor: '#abf06b' }} />
+          <Box sx={{ height: 4, borderRadius: 9999, backgroundColor: '#0f172a' }} />
+          <Box sx={{ height: 4, borderRadius: 9999, backgroundColor: '#e2e8f0' }} />
+          <Box sx={{ height: 4, borderRadius: 9999, backgroundColor: '#e2e8f0' }} />
+          <Box sx={{ height: 4, borderRadius: 9999, backgroundColor: '#e2e8f0' }} />
+          <Box sx={{ height: 4, borderRadius: 9999, backgroundColor: '#e2e8f0' }} />
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#78716c', fontWeight: 600 }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
             Hardware Model ID: SM-G998B
           </Typography>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#78716c', fontWeight: 600 }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#0f172a', fontWeight: 700 }}>
             Lens Clarity: High
           </Typography>
         </Box>
@@ -390,7 +428,7 @@ export const ScanDevicePage: FC = () => {
       {/* ── Captured Angles Slots ── */}
       <Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.25 }}>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#292524' }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
             Captured angles
           </Typography>
           <Typography
@@ -411,9 +449,9 @@ export const ScanDevicePage: FC = () => {
           <Box
             sx={{
               height: 100,
-              borderRadius: 3.5,
-              backgroundColor: '#e8f0e6',
-              border: '1.5px solid #c4d9c0',
+              borderRadius: 3,
+              backgroundColor: '#f8fafc',
+              border: '1.5px solid #e2e8f0',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -440,24 +478,24 @@ export const ScanDevicePage: FC = () => {
                 position: 'absolute',
                 top: 5,
                 left: 5,
-                width: 16,
-                height: 16,
+                width: 18,
+                height: 18,
                 borderRadius: '50%',
-                backgroundColor: '#384735',
+                backgroundColor: '#0f172a',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 zIndex: 1,
               }}
             >
-              <CheckRoundedIcon sx={{ fontSize: 11, color: '#ffffff' }} />
+              <CheckRoundedIcon sx={{ fontSize: 12, color: '#abf06b' }} />
             </Box>
             <Box sx={{ flex: 1 }} />
             <Box
               sx={{
                 width: '100%',
-                backgroundColor: 'rgba(56, 71, 53, 0.9)',
-                borderRadius: 2,
+                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                borderRadius: 1.5,
                 py: 0.25,
                 textAlign: 'center',
                 zIndex: 1,
@@ -474,9 +512,9 @@ export const ScanDevicePage: FC = () => {
           <Box
             sx={{
               height: 100,
-              borderRadius: 3.5,
-              backgroundColor: '#ffffff',
-              border: '2px dashed #4f5f4b',
+              borderRadius: 3,
+              backgroundColor: 'rgba(171, 240, 107, 0.08)',
+              border: '2px dashed #abf06b',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -485,13 +523,13 @@ export const ScanDevicePage: FC = () => {
               p: 0.75,
             }}
           >
-            <CropFreeRoundedIcon sx={{ fontSize: 24, color: '#4f5f4b' }} />
+            <CropFreeRoundedIcon sx={{ fontSize: 24, color: '#0f172a' }} />
             <Typography
               sx={{
                 fontFamily: "'Quicksand', sans-serif",
                 fontWeight: 700,
                 fontSize: '0.625rem',
-                color: '#292524',
+                color: '#0f172a',
                 textAlign: 'center',
                 lineHeight: 1.2,
               }}
@@ -504,9 +542,9 @@ export const ScanDevicePage: FC = () => {
           <Box
             sx={{
               height: 100,
-              borderRadius: 3.5,
+              borderRadius: 3,
               backgroundColor: '#ffffff',
-              border: '1.5px dotted #dccfc0',
+              border: '1.5px dotted #cbd5e1',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -514,8 +552,8 @@ export const ScanDevicePage: FC = () => {
               gap: 0.5,
             }}
           >
-            <AddRoundedIcon sx={{ fontSize: 20, color: '#a8a29e' }} />
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.625rem', color: '#a8a29e' }}>
+            <AddRoundedIcon sx={{ fontSize: 20, color: '#94a3b8' }} />
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.625rem', color: '#94a3b8' }}>
               Left slot
             </Typography>
           </Box>
@@ -524,9 +562,9 @@ export const ScanDevicePage: FC = () => {
           <Box
             sx={{
               height: 100,
-              borderRadius: 3.5,
+              borderRadius: 3,
               backgroundColor: '#ffffff',
-              border: '1.5px dotted #dccfc0',
+              border: '1.5px dotted #cbd5e1',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -534,8 +572,8 @@ export const ScanDevicePage: FC = () => {
               gap: 0.5,
             }}
           >
-            <AddRoundedIcon sx={{ fontSize: 20, color: '#a8a29e' }} />
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.625rem', color: '#a8a29e' }}>
+            <AddRoundedIcon sx={{ fontSize: 20, color: '#94a3b8' }} />
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.625rem', color: '#94a3b8' }}>
               Right slot
             </Typography>
           </Box>
@@ -550,13 +588,17 @@ export const ScanDevicePage: FC = () => {
         onClick={() => navigate('/assess')}
         sx={{
           py: 1.6,
-          backgroundColor: '#4f5f4b',
+          backgroundColor: '#0f172a',
           color: '#ffffff',
           fontWeight: 700,
           fontSize: '0.9375rem',
           display: 'flex',
           gap: 1,
           mb: 2,
+          boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
+          '&:hover': {
+            backgroundColor: '#1e293b',
+          },
         }}
       >
         Next: add details

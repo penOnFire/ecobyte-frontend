@@ -53,44 +53,58 @@ export const DropOffFinderPage: FC = () => {
   const [activeFilter, setActiveFilter] = useState('All Sites (3)')
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5 }}>
       {/* ── Header ── */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <Box>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1.5rem', color: '#292524' }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1.625rem', color: '#0f172a' }}>
             Drop-off Finder
           </Typography>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.8125rem', color: '#78716c', mt: 0.25 }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.8125rem', color: '#64748b', mt: 0.25 }}>
             Find accredited e-waste sites
           </Typography>
         </Box>
-        <StatusBadge label="GPS Active" variant="live" size="sm" />
+        <StatusBadge label="GPS Active" variant="electric" size="sm" />
       </Box>
 
       {/* ── Location Bar ── */}
       <Box
         sx={{
           backgroundColor: '#ffffff',
-          borderRadius: 3.5,
+          borderRadius: 3,
           p: 1.5,
-          border: '1px solid #ede8e1',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <MyLocationRoundedIcon sx={{ color: '#4f5f4b', fontSize: 20 }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+          <Box
+            sx={{
+              width: 34,
+              height: 34,
+              borderRadius: '50%',
+              backgroundColor: '#0f172a',
+              color: '#abf06b',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <MyLocationRoundedIcon sx={{ fontSize: 18 }} />
+          </Box>
           <Box>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#78716c', fontWeight: 600, display: 'block' }}>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 600, display: 'block' }}>
               Searching near:
             </Typography>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#292524' }}>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
               Pasig &amp; Makati Area
             </Typography>
           </Box>
         </Box>
-        <Button size="small" sx={{ color: '#4f5f4b', fontWeight: 700, fontSize: '0.75rem' }}>
+        <Button size="small" sx={{ color: '#0f172a', fontWeight: 700, fontSize: '0.75rem' }}>
           Change
         </Button>
       </Box>
@@ -99,15 +113,16 @@ export const DropOffFinderPage: FC = () => {
       <Card
         sx={{
           height: 200,
-          borderRadius: 4,
-          backgroundColor: '#e2eae0',
-          border: '1.5px solid #c8d8c5',
+          borderRadius: 3.5,
+          backgroundColor: '#0f172a',
+          border: '1px solid #1e293b',
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
           p: 1.75,
           overflow: 'hidden',
+          boxShadow: '0 2px 8px rgba(15,23,42,0.15)',
         }}
       >
         <Box
@@ -120,6 +135,7 @@ export const DropOffFinderPage: FC = () => {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
+            opacity: 0.85,
           }}
         />
 
@@ -127,7 +143,13 @@ export const DropOffFinderPage: FC = () => {
           <Chip
             size="small"
             label="2 Active Hubs in Metro"
-            sx={{ backgroundColor: 'rgba(255,255,255,0.95)', color: '#4f5f4b', fontWeight: 700, fontSize: '0.6875rem' }}
+            sx={{
+              backgroundColor: 'rgba(15, 23, 42, 0.9)',
+              color: '#abf06b',
+              fontWeight: 700,
+              fontSize: '0.6875rem',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+            }}
           />
         </Box>
 
@@ -143,15 +165,16 @@ export const DropOffFinderPage: FC = () => {
         >
           <Box
             sx={{
-              backgroundColor: '#4f5f4b',
-              color: '#ffffff',
-              px: 1.5,
+              backgroundColor: '#0f172a',
+              color: '#abf06b',
+              border: '1px solid #334155',
+              px: 1.75,
               py: 0.6,
               borderRadius: 9999,
               display: 'flex',
               alignItems: 'center',
               gap: 0.75,
-              boxShadow: '0 4px 12px rgba(79,95,75,0.3)',
+              boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
             }}
           >
             <LocationOnOutlinedIcon sx={{ fontSize: 16 }} />
@@ -162,21 +185,33 @@ export const DropOffFinderPage: FC = () => {
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1, position: 'relative' }}>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#384735', fontWeight: 700, backgroundColor: 'rgba(255,255,255,0.85)', px: 0.75, py: 0.25, borderRadius: 1.5 }}>
+          <Typography
+            sx={{
+              fontFamily: "'Quicksand', sans-serif",
+              fontSize: '0.6875rem',
+              color: '#ffffff',
+              fontWeight: 700,
+              backgroundColor: 'rgba(15, 23, 42, 0.85)',
+              px: 1,
+              py: 0.35,
+              borderRadius: 1.5,
+              backdropFilter: 'blur(4px)',
+            }}
+          >
             Tap pin to view intake hours
           </Typography>
           <Button
             size="small"
-            onClick={() => navigate('/dropoff-schedule')}
+            onClick={() => navigate('/schedule-dropoff')}
             sx={{
-              backgroundColor: '#4f5f4b',
-              color: '#ffffff',
+              backgroundColor: '#abf06b',
+              color: '#0f172a',
               fontSize: '0.6875rem',
-              fontWeight: 700,
+              fontWeight: 800,
               borderRadius: 9999,
-              px: 1.25,
-              py: 0.35,
-              '&:hover': { backgroundColor: '#384735' },
+              px: 1.5,
+              py: 0.5,
+              '&:hover': { backgroundColor: '#bef264' },
             }}
           >
             Schedule Intake
@@ -186,75 +221,87 @@ export const DropOffFinderPage: FC = () => {
 
       {/* ── Filter Chips ── */}
       <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', py: 0.25 }}>
-        {FILTERS.map((filter) => (
-          <Chip
-            key={filter}
-            label={filter}
-            onClick={() => setActiveFilter(filter)}
-            sx={{
-              fontWeight: 700,
-              fontSize: '0.8125rem',
-              backgroundColor: activeFilter === filter ? '#4f5f4b' : '#ffffff',
-              color: activeFilter === filter ? '#ffffff' : '#78716c',
-              border: activeFilter === filter ? 'none' : '1px solid #ede8e1',
-              cursor: 'pointer',
-            }}
-          />
-        ))}
+        {FILTERS.map((filter) => {
+          const isSel = activeFilter === filter
+          return (
+            <Chip
+              key={filter}
+              label={filter}
+              onClick={() => setActiveFilter(filter)}
+              sx={{
+                fontWeight: 700,
+                fontSize: '0.8125rem',
+                backgroundColor: isSel ? '#0f172a' : '#ffffff',
+                color: isSel ? '#ffffff' : '#0f172a',
+                border: isSel ? '1px solid #0f172a' : '1px solid #e2e8f0',
+                cursor: 'pointer',
+                boxShadow: isSel ? '0 1px 3px rgba(15,23,42,0.15)' : 'none',
+                '&:hover': {
+                  backgroundColor: isSel ? '#1e293b' : '#f8fafc',
+                },
+              }}
+            />
+          )
+        })}
       </Box>
 
       {/* ── Sites List ── */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#292524' }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
             Accredited Drop Sites
           </Typography>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78716c' }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
             3 Locations Found
           </Typography>
         </Box>
 
         {DROP_SITES.map((site) => (
-          <Card key={site.id} sx={{ p: 2, borderRadius: 4, border: '1px solid #ede8e1' }}>
+          <Card key={site.id} sx={{ p: 2, borderRadius: 3.5, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <Box>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#292524' }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#0f172a' }}>
                   {site.name}
                 </Typography>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78716c', mt: 0.25 }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
                   {site.address}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
-                  <AccessTimeRoundedIcon sx={{ fontSize: 14, color: '#78716c' }} />
-                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78716c' }}>
+                  <AccessTimeRoundedIcon sx={{ fontSize: 14, color: '#64748b' }} />
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
                     {site.hours}
                   </Typography>
                 </Box>
               </Box>
               <Box sx={{ textAlign: 'right' }}>
-                <StatusBadge label={site.status} variant="available" size="sm" />
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", color: '#4f5f4b', fontWeight: 700, fontSize: '0.8125rem', mt: 0.75 }}>
+                <StatusBadge label={site.status} variant="electric" size="sm" />
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", color: '#0f172a', fontWeight: 800, fontSize: '0.8125rem', mt: 0.75 }}>
                   {site.distance}
                 </Typography>
               </Box>
             </Box>
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.75, pt: 1.25, borderTop: '1px solid #f4ede4' }}>
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78716c', fontWeight: 600 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.75, pt: 1.25, borderTop: '1px solid #f1f5f9' }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
                 {site.type}
               </Typography>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button
                   variant="outlined"
                   size="small"
-                  onClick={() => navigate('/dropoff-schedule')}
+                  onClick={() => navigate('/schedule-dropoff')}
                   startIcon={<CalendarMonthRoundedIcon sx={{ fontSize: 16 }} />}
                   sx={{
-                    borderColor: '#ede8e1',
-                    color: '#292524',
+                    borderColor: '#e2e8f0',
+                    color: '#0f172a',
+                    backgroundColor: '#ffffff',
                     fontSize: '0.75rem',
                     py: 0.5,
                     px: 1.5,
+                    '&:hover': {
+                      backgroundColor: '#f8fafc',
+                      borderColor: '#cbd5e1',
+                    },
                   }}
                 >
                   Schedule
@@ -264,11 +311,13 @@ export const DropOffFinderPage: FC = () => {
                   size="small"
                   startIcon={<NavigationRoundedIcon sx={{ fontSize: 16 }} />}
                   sx={{
-                    backgroundColor: '#4f5f4b',
+                    backgroundColor: '#0f172a',
                     color: '#ffffff',
                     fontSize: '0.75rem',
                     py: 0.5,
                     px: 1.5,
+                    boxShadow: '0 1px 3px rgba(15,23,42,0.15)',
+                    '&:hover': { backgroundColor: '#1e293b' },
                   }}
                 >
                   Directions

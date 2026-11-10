@@ -4,13 +4,14 @@ import {
   Box,
   Button,
   Card,
+  IconButton,
   LinearProgress,
   Typography,
 } from '@mui/material'
 import QrCode2RoundedIcon from '@mui/icons-material/QrCode2Rounded'
 import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined'
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded'
-import ArrowBackIosNewRoundedIcon from '@mui/icons-material/ArrowBackIosNewRounded'
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded'
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined'
 import { useNavigate } from 'react-router-dom'
@@ -27,30 +28,30 @@ export const MyRequestsPage: FC = () => {
       {/* Top Bar Navigation */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box
+          <IconButton
+            size="small"
             onClick={() => navigate('/')}
+            aria-label="Back"
             sx={{
-              width: 36,
-              height: 36,
-              borderRadius: 2.5,
+              width: 38,
+              height: 38,
+              borderRadius: '50%',
               backgroundColor: '#ffffff',
-              border: '1px solid #ede8e1',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              color: '#4f5f4b',
+              border: '1px solid #e2e8f0',
+              color: '#0f172a',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              '&:hover': { backgroundColor: '#f8fafc' },
             }}
           >
-            <ArrowBackIosNewRoundedIcon sx={{ fontSize: 16, ml: 0.5 }} />
-          </Box>
+            <ArrowBackRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
           <Box>
             <Typography
               sx={{
                 fontFamily: "'Quicksand', sans-serif",
                 fontSize: '1.25rem',
-                fontWeight: 700,
-                color: '#4f5f4b',
+                fontWeight: 800,
+                color: '#0f172a',
                 lineHeight: 1.2,
               }}
             >
@@ -60,7 +61,7 @@ export const MyRequestsPage: FC = () => {
               sx={{
                 fontFamily: "'Quicksand', sans-serif",
                 fontSize: '0.6875rem',
-                color: '#78716c',
+                color: '#64748b',
                 fontWeight: 600,
               }}
             >
@@ -69,22 +70,22 @@ export const MyRequestsPage: FC = () => {
           </Box>
         </Box>
 
-        <Box
+        <IconButton
+          size="small"
+          aria-label="Filter"
           sx={{
-            width: 36,
-            height: 36,
-            borderRadius: 2.5,
+            width: 38,
+            height: 38,
+            borderRadius: '50%',
             backgroundColor: '#ffffff',
-            border: '1px solid #ede8e1',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            color: '#4f5f4b',
+            border: '1px solid #e2e8f0',
+            color: '#0f172a',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            '&:hover': { backgroundColor: '#f8fafc' },
           }}
         >
           <TuneRoundedIcon sx={{ fontSize: 18 }} />
-        </Box>
+        </IconButton>
       </Box>
 
       {/* Segmented Pill Tabs */}
@@ -93,23 +94,25 @@ export const MyRequestsPage: FC = () => {
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
           p: 0.5,
-          backgroundColor: '#ebe6df',
+          backgroundColor: '#f1f5f9',
           borderRadius: 9999,
+          border: '1px solid #e2e8f0',
         }}
       >
         <Box
           onClick={() => setActiveTab('ongoing')}
           sx={{
-            py: 0.75,
+            py: 0.85,
             textAlign: 'center',
             borderRadius: 9999,
-            backgroundColor: activeTab === 'ongoing' ? '#4f5f4b' : 'transparent',
-            color: activeTab === 'ongoing' ? '#ffffff' : '#78716c',
+            backgroundColor: activeTab === 'ongoing' ? '#0f172a' : 'transparent',
+            color: activeTab === 'ongoing' ? '#ffffff' : '#64748b',
             fontWeight: 700,
             fontSize: '0.8125rem',
             fontFamily: "'Quicksand', sans-serif",
             cursor: 'pointer',
             transition: 'all 0.15s ease',
+            boxShadow: activeTab === 'ongoing' ? '0 1px 3px rgba(15,23,42,0.15)' : 'none',
           }}
         >
           Ongoing (2)
@@ -117,16 +120,17 @@ export const MyRequestsPage: FC = () => {
         <Box
           onClick={() => setActiveTab('completed')}
           sx={{
-            py: 0.75,
+            py: 0.85,
             textAlign: 'center',
             borderRadius: 9999,
-            backgroundColor: activeTab === 'completed' ? '#4f5f4b' : 'transparent',
-            color: activeTab === 'completed' ? '#ffffff' : '#78716c',
+            backgroundColor: activeTab === 'completed' ? '#0f172a' : 'transparent',
+            color: activeTab === 'completed' ? '#ffffff' : '#64748b',
             fontWeight: 700,
             fontSize: '0.8125rem',
             fontFamily: "'Quicksand', sans-serif",
             cursor: 'pointer',
             transition: 'all 0.15s ease',
+            boxShadow: activeTab === 'completed' ? '0 1px 3px rgba(15,23,42,0.15)' : 'none',
           }}
         >
           Completed
@@ -141,23 +145,23 @@ export const MyRequestsPage: FC = () => {
               <Typography
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
-                  fontWeight: 700,
+                  fontWeight: 800,
                   fontSize: '1rem',
-                  color: '#292524',
+                  color: '#0f172a',
                 }}
               >
                 Reservations
               </Typography>
-              <StatusBadge label="1 Active" variant="available" size="sm" />
+              <StatusBadge label="1 Active" variant="electric" size="sm" />
             </Box>
 
             <Card
               sx={{
                 p: 2,
-                borderRadius: 4,
+                borderRadius: 3.5,
                 backgroundColor: '#ffffff',
-                border: '1px solid #ede8e1',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
               }}
             >
               <Box sx={{ display: 'flex', gap: 1.75, alignItems: 'flex-start' }}>
@@ -166,9 +170,10 @@ export const MyRequestsPage: FC = () => {
                   sx={{
                     width: 64,
                     height: 64,
-                    borderRadius: 3,
+                    borderRadius: 2.5,
                     overflow: 'hidden',
-                    backgroundColor: '#f4ede4',
+                    backgroundColor: '#f1f5f9',
+                    border: '1px solid #e2e8f0',
                     flexShrink: 0,
                   }}
                 >
@@ -186,20 +191,19 @@ export const MyRequestsPage: FC = () => {
                     <Typography
                       sx={{
                         fontFamily: "'Quicksand', sans-serif",
-                        fontWeight: 700,
+                        fontWeight: 800,
                         fontSize: '1rem',
-                        color: '#292524',
+                        color: '#0f172a',
                       }}
                     >
                       Keychron K2 V2
                     </Typography>
                     <Box
                       sx={{
-                        backgroundColor: '#e8f0e6',
+                        backgroundColor: '#0f172a',
                         px: 1,
                         py: 0.3,
                         borderRadius: 9999,
-                        border: '1px solid #c8d8c5',
                       }}
                     >
                       <Typography
@@ -207,7 +211,7 @@ export const MyRequestsPage: FC = () => {
                           fontFamily: "'Quicksand', sans-serif",
                           fontWeight: 700,
                           fontSize: '0.6875rem',
-                          color: '#4f5f4b',
+                          color: '#abf06b',
                         }}
                       >
                         Code: ECO-4821
@@ -219,10 +223,10 @@ export const MyRequestsPage: FC = () => {
                     sx={{
                       fontFamily: "'Quicksand', sans-serif",
                       fontSize: '0.75rem',
-                      color: '#78716c',
+                      color: '#64748b',
                       fontWeight: 500,
                       mt: 0.5,
-                      lineHeight: 1.4,
+                      lineHeight: 1.45,
                     }}
                   >
                     Held for 2 days · Pick up by Fri, Oct 23
@@ -233,44 +237,45 @@ export const MyRequestsPage: FC = () => {
               </Box>
 
               {/* Action Buttons */}
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mt: 2, pt: 1.5, borderTop: '1px solid #ede8e1' }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mt: 2, pt: 1.5, borderTop: '1px solid #f1f5f9' }}>
                 <Button
                   variant="outlined"
                   size="small"
                   startIcon={<QrCode2RoundedIcon sx={{ fontSize: 18 }} />}
                   onClick={() => navigate('/reservation-code')}
                   sx={{
-                    borderColor: '#4f5f4b',
-                    color: '#4f5f4b',
+                    borderColor: '#e2e8f0',
+                    color: '#0f172a',
                     fontWeight: 700,
                     fontSize: '0.75rem',
                     borderRadius: 9999,
                     py: 0.8,
                     '&:hover': {
-                      backgroundColor: 'rgba(79,95,75,0.06)',
-                      borderColor: '#4f5f4b',
+                      backgroundColor: '#f8fafc',
+                      borderColor: '#cbd5e1',
                     },
                   }}
                 >
-                  View Code (ECO-4821)
+                  View Code
                 </Button>
 
                 <Button
                   variant="contained"
                   size="small"
-                  startIcon={<FileUploadOutlinedIcon sx={{ fontSize: 18 }} />}
+                  startIcon={<FileUploadOutlinedIcon sx={{ fontSize: 18, color: '#abf06b' }} />}
                   onClick={() => navigate('/proof-of-claim')}
                   sx={{
-                    backgroundColor: '#4f5f4b',
+                    backgroundColor: '#0f172a',
                     color: '#ffffff',
                     fontWeight: 700,
                     fontSize: '0.75rem',
                     borderRadius: 9999,
                     py: 0.8,
-                    '&:hover': { backgroundColor: '#384735' },
+                    boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
+                    '&:hover': { backgroundColor: '#1e293b' },
                   }}
                 >
-                  Upload Proof of Claim
+                  Upload Proof
                 </Button>
               </Box>
             </Card>
@@ -281,9 +286,9 @@ export const MyRequestsPage: FC = () => {
             <Typography
               sx={{
                 fontFamily: "'Quicksand', sans-serif",
-                fontWeight: 700,
+                fontWeight: 800,
                 fontSize: '1rem',
-                color: '#292524',
+                color: '#0f172a',
               }}
             >
               Ongoing Drop-offs
@@ -293,22 +298,24 @@ export const MyRequestsPage: FC = () => {
             <Card
               sx={{
                 p: 2,
-                borderRadius: 4,
-                border: '1px solid #ede8e1',
+                borderRadius: 3.5,
+                border: '1px solid #e2e8f0',
                 backgroundColor: '#ffffff',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
                 cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                '&:hover': { borderColor: '#0f172a' },
               }}
-              onClick={() => navigate('/dropoff-schedule')}
+              onClick={() => navigate('/schedule-dropoff')}
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
                 <Box>
                   <Typography
                     sx={{
                       fontFamily: "'Quicksand', sans-serif",
-                      fontWeight: 700,
+                      fontWeight: 800,
                       fontSize: '0.9375rem',
-                      color: '#292524',
+                      color: '#0f172a',
                     }}
                   >
                     Request #2041
@@ -317,7 +324,7 @@ export const MyRequestsPage: FC = () => {
                     sx={{
                       fontFamily: "'Quicksand', sans-serif",
                       fontSize: '0.75rem',
-                      color: '#78716c',
+                      color: '#64748b',
                       fontWeight: 500,
                       mt: 0.25,
                     }}
@@ -325,7 +332,7 @@ export const MyRequestsPage: FC = () => {
                     MacBook Pro 13″ · San Antonio Hub
                   </Typography>
                 </Box>
-                <StatusBadge label="Scheduled" variant="active" size="sm" />
+                <StatusBadge label="Scheduled" variant="electric" size="sm" />
               </Box>
 
               <Box sx={{ my: 1.5 }}>
@@ -334,7 +341,7 @@ export const MyRequestsPage: FC = () => {
                     sx={{
                       fontFamily: "'Quicksand', sans-serif",
                       fontSize: '0.75rem',
-                      color: '#4f5f4b',
+                      color: '#0f172a',
                       fontWeight: 700,
                     }}
                   >
@@ -344,7 +351,7 @@ export const MyRequestsPage: FC = () => {
                     sx={{
                       fontFamily: "'Quicksand', sans-serif",
                       fontSize: '0.75rem',
-                      color: '#4f5f4b',
+                      color: '#0f172a',
                       fontWeight: 700,
                     }}
                   >
@@ -357,19 +364,19 @@ export const MyRequestsPage: FC = () => {
                   sx={{
                     height: 6,
                     borderRadius: 9999,
-                    backgroundColor: '#e8f0e6',
-                    '& .MuiLinearProgress-bar': { backgroundColor: '#4f5f4b' },
+                    backgroundColor: '#e2e8f0',
+                    '& .MuiLinearProgress-bar': { backgroundColor: '#0f172a' },
                   }}
                 />
               </Box>
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 1 }}>
-                <CalendarTodayOutlinedIcon sx={{ fontSize: 14, color: '#78716c' }} />
+                <CalendarTodayOutlinedIcon sx={{ fontSize: 14, color: '#64748b' }} />
                 <Typography
                   sx={{
                     fontFamily: "'Quicksand', sans-serif",
                     fontSize: '0.6875rem',
-                    color: '#78716c',
+                    color: '#64748b',
                     fontWeight: 500,
                   }}
                 >
@@ -382,11 +389,13 @@ export const MyRequestsPage: FC = () => {
             <Card
               sx={{
                 p: 2,
-                borderRadius: 4,
-                border: '1px solid #ede8e1',
+                borderRadius: 3.5,
+                border: '1px solid #e2e8f0',
                 backgroundColor: '#ffffff',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
                 cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                '&:hover': { borderColor: '#0f172a' },
               }}
               onClick={() => navigate('/assess')}
             >
@@ -395,9 +404,9 @@ export const MyRequestsPage: FC = () => {
                   <Typography
                     sx={{
                       fontFamily: "'Quicksand', sans-serif",
-                      fontWeight: 700,
+                      fontWeight: 800,
                       fontSize: '0.9375rem',
-                      color: '#292524',
+                      color: '#0f172a',
                     }}
                   >
                     Request #2042
@@ -406,7 +415,7 @@ export const MyRequestsPage: FC = () => {
                     sx={{
                       fontFamily: "'Quicksand', sans-serif",
                       fontSize: '0.75rem',
-                      color: '#78716c',
+                      color: '#64748b',
                       fontWeight: 500,
                       mt: 0.25,
                     }}
@@ -414,7 +423,7 @@ export const MyRequestsPage: FC = () => {
                     Galaxy A52 · Bel-Air Drop Site
                   </Typography>
                 </Box>
-                <StatusBadge label="Under review" variant="pending" size="sm" />
+                <StatusBadge label="Under review" variant="hazard" size="sm" />
               </Box>
 
               <Box sx={{ my: 1.5 }}>
@@ -423,7 +432,7 @@ export const MyRequestsPage: FC = () => {
                     sx={{
                       fontFamily: "'Quicksand', sans-serif",
                       fontSize: '0.75rem',
-                      color: '#d97706',
+                      color: '#b45309',
                       fontWeight: 700,
                     }}
                   >
@@ -433,7 +442,7 @@ export const MyRequestsPage: FC = () => {
                     sx={{
                       fontFamily: "'Quicksand', sans-serif",
                       fontSize: '0.75rem',
-                      color: '#78716c',
+                      color: '#64748b',
                       fontWeight: 700,
                     }}
                   >
@@ -447,18 +456,18 @@ export const MyRequestsPage: FC = () => {
                     height: 6,
                     borderRadius: 9999,
                     backgroundColor: '#fef3c7',
-                    '& .MuiLinearProgress-bar': { backgroundColor: '#d97706' },
+                    '& .MuiLinearProgress-bar': { backgroundColor: '#f59e0b' },
                   }}
                 />
               </Box>
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 1 }}>
-                <CalendarTodayOutlinedIcon sx={{ fontSize: 14, color: '#78716c' }} />
+                <CalendarTodayOutlinedIcon sx={{ fontSize: 14, color: '#64748b' }} />
                 <Typography
                   sx={{
                     fontFamily: "'Quicksand', sans-serif",
                     fontSize: '0.6875rem',
-                    color: '#78716c',
+                    color: '#64748b',
                     fontWeight: 500,
                   }}
                 >
@@ -470,14 +479,14 @@ export const MyRequestsPage: FC = () => {
         </>
       ) : (
         /* Completed State */
-        <Box sx={{ textAlign: 'center', py: 6, color: '#78716c' }}>
-          <CheckCircleOutlineRoundedIcon sx={{ fontSize: 48, color: '#4f5f4b', mb: 1.5 }} />
+        <Box sx={{ textAlign: 'center', py: 6, color: '#64748b' }}>
+          <CheckCircleOutlineRoundedIcon sx={{ fontSize: 48, color: '#0f172a', mb: 1.5 }} />
           <Typography
             sx={{
               fontFamily: "'Quicksand', sans-serif",
-              fontWeight: 700,
+              fontWeight: 800,
               fontSize: '1rem',
-              color: '#292524',
+              color: '#0f172a',
             }}
           >
             No completed requests yet
@@ -486,7 +495,7 @@ export const MyRequestsPage: FC = () => {
             sx={{
               fontFamily: "'Quicksand', sans-serif",
               fontSize: '0.8125rem',
-              color: '#78716c',
+              color: '#64748b',
               mt: 0.5,
               maxWidth: 260,
               mx: 'auto',

@@ -41,7 +41,7 @@ export const SignInPage: FC = () => {
     <Box
       sx={{
         minHeight: '100dvh',
-        backgroundColor: '#fff8f0',
+        backgroundColor: '#faf8f5',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -52,7 +52,7 @@ export const SignInPage: FC = () => {
     >
       <Container maxWidth="xs" disableGutters>
         {/* Brand */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3.5 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
           <Box
             component="img"
             src={ecobyteLogo}
@@ -62,16 +62,16 @@ export const SignInPage: FC = () => {
               height: 58,
               borderRadius: 3.5,
               mb: 1.5,
-              boxShadow: '0 6px 20px rgba(79,95,75,0.25)',
+              boxShadow: '0 4px 16px rgba(15,23,42,0.12)',
             }}
           />
           <Typography
             sx={{
               fontFamily: "'Quicksand', sans-serif",
               fontWeight: 700,
-              fontSize: '1.75rem',
-              color: '#292524',
-              lineHeight: 1,
+              fontSize: '1.875rem',
+              color: '#0f172a',
+              lineHeight: 1.1,
             }}
           >
             EcoByte
@@ -80,44 +80,58 @@ export const SignInPage: FC = () => {
             sx={{
               fontFamily: "'Quicksand', sans-serif",
               fontWeight: 500,
-              fontSize: '0.875rem',
-              color: '#78716c',
+              fontSize: '0.6875rem',
+              color: '#64748b',
               mt: 0.5,
+              letterSpacing: '0.02em',
+              textTransform: 'uppercase',
             }}
           >
             Circular Electronics &amp; E-Waste Lifecycle
           </Typography>
         </Box>
 
-        {/* Main card */}
-        <Card sx={{ px: 3, pt: 2.5, pb: 3, borderRadius: 5, border: '1px solid #ede8e1' }}>
-          {/* Toggle pill: Sign In / Register */}
+        {/* Main Card (Shadcn aesthetic) */}
+        <Card
+          sx={{
+            px: 3,
+            pt: 2.5,
+            pb: 3,
+            borderRadius: 4,
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
+            backgroundColor: '#ffffff',
+          }}
+        >
+          {/* Segmented Toggle Pill: Sign In / Register */}
           <Box
             sx={{
               display: 'flex',
-              backgroundColor: '#f4ede4',
+              backgroundColor: '#f1f5f9',
               borderRadius: 9999,
               p: '4px',
               mb: 3,
+              border: '1px solid #e2e8f0',
             }}
           >
             <Box
               sx={{
                 flex: 1,
-                py: 1.1,
+                py: 1,
                 borderRadius: 9999,
-                backgroundColor: '#4f5f4b',
+                backgroundColor: '#0f172a',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'default',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
               }}
             >
               <Typography
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 700,
-                  fontSize: '0.875rem',
+                  fontSize: '0.8125rem',
                   color: '#ffffff',
                 }}
               >
@@ -128,20 +142,22 @@ export const SignInPage: FC = () => {
               onClick={() => navigate('/register')}
               sx={{
                 flex: 1,
-                py: 1.1,
+                py: 1,
                 borderRadius: 9999,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                '&:hover': { color: '#0f172a' },
               }}
             >
               <Typography
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 600,
-                  fontSize: '0.875rem',
-                  color: '#57534e',
+                  fontSize: '0.8125rem',
+                  color: '#64748b',
                 }}
               >
                 Register
@@ -154,7 +170,7 @@ export const SignInPage: FC = () => {
               fontFamily: "'Quicksand', sans-serif",
               fontWeight: 700,
               fontSize: '1.25rem',
-              color: '#292524',
+              color: '#0f172a',
             }}
           >
             Welcome back
@@ -163,25 +179,25 @@ export const SignInPage: FC = () => {
             sx={{
               fontFamily: "'Quicksand', sans-serif",
               fontWeight: 500,
-              fontSize: '0.875rem',
-              color: '#78716c',
-              mt: 0.3,
+              fontSize: '0.8125rem',
+              color: '#64748b',
+              mt: 0.25,
               mb: 2.5,
             }}
           >
             Sign in to your circular tech account.
           </Typography>
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
+          <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {/* Email */}
             <Box>
               <Typography
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 700,
-                  fontSize: '0.6875rem',
-                  letterSpacing: '0.07em',
-                  color: '#78716c',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.06em',
+                  color: '#64748b',
                   textTransform: 'uppercase',
                   mb: 0.75,
                 }}
@@ -196,9 +212,10 @@ export const SignInPage: FC = () => {
                 placeholder="alex@example.com"
                 startAdornment={
                   <InputAdornment position="start">
-                    <MailOutlineRoundedIcon sx={{ color: '#a8a29e', fontSize: 20 }} />
+                    <MailOutlineRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
                   </InputAdornment>
                 }
+                sx={{ borderRadius: 3 }}
               />
             </Box>
 
@@ -208,9 +225,9 @@ export const SignInPage: FC = () => {
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 700,
-                  fontSize: '0.6875rem',
-                  letterSpacing: '0.07em',
-                  color: '#78716c',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.06em',
+                  color: '#64748b',
                   textTransform: 'uppercase',
                   mb: 0.75,
                 }}
@@ -224,7 +241,7 @@ export const SignInPage: FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 startAdornment={
                   <InputAdornment position="start">
-                    <LockOutlinedIcon sx={{ color: '#a8a29e', fontSize: 20 }} />
+                    <LockOutlinedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
                   </InputAdornment>
                 }
                 endAdornment={
@@ -234,28 +251,29 @@ export const SignInPage: FC = () => {
                       onClick={() => setShowPassword(!showPassword)}
                       aria-label="toggle password visibility"
                       edge="end"
-                      sx={{ color: '#a8a29e' }}
+                      sx={{ color: '#94a3b8' }}
                     >
                       {showPassword ? (
-                        <VisibilityOffOutlinedIcon sx={{ fontSize: 20 }} />
+                        <VisibilityOffOutlinedIcon sx={{ fontSize: 18 }} />
                       ) : (
-                        <VisibilityOutlinedIcon sx={{ fontSize: 20 }} />
+                        <VisibilityOutlinedIcon sx={{ fontSize: 18 }} />
                       )}
                     </IconButton>
                   </InputAdornment>
                 }
+                sx={{ borderRadius: 3 }}
               />
             </Box>
 
             {/* Remember me + Forgot */}
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: -0.5 }}>
               <FormControlLabel
                 control={
                   <Checkbox
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
                     size="small"
-                    sx={{ p: 0.5 }}
+                    sx={{ p: 0.5, color: '#cbd5e1', '&.Mui-checked': { color: '#0f172a' } }}
                   />
                 }
                 label={
@@ -263,8 +281,8 @@ export const SignInPage: FC = () => {
                     sx={{
                       fontFamily: "'Quicksand', sans-serif",
                       fontWeight: 600,
-                      fontSize: '0.875rem',
-                      color: '#292524',
+                      fontSize: '0.8125rem',
+                      color: '#0f172a',
                     }}
                   >
                     Remember me
@@ -277,8 +295,8 @@ export const SignInPage: FC = () => {
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 700,
-                  fontSize: '0.875rem',
-                  color: '#292524',
+                  fontSize: '0.8125rem',
+                  color: '#0f172a',
                   '&:hover': { textDecoration: 'underline' },
                 }}
               >
@@ -294,15 +312,17 @@ export const SignInPage: FC = () => {
               size="large"
               sx={{
                 mt: 0.5,
-                py: 1.6,
-                fontSize: '1rem',
+                py: 1.5,
+                fontSize: '0.9375rem',
                 display: 'flex',
                 gap: 1,
-                backgroundColor: '#4f5f4b',
+                backgroundColor: '#0f172a',
+                color: '#ffffff',
+                '&:hover': { backgroundColor: '#1e293b' },
               }}
             >
               Sign In
-              <ArrowForwardRoundedIcon sx={{ fontSize: 20 }} />
+              <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
             </Button>
           </Box>
 
@@ -314,7 +334,7 @@ export const SignInPage: FC = () => {
                 fontWeight: 700,
                 fontSize: '0.6875rem',
                 letterSpacing: '0.07em',
-                color: '#a8a29e',
+                color: '#94a3b8',
                 textTransform: 'uppercase',
               }}
             >
@@ -340,20 +360,20 @@ export const SignInPage: FC = () => {
                   </Box>
                 ),
               },
-              { label: 'Apple', icon: <AppleIcon sx={{ fontSize: 22, color: '#1c252e' }} /> },
-              { label: 'SSO', icon: <BadgeOutlinedIcon sx={{ fontSize: 20, color: '#57534e' }} /> },
+              { label: 'Apple', icon: <AppleIcon sx={{ fontSize: 20, color: '#0f172a' }} /> },
+              { label: 'SSO', icon: <BadgeOutlinedIcon sx={{ fontSize: 20, color: '#64748b' }} /> },
             ].map(({ label, icon }) => (
               <Button
                 key={label}
                 variant="outlined"
                 aria-label={label}
                 sx={{
-                  py: 1.4,
-                  borderRadius: 3.5,
-                  borderColor: '#ede8e1',
+                  py: 1.25,
+                  borderRadius: 3,
+                  borderColor: '#e2e8f0',
                   backgroundColor: '#ffffff',
                   minWidth: 0,
-                  '&:hover': { borderColor: '#78957a', backgroundColor: '#f9f7f4' },
+                  '&:hover': { borderColor: '#cbd5e1', backgroundColor: '#f8fafc' },
                 }}
               >
                 {icon}
@@ -369,7 +389,7 @@ export const SignInPage: FC = () => {
               fontFamily: "'Quicksand', sans-serif",
               fontWeight: 500,
               fontSize: '0.875rem',
-              color: '#78716c',
+              color: '#64748b',
             }}
           >
             Don&apos;t have an account?{' '}
@@ -377,7 +397,7 @@ export const SignInPage: FC = () => {
               onClick={() => navigate('/register')}
               sx={{
                 fontWeight: 700,
-                color: '#292524',
+                color: '#0f172a',
                 cursor: 'pointer',
                 textDecoration: 'none',
                 '&:hover': { textDecoration: 'underline' },
@@ -395,8 +415,8 @@ export const SignInPage: FC = () => {
             alignItems: 'center',
             justifyContent: 'center',
             gap: 0.75,
-            mt: 4,
-            color: '#a8a29e',
+            mt: 3.5,
+            color: '#94a3b8',
           }}
         >
           <LockRoundedIcon sx={{ fontSize: 13 }} />
@@ -405,7 +425,7 @@ export const SignInPage: FC = () => {
               fontFamily: "'Quicksand', sans-serif",
               fontWeight: 600,
               fontSize: '0.75rem',
-              color: '#a8a29e',
+              color: '#94a3b8',
             }}
           >
             Protected with end-to-end encryption •{' '}

@@ -32,7 +32,7 @@ export const RegisterPage: FC = () => {
   const navigate = useNavigate()
   const [fullName, setFullName] = useState('Alex Mercer')
   const [email, setEmail] = useState('alex@example.com')
-  const [barangay, setBarangay] = useState('san-antonio')
+  const [baseNumber, setBaseNumber] = useState('san-antonio-base')
   const [phone, setPhone] = useState('+63 912 345 6789')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -48,7 +48,7 @@ export const RegisterPage: FC = () => {
     <Box
       sx={{
         minHeight: '100dvh',
-        backgroundColor: '#fff8f0',
+        backgroundColor: '#faf8f5',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -65,20 +65,20 @@ export const RegisterPage: FC = () => {
             src={ecobyteLogo}
             alt="EcoByte"
             sx={{
-              width: 56,
-              height: 56,
+              width: 58,
+              height: 58,
               borderRadius: 3.5,
               mb: 1.5,
-              boxShadow: '0 6px 20px rgba(79,95,75,0.25)',
+              boxShadow: '0 4px 16px rgba(15,23,42,0.12)',
             }}
           />
           <Typography
             sx={{
               fontFamily: "'Quicksand', sans-serif",
               fontWeight: 700,
-              fontSize: '1.75rem',
-              color: '#292524',
-              lineHeight: 1,
+              fontSize: '1.875rem',
+              color: '#0f172a',
+              lineHeight: 1.1,
             }}
           >
             EcoByte
@@ -87,9 +87,11 @@ export const RegisterPage: FC = () => {
             sx={{
               fontFamily: "'Quicksand', sans-serif",
               fontWeight: 500,
-              fontSize: '0.875rem',
-              color: '#78716c',
+              fontSize: '0.6875rem',
+              color: '#64748b',
               mt: 0.5,
+              letterSpacing: '0.02em',
+              textTransform: 'uppercase',
             }}
           >
             Circular Electronics &amp; E-Waste Lifecycle
@@ -97,35 +99,48 @@ export const RegisterPage: FC = () => {
         </Box>
 
         {/* Card */}
-        <Card sx={{ px: 3, pt: 2.5, pb: 3, borderRadius: 5, border: '1px solid #ede8e1' }}>
-          {/* Segmented control */}
+        <Card
+          sx={{
+            px: 3,
+            pt: 2.5,
+            pb: 3,
+            borderRadius: 4,
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
+            backgroundColor: '#ffffff',
+          }}
+        >
+          {/* Segmented Toggle */}
           <Box
             sx={{
               display: 'flex',
-              backgroundColor: '#f4ede4',
+              backgroundColor: '#f1f5f9',
               borderRadius: 9999,
               p: '4px',
               mb: 3,
+              border: '1px solid #e2e8f0',
             }}
           >
             <Box
               onClick={() => navigate('/signin')}
               sx={{
                 flex: 1,
-                py: 1.1,
+                py: 1,
                 borderRadius: 9999,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                '&:hover': { color: '#0f172a' },
               }}
             >
               <Typography
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 600,
-                  fontSize: '0.875rem',
-                  color: '#57534e',
+                  fontSize: '0.8125rem',
+                  color: '#64748b',
                 }}
               >
                 Sign In
@@ -134,20 +149,21 @@ export const RegisterPage: FC = () => {
             <Box
               sx={{
                 flex: 1,
-                py: 1.1,
+                py: 1,
                 borderRadius: 9999,
-                backgroundColor: '#4f5f4b',
+                backgroundColor: '#0f172a',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'default',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
               }}
             >
               <Typography
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 700,
-                  fontSize: '0.875rem',
+                  fontSize: '0.8125rem',
                   color: '#ffffff',
                 }}
               >
@@ -161,7 +177,7 @@ export const RegisterPage: FC = () => {
               fontFamily: "'Quicksand', sans-serif",
               fontWeight: 700,
               fontSize: '1.25rem',
-              color: '#292524',
+              color: '#0f172a',
             }}
           >
             Create account
@@ -170,9 +186,9 @@ export const RegisterPage: FC = () => {
             sx={{
               fontFamily: "'Quicksand', sans-serif",
               fontWeight: 500,
-              fontSize: '0.875rem',
-              color: '#78716c',
-              mt: 0.3,
+              fontSize: '0.8125rem',
+              color: '#64748b',
+              mt: 0.25,
               mb: 2.5,
             }}
           >
@@ -186,9 +202,9 @@ export const RegisterPage: FC = () => {
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 700,
-                  fontSize: '0.6875rem',
-                  letterSpacing: '0.07em',
-                  color: '#78716c',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.06em',
+                  color: '#64748b',
                   textTransform: 'uppercase',
                   mb: 0.75,
                 }}
@@ -202,21 +218,22 @@ export const RegisterPage: FC = () => {
                 placeholder="Alex Mercer"
                 startAdornment={
                   <InputAdornment position="start">
-                    <PersonOutlineRoundedIcon sx={{ color: '#a8a29e', fontSize: 20 }} />
+                    <PersonOutlineRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
                   </InputAdornment>
                 }
+                sx={{ borderRadius: 3 }}
               />
             </Box>
 
-            {/* Email Address */}
+            {/* Email */}
             <Box>
               <Typography
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 700,
-                  fontSize: '0.6875rem',
-                  letterSpacing: '0.07em',
-                  color: '#78716c',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.06em',
+                  color: '#64748b',
                   textTransform: 'uppercase',
                   mb: 0.75,
                 }}
@@ -231,63 +248,57 @@ export const RegisterPage: FC = () => {
                 placeholder="alex@example.com"
                 startAdornment={
                   <InputAdornment position="start">
-                    <MailOutlineRoundedIcon sx={{ color: '#a8a29e', fontSize: 20 }} />
+                    <MailOutlineRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
                   </InputAdornment>
                 }
+                sx={{ borderRadius: 3 }}
               />
             </Box>
 
-            {/* Barangay */}
+            {/* Base Number / Barangay */}
             <Box>
               <Typography
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 700,
-                  fontSize: '0.6875rem',
-                  letterSpacing: '0.07em',
-                  color: '#78716c',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.06em',
+                  color: '#64748b',
                   textTransform: 'uppercase',
                   mb: 0.75,
                 }}
               >
-                Barangay
+                Base Number
               </Typography>
               <FormControl fullWidth>
                 <Select
-                  value={barangay}
-                  onChange={(e) => setBarangay(e.target.value)}
+                  value={baseNumber}
+                  onChange={(e) => setBaseNumber(e.target.value)}
                   startAdornment={
                     <InputAdornment position="start">
-                      <LocationOnOutlinedIcon sx={{ color: '#a8a29e', fontSize: 20 }} />
+                      <LocationOnOutlinedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
                     </InputAdornment>
                   }
-                  sx={{
-                    borderRadius: 3.5,
-                    backgroundColor: '#ffffff',
-                    fontFamily: "'Quicksand', sans-serif",
-                    fontWeight: 600,
-                    fontSize: '0.875rem',
-                    '& fieldset': { borderColor: '#ddd8d0' },
-                  }}
+                  sx={{ borderRadius: 3 }}
                 >
-                  <MenuItem value="san-antonio">Barangay San Antonio</MenuItem>
-                  <MenuItem value="bel-air">Barangay Bel-Air</MenuItem>
-                  <MenuItem value="poblacion">Barangay Poblacion</MenuItem>
-                  <MenuItem value="palanan">Barangay Palanan</MenuItem>
+                  <MenuItem value="san-antonio-base">Barangay San Antonio (Pasig)</MenuItem>
+                  <MenuItem value="ortigas-base">Ortigas Center Hub (Pasig)</MenuItem>
+                  <MenuItem value="bel-air-base">Bel-Air Drop Site (Makati)</MenuItem>
+                  <MenuItem value="bgc-base">BGC Eco Station (Taguig)</MenuItem>
                 </Select>
               </FormControl>
             </Box>
 
-            {/* Contact Number (Optional) */}
+            {/* Contact Number */}
             <Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.75 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
                 <Typography
                   sx={{
                     fontFamily: "'Quicksand', sans-serif",
                     fontWeight: 700,
-                    fontSize: '0.6875rem',
-                    letterSpacing: '0.07em',
-                    color: '#78716c',
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.06em',
+                    color: '#64748b',
                     textTransform: 'uppercase',
                   }}
                 >
@@ -298,7 +309,7 @@ export const RegisterPage: FC = () => {
                     fontFamily: "'Quicksand', sans-serif",
                     fontWeight: 600,
                     fontSize: '0.6875rem',
-                    color: '#a8a29e',
+                    color: '#94a3b8',
                   }}
                 >
                   Optional
@@ -311,9 +322,10 @@ export const RegisterPage: FC = () => {
                 placeholder="+63 912 345 6789"
                 startAdornment={
                   <InputAdornment position="start">
-                    <PhoneOutlinedIcon sx={{ color: '#a8a29e', fontSize: 20 }} />
+                    <PhoneOutlinedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
                   </InputAdornment>
                 }
+                sx={{ borderRadius: 3 }}
               />
             </Box>
 
@@ -323,9 +335,9 @@ export const RegisterPage: FC = () => {
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 700,
-                  fontSize: '0.6875rem',
-                  letterSpacing: '0.07em',
-                  color: '#78716c',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.06em',
+                  color: '#64748b',
                   textTransform: 'uppercase',
                   mb: 0.75,
                 }}
@@ -340,7 +352,7 @@ export const RegisterPage: FC = () => {
                 placeholder="At least 8 characters"
                 startAdornment={
                   <InputAdornment position="start">
-                    <LockOutlinedIcon sx={{ color: '#a8a29e', fontSize: 20 }} />
+                    <LockOutlinedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
                   </InputAdornment>
                 }
                 endAdornment={
@@ -348,18 +360,14 @@ export const RegisterPage: FC = () => {
                     <IconButton
                       size="small"
                       onClick={() => setShowPassword(!showPassword)}
-                      aria-label="toggle password visibility"
                       edge="end"
-                      sx={{ color: '#a8a29e' }}
+                      sx={{ color: '#94a3b8' }}
                     >
-                      {showPassword ? (
-                        <VisibilityOffOutlinedIcon sx={{ fontSize: 20 }} />
-                      ) : (
-                        <VisibilityOutlinedIcon sx={{ fontSize: 20 }} />
-                      )}
+                      {showPassword ? <VisibilityOffOutlinedIcon sx={{ fontSize: 18 }} /> : <VisibilityOutlinedIcon sx={{ fontSize: 18 }} />}
                     </IconButton>
                   </InputAdornment>
                 }
+                sx={{ borderRadius: 3 }}
               />
             </Box>
 
@@ -369,9 +377,9 @@ export const RegisterPage: FC = () => {
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 700,
-                  fontSize: '0.6875rem',
-                  letterSpacing: '0.07em',
-                  color: '#78716c',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.06em',
+                  color: '#64748b',
                   textTransform: 'uppercase',
                   mb: 0.75,
                 }}
@@ -386,38 +394,40 @@ export const RegisterPage: FC = () => {
                 placeholder="Repeat password"
                 startAdornment={
                   <InputAdornment position="start">
-                    <LockOutlinedIcon sx={{ color: '#a8a29e', fontSize: 20 }} />
+                    <LockOutlinedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
                   </InputAdornment>
                 }
+                sx={{ borderRadius: 3 }}
               />
             </Box>
 
             {/* Terms checkbox */}
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={agreeTerms}
-                  onChange={(e) => setAgreeTerms(e.target.checked)}
-                  size="small"
-                  sx={{ p: 0.5 }}
-                />
-              }
-              label={
-                <Typography
-                  sx={{
-                    fontFamily: "'Quicksand', sans-serif",
-                    fontWeight: 500,
-                    fontSize: '0.8125rem',
-                    color: '#78716c',
-                  }}
-                >
-                  I agree to the EcoByte Terms &amp;{' '}
-                  <Link href="#" underline="hover" sx={{ color: '#4f5f4b', fontWeight: 700 }}>
-                    E-waste guidelines
-                  </Link>
-                </Typography>
-              }
-            />
+            <Box sx={{ mt: 0.5 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={agreeTerms}
+                    onChange={(e) => setAgreeTerms(e.target.checked)}
+                    size="small"
+                    sx={{ p: 0.5, color: '#cbd5e1', '&.Mui-checked': { color: '#0f172a' } }}
+                  />
+                }
+                label={
+                  <Typography
+                    sx={{
+                      fontFamily: "'Quicksand', sans-serif",
+                      fontWeight: 500,
+                      fontSize: '0.8125rem',
+                      color: '#0f172a',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    I agree to the EcoByte Terms &amp;{' '}
+                    <strong style={{ color: '#0f172a' }}>E-waste guidelines</strong>
+                  </Typography>
+                }
+              />
+            </Box>
 
             {/* Submit */}
             <Button
@@ -426,28 +436,30 @@ export const RegisterPage: FC = () => {
               variant="contained"
               size="large"
               sx={{
-                mt: 0.5,
-                py: 1.6,
-                fontSize: '1rem',
+                mt: 1,
+                py: 1.5,
+                fontSize: '0.9375rem',
                 display: 'flex',
                 gap: 1,
-                backgroundColor: '#4f5f4b',
+                backgroundColor: '#0f172a',
+                color: '#ffffff',
+                '&:hover': { backgroundColor: '#1e293b' },
               }}
             >
               Create account
-              <ArrowForwardRoundedIcon sx={{ fontSize: 20 }} />
+              <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
             </Button>
           </Box>
         </Card>
 
-        {/* Already have an account */}
+        {/* Existing account link */}
         <Box sx={{ textAlign: 'center', mt: 2.5 }}>
           <Typography
             sx={{
               fontFamily: "'Quicksand', sans-serif",
               fontWeight: 500,
               fontSize: '0.875rem',
-              color: '#78716c',
+              color: '#64748b',
             }}
           >
             Already have an account?{' '}
@@ -455,7 +467,7 @@ export const RegisterPage: FC = () => {
               onClick={() => navigate('/signin')}
               sx={{
                 fontWeight: 700,
-                color: '#292524',
+                color: '#0f172a',
                 cursor: 'pointer',
                 textDecoration: 'none',
                 '&:hover': { textDecoration: 'underline' },
@@ -473,8 +485,8 @@ export const RegisterPage: FC = () => {
             alignItems: 'center',
             justifyContent: 'center',
             gap: 0.75,
-            mt: 4,
-            color: '#a8a29e',
+            mt: 3.5,
+            color: '#94a3b8',
           }}
         >
           <LockRoundedIcon sx={{ fontSize: 13 }} />
@@ -483,7 +495,7 @@ export const RegisterPage: FC = () => {
               fontFamily: "'Quicksand', sans-serif",
               fontWeight: 600,
               fontSize: '0.75rem',
-              color: '#a8a29e',
+              color: '#94a3b8',
             }}
           >
             Protected with end-to-end encryption •{' '}

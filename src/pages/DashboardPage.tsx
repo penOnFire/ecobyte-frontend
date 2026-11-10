@@ -33,69 +33,73 @@ export const DashboardPage: FC = () => {
   const navigate = useNavigate()
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5 }}>
-      {/* ── Greeting ── */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <Box>
-          <Typography
-            sx={{
-              fontFamily: "'Quicksand', sans-serif",
-              fontWeight: 700,
-              fontSize: '1.625rem',
-              color: '#292524',
-              lineHeight: 1.15,
-            }}
-          >
-            Hello, Alex
-          </Typography>
-          <Typography
-            sx={{
-              fontFamily: "'Quicksand', sans-serif",
-              fontWeight: 500,
-              fontSize: '0.8125rem',
-              color: '#78716c',
-              mt: 0.35,
-            }}
-          >
-            Circular lifecycle diagnostics &amp; recovery
-          </Typography>
-        </Box>
-        <StatusBadge label="Hub Live" variant="live" />
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 1, pb: 4 }}>
+      {/* ── Top Header Context & Hub Live Pill ── */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography
+          sx={{
+            fontFamily: "'Quicksand', sans-serif",
+            fontWeight: 600,
+            fontSize: '0.6875rem',
+            color: '#64748b',
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
+          }}
+        >
+          Circular lifecycle diagnostics &amp; recovery
+        </Typography>
+        <StatusBadge label="Hub Live" variant="live" size="sm" />
       </Box>
 
-      {/* ── 3-Column Stats Card ── */}
-      <Card sx={{ p: 2, borderRadius: 4, border: '1px solid #ede8e1' }}>
+      {/* ── Greeting: Large 40px Heading ── */}
+      <Box sx={{ mt: -0.5, mb: 0.5 }}>
+        <Typography
+          sx={{
+            fontFamily: "'Quicksand', sans-serif",
+            fontWeight: 500,
+            fontSize: '2.375rem',
+            color: '#0f172a',
+            lineHeight: 1.1,
+            letterSpacing: '-0.02em',
+          }}
+        >
+          Hello, Alex
+        </Typography>
+      </Box>
+
+      {/* ── 3-Column Stats Card (Shadcn aesthetic) ── */}
+      <Card sx={{ p: 2, borderRadius: 4, border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', alignItems: 'center', textAlign: 'center' }}>
           {/* Requests */}
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78716c', fontWeight: 600 }}>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
               Requests
             </Typography>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1.75rem', color: '#292524', my: 0.25, lineHeight: 1 }}>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1.75rem', color: '#0f172a', my: 0.25, lineHeight: 1 }}>
               3
             </Typography>
             <StatusBadge label="Active" variant="active" size="sm" />
           </Box>
 
           {/* Assessed */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', borderLeft: '1px solid #ede8e1', borderRight: '1px solid #ede8e1' }}>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78716c', fontWeight: 600 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
               Assessed
             </Typography>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1.75rem', color: '#292524', my: 0.25, lineHeight: 1 }}>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1.75rem', color: '#0f172a', my: 0.25, lineHeight: 1 }}>
               12
             </Typography>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#78716c', fontWeight: 600 }}>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.625rem', color: '#64748b', fontWeight: 700 }}>
               Total items
             </Typography>
           </Box>
 
           {/* Reserved */}
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78716c', fontWeight: 600 }}>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
               Reserved
             </Typography>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1.75rem', color: '#292524', my: 0.25, lineHeight: 1 }}>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1.75rem', color: '#0f172a', my: 0.25, lineHeight: 1 }}>
               1
             </Typography>
             <StatusBadge label="Pending" variant="pending" size="sm" />
@@ -104,7 +108,7 @@ export const DashboardPage: FC = () => {
       </Card>
 
       {/* ── Active Request Tracker Card ── */}
-      <Card sx={{ p: 2, borderRadius: 4, border: '1px solid #ede8e1' }}>
+      <Card sx={{ p: 2, borderRadius: 4, border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
@@ -113,8 +117,8 @@ export const DashboardPage: FC = () => {
                   width: 38,
                   height: 38,
                   borderRadius: 2.5,
-                  backgroundColor: '#4f5f4b',
-                  color: '#ffffff',
+                  backgroundColor: '#0f172a',
+                  color: '#abf06b',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -125,12 +129,12 @@ export const DashboardPage: FC = () => {
               </Box>
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#292524' }}>
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
                     Active Request
                   </Typography>
                   <StatusBadge label="In Transit" variant="in-transit" size="sm" />
                 </Box>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78716c', fontWeight: 500 }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', fontWeight: 500, mt: 0.2 }}>
                   Req #2041 • MacBook Pro 13″ &amp; 2 Li-ion
                 </Typography>
               </Box>
@@ -141,14 +145,15 @@ export const DashboardPage: FC = () => {
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                color: '#4f5f4b',
+                color: '#0f172a',
                 cursor: 'pointer',
+                '&:hover': { color: '#4f5f4b' },
               }}
             >
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem' }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem' }}>
                 Details
               </Typography>
-              <ChevronRightRoundedIcon sx={{ fontSize: 18 }} />
+              <ChevronRightRoundedIcon sx={{ fontSize: 16 }} />
             </Box>
           </Box>
 
@@ -160,8 +165,8 @@ export const DashboardPage: FC = () => {
           {/* Driver pill */}
           <Box
             sx={{
-              backgroundColor: '#faf8f5',
-              border: '1px solid #ede8e1',
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
               borderRadius: 3,
               px: 1.5,
               py: 1,
@@ -171,14 +176,16 @@ export const DashboardPage: FC = () => {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-              <AccessTimeRoundedIcon sx={{ fontSize: 15, color: '#78716c' }} />
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#292524', fontWeight: 600 }}>
+              <AccessTimeRoundedIcon sx={{ fontSize: 15, color: '#64748b' }} />
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#0f172a', fontWeight: 600 }}>
                 Today, 3:30 PM • Certified Logistics
               </Typography>
             </Box>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#4f5f4b', fontWeight: 700 }}>
-              Driver assigned
-            </Typography>
+            <Box sx={{ backgroundColor: '#e8ffbf', px: 1, py: 0.25, borderRadius: 9999 }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.625rem', color: '#1a3311', fontWeight: 700 }}>
+                Driver assigned
+              </Typography>
+            </Box>
           </Box>
         </CardContent>
       </Card>
@@ -192,13 +199,13 @@ export const DashboardPage: FC = () => {
               fontWeight: 700,
               fontSize: '0.6875rem',
               letterSpacing: '0.08em',
-              color: '#292524',
+              color: '#0f172a',
               textTransform: 'uppercase',
             }}
           >
             Quick Actions
           </Typography>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78716c', fontWeight: 600 }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
             Eco-Operations
           </Typography>
         </Box>
@@ -209,7 +216,7 @@ export const DashboardPage: FC = () => {
             <Box
               onClick={() => navigate('/scan')}
               sx={{
-                backgroundColor: '#4f5f4b',
+                backgroundColor: '#0f172a',
                 color: '#ffffff',
                 borderRadius: 4,
                 p: 2,
@@ -217,7 +224,9 @@ export const DashboardPage: FC = () => {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 1.5,
-                transition: 'transform 0.15s ease',
+                border: '1px solid #1e293b',
+                boxShadow: '0 2px 8px rgba(15,23,42,0.15)',
+                transition: 'all 0.15s ease',
                 '&:active': { transform: 'scale(0.98)' },
               }}
             >
@@ -226,7 +235,8 @@ export const DashboardPage: FC = () => {
                   width: 36,
                   height: 36,
                   borderRadius: 2.5,
-                  backgroundColor: 'rgba(255,255,255,0.18)',
+                  backgroundColor: 'rgba(171, 240, 107, 0.15)',
+                  color: '#abf06b',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -238,7 +248,7 @@ export const DashboardPage: FC = () => {
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', lineHeight: 1.2 }}>
                   Scan Device
                 </Typography>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#e8f0e6', fontWeight: 500, mt: 0.25 }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#abf06b', fontWeight: 600, mt: 0.25 }}>
                   AI diagnostic
                 </Typography>
               </Box>
@@ -251,14 +261,15 @@ export const DashboardPage: FC = () => {
               onClick={() => navigate('/reuse')}
               sx={{
                 backgroundColor: '#ffffff',
-                border: '1px solid #ede8e1',
+                border: '1px solid #e2e8f0',
                 borderRadius: 4,
                 p: 2,
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 1.5,
-                transition: 'transform 0.15s ease',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                transition: 'all 0.15s ease',
                 '&:active': { transform: 'scale(0.98)' },
               }}
             >
@@ -267,8 +278,8 @@ export const DashboardPage: FC = () => {
                   width: 36,
                   height: 36,
                   borderRadius: 2.5,
-                  backgroundColor: '#ebf2eb',
-                  color: '#4f5f4b',
+                  backgroundColor: '#f1f5f9',
+                  color: '#0f172a',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -277,10 +288,10 @@ export const DashboardPage: FC = () => {
                 <RecyclingRoundedIcon sx={{ fontSize: 20 }} />
               </Box>
               <Box>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#292524', lineHeight: 1.2 }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a', lineHeight: 1.2 }}>
                   Reuse Hub
                 </Typography>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78716c', fontWeight: 500, mt: 0.25 }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', fontWeight: 500, mt: 0.25 }}>
                   Browse items
                 </Typography>
               </Box>
@@ -293,14 +304,15 @@ export const DashboardPage: FC = () => {
               onClick={() => navigate('/drop-offs')}
               sx={{
                 backgroundColor: '#ffffff',
-                border: '1px solid #ede8e1',
+                border: '1px solid #e2e8f0',
                 borderRadius: 4,
                 p: 2,
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 1.5,
-                transition: 'transform 0.15s ease',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                transition: 'all 0.15s ease',
                 '&:active': { transform: 'scale(0.98)' },
               }}
             >
@@ -309,21 +321,20 @@ export const DashboardPage: FC = () => {
                   width: 36,
                   height: 36,
                   borderRadius: 2.5,
-                  backgroundColor: '#faf8f5',
-                  color: '#4f5f4b',
+                  backgroundColor: '#f1f5f9',
+                  color: '#0f172a',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  border: '1px solid #ede8e1',
                 }}
               >
                 <LocationOnOutlinedIcon sx={{ fontSize: 20 }} />
               </Box>
               <Box>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#292524', lineHeight: 1.2 }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a', lineHeight: 1.2 }}>
                   Drop-offs
                 </Typography>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78716c', fontWeight: 500, mt: 0.25 }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', fontWeight: 500, mt: 0.25 }}>
                   4 nearby bins
                 </Typography>
               </Box>
@@ -336,14 +347,15 @@ export const DashboardPage: FC = () => {
               onClick={() => navigate('/requests')}
               sx={{
                 backgroundColor: '#ffffff',
-                border: '1px solid #ede8e1',
+                border: '1px solid #e2e8f0',
                 borderRadius: 4,
                 p: 2,
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 1.5,
-                transition: 'transform 0.15s ease',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                transition: 'all 0.15s ease',
                 '&:active': { transform: 'scale(0.98)' },
               }}
             >
@@ -352,21 +364,20 @@ export const DashboardPage: FC = () => {
                   width: 36,
                   height: 36,
                   borderRadius: 2.5,
-                  backgroundColor: '#faf8f5',
-                  color: '#4f5f4b',
+                  backgroundColor: '#f1f5f9',
+                  color: '#0f172a',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  border: '1px solid #ede8e1',
                 }}
               >
                 <Inventory2OutlinedIcon sx={{ fontSize: 20 }} />
               </Box>
               <Box>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#292524', lineHeight: 1.2 }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a', lineHeight: 1.2 }}>
                   My Requests
                 </Typography>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78716c', fontWeight: 500, mt: 0.25 }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', fontWeight: 500, mt: 0.25 }}>
                   3 ongoing
                 </Typography>
               </Box>
@@ -385,7 +396,7 @@ export const DashboardPage: FC = () => {
                 fontWeight: 700,
                 fontSize: '0.6875rem',
                 letterSpacing: '0.08em',
-                color: '#292524',
+                color: '#0f172a',
                 textTransform: 'uppercase',
               }}
             >
@@ -397,9 +408,9 @@ export const DashboardPage: FC = () => {
             onClick={() => navigate('/reuse')}
             sx={{
               fontFamily: "'Quicksand', sans-serif",
-              fontSize: '0.8125rem',
+              fontSize: '0.75rem',
               fontWeight: 700,
-              color: '#4f5f4b',
+              color: '#0f172a',
               cursor: 'pointer',
               '&:hover': { textDecoration: 'underline' },
             }}
@@ -409,14 +420,14 @@ export const DashboardPage: FC = () => {
         </Box>
 
         {/* Item 1: iPad 9th Gen */}
-        <Card sx={{ p: 1.75, borderRadius: 4, mb: 1.25, border: '1px solid #ede8e1' }}>
+        <Card sx={{ p: 1.75, borderRadius: 4, mb: 1.25, border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           <Box sx={{ display: 'flex', gap: 1.75 }}>
             <Box
               sx={{
                 width: 80,
                 height: 80,
                 borderRadius: 3,
-                backgroundColor: '#f4ede4',
+                backgroundColor: '#f1f5f9',
                 overflow: 'hidden',
                 position: 'relative',
                 flexShrink: 0,
@@ -439,7 +450,7 @@ export const DashboardPage: FC = () => {
                   py: 0.15,
                 }}
               >
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.5625rem', color: '#292524' }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.5625rem', color: '#0f172a' }}>
                   Grade A
                 </Typography>
               </Box>
@@ -448,34 +459,36 @@ export const DashboardPage: FC = () => {
             <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#292524' }}>
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
                     iPad 9th Gen 64GB
                   </Typography>
                   <StatusBadge label="Available" variant="available" size="sm" />
                 </Box>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78716c', mt: 0.2 }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.2 }}>
                   Battery: 94% • Screen: Flawless
                 </Typography>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78716c' }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
                   📍 San Antonio Hub • 0.8 km
                 </Typography>
               </Box>
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#4f5f4b' }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
                   Free Claim
                 </Typography>
                 <Button
                   variant="outlined"
                   size="small"
-                  onClick={() => navigate('/reuse/ipad-9th')}
+                  onClick={() => navigate('/confirm-reservation')}
                   sx={{
                     borderRadius: 9999,
                     py: 0.4,
                     px: 1.75,
                     fontSize: '0.75rem',
                     fontWeight: 700,
-                    borderColor: '#ddd8d0',
+                    borderColor: '#e2e8f0',
+                    color: '#0f172a',
+                    '&:hover': { backgroundColor: '#f8fafc', borderColor: '#cbd5e1' },
                   }}
                 >
                   Reserve
@@ -486,14 +499,14 @@ export const DashboardPage: FC = () => {
         </Card>
 
         {/* Item 2: Keychron K2 */}
-        <Card sx={{ p: 1.75, borderRadius: 4, border: '1px solid #ede8e1' }}>
+        <Card sx={{ p: 1.75, borderRadius: 4, border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           <Box sx={{ display: 'flex', gap: 1.75 }}>
             <Box
               sx={{
                 width: 80,
                 height: 80,
                 borderRadius: 3,
-                backgroundColor: '#f4ede4',
+                backgroundColor: '#f1f5f9',
                 overflow: 'hidden',
                 position: 'relative',
                 flexShrink: 0,
@@ -516,7 +529,7 @@ export const DashboardPage: FC = () => {
                   py: 0.15,
                 }}
               >
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.5625rem', color: '#292524' }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.5625rem', color: '#0f172a' }}>
                   Restored
                 </Typography>
               </Box>
@@ -525,34 +538,36 @@ export const DashboardPage: FC = () => {
             <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#292524' }}>
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
                     Keychron K2 V2 Wireless
                   </Typography>
                   <StatusBadge label="Available" variant="available" size="sm" />
                 </Box>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78716c', mt: 0.2 }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.2 }}>
                   Gateron Brown • New Li-ion Cell
                 </Typography>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78716c' }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
                   📍 Bel-Air Drop Site • 1.4 km
                 </Typography>
               </Box>
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#4f5f4b' }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
                   Free Claim
                 </Typography>
                 <Button
                   variant="outlined"
                   size="small"
-                  onClick={() => navigate('/reuse/keychron-k2')}
+                  onClick={() => navigate('/confirm-reservation')}
                   sx={{
                     borderRadius: 9999,
                     py: 0.4,
                     px: 1.75,
                     fontSize: '0.75rem',
                     fontWeight: 700,
-                    borderColor: '#ddd8d0',
+                    borderColor: '#e2e8f0',
+                    color: '#0f172a',
+                    '&:hover': { backgroundColor: '#f8fafc', borderColor: '#cbd5e1' },
                   }}
                 >
                   Reserve
@@ -563,43 +578,27 @@ export const DashboardPage: FC = () => {
         </Card>
       </Box>
 
-      {/* ── Lithium-ion Protocol Alert Card ── */}
-      <Box
+      {/* ── Lithium-ion Protocol Warning Callout ── */}
+      <Card
         sx={{
+          p: 1.75,
           borderRadius: 4,
           backgroundColor: '#fffbeb',
-          border: '1.5px solid #fde68a',
-          p: 2,
+          border: '1px solid #fde68a',
         }}
       >
-        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
-          <WarningAmberRoundedIcon sx={{ color: '#d97706', fontSize: 22, mt: 0.15, flexShrink: 0 }} />
+        <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'flex-start' }}>
+          <WarningAmberRoundedIcon sx={{ fontSize: 20, color: '#b45309', mt: 0.2 }} />
           <Box>
-            <Typography
-              sx={{
-                fontFamily: "'Quicksand', sans-serif",
-                fontWeight: 700,
-                fontSize: '0.875rem',
-                color: '#78350f',
-                mb: 0.35,
-              }}
-            >
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#92400e' }}>
               Lithium-ion Protocol
             </Typography>
-            <Typography
-              sx={{
-                fontFamily: "'Quicksand', sans-serif",
-                fontSize: '0.8125rem',
-                color: '#92400e',
-                lineHeight: 1.55,
-                fontWeight: 500,
-              }}
-            >
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#b45309', mt: 0.2, lineHeight: 1.45 }}>
               Never puncture or crush swollen batteries. Pack separated items in anti-static or non-conductive bags prior to drop-off.
             </Typography>
           </Box>
         </Box>
-      </Box>
+      </Card>
     </Box>
   )
 }

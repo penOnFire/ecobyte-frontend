@@ -41,13 +41,15 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             position: 'sticky',
             top: 0,
             zIndex: 100,
-            backgroundColor: '#faf8f5',
+            backgroundColor: 'rgba(250, 248, 245, 0.95)',
+            backdropFilter: 'blur(8px)',
             px: 2.5,
-            pt: 1.75,
-            pb: 1,
+            pt: 1.5,
+            pb: 1.25,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            borderBottom: '1px solid #e2e8f0',
           }}
         >
           <Box
@@ -61,7 +63,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 700,
                   fontSize: '0.9375rem',
-                  color: '#292524',
+                  color: '#0f172a',
                   lineHeight: 1.2,
                 }}
               >
@@ -73,13 +75,13 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                     fontFamily: "'Quicksand', sans-serif",
                     fontWeight: 600,
                     fontSize: '0.75rem',
-                    color: '#78716c',
+                    color: '#64748b',
                     lineHeight: 1,
                   }}
                 >
                   Barangay San Antonio
                 </Typography>
-                <KeyboardArrowDownRoundedIcon sx={{ fontSize: 15, color: '#78716c' }} />
+                <KeyboardArrowDownRoundedIcon sx={{ fontSize: 15, color: '#64748b' }} />
               </Box>
             </Box>
           </Box>
@@ -92,7 +94,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                 width: 36,
                 height: 36,
                 backgroundColor: '#ffffff',
-                border: '1px solid #ede8e1',
+                border: '1px solid #e2e8f0',
                 borderRadius: '50%',
               }}
             >
@@ -100,7 +102,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                 variant="dot"
                 sx={{
                   '& .MuiBadge-badge': {
-                    backgroundColor: '#d9534f',
+                    backgroundColor: '#dc2626',
                     minWidth: 7,
                     height: 7,
                     right: 1,
@@ -108,7 +110,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                   },
                 }}
               >
-                <NotificationsNoneRoundedIcon sx={{ color: '#292524', fontSize: 18 }} />
+                <NotificationsNoneRoundedIcon sx={{ color: '#0f172a', fontSize: 18 }} />
               </Badge>
             </IconButton>
 
@@ -117,12 +119,13 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               sx={{
                 width: 34,
                 height: 34,
-                backgroundColor: '#4f5f4b',
+                backgroundColor: '#0f172a',
+                color: '#abf06b',
                 fontFamily: "'Quicksand', sans-serif",
                 fontWeight: 700,
                 fontSize: '0.875rem',
                 cursor: 'pointer',
-                border: '2px solid #e8f0e6',
+                border: '2px solid #abf06b',
               }}
             >
               A
@@ -151,8 +154,9 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
         >
           <Box
             sx={{
-              backgroundColor: '#ffffff',
-              borderTop: '1px solid #ede8e1',
+              backgroundColor: 'rgba(255, 255, 255, 0.98)',
+              backdropFilter: 'blur(10px)',
+              borderTop: '1px solid #e2e8f0',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-around',
@@ -194,12 +198,13 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                   width: 54,
                   height: 54,
                   borderRadius: '50%',
-                  backgroundColor: '#4f5f4b',
-                  color: '#ffffff',
+                  backgroundColor: '#0f172a',
+                  color: '#abf06b',
+                  border: '2px solid #abf06b',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 4px 16px rgba(79, 95, 75, 0.4)',
+                  boxShadow: '0 4px 16px rgba(15, 23, 42, 0.35)',
                   transition: 'transform 0.15s ease',
                   '&:active': { transform: 'scale(0.95)' },
                 }}
@@ -211,7 +216,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 700,
                   fontSize: '0.6875rem',
-                  color: isActive('/scan') ? '#4f5f4b' : '#78716c',
+                  color: isActive('/scan') ? '#0f172a' : '#64748b',
                   mt: 0.4,
                 }}
               >
@@ -258,8 +263,18 @@ const NavItem: FC<NavItemProps> = ({ icon, label, active, onClick }) => (
       cursor: 'pointer',
       px: 1.5,
       py: 0.75,
-      color: active ? '#4f5f4b' : '#78716c',
+      color: active ? '#0f172a' : '#64748b',
       minWidth: 52,
+      position: 'relative',
+      '&::after': active ? {
+        content: '""',
+        position: 'absolute',
+        bottom: 2,
+        width: 16,
+        height: 2.5,
+        backgroundColor: '#abf06b',
+        borderRadius: 9999,
+      } : {},
     }}
   >
     {icon}

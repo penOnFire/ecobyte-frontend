@@ -24,42 +24,48 @@ export const ProofOfClaimPage: FC = () => {
   const navigate = useNavigate()
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5 }}>
       {/* ── Top Bar ── */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <IconButton
           size="small"
           onClick={() => navigate(-1)}
+          aria-label="Back"
           sx={{
-            width: 36,
-            height: 36,
+            width: 38,
+            height: 38,
             backgroundColor: '#ffffff',
-            border: '1px solid #ede8e1',
+            border: '1px solid #e2e8f0',
             borderRadius: '50%',
-            color: '#292524',
+            color: '#0f172a',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            '&:hover': { backgroundColor: '#f8fafc' },
           }}
         >
           <ArrowBackRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
 
         <Box sx={{ textAlign: 'center' }}>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1.0625rem', color: '#292524' }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1.0625rem', color: '#0f172a' }}>
             Proof of claim
           </Typography>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#78716c' }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#64748b' }}>
             Step 2 of 2 • Photo verification
           </Typography>
         </Box>
 
         <IconButton
           size="small"
+          aria-label="Help"
           sx={{
-            width: 36,
-            height: 36,
+            width: 38,
+            height: 38,
             backgroundColor: '#ffffff',
-            border: '1px solid #ede8e1',
+            border: '1px solid #e2e8f0',
             borderRadius: '50%',
-            color: '#292524',
+            color: '#0f172a',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            '&:hover': { backgroundColor: '#f8fafc' },
           }}
         >
           <HelpOutlineRoundedIcon sx={{ fontSize: 18 }} />
@@ -67,15 +73,15 @@ export const ProofOfClaimPage: FC = () => {
       </Box>
 
       {/* ── Upload Proof Photo Card ── */}
-      <Card sx={{ p: 2, borderRadius: 4, border: '1px solid #ede8e1' }}>
-        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start', mb: 1.5 }}>
+      <Card sx={{ p: 2.25, borderRadius: 3.5, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start', mb: 2 }}>
           <Box
             sx={{
-              width: 40,
-              height: 40,
+              width: 42,
+              height: 42,
               borderRadius: '50%',
-              backgroundColor: '#ebf2eb',
-              color: '#384735',
+              backgroundColor: '#0f172a',
+              color: '#abf06b',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -85,10 +91,10 @@ export const ProofOfClaimPage: FC = () => {
             <CameraAltOutlinedIcon sx={{ fontSize: 22 }} />
           </Box>
           <Box>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1rem', color: '#292524' }}>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>
               Upload proof photo
             </Typography>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#78716c', mt: 0.25, lineHeight: 1.45 }}>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.35, lineHeight: 1.45 }}>
               Take or upload any photo showing the e-waste item (handoff, receipt, or device at pickup site).
             </Typography>
           </Box>
@@ -97,9 +103,9 @@ export const ProofOfClaimPage: FC = () => {
         {/* Drag & drop upload target */}
         <Box
           sx={{
-            borderRadius: 3.5,
-            border: '2px dashed #d6cfc5',
-            backgroundColor: '#faf8f5',
+            borderRadius: 3,
+            border: '2px dashed #cbd5e1',
+            backgroundColor: '#f8fafc',
             p: 2.5,
             textAlign: 'center',
             display: 'flex',
@@ -108,6 +114,11 @@ export const ProofOfClaimPage: FC = () => {
             gap: 1,
             cursor: 'pointer',
             mb: 1.5,
+            transition: 'all 0.15s ease',
+            '&:hover': {
+              borderColor: '#0f172a',
+              backgroundColor: '#f1f5f9',
+            },
           }}
         >
           <Box
@@ -116,18 +127,18 @@ export const ProofOfClaimPage: FC = () => {
               height: 46,
               borderRadius: '50%',
               backgroundColor: '#ffffff',
-              border: '1px solid #ede8e1',
+              border: '1px solid #e2e8f0',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <CloudUploadOutlinedIcon sx={{ fontSize: 24, color: '#4f5f4b' }} />
+            <CloudUploadOutlinedIcon sx={{ fontSize: 24, color: '#0f172a' }} />
           </Box>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#292524' }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>
             Drag &amp; drop or click to upload
           </Typography>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#78716c' }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b' }}>
             Supports JPG, PNG up to 10MB
           </Typography>
         </Box>
@@ -139,10 +150,11 @@ export const ProofOfClaimPage: FC = () => {
             size="medium"
             startIcon={<CameraAltOutlinedIcon sx={{ fontSize: 18 }} />}
             sx={{
-              backgroundColor: '#4f5f4b',
+              backgroundColor: '#0f172a',
               color: '#ffffff',
               fontSize: '0.8125rem',
-              py: 1.1,
+              py: 1.2,
+              '&:hover': { backgroundColor: '#1e293b' },
             }}
           >
             Take photo
@@ -152,11 +164,15 @@ export const ProofOfClaimPage: FC = () => {
             size="medium"
             startIcon={<PhotoLibraryOutlinedIcon sx={{ fontSize: 18 }} />}
             sx={{
-              borderColor: '#ede8e1',
-              color: '#292524',
+              borderColor: '#e2e8f0',
+              color: '#0f172a',
               backgroundColor: '#ffffff',
               fontSize: '0.8125rem',
-              py: 1.1,
+              py: 1.2,
+              '&:hover': {
+                backgroundColor: '#f8fafc',
+                borderColor: '#cbd5e1',
+              },
             }}
           >
             Upload gallery
@@ -165,34 +181,34 @@ export const ProofOfClaimPage: FC = () => {
       </Card>
 
       {/* ── Item Details Card ── */}
-      <Card sx={{ p: 2, borderRadius: 4, border: '1px solid #ede8e1' }}>
+      <Card sx={{ p: 2, borderRadius: 3.5, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-            <Inventory2OutlinedIcon sx={{ fontSize: 18, color: '#4f5f4b' }} />
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#292524' }}>
+            <Inventory2OutlinedIcon sx={{ fontSize: 18, color: '#0f172a' }} />
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
               Item details
             </Typography>
           </Box>
-          <StatusBadge label="Code verified: Yes" variant="available" size="sm" />
+          <StatusBadge label="Code verified: Yes" variant="electric" size="sm" />
         </Box>
 
         <Box
           sx={{
-            backgroundColor: '#faf8f5',
-            borderRadius: 3,
+            backgroundColor: '#f8fafc',
+            borderRadius: 2.5,
             p: 1.5,
-            border: '1px solid #ede8e1',
+            border: '1px solid #e2e8f0',
           }}
         >
           <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'center', mb: 1.25 }}>
             <Box
               sx={{
-                width: 38,
-                height: 38,
-                borderRadius: 2.5,
+                width: 40,
+                height: 40,
+                borderRadius: 2,
                 overflow: 'hidden',
                 backgroundColor: '#ffffff',
-                border: '1px solid #ede8e1',
+                border: '1px solid #e2e8f0',
                 flexShrink: 0,
               }}
             >
@@ -204,35 +220,35 @@ export const ProofOfClaimPage: FC = () => {
               />
             </Box>
             <Box>
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#78716c' }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b' }}>
                 Item
               </Typography>
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#292524' }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.875rem', color: '#0f172a' }}>
                 Keychron K2 V2
               </Typography>
             </Box>
           </Box>
 
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 1, pt: 1, borderTop: '1px solid #ede8e1' }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 1, pt: 1.25, borderTop: '1px solid #e2e8f0' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-              <StorefrontRoundedIcon sx={{ fontSize: 18, color: '#78716c' }} />
+              <StorefrontRoundedIcon sx={{ fontSize: 18, color: '#64748b' }} />
               <Box>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.625rem', color: '#78716c' }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.625rem', color: '#64748b' }}>
                   Station
                 </Typography>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem', color: '#292524' }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem', color: '#0f172a' }}>
                   Pasig Green Hub
                 </Typography>
               </Box>
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-              <CalendarTodayRoundedIcon sx={{ fontSize: 16, color: '#78716c' }} />
+              <CalendarTodayRoundedIcon sx={{ fontSize: 16, color: '#64748b' }} />
               <Box>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.625rem', color: '#78716c' }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.625rem', color: '#64748b' }}>
                   Date
                 </Typography>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem', color: '#292524' }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem', color: '#0f172a' }}>
                   Today / Oct 25
                 </Typography>
               </Box>
@@ -242,15 +258,15 @@ export const ProofOfClaimPage: FC = () => {
       </Card>
 
       {/* ── Circularity Impact Card ── */}
-      <Card sx={{ p: 2, borderRadius: 4, backgroundColor: '#ebf2eb', border: '1px solid #ceebc4' }}>
+      <Card sx={{ p: 2, borderRadius: 3.5, backgroundColor: '#0f172a', color: '#ffffff', border: '1px solid #1e293b', boxShadow: '0 2px 6px rgba(15,23,42,0.15)' }}>
         <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
           <Box
             sx={{
               width: 40,
               height: 40,
               borderRadius: '50%',
-              backgroundColor: '#384735',
-              color: '#ffffff',
+              backgroundColor: '#abf06b',
+              color: '#0f172a',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -260,11 +276,11 @@ export const ProofOfClaimPage: FC = () => {
             <ForestRoundedIcon sx={{ fontSize: 22 }} />
           </Box>
           <Box>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#2d3e2c' }}>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#f8fafc' }}>
               Circularity impact
             </Typography>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#384735', mt: 0.25, lineHeight: 1.45 }}>
-              Claiming refurbished electronics diverts <strong>~14.8 kg</strong> of e-waste from regional landfills.
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#94a3b8', mt: 0.25, lineHeight: 1.45 }}>
+              Claiming refurbished electronics diverts <strong style={{ color: '#abf06b' }}>~14.8 kg</strong> of e-waste from regional landfills.
             </Typography>
           </Box>
         </Box>
@@ -280,10 +296,12 @@ export const ProofOfClaimPage: FC = () => {
           endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
           sx={{
             py: 1.6,
-            backgroundColor: '#4f5f4b',
+            backgroundColor: '#0f172a',
             color: '#ffffff',
             fontWeight: 700,
             fontSize: '0.9375rem',
+            boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
+            '&:hover': { backgroundColor: '#1e293b' },
           }}
         >
           Submit proof
@@ -292,7 +310,7 @@ export const ProofOfClaimPage: FC = () => {
           sx={{
             fontFamily: "'Quicksand', sans-serif",
             fontSize: '0.6875rem',
-            color: '#78716c',
+            color: '#64748b',
             textAlign: 'center',
             mt: 1,
           }}
@@ -303,4 +321,3 @@ export const ProofOfClaimPage: FC = () => {
     </Box>
   )
 }
-
