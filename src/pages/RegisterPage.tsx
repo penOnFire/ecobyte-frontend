@@ -67,7 +67,7 @@ export const RegisterPage: FC = () => {
             sx={{
               width: 58,
               height: 58,
-              borderRadius: 3.5,
+              borderRadius: 2,
               mb: 1.5,
               boxShadow: '0 4px 16px rgba(15,23,42,0.12)',
             }}
@@ -104,7 +104,7 @@ export const RegisterPage: FC = () => {
             px: 3,
             pt: 2.5,
             pb: 3,
-            borderRadius: 4,
+            borderRadius: 2,
             border: '1px solid #e2e8f0',
             boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
             backgroundColor: '#ffffff',
@@ -221,7 +221,7 @@ export const RegisterPage: FC = () => {
                     <PersonOutlineRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
                   </InputAdornment>
                 }
-                sx={{ borderRadius: 3 }}
+                sx={{ borderRadius: 1.5 }}
               />
             </Box>
 
@@ -251,7 +251,7 @@ export const RegisterPage: FC = () => {
                     <MailOutlineRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
                   </InputAdornment>
                 }
-                sx={{ borderRadius: 3 }}
+                sx={{ borderRadius: 1.5 }}
               />
             </Box>
 
@@ -279,7 +279,7 @@ export const RegisterPage: FC = () => {
                       <LocationOnOutlinedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
                     </InputAdornment>
                   }
-                  sx={{ borderRadius: 3 }}
+                  sx={{ borderRadius: 1.5 }}
                 >
                   <MenuItem value="san-antonio-base">Barangay San Antonio (Pasig)</MenuItem>
                   <MenuItem value="ortigas-base">Ortigas Center Hub (Pasig)</MenuItem>
@@ -325,7 +325,7 @@ export const RegisterPage: FC = () => {
                     <PhoneOutlinedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
                   </InputAdornment>
                 }
-                sx={{ borderRadius: 3 }}
+                sx={{ borderRadius: 1.5 }}
               />
             </Box>
 
@@ -367,7 +367,7 @@ export const RegisterPage: FC = () => {
                     </IconButton>
                   </InputAdornment>
                 }
-                sx={{ borderRadius: 3 }}
+                sx={{ borderRadius: 1.5 }}
               />
             </Box>
 
@@ -397,7 +397,7 @@ export const RegisterPage: FC = () => {
                     <LockOutlinedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
                   </InputAdornment>
                 }
-                sx={{ borderRadius: 3 }}
+                sx={{ borderRadius: 1.5 }}
               />
             </Box>
 

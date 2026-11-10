@@ -150,7 +150,7 @@ export const ReuseHubPage: FC = () => {
             </InputAdornment>
           }
           sx={{
-            borderRadius: 3,
+            borderRadius: 1.5,
             backgroundColor: '#ffffff',
             fontSize: '0.8125rem',
             fontFamily: "'Quicksand', sans-serif",
@@ -164,7 +164,7 @@ export const ReuseHubPage: FC = () => {
           sx={{
             minWidth: 46,
             width: 46,
-            borderRadius: 3,
+            borderRadius: 1.5,
             borderColor: '#e2e8f0',
             color: '#0f172a',
             p: 1.25,
@@ -221,7 +221,7 @@ export const ReuseHubPage: FC = () => {
       {/* Eco Impact Notice Banner */}
       <Card
         sx={{
-          borderRadius: 3.5,
+          borderRadius: 2,
           backgroundColor: '#0f172a',
           color: '#ffffff',
           border: '1px solid #1e293b',
@@ -266,7 +266,7 @@ export const ReuseHubPage: FC = () => {
             key={item.id}
             sx={{
               p: 1.75,
-              borderRadius: 3.5,
+              borderRadius: 2,
               border: '1px solid #e2e8f0',
               backgroundColor: '#ffffff',
               boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
@@ -282,7 +282,7 @@ export const ReuseHubPage: FC = () => {
                 sx={{
                   width: 90,
                   height: 90,
-                  borderRadius: 2.5,
+                  borderRadius: 1.25,
                   overflow: 'hidden',
                   backgroundColor: '#f1f5f9',
                   border: '1px solid #e2e8f0',
@@ -397,7 +397,7 @@ export const ReuseHubPage: FC = () => {
       {/* Circular Donation Callout Banner */}
       <Card
         sx={{
-          borderRadius: 3.5,
+          borderRadius: 2,
           backgroundColor: '#ffffff',
           border: '1.5px dashed #0f172a',
           p: 2.25,

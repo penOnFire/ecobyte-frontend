@@ -158,7 +158,7 @@ export const MyRequestsPage: FC = () => {
             <Card
               sx={{
                 p: 2,
-                borderRadius: 3.5,
+                borderRadius: 2,
                 backgroundColor: '#ffffff',
                 border: '1px solid #e2e8f0',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
@@ -170,7 +170,7 @@ export const MyRequestsPage: FC = () => {
                   sx={{
                     width: 64,
                     height: 64,
-                    borderRadius: 2.5,
+                    borderRadius: 1.25,
                     overflow: 'hidden',
                     backgroundColor: '#f1f5f9',
                     border: '1px solid #e2e8f0',
@@ -298,7 +298,7 @@ export const MyRequestsPage: FC = () => {
             <Card
               sx={{
                 p: 2,
-                borderRadius: 3.5,
+                borderRadius: 2,
                 border: '1px solid #e2e8f0',
                 backgroundColor: '#ffffff',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
@@ -389,7 +389,7 @@ export const MyRequestsPage: FC = () => {
             <Card
               sx={{
                 p: 2,
-                borderRadius: 3.5,
+                borderRadius: 2,
                 border: '1px solid #e2e8f0',
                 backgroundColor: '#ffffff',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.05)',

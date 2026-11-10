@@ -71,7 +71,7 @@ export const DropOffFinderPage: FC = () => {
       <Box
         sx={{
           backgroundColor: '#ffffff',
-          borderRadius: 3,
+          borderRadius: 1.5,
           p: 1.5,
           border: '1px solid #e2e8f0',
           boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
@@ -113,7 +113,7 @@ export const DropOffFinderPage: FC = () => {
       <Card
         sx={{
           height: 200,
-          borderRadius: 3.5,
+          borderRadius: 2,
           backgroundColor: '#0f172a',
           border: '1px solid #1e293b',
           position: 'relative',
@@ -257,7 +257,7 @@ export const DropOffFinderPage: FC = () => {
         </Box>
 
         {DROP_SITES.map((site) => (
-          <Card key={site.id} sx={{ p: 2, borderRadius: 3.5, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <Card key={site.id} sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <Box>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#0f172a' }}>

@@ -89,7 +89,7 @@ export const AiDiagnosticPage: FC = () => {
       {/* ── Hero Hardware Card ── */}
       <Card
         sx={{
-          borderRadius: 3.5,
+          borderRadius: 2,
           border: '1px solid #e2e8f0',
           overflow: 'hidden',
           backgroundColor: '#ffffff',
@@ -239,7 +239,7 @@ export const AiDiagnosticPage: FC = () => {
       <Card
         sx={{
           p: 2.25,
-          borderRadius: 3.5,
+          borderRadius: 2,
           border: '1.5px solid #fecaca',
           backgroundColor: '#ffffff',
           boxShadow: '0 1px 3px rgba(239, 68, 68, 0.08)',
@@ -250,7 +250,7 @@ export const AiDiagnosticPage: FC = () => {
             sx={{
               width: 38,
               height: 38,
-              borderRadius: 2.5,
+              borderRadius: 1.5,
               backgroundColor: '#fee2e2',
               color: '#dc2626',
               display: 'flex',
@@ -278,7 +278,7 @@ export const AiDiagnosticPage: FC = () => {
         <Box
           sx={{
             backgroundColor: '#fffbeb',
-            borderRadius: 2.5,
+            borderRadius: 1.5,
             p: 1.5,
             border: '1px solid #fde68a',
           }}
@@ -306,7 +306,7 @@ export const AiDiagnosticPage: FC = () => {
           </Typography>
         </Box>
 
-        <Card sx={{ borderRadius: 3.5, border: '1px solid #e2e8f0', overflow: 'hidden', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+        <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', overflow: 'hidden', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           {[
             {
               title: 'Battery',
@@ -348,7 +348,7 @@ export const AiDiagnosticPage: FC = () => {
                     sx={{
                       width: 36,
                       height: 36,
-                      borderRadius: 2.5,
+                      borderRadius: 1.5,
                       backgroundColor: part.iconBg,
                       display: 'flex',
                       alignItems: 'center',
@@ -386,7 +386,7 @@ export const AiDiagnosticPage: FC = () => {
             onClick={() => navigate('/reuse-guide')}
             sx={{
               p: 1.75,
-              borderRadius: 3.5,
+              borderRadius: 2,
               border: '1px solid #e2e8f0',
               backgroundColor: '#ffffff',
               boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
@@ -403,7 +403,7 @@ export const AiDiagnosticPage: FC = () => {
                 sx={{
                   width: 42,
                   height: 42,
-                  borderRadius: 2.5,
+                  borderRadius: 1.5,
                   backgroundColor: '#f1f5f9',
                   color: '#0f172a',
                   display: 'flex',
@@ -430,7 +430,7 @@ export const AiDiagnosticPage: FC = () => {
             onClick={() => navigate('/reuse-guide')}
             sx={{
               p: 1.75,
-              borderRadius: 3.5,
+              borderRadius: 2,
               border: '1px solid #e2e8f0',
               backgroundColor: '#ffffff',
               boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
@@ -447,7 +447,7 @@ export const AiDiagnosticPage: FC = () => {
                 sx={{
                   width: 42,
                   height: 42,
-                  borderRadius: 2.5,
+                  borderRadius: 1.5,
                   backgroundColor: '#f1f5f9',
                   color: '#0f172a',
                   display: 'flex',
@@ -474,7 +474,7 @@ export const AiDiagnosticPage: FC = () => {
             onClick={() => navigate('/schedule-dropoff')}
             sx={{
               p: 1.75,
-              borderRadius: 3.5,
+              borderRadius: 2,
               backgroundColor: '#0f172a',
               color: '#ffffff',
               border: '1px solid #1e293b',
@@ -492,7 +492,7 @@ export const AiDiagnosticPage: FC = () => {
                 sx={{
                   width: 42,
                   height: 42,
-                  borderRadius: 2.5,
+                  borderRadius: 1.5,
                   backgroundColor: '#abf06b',
                   color: '#0f172a',
                   display: 'flex',

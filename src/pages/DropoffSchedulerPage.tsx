@@ -84,14 +84,14 @@ export const DropoffSchedulerPage: FC = () => {
       </Box>
 
       {/* ── Official Intake Banner ── */}
-      <Card sx={{ p: 2, borderRadius: 3.5, backgroundColor: '#0f172a', color: '#ffffff', border: '1px solid #1e293b', boxShadow: '0 2px 6px rgba(15,23,42,0.15)' }}>
+      <Card sx={{ p: 2, borderRadius: 2, backgroundColor: '#0f172a', color: '#ffffff', border: '1px solid #1e293b', boxShadow: '0 2px 6px rgba(15,23,42,0.15)' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
             <Box
               sx={{
                 width: 38,
                 height: 38,
-                borderRadius: 2.5,
+                borderRadius: 1.5,
                 backgroundColor: '#abf06b',
                 color: '#0f172a',
                 display: 'flex',
@@ -116,7 +116,7 @@ export const DropoffSchedulerPage: FC = () => {
       </Card>
 
       {/* ── Hazardous Alert Card ── */}
-      <Card sx={{ p: 2, borderRadius: 3.5, border: '1.5px solid #fde68a', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(245, 158, 11, 0.1)' }}>
+      <Card sx={{ p: 2, borderRadius: 2, border: '1.5px solid #fde68a', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(245, 158, 11, 0.1)' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Box>
             <Box
@@ -149,7 +149,7 @@ export const DropoffSchedulerPage: FC = () => {
             sx={{
               width: 44,
               height: 44,
-              borderRadius: 2.5,
+              borderRadius: 1.5,
               backgroundColor: '#f8fafc',
               border: '1px solid #e2e8f0',
               display: 'flex',
@@ -177,7 +177,7 @@ export const DropoffSchedulerPage: FC = () => {
           </Typography>
         </Box>
 
-        <Card sx={{ p: 2, borderRadius: 3.5, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+        <Card sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           {/* Calendar header */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
@@ -353,7 +353,7 @@ export const DropoffSchedulerPage: FC = () => {
                 onClick={() => setSelectedWindow(item.id)}
                 sx={{
                   p: 1.5,
-                  borderRadius: 3,
+                  borderRadius: 1.5,
                   border: isSelected ? '2px solid #0f172a' : '1px solid #e2e8f0',
                   backgroundColor: '#ffffff',
                   boxShadow: isSelected ? '0 2px 6px rgba(15,23,42,0.1)' : '0 1px 2px rgba(0,0,0,0.03)',
@@ -403,7 +403,7 @@ export const DropoffSchedulerPage: FC = () => {
             onClick={() => setSelectedHub('pasig')}
             sx={{
               p: 1.75,
-              borderRadius: 3,
+              borderRadius: 1.5,
               border: selectedHub === 'pasig' ? '2px solid #0f172a' : '1px solid #e2e8f0',
               backgroundColor: '#ffffff',
               boxShadow: selectedHub === 'pasig' ? '0 2px 6px rgba(15,23,42,0.1)' : '0 1px 2px rgba(0,0,0,0.03)',
@@ -436,7 +436,7 @@ export const DropoffSchedulerPage: FC = () => {
             onClick={() => setSelectedHub('bgc')}
             sx={{
               p: 1.75,
-              borderRadius: 3,
+              borderRadius: 1.5,
               border: selectedHub === 'bgc' ? '2px solid #0f172a' : '1px solid #e2e8f0',
               backgroundColor: '#ffffff',
               boxShadow: selectedHub === 'bgc' ? '0 2px 6px rgba(15,23,42,0.1)' : '0 1px 2px rgba(0,0,0,0.03)',

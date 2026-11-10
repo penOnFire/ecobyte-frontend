@@ -60,7 +60,7 @@ export const SignInPage: FC = () => {
             sx={{
               width: 58,
               height: 58,
-              borderRadius: 3.5,
+              borderRadius: 2,
               mb: 1.5,
               boxShadow: '0 4px 16px rgba(15,23,42,0.12)',
             }}
@@ -97,7 +97,7 @@ export const SignInPage: FC = () => {
             px: 3,
             pt: 2.5,
             pb: 3,
-            borderRadius: 4,
+            borderRadius: 2,
             border: '1px solid #e2e8f0',
             boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
             backgroundColor: '#ffffff',
@@ -215,7 +215,7 @@ export const SignInPage: FC = () => {
                     <MailOutlineRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
                   </InputAdornment>
                 }
-                sx={{ borderRadius: 3 }}
+                sx={{ borderRadius: 1.5 }}
               />
             </Box>
 
@@ -261,7 +261,7 @@ export const SignInPage: FC = () => {
                     </IconButton>
                   </InputAdornment>
                 }
-                sx={{ borderRadius: 3 }}
+                sx={{ borderRadius: 1.5 }}
               />
             </Box>
 
@@ -369,7 +369,7 @@ export const SignInPage: FC = () => {
                 aria-label={label}
                 sx={{
                   py: 1.25,
-                  borderRadius: 3,
+                  borderRadius: 1.5,
                   borderColor: '#e2e8f0',
                   backgroundColor: '#ffffff',
                   minWidth: 0,

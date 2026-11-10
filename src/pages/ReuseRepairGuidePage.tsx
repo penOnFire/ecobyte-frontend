@@ -77,7 +77,7 @@ export const ReuseRepairGuidePage: FC = () => {
       <Card
         sx={{
           p: 2.25,
-          borderRadius: 3.5,
+          borderRadius: 2,
           border: '1px solid #e2e8f0',
           backgroundColor: '#ffffff',
           boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
@@ -123,7 +123,7 @@ export const ReuseRepairGuidePage: FC = () => {
 
         {/* 3 mini stats boxes */}
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
-          <Box sx={{ p: 1.25, backgroundColor: '#f1f5f9', borderRadius: 2.5, textAlign: 'center', border: '1px solid #e2e8f0' }}>
+          <Box sx={{ p: 1.25, backgroundColor: '#f1f5f9', borderRadius: 1.25, textAlign: 'center', border: '1px solid #e2e8f0' }}>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.625rem', color: '#64748b', fontWeight: 700, letterSpacing: '0.04em' }}>
               CIRCULAR PATH
             </Typography>
@@ -132,7 +132,7 @@ export const ReuseRepairGuidePage: FC = () => {
             </Typography>
           </Box>
 
-          <Box sx={{ p: 1.25, backgroundColor: '#fee2e2', borderRadius: 2.5, textAlign: 'center', border: '1px solid #fecaca' }}>
+          <Box sx={{ p: 1.25, backgroundColor: '#fee2e2', borderRadius: 1.25, textAlign: 'center', border: '1px solid #fecaca' }}>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.625rem', color: '#991b1b', fontWeight: 700, letterSpacing: '0.04em' }}>
               SAFE DIY
             </Typography>
@@ -141,7 +141,7 @@ export const ReuseRepairGuidePage: FC = () => {
             </Typography>
           </Box>
 
-          <Box sx={{ p: 1.25, backgroundColor: '#f1f5f9', borderRadius: 2.5, textAlign: 'center', border: '1px solid #e2e8f0' }}>
+          <Box sx={{ p: 1.25, backgroundColor: '#f1f5f9', borderRadius: 1.25, textAlign: 'center', border: '1px solid #e2e8f0' }}>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.625rem', color: '#64748b', fontWeight: 700, letterSpacing: '0.04em' }}>
               EST. OFFSET
             </Typography>
@@ -208,7 +208,7 @@ export const ReuseRepairGuidePage: FC = () => {
           <Card
             sx={{
               p: 2,
-              borderRadius: 3.5,
+              borderRadius: 2,
               border: '1px solid #e2e8f0',
               backgroundColor: '#ffffff',
               boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
@@ -246,7 +246,7 @@ export const ReuseRepairGuidePage: FC = () => {
                   sx={{
                     mt: 1.5,
                     p: 1.25,
-                    borderRadius: 2.5,
+                    borderRadius: 1.25,
                     backgroundColor: '#f8fafc',
                     border: '1px solid #e2e8f0',
                     display: 'flex',
@@ -267,7 +267,7 @@ export const ReuseRepairGuidePage: FC = () => {
           <Card
             sx={{
               p: 2,
-              borderRadius: 3.5,
+              borderRadius: 2,
               border: '1px solid #e2e8f0',
               backgroundColor: '#ffffff',
               boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
@@ -324,7 +324,7 @@ export const ReuseRepairGuidePage: FC = () => {
           <Card
             sx={{
               p: 2,
-              borderRadius: 3.5,
+              borderRadius: 2,
               border: '1px solid #e2e8f0',
               backgroundColor: '#ffffff',
               boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
@@ -372,7 +372,7 @@ export const ReuseRepairGuidePage: FC = () => {
           <Box
             sx={{
               backgroundColor: '#fffbeb',
-              borderRadius: 3.5,
+              borderRadius: 2,
               border: '1.5px solid #fde68a',
               p: 2,
             }}
@@ -403,7 +403,7 @@ export const ReuseRepairGuidePage: FC = () => {
           <Card
             sx={{
               p: 2,
-              borderRadius: 3.5,
+              borderRadius: 2,
               border: '1px solid #e2e8f0',
               backgroundColor: '#ffffff',
               boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
@@ -442,7 +442,7 @@ export const ReuseRepairGuidePage: FC = () => {
           <Card
             sx={{
               p: 2,
-              borderRadius: 3.5,
+              borderRadius: 2,
               border: '1px solid #e2e8f0',
               backgroundColor: '#ffffff',
               boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
@@ -478,7 +478,7 @@ export const ReuseRepairGuidePage: FC = () => {
                   sx={{
                     mt: 1.5,
                     p: 1.25,
-                    borderRadius: 2.5,
+                    borderRadius: 1.25,
                     backgroundColor: '#f8fafc',
                     border: '1px solid #e2e8f0',
                     display: 'flex',
@@ -503,7 +503,7 @@ export const ReuseRepairGuidePage: FC = () => {
           <Card
             sx={{
               p: 2,
-              borderRadius: 3.5,
+              borderRadius: 2,
               border: '1px solid #e2e8f0',
               backgroundColor: '#ffffff',
               boxShadow: '0 1px 3px rgba(0,0,0,0.05)',

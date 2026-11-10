@@ -90,7 +90,7 @@ export const ScanDevicePage: FC = () => {
       {/* ── Camera Viewport Card ── */}
       <Box
         sx={{
-          borderRadius: 4,
+          borderRadius: 2,
           backgroundColor: '#020617',
           border: '1.5px solid #1e293b',
           p: 2,
@@ -116,10 +116,10 @@ export const ScanDevicePage: FC = () => {
         />
 
         {/* Decorative electric lime corner brackets */}
-        <Box sx={{ position: 'absolute', top: 16, left: 16, width: 22, height: 22, borderTop: '2.5px solid #abf06b', borderLeft: '2.5px solid #abf06b', borderRadius: '4px 0 0 0' }} />
-        <Box sx={{ position: 'absolute', top: 16, right: 16, width: 22, height: 22, borderTop: '2.5px solid #abf06b', borderRight: '2.5px solid #abf06b', borderRadius: '0 4px 0 0' }} />
-        <Box sx={{ position: 'absolute', bottom: 16, left: 16, width: 22, height: 22, borderBottom: '2.5px solid #abf06b', borderLeft: '2.5px solid #abf06b', borderRadius: '0 0 0 4px' }} />
-        <Box sx={{ position: 'absolute', bottom: 16, right: 16, width: 22, height: 22, borderBottom: '2.5px solid #abf06b', borderRight: '2.5px solid #abf06b', borderRadius: '0 0 4px 0' }} />
+        <Box sx={{ position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderTop: '2.5px solid #abf06b', borderLeft: '2.5px solid #abf06b', borderRadius: '3px 0 0 0' }} />
+        <Box sx={{ position: 'absolute', top: 12, right: 12, width: 22, height: 22, borderTop: '2.5px solid #abf06b', borderRight: '2.5px solid #abf06b', borderRadius: '0 3px 0 0' }} />
+        <Box sx={{ position: 'absolute', bottom: 12, left: 12, width: 22, height: 22, borderBottom: '2.5px solid #abf06b', borderLeft: '2.5px solid #abf06b', borderRadius: '0 0 0 3px' }} />
+        <Box sx={{ position: 'absolute', bottom: 12, right: 12, width: 22, height: 22, borderBottom: '2.5px solid #abf06b', borderRight: '2.5px solid #abf06b', borderRadius: '0 0 3px 0' }} />
 
         {/* Top HUD badge */}
         <Box sx={{ display: 'flex', justifyContent: 'center', zIndex: 2 }}>
@@ -185,7 +185,7 @@ export const ScanDevicePage: FC = () => {
               width: 124,
               height: 184,
               backgroundColor: '#0f172a',
-              borderRadius: 4,
+              borderRadius: 2,
               border: '2px solid #334155',
               position: 'relative',
               p: 1.25,
@@ -200,7 +200,7 @@ export const ScanDevicePage: FC = () => {
               sx={{
                 width: 46,
                 height: 50,
-                borderRadius: 2.5,
+                borderRadius: 1.25,
                 backgroundColor: '#020617',
                 border: '1.5px solid #334155',
                 display: 'grid',
@@ -371,7 +371,7 @@ export const ScanDevicePage: FC = () => {
       <Card
         sx={{
           p: 2,
-          borderRadius: 3.5,
+          borderRadius: 2,
           backgroundColor: '#f8fafc',
           border: '1px solid #e2e8f0',
           boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
@@ -449,7 +449,7 @@ export const ScanDevicePage: FC = () => {
           <Box
             sx={{
               height: 100,
-              borderRadius: 3,
+              borderRadius: 1.5,
               backgroundColor: '#f8fafc',
               border: '1.5px solid #e2e8f0',
               display: 'flex',
@@ -476,8 +476,8 @@ export const ScanDevicePage: FC = () => {
             <Box
               sx={{
                 position: 'absolute',
-                top: 5,
-                left: 5,
+                top: 7,
+                left: 7,
                 width: 18,
                 height: 18,
                 borderRadius: '50%',
@@ -495,7 +495,7 @@ export const ScanDevicePage: FC = () => {
               sx={{
                 width: '100%',
                 backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                borderRadius: 1.5,
+                borderRadius: 1,
                 py: 0.25,
                 textAlign: 'center',
                 zIndex: 1,
@@ -512,7 +512,7 @@ export const ScanDevicePage: FC = () => {
           <Box
             sx={{
               height: 100,
-              borderRadius: 3,
+              borderRadius: 1.5,
               backgroundColor: 'rgba(171, 240, 107, 0.08)',
               border: '2px dashed #abf06b',
               display: 'flex',
@@ -542,7 +542,7 @@ export const ScanDevicePage: FC = () => {
           <Box
             sx={{
               height: 100,
-              borderRadius: 3,
+              borderRadius: 1.5,
               backgroundColor: '#ffffff',
               border: '1.5px dotted #cbd5e1',
               display: 'flex',
@@ -562,7 +562,7 @@ export const ScanDevicePage: FC = () => {
           <Box
             sx={{
               height: 100,
-              borderRadius: 3,
+              borderRadius: 1.5,
               backgroundColor: '#ffffff',
               border: '1.5px dotted #cbd5e1',
               display: 'flex',

@@ -73,13 +73,13 @@ export const ReservationPassPage: FC = () => {
       </Box>
 
       {/* ── Item Mini Card ── */}
-      <Card sx={{ p: 2, borderRadius: 3.5, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+      <Card sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
           <Box
             sx={{
               width: 56,
               height: 56,
-              borderRadius: 2.5,
+              borderRadius: 1.25,
               overflow: 'hidden',
               backgroundColor: '#f1f5f9',
               border: '1px solid #e2e8f0',
@@ -120,7 +120,7 @@ export const ReservationPassPage: FC = () => {
       {/* ── Official Pick-Up Code Ticket ── */}
       <Box
         sx={{
-          borderRadius: 3.5,
+          borderRadius: 2,
           backgroundColor: '#0f172a',
           border: '1.5px solid #1e293b',
           color: '#ffffff',
@@ -149,7 +149,7 @@ export const ReservationPassPage: FC = () => {
         <Box
           sx={{
             backgroundColor: '#020617',
-            borderRadius: 3,
+            borderRadius: 1.25,
             p: 1.75,
             display: 'flex',
             alignItems: 'center',
@@ -188,7 +188,7 @@ export const ReservationPassPage: FC = () => {
       </Box>
 
       {/* ── Pick-up Schedule Details ── */}
-      <Card sx={{ p: 2, borderRadius: 3.5, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+      <Card sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           {/* Date */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -242,7 +242,7 @@ export const ReservationPassPage: FC = () => {
       </Card>
 
       {/* ── Instruction Subcard ── */}
-      <Card sx={{ p: 1.75, borderRadius: 3, backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+      <Card sx={{ p: 1.75, borderRadius: 1.5, backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
         <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'flex-start' }}>
           <InfoOutlinedIcon sx={{ fontSize: 18, color: '#0f172a', mt: 0.2 }} />
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#0f172a', lineHeight: 1.5, fontWeight: 500 }}>

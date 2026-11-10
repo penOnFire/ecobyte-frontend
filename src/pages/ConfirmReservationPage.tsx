@@ -74,13 +74,13 @@ export const ConfirmReservationPage: FC = () => {
       </Box>
 
       {/* ── Device Summary Card ── */}
-      <Card sx={{ p: 2, borderRadius: 3.5, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+      <Card sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
           <Box
             sx={{
               width: 58,
               height: 58,
-              borderRadius: 2.5,
+              borderRadius: 1.25,
               overflow: 'hidden',
               backgroundColor: '#f1f5f9',
               border: '1px solid #e2e8f0',
@@ -120,13 +120,13 @@ export const ConfirmReservationPage: FC = () => {
           <StatusBadge label="Fixed Location" variant="electric" size="sm" />
         </Box>
 
-        <Card sx={{ p: 2, borderRadius: 3.5, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+        <Card sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start', mb: 1.5 }}>
             <Box
               sx={{
                 width: 44,
                 height: 44,
-                borderRadius: 2.5,
+                borderRadius: 1.5,
                 backgroundColor: '#0f172a',
                 color: '#abf06b',
                 display: 'flex',
@@ -161,7 +161,7 @@ export const ConfirmReservationPage: FC = () => {
             sx={{
               backgroundColor: '#f1f5f9',
               border: '1px solid #e2e8f0',
-              borderRadius: 2.5,
+              borderRadius: 1.25,
               p: 1.25,
               display: 'flex',
               gap: 1,
@@ -177,7 +177,7 @@ export const ConfirmReservationPage: FC = () => {
       </Box>
 
       {/* ── Schedule Timings ── */}
-      <Card sx={{ p: 2, borderRadius: 3.5, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+      <Card sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           {/* Pick-up Date */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -221,7 +221,7 @@ export const ConfirmReservationPage: FC = () => {
       </Card>
 
       {/* ── Notice Card ── */}
-      <Card sx={{ p: 1.75, borderRadius: 3, backgroundColor: '#fffbeb', border: '1px solid #fde68a' }}>
+      <Card sx={{ p: 1.75, borderRadius: 1.5, backgroundColor: '#fffbeb', border: '1px solid #fde68a' }}>
         <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'flex-start' }}>
           <InfoOutlinedIcon sx={{ fontSize: 18, color: '#b45309', mt: 0.15 }} />
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#92400e', lineHeight: 1.5, fontWeight: 500 }}>

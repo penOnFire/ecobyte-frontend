@@ -63,7 +63,7 @@ export const DashboardPage: FC = () => {
       </Box>
 
       {/* ── 3-Column Stats Card (Shadcn aesthetic) ── */}
-      <Card sx={{ p: 2, borderRadius: 4, border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+      <Card sx={{ p: 2.25, borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', alignItems: 'center', textAlign: 'center' }}>
           {/* Requests */}
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -103,7 +103,7 @@ export const DashboardPage: FC = () => {
       </Card>
 
       {/* ── Active Request Tracker Card ── */}
-      <Card sx={{ p: 2, borderRadius: 4, border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+      <Card sx={{ p: 2.25, borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
@@ -111,7 +111,7 @@ export const DashboardPage: FC = () => {
                 sx={{
                   width: 38,
                   height: 38,
-                  borderRadius: 2.5,
+                  borderRadius: 1.5,
                   backgroundColor: '#0f172a',
                   color: '#abf06b',
                   display: 'flex',
@@ -162,9 +162,9 @@ export const DashboardPage: FC = () => {
             sx={{
               backgroundColor: '#f8fafc',
               border: '1px solid #e2e8f0',
-              borderRadius: 3,
+              borderRadius: 1.5,
               px: 1.5,
-              py: 1,
+              py: 0.85,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -219,13 +219,13 @@ export const DashboardPage: FC = () => {
         </Box>
 
         {/* Item 1: iPad 9th Gen */}
-        <Card sx={{ p: 1.75, borderRadius: 4, mb: 1.25, border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-          <Box sx={{ display: 'flex', gap: 1.75 }}>
+        <Card sx={{ p: 2, borderRadius: 2, mb: 1.5, border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
             <Box
               sx={{
-                width: 80,
-                height: 80,
-                borderRadius: 3,
+                width: 82,
+                height: 82,
+                borderRadius: 1.5,
                 backgroundColor: '#f1f5f9',
                 overflow: 'hidden',
                 position: 'relative',
@@ -241,8 +241,8 @@ export const DashboardPage: FC = () => {
               <Box
                 sx={{
                   position: 'absolute',
-                  top: 5,
-                  left: 5,
+                  top: 6,
+                  left: 6,
                   backgroundColor: 'rgba(255,255,255,0.92)',
                   borderRadius: 1,
                   px: 0.6,
@@ -298,13 +298,13 @@ export const DashboardPage: FC = () => {
         </Card>
 
         {/* Item 2: Keychron K2 */}
-        <Card sx={{ p: 1.75, borderRadius: 4, border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-          <Box sx={{ display: 'flex', gap: 1.75 }}>
+        <Card sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
             <Box
               sx={{
-                width: 80,
-                height: 80,
-                borderRadius: 3,
+                width: 82,
+                height: 82,
+                borderRadius: 1.5,
                 backgroundColor: '#f1f5f9',
                 overflow: 'hidden',
                 position: 'relative',
@@ -320,8 +320,8 @@ export const DashboardPage: FC = () => {
               <Box
                 sx={{
                   position: 'absolute',
-                  top: 5,
-                  left: 5,
+                  top: 6,
+                  left: 6,
                   backgroundColor: 'rgba(255,255,255,0.92)',
                   borderRadius: 1,
                   px: 0.6,
@@ -380,8 +380,8 @@ export const DashboardPage: FC = () => {
       {/* ── Lithium-ion Protocol Warning Callout ── */}
       <Card
         sx={{
-          p: 1.75,
-          borderRadius: 4,
+          p: 2,
+          borderRadius: 2,
           backgroundColor: '#fffbeb',
           border: '1px solid #fde68a',
         }}

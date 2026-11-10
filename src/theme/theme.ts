@@ -61,7 +61,7 @@ export const theme = createTheme({
     overline: { fontWeight: 700, fontSize: '0.6875rem', letterSpacing: '0.08em' },
   },
   shape: {
-    borderRadius: 16,
+    borderRadius: 12,
   },
   components: {
     MuiCssBaseline: {
@@ -114,7 +114,7 @@ export const theme = createTheme({
       defaultProps: { elevation: 0 },
       styleOverrides: {
         root: {
-          borderRadius: 16,
+          borderRadius: 14,
           backgroundColor: '#ffffff',
           border: '1px solid #e2e8f0',
           boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
@@ -126,7 +126,7 @@ export const theme = createTheme({
       defaultProps: { elevation: 0 },
       styleOverrides: {
         root: { backgroundImage: 'none' },
-        rounded: { borderRadius: 16 },
+        rounded: { borderRadius: 14 },
       },
     },
     MuiOutlinedInput: {

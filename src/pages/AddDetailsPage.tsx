@@ -111,7 +111,7 @@ export const AddDetailsPage: FC = () => {
       <Card
         sx={{
           p: 2.25,
-          borderRadius: 3.5,
+          borderRadius: 2,
           backgroundColor: '#ffffff',
           border: '1px solid #e2e8f0',
           boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
@@ -139,7 +139,7 @@ export const AddDetailsPage: FC = () => {
               key={item.label}
               sx={{
                 height: 76,
-                borderRadius: 2.5,
+                borderRadius: 1.25,
                 backgroundColor: '#0f172a',
                 border: '1px solid #1e293b',
                 color: '#ffffff',
@@ -157,8 +157,8 @@ export const AddDetailsPage: FC = () => {
                 <Box
                   sx={{
                     position: 'absolute',
-                    top: 5,
-                    right: 5,
+                    top: 6,
+                    right: 6,
                     width: 16,
                     height: 16,
                     borderRadius: '50%',
@@ -178,7 +178,7 @@ export const AddDetailsPage: FC = () => {
                   width: '100%',
                   backgroundColor: 'rgba(2, 6, 23, 0.75)',
                   backdropFilter: 'blur(4px)',
-                  borderRadius: 1.5,
+                  borderRadius: 1,
                   py: 0.25,
                   textAlign: 'center',
                 }}
@@ -196,7 +196,7 @@ export const AddDetailsPage: FC = () => {
       <Card
         sx={{
           p: 2.25,
-          borderRadius: 3.5,
+          borderRadius: 2,
           backgroundColor: '#ffffff',
           border: '1px solid #e2e8f0',
           boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
@@ -237,7 +237,7 @@ export const AddDetailsPage: FC = () => {
                   startIcon={opt.icon}
                   sx={{
                     py: 0.9,
-                    borderRadius: 2.5,
+                    borderRadius: 1.25,
                     fontSize: '0.8125rem',
                     backgroundColor: isSel ? '#0f172a' : '#ffffff',
                     color: isSel ? '#ffffff' : '#0f172a',
@@ -446,7 +446,7 @@ export const AddDetailsPage: FC = () => {
             onChange={(e) => setNotes(e.target.value)}
             placeholder="e.g. Turns on but screen flickers, battery discharges quickly"
             sx={{
-              borderRadius: 3,
+              borderRadius: 1.5,
               backgroundColor: '#f8fafc',
               fontSize: '0.8125rem',
               '& .MuiOutlinedInput-notchedOutline': {
@@ -464,7 +464,7 @@ export const AddDetailsPage: FC = () => {
       <Card
         sx={{
           p: 2.25,
-          borderRadius: 3.5,
+          borderRadius: 2,
           backgroundColor: '#ffffff',
           border: '1px solid #e2e8f0',
           boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
@@ -475,7 +475,7 @@ export const AddDetailsPage: FC = () => {
             sx={{
               width: 38,
               height: 38,
-              borderRadius: 2.5,
+              borderRadius: 1.5,
               backgroundColor: '#0f172a',
               color: '#abf06b',
               display: 'flex',

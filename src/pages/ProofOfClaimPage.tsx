@@ -73,7 +73,7 @@ export const ProofOfClaimPage: FC = () => {
       </Box>
 
       {/* ── Upload Proof Photo Card ── */}
-      <Card sx={{ p: 2.25, borderRadius: 3.5, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+      <Card sx={{ p: 2.25, borderRadius: 2, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start', mb: 2 }}>
           <Box
             sx={{
@@ -103,7 +103,7 @@ export const ProofOfClaimPage: FC = () => {
         {/* Drag & drop upload target */}
         <Box
           sx={{
-            borderRadius: 3,
+            borderRadius: 1.5,
             border: '2px dashed #cbd5e1',
             backgroundColor: '#f8fafc',
             p: 2.5,
@@ -181,7 +181,7 @@ export const ProofOfClaimPage: FC = () => {
       </Card>
 
       {/* ── Item Details Card ── */}
-      <Card sx={{ p: 2, borderRadius: 3.5, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+      <Card sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
             <Inventory2OutlinedIcon sx={{ fontSize: 18, color: '#0f172a' }} />
@@ -195,7 +195,7 @@ export const ProofOfClaimPage: FC = () => {
         <Box
           sx={{
             backgroundColor: '#f8fafc',
-            borderRadius: 2.5,
+            borderRadius: 1.25,
             p: 1.5,
             border: '1px solid #e2e8f0',
           }}
@@ -205,7 +205,7 @@ export const ProofOfClaimPage: FC = () => {
               sx={{
                 width: 40,
                 height: 40,
-                borderRadius: 2,
+                borderRadius: 1,
                 overflow: 'hidden',
                 backgroundColor: '#ffffff',
                 border: '1px solid #e2e8f0',
@@ -258,7 +258,7 @@ export const ProofOfClaimPage: FC = () => {
       </Card>
 
       {/* ── Circularity Impact Card ── */}
-      <Card sx={{ p: 2, borderRadius: 3.5, backgroundColor: '#0f172a', color: '#ffffff', border: '1px solid #1e293b', boxShadow: '0 2px 6px rgba(15,23,42,0.15)' }}>
+      <Card sx={{ p: 2, borderRadius: 2, backgroundColor: '#0f172a', color: '#ffffff', border: '1px solid #1e293b', boxShadow: '0 2px 6px rgba(15,23,42,0.15)' }}>
         <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
           <Box
             sx={{

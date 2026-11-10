@@ -71,7 +71,7 @@ export const ReuseItemDetailPage: FC = () => {
       <Card
         sx={{
           height: 220,
-          borderRadius: 3.5,
+          borderRadius: 2,
           backgroundColor: '#f1f5f9',
           border: '1px solid #e2e8f0',
           position: 'relative',
@@ -171,7 +171,7 @@ export const ReuseItemDetailPage: FC = () => {
       </Box>
 
       {/* ── Device Specifications Card ── */}
-      <Card sx={{ p: 2, borderRadius: 3.5, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+      <Card sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
             <InfoOutlinedIcon sx={{ fontSize: 18, color: '#0f172a' }} />
@@ -183,7 +183,7 @@ export const ReuseItemDetailPage: FC = () => {
         </Box>
 
         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
-          <Box sx={{ p: 1.25, backgroundColor: '#f8fafc', borderRadius: 2.5, border: '1px solid #e2e8f0' }}>
+          <Box sx={{ p: 1.25, backgroundColor: '#f8fafc', borderRadius: 1.25, border: '1px solid #e2e8f0' }}>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
               Processor
             </Typography>
@@ -192,7 +192,7 @@ export const ReuseItemDetailPage: FC = () => {
             </Typography>
           </Box>
 
-          <Box sx={{ p: 1.25, backgroundColor: '#f8fafc', borderRadius: 2.5, border: '1px solid #e2e8f0' }}>
+          <Box sx={{ p: 1.25, backgroundColor: '#f8fafc', borderRadius: 1.25, border: '1px solid #e2e8f0' }}>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
               Memory &amp; Storage
             </Typography>
@@ -201,7 +201,7 @@ export const ReuseItemDetailPage: FC = () => {
             </Typography>
           </Box>
 
-          <Box sx={{ p: 1.25, backgroundColor: '#f8fafc', borderRadius: 2.5, border: '1px solid #e2e8f0' }}>
+          <Box sx={{ p: 1.25, backgroundColor: '#f8fafc', borderRadius: 1.25, border: '1px solid #e2e8f0' }}>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
               Screen Resolution
             </Typography>
@@ -210,7 +210,7 @@ export const ReuseItemDetailPage: FC = () => {
             </Typography>
           </Box>
 
-          <Box sx={{ p: 1.25, backgroundColor: '#f8fafc', borderRadius: 2.5, border: '1px solid #e2e8f0' }}>
+          <Box sx={{ p: 1.25, backgroundColor: '#f8fafc', borderRadius: 1.25, border: '1px solid #e2e8f0' }}>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
               OS Installed
             </Typography>
@@ -222,13 +222,13 @@ export const ReuseItemDetailPage: FC = () => {
       </Card>
 
       {/* ── EcoByte 30-Day Guarantee ── */}
-      <Card sx={{ p: 2, borderRadius: 3.5, backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+      <Card sx={{ p: 2, borderRadius: 2, backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
           <Box
             sx={{
               width: 36,
               height: 36,
-              borderRadius: 2.5,
+              borderRadius: 1.5,
               backgroundColor: '#0f172a',
               display: 'flex',
               alignItems: 'center',
@@ -264,7 +264,7 @@ export const ReuseItemDetailPage: FC = () => {
         </Box>
 
         {/* Selected date row */}
-        <Card sx={{ p: 1.5, borderRadius: 3, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', mb: 1.5 }}>
+        <Card sx={{ p: 1.5, borderRadius: 1.5, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', mb: 1.5 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <CalendarTodayRoundedIcon sx={{ fontSize: 18, color: '#0f172a' }} />
@@ -298,7 +298,7 @@ export const ReuseItemDetailPage: FC = () => {
                 size="small"
                 sx={{
                   py: 1,
-                  borderRadius: 2.5,
+                  borderRadius: 1.25,
                   fontSize: '0.8125rem',
                   backgroundColor: isSelected ? '#0f172a' : '#ffffff',
                   color: isSelected ? '#ffffff' : '#0f172a',
@@ -320,7 +320,7 @@ export const ReuseItemDetailPage: FC = () => {
         <Box
           sx={{
             p: 1.5,
-            borderRadius: 3,
+            borderRadius: 1.5,
             backgroundColor: '#f8fafc',
             border: '1px solid #e2e8f0',
             display: 'flex',
