@@ -1,0 +1,532 @@
+import type { FC } from 'react'
+import {
+  Box,
+  Card,
+  Divider,
+  IconButton,
+  Typography,
+} from '@mui/material'
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
+import ShareOutlinedIcon from '@mui/icons-material/ShareOutlined'
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded'
+import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined'
+import BatteryAlertRoundedIcon from '@mui/icons-material/BatteryAlertRounded'
+import PhoneAndroidRoundedIcon from '@mui/icons-material/PhoneAndroidRounded'
+import CropFreeRoundedIcon from '@mui/icons-material/CropFreeRounded'
+import MemoryRoundedIcon from '@mui/icons-material/MemoryRounded'
+import RecyclingRoundedIcon from '@mui/icons-material/RecyclingRounded'
+import BuildOutlinedIcon from '@mui/icons-material/BuildOutlined'
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
+import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
+import EnergySavingsLeafRoundedIcon from '@mui/icons-material/EnergySavingsLeafRounded'
+import { useNavigate } from 'react-router-dom'
+import { StatusBadge } from '@/components/ui/StatusBadge'
+import diagnosticImg from '@/assets/ui/diagnostic_view.jpeg'
+
+export const AiDiagnosticPage: FC = () => {
+  const navigate = useNavigate()
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5 }}>
+      {/* ── Top Bar ── */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <IconButton
+          size="small"
+          onClick={() => navigate(-1)}
+          aria-label="Back"
+          sx={{
+            width: 38,
+            height: 38,
+            backgroundColor: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderRadius: '50%',
+            color: '#0f172a',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            '&:hover': { backgroundColor: '#f8fafc' },
+          }}
+        >
+          <ArrowBackRoundedIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1.0625rem', color: '#0f172a' }}>
+            Diagnostic Results
+          </Typography>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#64748b' }}>
+            AI Multi-Angle Inspection
+          </Typography>
+        </Box>
+
+        <IconButton
+          size="small"
+          aria-label="Share results"
+          sx={{
+            width: 38,
+            height: 38,
+            backgroundColor: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderRadius: '50%',
+            color: '#0f172a',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            '&:hover': { backgroundColor: '#f8fafc' },
+          }}
+        >
+          <ShareOutlinedIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+      </Box>
+
+      {/* ── Session & Confidence Bar ── */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+          <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#abf06b', boxShadow: '0 0 6px #abf06b' }} />
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>
+            Session #SCAN-9042
+          </Typography>
+        </Box>
+        <StatusBadge label="Confidence 98.4%" variant="electric" size="sm" />
+      </Box>
+
+      {/* ── Hero Hardware Card ── */}
+      <Card
+        sx={{
+          borderRadius: 2,
+          border: '1px solid #e2e8f0',
+          overflow: 'hidden',
+          backgroundColor: '#ffffff',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        }}
+      >
+        {/* Mock X-Ray / Vision scan viewport */}
+        <Box
+          sx={{
+            height: 168,
+            backgroundColor: '#020617',
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            p: 1.75,
+            overflow: 'hidden',
+          }}
+        >
+          <Box
+            component="img"
+            src={diagnosticImg}
+            alt="Hardware Diagnostic Scan"
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              opacity: 0.35,
+            }}
+          />
+
+          {/* Top HUD overlay */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1, position: 'relative' }}>
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.6,
+                backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(6px)',
+                px: 1.25,
+                py: 0.4,
+                borderRadius: 9999,
+              }}
+            >
+              <CropFreeRoundedIcon sx={{ fontSize: 13, color: '#abf06b' }} />
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.625rem', color: '#ffffff', letterSpacing: '0.04em' }}>
+                AI MULTI-ANGLE LOCK
+              </Typography>
+            </Box>
+            <Box
+              sx={{
+                backgroundColor: '#abf06b',
+                color: '#0f172a',
+                px: 1.25,
+                py: 0.35,
+                borderRadius: 9999,
+              }}
+            >
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.625rem' }}>
+                6/6 ANGLES
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Internal circuitry graphic illustration */}
+          <Box
+            sx={{
+              alignSelf: 'center',
+              my: 'auto',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              zIndex: 1,
+            }}
+          >
+            <MemoryRoundedIcon sx={{ fontSize: 44, color: '#abf06b', filter: 'drop-shadow(0 0 8px rgba(171, 240, 107, 0.5))' }} />
+            <Box>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#ffffff' }}>
+                BATTERY STATUS: DEGRADED (68%)
+              </Typography>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#94a3b8' }}>
+                INTERNAL GAS BUILDUP: DETECTED
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Warning badge overlay */}
+          <Box
+            sx={{
+              alignSelf: 'center',
+              backgroundColor: 'rgba(254, 243, 199, 0.95)',
+              border: '1px solid #fde68a',
+              borderRadius: 9999,
+              px: 1.5,
+              py: 0.4,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.75,
+              zIndex: 1,
+            }}
+          >
+            <WarningAmberRoundedIcon sx={{ fontSize: 14, color: '#b45309' }} />
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#b45309' }}>
+              Screen stress fractures identified
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Hardware Info Bottom Container */}
+        <Box sx={{ p: 2.25 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <Box>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#64748b', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                IDENTIFIED HARDWARE
+              </Typography>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', mt: 0.25 }}>
+                iPhone 11 Pro
+              </Typography>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#64748b', mt: 0.25 }}>
+                64GB Space Gray • Model A2160
+              </Typography>
+            </Box>
+            <StatusBadge label="Class III e-Waste" variant="electric" size="sm" />
+          </Box>
+
+          <Divider sx={{ my: 1.75, borderColor: '#e2e8f0' }} />
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              <EnergySavingsLeafRoundedIcon sx={{ fontSize: 18, color: '#4f5f4b' }} />
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.8125rem', color: '#64748b' }}>
+                Recoverable Mass:
+              </Typography>
+            </Box>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>
+              188g (91% EcoByte Recoverable)
+            </Typography>
+          </Box>
+        </Box>
+      </Card>
+
+      {/* ── Potential Health Risk Card ── */}
+      <Card
+        sx={{
+          p: 2.25,
+          borderRadius: 2,
+          border: '1.5px solid #fecaca',
+          backgroundColor: '#ffffff',
+          boxShadow: '0 1px 3px rgba(239, 68, 68, 0.08)',
+        }}
+      >
+        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start', mb: 1.75 }}>
+          <Box
+            sx={{
+              width: 38,
+              height: 38,
+              borderRadius: 1.5,
+              backgroundColor: '#fee2e2',
+              color: '#dc2626',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <WarningAmberRoundedIcon sx={{ fontSize: 22 }} />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
+                Potential health risk
+              </Typography>
+              <StatusBadge label="High Risk" variant="error" size="sm" />
+            </Box>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#64748b', mt: 0.5, lineHeight: 1.5 }}>
+              <strong>Reason:</strong> Contains an aged, swollen lithium-ion battery exhibiting internal degassing stress and seal degradation.
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Mandatory precautions subcard */}
+        <Box
+          sx={{
+            backgroundColor: '#fffbeb',
+            borderRadius: 1.5,
+            p: 1.5,
+            border: '1px solid #fde68a',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.5 }}>
+            <ShieldOutlinedIcon sx={{ fontSize: 16, color: '#b45309' }} />
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#b45309', letterSpacing: '0.04em' }}>
+              MANDATORY PRECAUTIONS
+            </Typography>
+          </Box>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#92400e', lineHeight: 1.5, fontWeight: 500 }}>
+            Do not puncture, apply direct pressure, or expose to heat. Store immediately in a cool, fire-rated container isolated from flammable materials.
+          </Typography>
+        </Box>
+      </Card>
+
+      {/* ── Parts Detected Section ── */}
+      <Box>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.25 }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
+            Parts detected
+          </Typography>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+            4 Subsystems Analyzed
+          </Typography>
+        </Box>
+
+        <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', overflow: 'hidden', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          {[
+            {
+              title: 'Battery',
+              subtitle: 'Cell degassed • 68% Max Capacity',
+              badge: 'Degraded',
+              badgeVariant: 'error' as const,
+              icon: <BatteryAlertRoundedIcon sx={{ fontSize: 20, color: '#dc2626' }} />,
+              iconBg: '#fee2e2',
+            },
+            {
+              title: 'Screen',
+              subtitle: 'Surface glass fracture • Digitizer Intact',
+              badge: 'Cracked',
+              badgeVariant: 'warning' as const,
+              icon: <CropFreeRoundedIcon sx={{ fontSize: 20, color: '#d97706' }} />,
+              iconBg: '#fef3c7',
+            },
+            {
+              title: 'Casing',
+              subtitle: 'Minor chassis abrasions only',
+              badge: 'OK',
+              badgeVariant: 'electric' as const,
+              icon: <PhoneAndroidRoundedIcon sx={{ fontSize: 20, color: '#0f172a' }} />,
+              iconBg: '#f1f5f9',
+            },
+            {
+              title: 'Logic Board',
+              subtitle: 'Boot sequence & sensors pass',
+              badge: 'Operational',
+              badgeVariant: 'electric' as const,
+              icon: <MemoryRoundedIcon sx={{ fontSize: 20, color: '#0f172a' }} />,
+              iconBg: '#f1f5f9',
+            },
+          ].map((part, i, arr) => (
+            <Box key={part.title}>
+              <Box sx={{ p: 1.75, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 1.5,
+                      backgroundColor: part.iconBg,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {part.icon}
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
+                      {part.title}
+                    </Typography>
+                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
+                      {part.subtitle}
+                    </Typography>
+                  </Box>
+                </Box>
+                <StatusBadge label={part.badge} variant={part.badgeVariant} size="sm" />
+              </Box>
+              {i < arr.length - 1 && <Divider sx={{ borderColor: '#f1f5f9' }} />}
+            </Box>
+          ))}
+        </Card>
+      </Box>
+
+      {/* ── What would you like to do? ── */}
+      <Box sx={{ mb: 2 }}>
+        <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a', mb: 1.25 }}>
+          What would you like to do?
+        </Typography>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+          {/* Reuse option */}
+          <Card
+            onClick={() => navigate('/reuse-guide')}
+            sx={{
+              p: 1.75,
+              borderRadius: 2,
+              border: '1px solid #e2e8f0',
+              backgroundColor: '#ffffff',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              '&:hover': { borderColor: '#0f172a', transform: 'translateY(-1px)' },
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box
+                sx={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: 1.5,
+                  backgroundColor: '#f1f5f9',
+                  color: '#0f172a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <RecyclingRoundedIcon sx={{ fontSize: 22 }} />
+              </Box>
+              <Box>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
+                  Reuse
+                </Typography>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
+                  Keep using it or pass it on
+                </Typography>
+              </Box>
+            </Box>
+            <ChevronRightRoundedIcon sx={{ fontSize: 20, color: '#94a3b8' }} />
+          </Card>
+
+          {/* Repair option */}
+          <Card
+            onClick={() => navigate('/reuse-guide')}
+            sx={{
+              p: 1.75,
+              borderRadius: 2,
+              border: '1px solid #e2e8f0',
+              backgroundColor: '#ffffff',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              '&:hover': { borderColor: '#0f172a', transform: 'translateY(-1px)' },
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box
+                sx={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: 1.5,
+                  backgroundColor: '#f1f5f9',
+                  color: '#0f172a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <BuildOutlinedIcon sx={{ fontSize: 20 }} />
+              </Box>
+              <Box>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
+                  Repair
+                </Typography>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
+                  Get it fixed by a technician
+                </Typography>
+              </Box>
+            </Box>
+            <ChevronRightRoundedIcon sx={{ fontSize: 20, color: '#94a3b8' }} />
+          </Card>
+
+          {/* Hazardous Drop-off option (Highlighted) */}
+          <Card
+            onClick={() => navigate('/schedule-dropoff')}
+            sx={{
+              p: 1.75,
+              borderRadius: 2,
+              backgroundColor: '#0f172a',
+              color: '#ffffff',
+              border: '1px solid #1e293b',
+              boxShadow: '0 2px 6px rgba(15,23,42,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              '&:hover': { backgroundColor: '#1e293b', transform: 'translateY(-1px)' },
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box
+                sx={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: 1.5,
+                  backgroundColor: '#abf06b',
+                  color: '#0f172a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <LocationOnOutlinedIcon sx={{ fontSize: 22 }} />
+              </Box>
+              <Box>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#ffffff' }}>
+                  Hazardous Drop-off
+                </Typography>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#94a3b8' }}>
+                  Safely dispose of swollen battery at intake site
+                </Typography>
+              </Box>
+            </Box>
+            <ChevronRightRoundedIcon sx={{ fontSize: 20, color: '#abf06b' }} />
+          </Card>
+        </Box>
+
+        <Typography
+          sx={{
+            fontFamily: "'Quicksand', sans-serif",
+            fontSize: '0.6875rem',
+            color: '#94a3b8',
+            textAlign: 'center',
+            mt: 2,
+          }}
+        >
+          Initial guide only. It does not replace professional inspection.
+        </Typography>
+      </Box>
+    </Box>
+  )
+}
