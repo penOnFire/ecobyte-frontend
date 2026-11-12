@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FC } from 'react'
 import {
   Box,
   Button,
   Card,
+  CircularProgress,
   IconButton,
   LinearProgress,
   Typography,
@@ -16,12 +17,70 @@ import TuneRoundedIcon from '@mui/icons-material/TuneRounded'
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined'
 import { useNavigate } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { dropoffsApi } from '@/lib/api'
+import type { EwasteRequestItem } from '@/types'
 
 import keychronImg from '@/assets/ui/keychron.jpeg'
+
+/*
+ * ==============================================================================
+ * STATIC MOCK DATA (COMMENTED FOR BACKEND TESTING)
+ * ==============================================================================
+ * The hardcoded ongoing drop-off requests below have been replaced with live
+ * data fetched dynamically from GET /api/v1/requests/my-requests.
+ *
+const STATIC_ONGOING_REQUESTS = [
+  {
+    requestId: '2041',
+    deviceTitle: 'MacBook Pro 13″',
+    siteName: 'San Antonio Hub',
+    status: 'Scheduled',
+    statusStage: 'Drop-off confirmed',
+    progressStep: 'Step 2/3',
+    progressPercent: 66,
+    scheduledSlot: 'Today, 3:30 PM • Pasig Green Hub',
+  },
+  {
+    requestId: '2042',
+    deviceTitle: 'Galaxy A52',
+    siteName: 'Bel-Air Drop Site',
+    status: 'Under review',
+    statusStage: 'Submitted',
+    progressStep: 'Step 1/3',
+    progressPercent: 33,
+    scheduledSlot: 'Assessment submitted · AI diagnostic completed',
+  },
+]
+ * ==============================================================================
+ */
 
 export const MyRequestsPage: FC = () => {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<'ongoing' | 'completed'>('ongoing')
+  const [ongoing, setOngoing] = useState<EwasteRequestItem[]>([])
+  const [completed, setCompleted] = useState<EwasteRequestItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+    setIsLoading(true)
+    dropoffsApi
+      .getMyRequests()
+      .then((data) => {
+        if (!isMounted) return
+        setOngoing(data.ongoing || [])
+        setCompleted(data.completed || [])
+        setIsLoading(false)
+      })
+      .catch((err) => {
+        console.error('Failed to load user requests from backend:', err)
+        if (isMounted) setIsLoading(false)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5, pb: 4 }}>
@@ -30,7 +89,7 @@ export const MyRequestsPage: FC = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <IconButton
             size="small"
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/dashboard')}
             aria-label="Back"
             sx={{
               width: 38,
@@ -115,7 +174,7 @@ export const MyRequestsPage: FC = () => {
             boxShadow: activeTab === 'ongoing' ? '0 1px 3px rgba(15,23,42,0.15)' : 'none',
           }}
         >
-          Ongoing (2)
+          Ongoing ({ongoing.length})
         </Box>
         <Box
           onClick={() => setActiveTab('completed')}
@@ -133,7 +192,7 @@ export const MyRequestsPage: FC = () => {
             boxShadow: activeTab === 'completed' ? '0 1px 3px rgba(15,23,42,0.15)' : 'none',
           }}
         >
-          Completed
+          Completed ({completed.length})
         </Box>
       </Box>
 
@@ -231,7 +290,7 @@ export const MyRequestsPage: FC = () => {
                   >
                     Held for 2 days · Pick up by Fri, Oct 23
                     <br />
-                    (San Antonio Hub)
+                    (Commonwealth Area 1 Hub)
                   </Typography>
                 </Box>
               </Box>
@@ -291,218 +350,169 @@ export const MyRequestsPage: FC = () => {
                 color: '#0f172a',
               }}
             >
-              Ongoing Drop-offs
+              Ongoing Drop-offs (Commonwealth)
             </Typography>
 
-            {/* Request 1 */}
-            <Card
-              sx={{
-                p: 2,
-                borderRadius: 2,
-                border: '1px solid #e2e8f0',
-                backgroundColor: '#ffffff',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                '&:hover': { borderColor: '#0f172a' },
-              }}
-              onClick={() => navigate('/schedule-dropoff')}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                <Box>
-                  <Typography
-                    sx={{
-                      fontFamily: "'Quicksand', sans-serif",
-                      fontWeight: 800,
-                      fontSize: '0.9375rem',
-                      color: '#0f172a',
-                    }}
-                  >
-                    Request #2041
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontFamily: "'Quicksand', sans-serif",
-                      fontSize: '0.75rem',
-                      color: '#64748b',
-                      fontWeight: 500,
-                      mt: 0.25,
-                    }}
-                  >
-                    MacBook Pro 13″ · San Antonio Hub
-                  </Typography>
-                </Box>
-                <StatusBadge label="Scheduled" variant="electric" size="sm" />
+            {isLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                <CircularProgress size={24} sx={{ color: '#0f172a' }} />
               </Box>
-
-              <Box sx={{ my: 1.5 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.75 }}>
-                  <Typography
-                    sx={{
-                      fontFamily: "'Quicksand', sans-serif",
-                      fontSize: '0.75rem',
-                      color: '#0f172a',
-                      fontWeight: 700,
-                    }}
-                  >
-                    Drop-off confirmed
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontFamily: "'Quicksand', sans-serif",
-                      fontSize: '0.75rem',
-                      color: '#0f172a',
-                      fontWeight: 700,
-                    }}
-                  >
-                    Step 2/3
-                  </Typography>
-                </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={66}
-                  sx={{
-                    height: 6,
-                    borderRadius: 9999,
-                    backgroundColor: '#e2e8f0',
-                    '& .MuiLinearProgress-bar': { backgroundColor: '#0f172a' },
-                  }}
-                />
-              </Box>
-
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 1 }}>
-                <CalendarTodayOutlinedIcon sx={{ fontSize: 14, color: '#64748b' }} />
-                <Typography
-                  sx={{
-                    fontFamily: "'Quicksand', sans-serif",
-                    fontSize: '0.6875rem',
-                    color: '#64748b',
-                    fontWeight: 500,
-                  }}
-                >
-                  Scheduled slot: Today, 3:30 PM • Pasig Green Hub
+            ) : ongoing.length === 0 ? (
+              <Card sx={{ p: 2.5, textAlign: 'center', borderRadius: 2, border: '1px dashed #cbd5e1' }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
+                  No ongoing drop-offs
                 </Typography>
-              </Box>
-            </Card>
-
-            {/* Request 2 */}
-            <Card
-              sx={{
-                p: 2,
-                borderRadius: 2,
-                border: '1px solid #e2e8f0',
-                backgroundColor: '#ffffff',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                '&:hover': { borderColor: '#0f172a' },
-              }}
-              onClick={() => navigate('/assess')}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                <Box>
-                  <Typography
-                    sx={{
-                      fontFamily: "'Quicksand', sans-serif",
-                      fontWeight: 800,
-                      fontSize: '0.9375rem',
-                      color: '#0f172a',
-                    }}
-                  >
-                    Request #2042
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontFamily: "'Quicksand', sans-serif",
-                      fontSize: '0.75rem',
-                      color: '#64748b',
-                      fontWeight: 500,
-                      mt: 0.25,
-                    }}
-                  >
-                    Galaxy A52 · Bel-Air Drop Site
-                  </Typography>
-                </Box>
-                <StatusBadge label="Under review" variant="hazard" size="sm" />
-              </Box>
-
-              <Box sx={{ my: 1.5 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.75 }}>
-                  <Typography
-                    sx={{
-                      fontFamily: "'Quicksand', sans-serif",
-                      fontSize: '0.75rem',
-                      color: '#b45309',
-                      fontWeight: 700,
-                    }}
-                  >
-                    Submitted
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontFamily: "'Quicksand', sans-serif",
-                      fontSize: '0.75rem',
-                      color: '#64748b',
-                      fontWeight: 700,
-                    }}
-                  >
-                    Step 1/3
-                  </Typography>
-                </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={33}
-                  sx={{
-                    height: 6,
-                    borderRadius: 9999,
-                    backgroundColor: '#fef3c7',
-                    '& .MuiLinearProgress-bar': { backgroundColor: '#f59e0b' },
-                  }}
-                />
-              </Box>
-
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 1 }}>
-                <CalendarTodayOutlinedIcon sx={{ fontSize: 14, color: '#64748b' }} />
-                <Typography
-                  sx={{
-                    fontFamily: "'Quicksand', sans-serif",
-                    fontSize: '0.6875rem',
-                    color: '#64748b',
-                    fontWeight: 500,
-                  }}
+                <Button
+                  size="small"
+                  onClick={() => navigate('/dropoffs')}
+                  sx={{ mt: 1, color: '#0f172a', fontWeight: 700, textDecoration: 'underline' }}
                 >
-                  Assessment submitted · AI diagnostic completed
-                </Typography>
-              </Box>
-            </Card>
+                  Find a drop-off hub
+                </Button>
+              </Card>
+            ) : (
+              ongoing.map((req) => (
+                <Card
+                  key={req.requestId}
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    border: '1px solid #e2e8f0',
+                    backgroundColor: '#ffffff',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    '&:hover': { borderColor: '#0f172a' },
+                  }}
+                  onClick={() => navigate('/schedule-dropoff')}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontWeight: 800,
+                          fontSize: '0.9375rem',
+                          color: '#0f172a',
+                        }}
+                      >
+                        Request #{req.requestId}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontSize: '0.75rem',
+                          color: '#64748b',
+                          fontWeight: 500,
+                          mt: 0.25,
+                        }}
+                      >
+                        {req.deviceTitle} · {req.siteName}
+                      </Typography>
+                    </Box>
+                    <StatusBadge
+                      label={req.status}
+                      variant={req.status === 'Scheduled' ? 'electric' : 'hazard'}
+                      size="sm"
+                    />
+                  </Box>
+
+                  <Box sx={{ my: 1.5 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.75 }}>
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontSize: '0.75rem',
+                          color: req.status === 'Scheduled' ? '#0f172a' : '#b45309',
+                          fontWeight: 700,
+                        }}
+                      >
+                        {req.statusStage}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontSize: '0.75rem',
+                          color: '#64748b',
+                          fontWeight: 700,
+                        }}
+                      >
+                        Step {req.progressStep}
+                      </Typography>
+                    </Box>
+                    <LinearProgress
+                      variant="determinate"
+                      value={req.progressPercent}
+                      sx={{
+                        height: 6,
+                        borderRadius: 9999,
+                        backgroundColor: req.status === 'Scheduled' ? '#e2e8f0' : '#fef3c7',
+                        '& .MuiLinearProgress-bar': {
+                          backgroundColor: req.status === 'Scheduled' ? '#0f172a' : '#f59e0b',
+                        },
+                      }}
+                    />
+                  </Box>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 1 }}>
+                    <CalendarTodayOutlinedIcon sx={{ fontSize: 14, color: '#64748b' }} />
+                    <Typography
+                      sx={{
+                        fontFamily: "'Quicksand', sans-serif",
+                        fontSize: '0.6875rem',
+                        color: '#64748b',
+                        fontWeight: 500,
+                      }}
+                    >
+                      {req.scheduledSlot}
+                    </Typography>
+                  </Box>
+                </Card>
+              ))
+            )}
           </Box>
         </>
       ) : (
         /* Completed State */
         <Box sx={{ textAlign: 'center', py: 6, color: '#64748b' }}>
-          <CheckCircleOutlineRoundedIcon sx={{ fontSize: 48, color: '#0f172a', mb: 1.5 }} />
-          <Typography
-            sx={{
-              fontFamily: "'Quicksand', sans-serif",
-              fontWeight: 800,
-              fontSize: '1rem',
-              color: '#0f172a',
-            }}
-          >
-            No completed requests yet
-          </Typography>
-          <Typography
-            sx={{
-              fontFamily: "'Quicksand', sans-serif",
-              fontSize: '0.8125rem',
-              color: '#64748b',
-              mt: 0.5,
-              maxWidth: 260,
-              mx: 'auto',
-            }}
-          >
-            Items you safely drop off and recycle or reuse will appear here.
-          </Typography>
+          {completed.length === 0 ? (
+            <>
+              <CheckCircleOutlineRoundedIcon sx={{ fontSize: 48, color: '#0f172a', mb: 1.5 }} />
+              <Typography
+                sx={{
+                  fontFamily: "'Quicksand', sans-serif",
+                  fontWeight: 800,
+                  fontSize: '1rem',
+                  color: '#0f172a',
+                }}
+              >
+                No completed requests yet
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: "'Quicksand', sans-serif",
+                  fontSize: '0.8125rem',
+                  color: '#64748b',
+                  mt: 0.5,
+                  maxWidth: 260,
+                  mx: 'auto',
+                }}
+              >
+                Items you safely drop off and recycle or reuse in Commonwealth will appear here.
+              </Typography>
+            </>
+          ) : (
+            completed.map((comp) => (
+              <Card key={comp.requestId} sx={{ p: 2, mb: 1.5, textAlign: 'left', borderRadius: 2, border: '1px solid #e2e8f0' }}>
+                <Typography sx={{ fontWeight: 800, color: '#0f172a' }}>
+                  Request #{comp.requestId} - {comp.deviceTitle}
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 600 }}>
+                  Turned over & certified at {comp.siteName}
+                </Typography>
+              </Card>
+            ))
+          )}
         </Box>
       )}
     </Box>

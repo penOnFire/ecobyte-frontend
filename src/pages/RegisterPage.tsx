@@ -5,6 +5,7 @@ import {
   Button,
   Card,
   Checkbox,
+  CircularProgress,
   Container,
   FormControl,
   FormControlLabel,
@@ -27,21 +28,69 @@ import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
 import LockRoundedIcon from '@mui/icons-material/LockRounded'
 import { useNavigate } from 'react-router-dom'
 import ecobyteLogo from '@/assets/ui/ecobyte_logo.svg'
+import { authApi } from '@/lib/api'
 
 export const RegisterPage: FC = () => {
   const navigate = useNavigate()
-  const [fullName, setFullName] = useState('Alex Mercer')
-  const [email, setEmail] = useState('alex@example.com')
-  const [baseNumber, setBaseNumber] = useState('san-antonio-base')
-  const [phone, setPhone] = useState('+63 912 345 6789')
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [baseNumber, setBaseNumber] = useState('brgy_commonwealth')
+  const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [agreeTerms, setAgreeTerms] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    navigate('/')
+    setErrorMessage(null)
+
+    if (!fullName.trim() || !email.trim() || !password.trim()) {
+      setErrorMessage('Please fill in all required fields.')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage('Passwords do not match. Please re-enter.')
+      return
+    }
+
+    if (password.length < 6) {
+      setErrorMessage('Password must be at least 6 characters long.')
+      return
+    }
+
+    if (!agreeTerms) {
+      setErrorMessage('Please accept the EcoByte Terms & E-waste guidelines.')
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const res = await authApi.register({
+        fullName: fullName.trim(),
+        email: email.trim(),
+        phone: phone.trim() || '+63 900 000 0000',
+        barangayId: baseNumber,
+        password: password.trim(),
+      })
+
+      if (res?.accessToken) {
+        localStorage.setItem('ecobyte_token', res.accessToken)
+      }
+
+      navigate('/dashboard')
+    } catch (err: any) {
+      console.error('Registration failed:', err)
+      setErrorMessage(
+        err?.message || 'Registration failed. The email may already be registered.'
+      )
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -195,6 +244,14 @@ export const RegisterPage: FC = () => {
             Join your local circular e-waste community
           </Typography>
 
+          {errorMessage && (
+            <Box sx={{ p: 1.25, mb: 2, backgroundColor: '#fef2f2', borderRadius: 1.5, border: '1px solid #fecaca' }}>
+              <Typography sx={{ color: '#b91c1c', fontSize: '0.75rem', fontWeight: 600 }}>
+                {errorMessage}
+              </Typography>
+            </Box>
+          )}
+
           <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
             {/* Full Name */}
             <Box>
@@ -281,10 +338,9 @@ export const RegisterPage: FC = () => {
                   }
                   sx={{ borderRadius: 1.5 }}
                 >
-                  <MenuItem value="san-antonio-base">Barangay San Antonio (Pasig)</MenuItem>
-                  <MenuItem value="ortigas-base">Ortigas Center Hub (Pasig)</MenuItem>
-                  <MenuItem value="bel-air-base">Bel-Air Drop Site (Makati)</MenuItem>
-                  <MenuItem value="bgc-base">BGC Eco Station (Taguig)</MenuItem>
+                  <MenuItem value="brgy_commonwealth">Barangay Commonwealth (Quezon City - 9 Areas)</MenuItem>
+                  <MenuItem value="brgy_san_antonio">Barangay San Antonio (Pasig City)</MenuItem>
+                  <MenuItem value="brgy_batasan_hills">Barangay Batasan Hills (Quezon City)</MenuItem>
                 </Select>
               </FormControl>
             </Box>
@@ -435,6 +491,7 @@ export const RegisterPage: FC = () => {
               type="submit"
               variant="contained"
               size="large"
+              disabled={isLoading}
               sx={{
                 mt: 1,
                 py: 1.5,
@@ -446,8 +503,14 @@ export const RegisterPage: FC = () => {
                 '&:hover': { backgroundColor: '#1e293b' },
               }}
             >
-              Create account
-              <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
+              {isLoading ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                <>
+                  Create account
+                  <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
+                </>
+              )}
             </Button>
           </Box>
         </Card>

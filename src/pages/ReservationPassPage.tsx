@@ -105,7 +105,7 @@ export const ReservationPassPage: FC = () => {
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
               <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#0f172a', fontWeight: 600 }}>
-                📍 San Antonio Hub
+                📍 Commonwealth Eco-Hub
               </Typography>
               <Box sx={{ px: 0.75, py: 0.15, backgroundColor: '#f1f5f9', borderRadius: 1, border: '1px solid #e2e8f0' }}>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.625rem', color: '#64748b', fontWeight: 700 }}>
@@ -213,7 +213,7 @@ export const ReservationPassPage: FC = () => {
             </Box>
             <Box sx={{ textAlign: 'right' }}>
               <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#0f172a', fontWeight: 700 }}>
-                Barangay San Antonio
+                Barangay Commonwealth, QC
               </Typography>
               <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b' }}>
                 E-Waste Hub Desk 2

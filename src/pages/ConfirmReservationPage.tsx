@@ -140,7 +140,7 @@ export const ConfirmReservationPage: FC = () => {
             <Box sx={{ flex: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#0f172a' }}>
-                  Pasig Green Hub
+                  Commonwealth Eco-Hub (Area 1)
                 </Typography>
                 <VerifiedRoundedIcon sx={{ fontSize: 16, color: '#abf06b' }} />
               </Box>
@@ -148,10 +148,10 @@ export const ConfirmReservationPage: FC = () => {
                 <StatusBadge label="Current Item Storage" variant="electric" size="sm" />
               </Box>
               <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#0f172a', fontWeight: 600 }}>
-                Barangay San Antonio Hall, Pasig City
+                Commonwealth Barangay Hall Complex, Quezon City
               </Typography>
               <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
-                📍 1.2 km away • 🕒 8:00 AM – 5:00 PM
+                📍 0.8 km away • 🕒 8:00 AM – 5:00 PM
               </Typography>
             </Box>
           </Box>

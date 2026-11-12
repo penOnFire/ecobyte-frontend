@@ -5,6 +5,7 @@ import {
   Button,
   Card,
   Checkbox,
+  CircularProgress,
   Container,
   Divider,
   FormControlLabel,
@@ -24,20 +25,57 @@ import AppleIcon from '@mui/icons-material/Apple'
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined'
 import { useNavigate } from 'react-router-dom'
 import ecobyteLogo from '@/assets/ui/ecobyte_logo.svg'
+import { authApi } from '@/lib/api'
 
 export const SignInPage: FC = () => {
   const navigate = useNavigate()
-  const [email, setEmail] = useState('alex@example.com')
-  const [password, setPassword] = useState('••••••••••••')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (email.includes('admin') || email.includes('ecobyte.gov') || email.includes('official')) {
-      navigate('/admin')
-    } else {
-      navigate('/')
+    setErrorMessage(null)
+
+    if (!email.trim() || !password.trim()) {
+      setErrorMessage('Please enter both your email address and password.')
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const res = await authApi.login({
+        email: email.trim(),
+        password: password.trim(),
+        rememberMe,
+      })
+
+      if (res?.accessToken) {
+        localStorage.setItem('ecobyte_token', res.accessToken)
+      }
+
+      if (
+        res?.user?.role === 'ADMIN' ||
+        email.includes('admin') ||
+        email.includes('ecobyte.gov') ||
+        email.includes('official')
+      ) {
+        navigate('/admin')
+      } else {
+        navigate('/dashboard')
+      }
+    } catch (err: any) {
+      console.error('Authentication rejected by backend:', err)
+      localStorage.removeItem('ecobyte_token')
+      setErrorMessage(
+        err?.message || 'Invalid email or password. Please verify your credentials and try again.'
+      )
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -192,6 +230,14 @@ export const SignInPage: FC = () => {
             Sign in to your circular tech account.
           </Typography>
 
+          {errorMessage && (
+            <Box sx={{ p: 1, mb: 1.5, backgroundColor: '#fef2f2', borderRadius: 1.5, border: '1px solid #fecaca' }}>
+              <Typography sx={{ color: '#b91c1c', fontSize: '0.75rem', fontWeight: 600 }}>
+                {errorMessage}
+              </Typography>
+            </Box>
+          )}
+
           <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {/* Email */}
             <Box>
@@ -213,7 +259,8 @@ export const SignInPage: FC = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="alex@example.com"
+                placeholder="alex.resident@ecobyte.ph"
+                inputProps={{ required: true }}
                 startAdornment={
                   <InputAdornment position="start">
                     <MailOutlineRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
@@ -243,6 +290,8 @@ export const SignInPage: FC = () => {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter password"
+                inputProps={{ required: true }}
                 startAdornment={
                   <InputAdornment position="start">
                     <LockOutlinedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
@@ -314,6 +363,7 @@ export const SignInPage: FC = () => {
               type="submit"
               variant="contained"
               size="large"
+              disabled={isLoading}
               sx={{
                 mt: 0.5,
                 py: 1.5,
@@ -325,29 +375,60 @@ export const SignInPage: FC = () => {
                 '&:hover': { backgroundColor: '#1e293b' },
               }}
             >
-              Sign In (Resident)
-              <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
+              {isLoading ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                <>
+                  Sign In
+                  <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
+                </>
+              )}
             </Button>
 
-            <Button
-              fullWidth
-              type="button"
-              onClick={() => navigate('/admin')}
-              variant="outlined"
-              size="medium"
-              sx={{
-                mt: 1.25,
-                py: 1.25,
-                fontSize: '0.875rem',
-                fontWeight: 700,
-                borderColor: '#16a34a',
-                color: '#15803d',
-                backgroundColor: '#f0fdf4',
-                '&:hover': { backgroundColor: '#dcfce7', borderColor: '#15803d' },
-              }}
-            >
-              Open Admin Console (Desktop) →
-            </Button>
+            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+              <Button
+                fullWidth
+                type="button"
+                onClick={() => {
+                  setEmail('alex.resident@ecobyte.ph')
+                  setPassword('resident123')
+                }}
+                variant="outlined"
+                size="small"
+                sx={{
+                  py: 0.75,
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  borderColor: '#cbd5e1',
+                  color: '#475569',
+                  backgroundColor: '#f8fafc',
+                  '&:hover': { backgroundColor: '#f1f5f9' },
+                }}
+              >
+                Fill Resident Demo
+              </Button>
+              <Button
+                fullWidth
+                type="button"
+                onClick={() => {
+                  setEmail('admin@ecobyte.gov')
+                  setPassword('admin123')
+                }}
+                variant="outlined"
+                size="small"
+                sx={{
+                  py: 0.75,
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  borderColor: '#86efac',
+                  color: '#15803d',
+                  backgroundColor: '#f0fdf4',
+                  '&:hover': { backgroundColor: '#dcfce7' },
+                }}
+              >
+                Fill Admin Demo
+              </Button>
+            </Box>
           </Box>
 
           {/* Divider */}

@@ -27,6 +27,7 @@ export interface User {
   fullName: string
   email: string
   phone: string
+  role?: string
   barangay: Barangay
 }
 
@@ -100,6 +101,7 @@ export interface DropOffSite {
   name: string
   address: string
   distanceKm: number
+  distance?: string
   hours: string
   type: HubFacilityType
   isOpen: boolean
