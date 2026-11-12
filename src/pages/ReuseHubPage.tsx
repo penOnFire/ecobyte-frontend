@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FC } from 'react'
 import {
   Box,
   Button,
   Card,
   Chip,
+  CircularProgress,
   InputAdornment,
   OutlinedInput,
   Typography,
@@ -17,6 +18,8 @@ import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
 import VolunteerActivismOutlinedIcon from '@mui/icons-material/VolunteerActivismOutlined'
 import { useNavigate } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { reuseApi } from '@/lib/api'
+import type { ReuseItem as ApiReuseItem } from '@/types'
 
 import thinkpadImg from '@/assets/ui/thinkpad.jpeg'
 import galaxyImg from '@/assets/ui/galaxy_s10.jpeg'
@@ -25,7 +28,7 @@ import ipadImg from '@/assets/ui/ipad.jpeg'
 
 const CATEGORIES = ['All', 'Laptops', 'Phones', 'Chargers', 'Peripherals']
 
-interface ReuseItem {
+interface UIReuseItem {
   id: string
   title: string
   image: string
@@ -38,7 +41,14 @@ interface ReuseItem {
   price: string
 }
 
-const REUSE_ITEMS: ReuseItem[] = [
+/*
+ * ==============================================================================
+ * STATIC MOCK DATA (COMMENTED FOR BACKEND TESTING)
+ * ==============================================================================
+ * Original static mockup data for reuse inventory has been replaced with live
+ * data fetched from GET /api/v1/reuse/items.
+ *
+const REUSE_ITEMS: UIReuseItem[] = [
   {
     id: 'thinkpad-t480',
     title: 'Lenovo ThinkPad T480',
@@ -88,17 +98,71 @@ const REUSE_ITEMS: ReuseItem[] = [
     price: 'Free',
   },
 ]
+ * ==============================================================================
+ */
+
+function resolveItemImage(title: string, category: string, imageUrl?: string): string {
+  if (imageUrl && !imageUrl.includes('placeholder')) return imageUrl
+  const lower = (title + ' ' + category).toLowerCase()
+  if (lower.includes('thinkpad') || lower.includes('laptop')) return thinkpadImg
+  if (lower.includes('galaxy') || lower.includes('phone') || lower.includes('s10')) return galaxyImg
+  if (lower.includes('charger') || lower.includes('cable') || lower.includes('usb')) return chargerImg
+  if (lower.includes('ipad') || lower.includes('tablet')) return ipadImg
+  return thinkpadImg
+}
 
 export const ReuseHubPage: FC = () => {
   const navigate = useNavigate()
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
+  const [items, setItems] = useState<UIReuseItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [stats, setStats] = useState({ totalVerified: 48, divertedKgThisWeek: 18.5 })
 
-  const filteredItems = REUSE_ITEMS.filter((item) => {
-    const matchesCat = selectedCategory === 'All' || item.category === selectedCategory
-    const matchesQuery = item.title.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesCat && matchesQuery
-  })
+  useEffect(() => {
+    let isMounted = true
+    setIsLoading(true)
+
+    const params: { category?: string; query?: string } = {}
+    if (selectedCategory !== 'All') params.category = selectedCategory
+    if (searchQuery.trim()) params.query = searchQuery.trim()
+
+    reuseApi
+      .getItems(params)
+      .then((res) => {
+        if (!isMounted) return
+        setStats({
+          totalVerified: res.totalVerified || 48,
+          divertedKgThisWeek: res.divertedKgThisWeek || 18.5,
+        })
+
+        const mapped: UIReuseItem[] = (res.items || []).map((it: ApiReuseItem) => ({
+          id: it.id,
+          title: it.title,
+          image: resolveItemImage(it.title, it.category, it.imageUrl),
+          condition: it.condition || 'Inspected & Working',
+          subcondition: it.subcondition || 'Certified Safe',
+          location: it.location || 'Commonwealth Eco-Hub (Area 1)',
+          distance: it.distance || '0.6 km',
+          category: it.category || 'Laptops',
+          status: it.status || 'Available',
+          price: it.price || 'Free Claim',
+        }))
+
+        setItems(mapped)
+        setIsLoading(false)
+      })
+      .catch((err) => {
+        console.error('Failed to fetch reuse items from backend:', err)
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [selectedCategory, searchQuery])
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 1, pb: 4 }}>
@@ -126,10 +190,10 @@ export const ReuseHubPage: FC = () => {
               lineHeight: 1.45,
             }}
           >
-            Verified refurbished electronics and reusable hardware within your barangay.
+            Verified refurbished electronics and reusable hardware within Barangay Commonwealth.
           </Typography>
         </Box>
-        <StatusBadge label="48 Verified" variant="electric" size="sm" />
+        <StatusBadge label={`${stats.totalVerified} Verified`} variant="electric" size="sm" />
       </Box>
 
       {/* Search Input Bar */}
@@ -254,144 +318,159 @@ export const ReuseHubPage: FC = () => {
               lineHeight: 1.45,
             }}
           >
-            Choosing reused electronics diverted <strong style={{ color: '#abf06b' }}>14.2 kg</strong> of toxic waste in Pasig this week.
+            Choosing reused electronics diverted <strong style={{ color: '#abf06b' }}>{stats.divertedKgThisWeek} kg</strong> of toxic e-waste in Commonwealth this week.
           </Typography>
         </Box>
       </Card>
 
       {/* Items List */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-        {filteredItems.map((item) => (
-          <Card
-            key={item.id}
-            sx={{
-              p: 1.75,
-              borderRadius: 2,
-              border: '1px solid #e2e8f0',
-              backgroundColor: '#ffffff',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-              '&:hover': { borderColor: '#0f172a', transform: 'translateY(-1px)' },
-            }}
-            onClick={() => navigate(`/reuse/${item.id}`)}
-          >
-            <Box sx={{ display: 'flex', gap: 1.75 }}>
-              {/* Product Thumbnail */}
-              <Box
-                sx={{
-                  width: 90,
-                  height: 90,
-                  borderRadius: 1.25,
-                  overflow: 'hidden',
-                  backgroundColor: '#f1f5f9',
-                  border: '1px solid #e2e8f0',
-                  flexShrink: 0,
-                  position: 'relative',
-                }}
-              >
-                <Box
-                  component="img"
-                  src={item.image}
-                  alt={item.title}
-                  sx={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                  }}
-                />
-              </Box>
-
-              {/* Item Info */}
-              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
-                <Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <Typography
-                      sx={{
-                        fontFamily: "'Quicksand', sans-serif",
-                        fontWeight: 700,
-                        fontSize: '0.9375rem',
-                        color: '#0f172a',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        pr: 1,
-                      }}
-                    >
-                      {item.title}
-                    </Typography>
-                    <StatusBadge label={item.status} variant="electric" size="sm" />
-                  </Box>
-
-                  <Typography
-                    sx={{
-                      fontFamily: "'Quicksand', sans-serif",
-                      fontSize: '0.75rem',
-                      color: '#64748b',
-                      fontWeight: 600,
-                      mt: 0.3,
-                    }}
-                  >
-                    {item.condition} • {item.subcondition}
-                  </Typography>
-
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.3 }}>
-                    <LocationOnOutlinedIcon sx={{ fontSize: 13, color: '#64748b' }} />
-                    <Typography
-                      sx={{
-                        fontFamily: "'Quicksand', sans-serif",
-                        fontSize: '0.6875rem',
-                        color: '#64748b',
-                        fontWeight: 500,
-                      }}
-                    >
-                      {item.location} • {item.distance}
-                    </Typography>
-                  </Box>
-                </Box>
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
-                  <Typography
-                    sx={{
-                      fontFamily: "'Quicksand', sans-serif",
-                      fontWeight: 800,
-                      fontSize: '0.875rem',
-                      color: '#0f172a',
-                    }}
-                  >
-                    {item.price}
-                  </Typography>
-
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      navigate(`/reuse/${item.id}`)
-                    }}
-                    sx={{
-                      borderRadius: 9999,
-                      py: 0.4,
-                      px: 1.75,
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                      color: '#0f172a',
-                      borderColor: '#e2e8f0',
-                      backgroundColor: '#ffffff',
-                      '&:hover': {
-                        backgroundColor: '#0f172a',
-                        color: '#ffffff',
-                        borderColor: '#0f172a',
-                      },
-                    }}
-                  >
-                    View Details
-                  </Button>
-                </Box>
-              </Box>
-            </Box>
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress size={28} sx={{ color: '#0f172a' }} />
+          </Box>
+        ) : items.length === 0 ? (
+          <Card sx={{ p: 3, textAlign: 'center', borderRadius: 2, border: '1px dashed #cbd5e1' }}>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
+              No items available in this category yet
+            </Typography>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.5 }}>
+              Check back soon as new verified refurbished hardware is added daily.
+            </Typography>
           </Card>
-        ))}
+        ) : (
+          items.map((item) => (
+            <Card
+              key={item.id}
+              sx={{
+                p: 1.75,
+                borderRadius: 2,
+                border: '1px solid #e2e8f0',
+                backgroundColor: '#ffffff',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                '&:hover': { borderColor: '#0f172a', transform: 'translateY(-1px)' },
+              }}
+              onClick={() => navigate(`/reuse/${item.id}`)}
+            >
+              <Box sx={{ display: 'flex', gap: 1.75 }}>
+                {/* Product Thumbnail */}
+                <Box
+                  sx={{
+                    width: 90,
+                    height: 90,
+                    borderRadius: 1.25,
+                    overflow: 'hidden',
+                    backgroundColor: '#f1f5f9',
+                    border: '1px solid #e2e8f0',
+                    flexShrink: 0,
+                    position: 'relative',
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={item.image}
+                    alt={item.title}
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                </Box>
+
+                {/* Item Info */}
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
+                  <Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontWeight: 700,
+                          fontSize: '0.9375rem',
+                          color: '#0f172a',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          pr: 1,
+                        }}
+                      >
+                        {item.title}
+                      </Typography>
+                      <StatusBadge label={item.status} variant="electric" size="sm" />
+                    </Box>
+
+                    <Typography
+                      sx={{
+                        fontFamily: "'Quicksand', sans-serif",
+                        fontSize: '0.75rem',
+                        color: '#64748b',
+                        fontWeight: 600,
+                        mt: 0.3,
+                      }}
+                    >
+                      {item.condition} • {item.subcondition}
+                    </Typography>
+
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.3 }}>
+                      <LocationOnOutlinedIcon sx={{ fontSize: 13, color: '#64748b' }} />
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontSize: '0.6875rem',
+                          color: '#64748b',
+                          fontWeight: 500,
+                        }}
+                      >
+                        {item.location} • {item.distance}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Quicksand', sans-serif",
+                        fontWeight: 800,
+                        fontSize: '0.875rem',
+                        color: '#0f172a',
+                      }}
+                    >
+                      {item.price}
+                    </Typography>
+
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        navigate(`/reuse/${item.id}`)
+                      }}
+                      sx={{
+                        borderRadius: 9999,
+                        py: 0.4,
+                        px: 1.75,
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        color: '#0f172a',
+                        borderColor: '#e2e8f0',
+                        backgroundColor: '#ffffff',
+                        '&:hover': {
+                          backgroundColor: '#0f172a',
+                          color: '#ffffff',
+                          borderColor: '#0f172a',
+                        },
+                      }}
+                    >
+                      View Details
+                    </Button>
+                  </Box>
+                </Box>
+              </Box>
+            </Card>
+          ))
+        )}
       </Box>
 
       {/* Circular Donation Callout Banner */}
@@ -441,7 +520,7 @@ export const ReuseHubPage: FC = () => {
             lineHeight: 1.45,
           }}
         >
-          List your spare cables, unused screens, or old tablets to support your community and reduce e-waste.
+          List your spare cables, unused screens, or old tablets to support your community in Barangay Commonwealth and reduce e-waste.
         </Typography>
 
         <Button

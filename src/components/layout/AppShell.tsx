@@ -53,7 +53,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
           }}
         >
           <Box
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/dashboard')}
             sx={{ display: 'flex', alignItems: 'center', gap: 0.75, cursor: 'pointer' }}
           >
             <LocationOnRoundedIcon sx={{ color: '#4f5f4b', fontSize: 20 }} />
@@ -79,7 +79,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                     lineHeight: 1,
                   }}
                 >
-                  Barangay San Antonio
+                  Barangay Commonwealth, QC
                 </Typography>
                 <KeyboardArrowDownRoundedIcon sx={{ fontSize: 15, color: '#64748b' }} />
               </Box>
@@ -170,8 +170,8 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             <NavItem
               icon={<HomeRoundedIcon sx={{ fontSize: 24 }} />}
               label="Home"
-              active={isActive('/')}
-              onClick={() => navigate('/')}
+              active={isActive('/dashboard')}
+              onClick={() => navigate('/dashboard')}
             />
 
             {/* Reuse */}

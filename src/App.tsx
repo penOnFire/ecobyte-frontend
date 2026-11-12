@@ -28,19 +28,22 @@ export const App: FC = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Auth Routes (Standalone) */}
+        {/* Auth Routes (Default Entry: Starts at Login) */}
+        <Route path="/" element={<Navigate to="/signin" replace />} />
         <Route path="/signin" element={<SignInPage />} />
+        <Route path="/login" element={<Navigate to="/signin" replace />} />
         <Route path="/register" element={<RegisterPage />} />
 
         {/* Core Mobile Application Routes (Wrapped in AppShell) */}
         <Route
-          path="/"
+          path="/dashboard"
           element={
             <AppShell>
               <DashboardPage />
             </AppShell>
           }
         />
+        <Route path="/home" element={<Navigate to="/dashboard" replace />} />
         <Route
           path="/scan"
           element={

@@ -267,7 +267,7 @@ export const DashboardPage: FC = () => {
                   Battery: 94% • Screen: Flawless
                 </Typography>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
-                  📍 San Antonio Hub • 0.8 km
+                  📍 Commonwealth Area 1 Hub • 0.8 km
                 </Typography>
               </Box>
 
@@ -346,7 +346,7 @@ export const DashboardPage: FC = () => {
                   Gateron Brown • New Li-ion Cell
                 </Typography>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
-                  📍 Bel-Air Drop Site • 1.4 km
+                  📍 Commonwealth Area 2 Hub • 1.4 km
                 </Typography>
               </Box>
 
