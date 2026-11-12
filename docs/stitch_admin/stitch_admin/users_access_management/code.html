@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-container": "#e5eeff", "on-error": "#ffffff", "surface-container-high": "#dce9ff", "primary-container": "#065f46", "tertiary-fixed": "#ffdcc3", "surface-dim": "#cbdbf5", "on-primary-container": "#8bd6b7", "secondary-container": "#86f2e4", "on-primary-fixed-variant": "#00513b", "tertiary-container": "#804300", "inverse-on-surface": "#eaf1ff", "on-surface-variant": "#3f4944", "on-background": "#0b1c30", "on-primary-fixed": "#002116", "surface": "#f8f9ff", "secondary-fixed-dim": "#6bd8cb", "on-tertiary-container": "#ffb87e", "secondary-fixed": "#89f5e7", "tertiary": "#5e3000", "on-primary": "#ffffff", "outline-variant": "#bec9c2", "error-container": "#ffdad6", "on-surface": "#0b1c30", "on-secondary": "#ffffff", "primary": "#004532", "surface-container-low": "#eff4ff", "outline": "#6f7973", "on-secondary-fixed-variant": "#005049", "surface-bright": "#f8f9ff", "surface-variant": "#d3e4fe", "on-tertiary-fixed-variant": "#6e3900", "tertiary-fixed-dim": "#ffb77d", "on-secondary-container": "#006f66", "inverse-surface": "#213145", "background": "#f8f9ff", "error": "#ba1a1a", "secondary": "#006a61", "on-tertiary": "#ffffff", "on-tertiary-fixed": "#2f1500", "on-secondary-fixed": "#00201d", "on-error-container": "#93000a", "primary-fixed": "#a6f2d1", "surface-container-highest": "#d3e4fe", "inverse-primary": "#8bd6b6", "surface-container-lowest": "#ffffff", "surface-tint": "#1b6b51", "primary-fixed-dim": "#8bd6b6" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "gutter-desktop": "1.5rem", "margin": "1rem", "space-xl": "2rem", "margin-desktop": "2rem", "space-lg": "1.25rem", "gutter": "1rem", "space-xs": "0.25rem", "space-md": "0.75rem", "space-sm": "0.5rem" }, "fontFamily": { "label-sm": ["Inter"], "headline-lg": ["Inter"], "body-sm": ["Inter"], "body-lg": ["Inter"], "headline-xl-mobile": ["Inter"], "headline-xl": ["Inter"], "headline-lg-mobile": ["Inter"], "body-md": ["Inter"], "label-md": ["Inter"], "headline-md": ["Inter"], "label-lg": ["Inter"] }, "fontSize": { "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "700" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }], "headline-xl-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-lg-mobile": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }], "label-md": ["11px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "600" }], "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "label-lg": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "600" }] } } } };</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-low z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="EcoLoop Admin Portal Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuComOooAdp2D83xFnmqmA7NySJLgRN1QNtJmFfu185Il75Gz0f1WPjBCl3XmwT6bdBdrU6UY1BOI9fR-QP-ryVvjwoHdLxTwdUTOdgToXeJ3Kvj1iU9Dcv41uYxk_MZ53-BpBpyxaOku16nH-oRmf_F9oB1zmSeQSnRCFkThVuXpQXKInoGrHQvPsMCy2CgqZF4uDPpFEao_Q5gQ9PCqvqNtxaEm6apvR038XSeV5Im"/><div class="flex flex-col"><span class="font-headline-md text-headline-md font-bold tracking-tight text-primary leading-none">EcoLoop</span><span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Lifecycle OS</span></div></div></div><div class="px-gutter py-space-sm"><div class="flex items-center gap-space-xs px-space-sm py-space-xs rounded bg-surface-container-high text-on-surface-variant"><span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span><span class="font-label-sm text-label-sm uppercase tracking-wide">Hub Node: Online</span></div></div><nav class="flex flex-col gap-space-xs px-space-sm mt-space-sm" data-active-classes="bg-primary-container text-on-primary font-bold"><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[18px]">dashboard</span><span class="font-label-lg text-label-lg">Dashboard</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="awaiting-inspection" href="#"><span class="material-symbols-outlined text-[18px]">pending_actions</span><span class="font-label-lg text-label-lg">Awaiting Inspection</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="physical-inspection" href="#"><span class="material-symbols-outlined text-[18px]">biotech</span><span class="font-label-lg text-label-lg">Physical Inspection</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="reuse-hub" href="#"><span class="material-symbols-outlined text-[18px]">inventory_2</span><span class="font-label-lg text-label-lg">Reuse Hub</span></a><a aria-current="page" class="flex items-center gap-space-md px-space-md py-space-sm rounded transition-colors bg-primary-container text-on-primary font-bold" data-path="disposal-records" href="#"><span class="material-symbols-outlined text-[18px]">delete_forever</span><span class="font-label-lg text-label-lg">Disposal Records</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="users-and-access" href="#"><span class="material-symbols-outlined text-[18px]">admin_panel_settings</span><span class="font-label-lg text-label-lg">Users &amp; Access</span></a></nav></div><div class="p-gutter flex flex-col gap-space-sm bg-surface-container-high"><div class="flex items-center justify-between text-on-surface-variant"><span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Audit Compliance</span><span class="font-label-sm text-label-sm font-bold text-primary">ISO 14001</span></div><div class="w-full bg-surface-container-lowest h-1.5 rounded overflow-hidden"><div class="bg-primary h-full w-[94%]"></div></div><div class="flex justify-between items-center font-label-sm text-label-sm text-outline"><span>Chain-of-Custody</span><span class="font-bold text-on-surface">94.2%</span></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-gutter-desktop"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs text-on-surface-variant"><span class="material-symbols-outlined text-[18px] text-outline">hub</span><span class="font-label-md text-label-md uppercase tracking-wider text-outline">Central Sorting</span><span class="material-symbols-outlined text-[14px] text-outline-variant">chevron_right</span><span class="font-label-md text-label-md text-on-surface">Regional Intake</span></div><div class="hidden md:flex items-center bg-surface-container-lowest px-space-md py-1.5 rounded shadow-[0_1px_4px_rgba(0,0,0,0.02)] gap-space-sm ml-space-md"><span class="material-symbols-outlined text-outline text-[16px]">search</span><input class="bg-transparent font-body-sm text-body-sm text-on-surface placeholder:text-outline outline-none w-52" placeholder="Search lot ID, serial or SKU..." type="text"/><kbd class="font-label-sm text-label-sm bg-surface-container text-on-surface-variant px-1.5 py-0.5 rounded">Ctrl+K</kbd></div></div><div class="flex items-center gap-gutter"><div class="flex items-center gap-space-sm"><button aria-label="Notifications" class="relative p-space-xs rounded text-on-surface-variant hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-error"></span></button><button aria-label="System Logs" class="p-space-xs rounded text-on-surface-variant hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[20px]">sync_alt</span></button></div><div class="flex items-center gap-space-md pl-space-md"><div class="flex flex-col text-right hidden sm:flex"><span class="font-label-lg text-label-lg text-on-surface">Elena Vance</span><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-primary-container text-on-primary uppercase tracking-wider self-end mt-0.5">Super Admin</span></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACbbrVZZOiQDxKgZVAIUd3Sp8bGQVMPrfvRqL-LxBdOS7nodjK9znCMcRpmNV_mOhP_n1dKZJrhAtkQGXmlfd1Gc3uvGEzsZ-wwHURNJybQZVohgmPsKXTXW_T-21OSn-4XTwuz__x3DrQYyaH5WBrzzN18FoxA4l-HInNKYgFG-h15qnQdoTsTMuOo0Rvtaq_TnMsp8WLhI8rw2mhSYMDpNQH6XI7NLoGKLdOrYqu"/></div></div></header><main class="relative pt-16 bg-surface min-h-screen w-full px-gutter-desktop"><div class="flex flex-col w-full pb-16">
+<!-- Top Operational Banner & RBAC Authorization Sentinel -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md mb-6 bg-surface-container-low p-space-md rounded-xl shadow-sm">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-primary-container text-on-primary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[22px]">admin_panel_settings</span>
+</div>
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">Identity &amp; Role-Based Access Control</span>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm uppercase bg-primary-container text-on-primary font-semibold tracking-wider">Super Admin Session</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+          Enforce Zero-Trust lifecycle privileges, manage multi-tenant affiliations, and audit privilege mutations across EcoLoop nodes.
+        </p>
+</div>
+</div>
+<div class="flex items-center gap-space-sm flex-wrap">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+<span class="font-mono text-on-surface font-semibold">RBAC-POLICY: v4.8_STRICT</span>
+</div>
+<button class="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-lowest text-on-surface hover:bg-surface-container transition-colors rounded shadow-sm font-label-lg text-label-lg" onclick="openExportModal()">
+<span class="material-symbols-outlined text-[16px] text-outline">file_download</span>
+<span>Export Audit (CSV)</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary-container text-on-primary hover:bg-primary transition-all rounded shadow-sm font-label-lg text-label-lg font-bold" onclick="openInviteModal()">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+<span>Invite User</span>
+</button>
+</div>
+</div>
+<!-- Real-time KPI Metric Rail -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-space-md mb-6">
+<!-- Total Users -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md uppercase tracking-wider text-outline">Total Directory</span>
+<span class="material-symbols-outlined text-outline text-[18px]">group</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-xl text-headline-xl font-bold text-on-surface tracking-tight">1,842</span>
+<span class="font-label-sm text-label-sm font-semibold text-primary px-1.5 py-0.5 rounded bg-surface-container-low">+14 wk</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">Cross-regional accounts</span>
+</div>
+<!-- Active Admins -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary-container"></div>
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md uppercase tracking-wider text-primary font-bold">Admins</span>
+<span class="material-symbols-outlined text-primary text-[18px]">shield_person</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-xl text-headline-xl font-bold text-on-surface tracking-tight">6</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container text-on-surface font-mono">100% MFA</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">Full root module clearance</span>
+</div>
+<!-- Compliance Officials -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-secondary"></div>
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md uppercase tracking-wider text-secondary font-bold">Officials</span>
+<span class="material-symbols-outlined text-secondary text-[18px]">verified_user</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-xl text-headline-xl font-bold text-on-surface tracking-tight">18</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant">EPA / Regional</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">Audits, manifest oversight</span>
+</div>
+<!-- Verified Residents -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md uppercase tracking-wider text-outline">Residents</span>
+<span class="material-symbols-outlined text-outline text-[18px]">nature_people</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-xl text-headline-xl font-bold text-on-surface tracking-tight">1,818</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">98.4% Act</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">Circularity Portal drop-offs</span>
+</div>
+<!-- Deactivated & Suspended -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md uppercase tracking-wider text-error">Revoked</span>
+<span class="material-symbols-outlined text-error text-[18px]">block</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-xl text-headline-xl font-bold text-error tracking-tight">24</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-error-container text-on-error-container">Locked</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">Zero login token validity</span>
+</div>
+</div>
+<!-- Main Worksurface: Bento Split (Directory Grid 8 cols / Matrix & Audit Rail 4 cols) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter-desktop items-start">
+<!-- Left Column: Directory & Dynamic Filtering (8 cols) -->
+<div class="lg:col-span-8 flex flex-col gap-space-md">
+<!-- Filter & Search Toolbar -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-space-md">
+<!-- Integrated Omnisearch with ID/Email support -->
+<div class="relative w-full md:w-80">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-outline">search</span>
+<input class="w-full pl-9 pr-3 py-1.5 text-body-sm bg-surface-container-low rounded text-on-surface placeholder:text-outline outline-none focus:ring-1 focus:ring-primary-container" id="userSearchInput" onkeyup="filterUsers()" placeholder="Search name, email, or badge ID (e.g. ADM-091)..." type="text"/>
+</div>
+<!-- Role & Status Filter Pills -->
+<div class="flex items-center gap-space-xs flex-wrap w-full md:w-auto justify-start md:justify-end">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline mr-1">Role:</span>
+<button class="role-filter px-2.5 py-1 rounded font-label-md text-label-md bg-primary-container text-on-primary transition-all" id="pill-role-ALL" onclick="setRoleFilter('ALL')">All</button>
+<button class="role-filter px-2.5 py-1 rounded font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-all" id="pill-role-ADMIN" onclick="setRoleFilter('ADMIN')">Admin (6)</button>
+<button class="role-filter px-2.5 py-1 rounded font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-all" id="pill-role-OFFICIAL" onclick="setRoleFilter('OFFICIAL')">Official (18)</button>
+<button class="role-filter px-2.5 py-1 rounded font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-all" id="pill-role-RESIDENT" onclick="setRoleFilter('RESIDENT')">Resident</button>
+<div class="h-4 w-px bg-surface-container-highest mx-1"></div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline mr-1">Status:</span>
+<select class="px-2 py-1 bg-surface-container-low rounded text-body-sm text-on-surface outline-none cursor-pointer" id="statusFilter" onchange="filterUsers()">
+<option value="ALL">All States</option>
+<option value="ACTIVE">Active Only</option>
+<option value="DEACTIVATED">Deactivated</option>
+<option value="PENDING">Pending Verification</option>
+<option value="LOCKED">Locked</option>
+</select>
+</div>
+</div>
+<!-- User Directory Table Card -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<div class="px-space-md py-space-sm bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg font-bold text-on-surface">Registered User Directory</span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-on-surface-variant" id="activeCountBadge">Showing 6 users</span>
+</div>
+<div class="flex items-center gap-space-sm text-on-surface-variant font-label-sm text-label-sm">
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-primary"></span> Authorized Session</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left" id="usersTable">
+<thead>
+<tr class="bg-surface-container-low/50 text-outline font-label-md text-label-md uppercase tracking-wider">
+<th class="py-2.5 px-4">User &amp; Community</th>
+<th class="py-2.5 px-3">Role</th>
+<th class="py-2.5 px-3">Status</th>
+<th class="py-2.5 px-3">Security &amp; MFA</th>
+<th class="py-2.5 px-3">Last Login</th>
+<th class="py-2.5 px-4 text-right">Access Controls</th>
+</tr>
+</thead>
+<tbody class="font-body-sm text-body-sm divide-y-0" id="userRowsContainer">
+<!-- User 1: Elena Vance (Active Session / Super Admin - Self Demotion Guarded) -->
+<tr class="user-row bg-surface-container-lowest hover:bg-surface-container-low/40 transition-colors" data-email="elena.vance@ecoloop.org" data-id="USR-8801" data-name="Elena Vance" data-role="ADMIN" data-status="ACTIVE">
+<td class="py-3 px-4">
+<div class="flex items-center gap-space-md">
+<div class="relative">
+<img class="w-9 h-9 rounded-full object-cover shadow-sm" data-alt="Close up professional portrait of Elena Vance, chief administrator with warm focused expression in modern eco-tech office" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC651I13xSCyg8f1_uPW5VNu0aoTdBdoWOEn9LNCseWnEnnRW0kqL7KZjxIeH3JxA8HWV-6d_Xk4BNpLaEHRshtz3lcUX3luqkjK5kHRUMfmvNdyX8UKCQfZ49j06i7EayZ9VnGAuvhwhhGAuUfz3C3xXeCPF7YpByodmB7-2pvKRD2h3TJdo6F3Bw92QQ5mxKGb3Nn0BnSSt_90LfsvwM7a69h8WrGp9I8tCbXqU5r"/>
+<span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-primary ring-2 ring-surface-container-lowest"></span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg font-bold text-on-surface">Elena Vance</span>
+<span class="font-mono text-label-sm text-outline px-1 rounded bg-surface-container">You</span>
+</div>
+<div class="font-body-sm text-outline flex items-center gap-2">
+<span>elena.vance@ecoloop.org</span>
+<span>•</span>
+<span class="font-mono text-[11px] text-on-surface-variant">USR-8801</span>
+</div>
+<span class="font-label-sm text-[10px] text-outline uppercase tracking-wider">Hub Core • Central Node #01</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded font-label-sm text-label-sm font-bold bg-primary-container text-on-primary uppercase tracking-wider shadow-sm">
+<span class="material-symbols-outlined text-[14px]">shield</span> Admin
+                  </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded font-label-sm text-label-sm bg-surface-container text-primary font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Active
+                  </span>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary" title="FIDO2 Hardware Key Enforced">verified</span>
+<span class="font-mono text-label-sm text-on-surface-variant">FIDO2 / Key</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="text-on-surface font-mono text-[11px]">Just now</div>
+<div class="text-outline text-[10px]">192.168.10.42 (This IP)</div>
+</td>
+<td class="py-3 px-4 text-right">
+<!-- Guarded against self-demotion -->
+<div class="inline-flex items-center gap-1">
+<span class="px-2 py-1 rounded bg-surface-container text-outline text-label-sm font-mono flex items-center gap-1 cursor-not-allowed" title="Self-demotion protected: Cannot remove own admin role or deactivate self">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+                      Protected
+                    </span>
+</div>
+</td>
+</tr>
+<!-- User 2: Marcus Thorne (Official - EPA Compliance) -->
+<tr class="user-row bg-surface-container-lowest hover:bg-surface-container-low/40 transition-colors" data-email="m.thorne@env-reg.gov" data-id="USR-4290" data-name="Marcus Thorne" data-role="OFFICIAL" data-status="ACTIVE">
+<td class="py-3 px-4">
+<div class="flex items-center gap-space-md">
+<div class="w-9 h-9 rounded-full bg-secondary-container text-on-secondary-container font-bold flex items-center justify-center font-mono text-label-lg shadow-sm">
+                      MT
+                    </div>
+<div>
+<span class="font-label-lg text-label-lg font-bold text-on-surface">Marcus Thorne</span>
+<div class="font-body-sm text-outline flex items-center gap-2">
+<span>m.thorne@env-reg.gov</span>
+<span>•</span>
+<span class="font-mono text-[11px] text-on-surface-variant">USR-4290</span>
+</div>
+<span class="font-label-sm text-[10px] text-outline uppercase tracking-wider">EPA District 4 Compliance Branch</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded font-label-sm text-label-sm font-bold bg-secondary text-on-secondary uppercase tracking-wider shadow-sm">
+<span class="material-symbols-outlined text-[14px]">policy</span> Official
+                  </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded font-label-sm text-label-sm bg-surface-container text-primary font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Active
+                  </span>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">lock_clock</span>
+<span class="font-mono text-label-sm text-on-surface-variant">TOTP Authenticator</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="text-on-surface font-mono text-[11px]">Today, 08:14 AM</div>
+<div class="text-outline text-[10px]">142.250.180.14</div>
+</td>
+<td class="py-3 px-4 text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm transition-colors" onclick="openRoleModal('Marcus Thorne', 'USR-4290', 'OFFICIAL', 'm.thorne@env-reg.gov')">
+                      Change Role
+                    </button>
+<button class="p-1 rounded text-outline hover:text-error hover:bg-error-container transition-colors" onclick="confirmDeactivate('Marcus Thorne', 'USR-4290', 'OFFICIAL')" title="Deactivate Access">
+<span class="material-symbols-outlined text-[18px]">person_off</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- User 3: Sophia Lin (Resident / Reuse Advocate) -->
+<tr class="user-row bg-surface-container-lowest hover:bg-surface-container-low/40 transition-colors" data-email="sophia.lin@cascade-living.org" data-id="USR-1102" data-name="Sophia Lin" data-role="RESIDENT" data-status="ACTIVE">
+<td class="py-3 px-4">
+<div class="flex items-center gap-space-md">
+<img class="w-9 h-9 rounded-full object-cover shadow-sm" data-alt="Portrait of Asian community organizer Sophia Lin with gentle smile against warm studio lighting background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCA9DdGYQDxBzHsBo4FOaRhSf3p4lskQ-Ya4T5wIiSfuB0fAz36iD6MQ3vlWaXNnUJZoPGU5FviavkxpPfWbTip1DerPU8KxEqNK-r4FNwgZWJpD2gOp6ayGKJpHajh9qVaxgWT3fa4Lp_2GpnChVnS-BWGCRwJfjqRtUDCZCt8oEf_jHCtN-W9g0zeVill8Au5efErMPZV6rh3kKv4vbqFaJ9nK7Rkz-TjtlIJO68T"/>
+<div>
+<span class="font-label-lg text-label-lg font-bold text-on-surface">Sophia Lin</span>
+<div class="font-body-sm text-outline flex items-center gap-2">
+<span>sophia.lin@cascade-living.org</span>
+<span>•</span>
+<span class="font-mono text-[11px] text-on-surface-variant">USR-1102</span>
+</div>
+<span class="font-label-sm text-[10px] text-outline uppercase tracking-wider">Cascade Community E-Waste Cooperative</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded font-label-sm text-label-sm font-semibold bg-surface-container text-on-surface-variant uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]">person</span> Resident
+                  </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded font-label-sm text-label-sm bg-surface-container text-primary font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Active
+                  </span>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-outline">sms</span>
+<span class="font-mono text-label-sm text-outline">SMS-OTP</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="text-on-surface font-mono text-[11px]">Yesterday, 16:40</div>
+<div class="text-outline text-[10px]">98.210.44.11</div>
+</td>
+<td class="py-3 px-4 text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm transition-colors" onclick="openRoleModal('Sophia Lin', 'USR-1102', 'RESIDENT', 'sophia.lin@cascade-living.org')">
+                      Change Role
+                    </button>
+<button class="p-1 rounded text-outline hover:text-error hover:bg-error-container transition-colors" onclick="confirmDeactivate('Sophia Lin', 'USR-1102', 'RESIDENT')" title="Deactivate Access">
+<span class="material-symbols-outlined text-[18px]">person_off</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- User 4: Tariq Sterling (Admin - Hardware Sorting Engineer) -->
+<tr class="user-row bg-surface-container-lowest hover:bg-surface-container-low/40 transition-colors" data-email="t.sterling@ecoloop.org" data-id="USR-7731" data-name="Tariq Sterling" data-role="ADMIN" data-status="ACTIVE">
+<td class="py-3 px-4">
+<div class="flex items-center gap-space-md">
+<div class="w-9 h-9 rounded-full bg-primary-container text-on-primary font-bold flex items-center justify-center font-mono text-label-lg shadow-sm">
+                      TS
+                    </div>
+<div>
+<span class="font-label-lg text-label-lg font-bold text-on-surface">Tariq Sterling</span>
+<div class="font-body-sm text-outline flex items-center gap-2">
+<span>t.sterling@ecoloop.org</span>
+<span>•</span>
+<span class="font-mono text-[11px] text-on-surface-variant">USR-7731</span>
+</div>
+<span class="font-label-sm text-[10px] text-outline uppercase tracking-wider">Refurbishment &amp; Smelting Node Lead</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded font-label-sm text-label-sm font-bold bg-primary-container text-on-primary uppercase tracking-wider shadow-sm">
+<span class="material-symbols-outlined text-[14px]">shield</span> Admin
+                  </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded font-label-sm text-label-sm bg-surface-container text-primary font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Active
+                  </span>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">verified</span>
+<span class="font-mono text-label-sm text-on-surface-variant">FIDO2 / Key</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="text-on-surface font-mono text-[11px]">Oct 24, 11:02</div>
+<div class="text-outline text-[10px]">192.168.10.88</div>
+</td>
+<td class="py-3 px-4 text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm transition-colors" onclick="openRoleModal('Tariq Sterling', 'USR-7731', 'ADMIN', 't.sterling@ecoloop.org')">
+                      Change Role
+                    </button>
+<button class="p-1 rounded text-outline hover:text-error hover:bg-error-container transition-colors" onclick="confirmDeactivate('Tariq Sterling', 'USR-7731', 'ADMIN')" title="Deactivate Access">
+<span class="material-symbols-outlined text-[18px]">person_off</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- User 5: Julian Karras (Deactivated State Demonstration) -->
+<tr class="user-row bg-surface-container-low/30 opacity-70 hover:opacity-100 transition-opacity" data-email="j.karras@reclaimed-tech.com" data-id="USR-3094" data-name="Julian Karras" data-role="OFFICIAL" data-status="DEACTIVATED">
+<td class="py-3 px-4">
+<div class="flex items-center gap-space-md">
+<div class="w-9 h-9 rounded-full bg-surface-container-high text-outline font-bold flex items-center justify-center font-mono text-label-lg">
+                      JK
+                    </div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg font-bold text-on-surface line-through">Julian Karras</span>
+<span class="px-1.5 py-0.2 rounded bg-error-container text-on-error-container font-label-sm text-[10px] font-bold">REVOKED</span>
+</div>
+<div class="font-body-sm text-outline flex items-center gap-2">
+<span>j.karras@reclaimed-tech.com</span>
+<span>•</span>
+<span class="font-mono text-[11px]">USR-3094</span>
+</div>
+<span class="font-label-sm text-[10px] text-outline uppercase tracking-wider">Former Municipal Waste Auditor</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded font-label-sm text-label-sm font-semibold bg-surface-container text-outline uppercase tracking-wider">
+                    Official
+                  </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded font-label-sm text-label-sm bg-error-container text-error font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> Deactivated
+                  </span>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5 text-error">
+<span class="material-symbols-outlined text-[16px]">no_encryption</span>
+<span class="font-mono text-label-sm">Tokens Purged</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="text-outline font-mono text-[11px]">Sep 18, 2024</div>
+<div class="text-outline text-[10px]">Deactivated by Elena V.</div>
+</td>
+<td class="py-3 px-4 text-right">
+<button class="px-2.5 py-1 rounded bg-surface-container-lowest hover:bg-primary-container hover:text-on-primary text-primary font-label-sm text-label-sm shadow-sm transition-all" onclick="reactivateUser('Julian Karras', 'USR-3094')">
+                    Reactivate User
+                  </button>
+</td>
+</tr>
+<!-- User 6: Mira Patel (Resident - Pending MFA Setup) -->
+<tr class="user-row bg-surface-container-lowest hover:bg-surface-container-low/40 transition-colors" data-email="mira.p@greenmetro.net" data-id="USR-9941" data-name="Mira Patel" data-role="RESIDENT" data-status="PENDING">
+<td class="py-3 px-4">
+<div class="flex items-center gap-space-md">
+<div class="w-9 h-9 rounded-full bg-surface-container-high text-on-surface-variant font-bold flex items-center justify-center font-mono text-label-lg">
+                      MP
+                    </div>
+<div>
+<span class="font-label-lg text-label-lg font-bold text-on-surface">Mira Patel</span>
+<div class="font-body-sm text-outline flex items-center gap-2">
+<span>mira.p@greenmetro.net</span>
+<span>•</span>
+<span class="font-mono text-[11px] text-on-surface-variant">USR-9941</span>
+</div>
+<span class="font-label-sm text-[10px] text-outline uppercase tracking-wider">Metropolitan Circularity Pilot</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded font-label-sm text-label-sm font-semibold bg-surface-container text-on-surface-variant uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]">person</span> Resident
+                  </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded font-label-sm text-label-sm bg-surface-container-high text-on-surface-variant font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span> Pending
+                  </span>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1.5 text-outline">
+<span class="material-symbols-outlined text-[16px]">pending</span>
+<span class="font-mono text-label-sm">Invite Sent</span>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="text-outline font-mono text-[11px]">Never</div>
+<div class="text-outline text-[10px]">Invite expires in 48h</div>
+</td>
+<td class="py-3 px-4 text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm transition-colors" onclick="resendInvite('Mira Patel', 'mira.p@greenmetro.net')">
+                      Resend Invite
+                    </button>
+<button class="p-1 rounded text-outline hover:text-on-surface transition-colors" onclick="openRoleModal('Mira Patel', 'USR-9941', 'RESIDENT', 'mira.p@greenmetro.net')" title="Change Role">
+<span class="material-symbols-outlined text-[18px]">manage_accounts</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination & Bulk Summary -->
+<div class="p-space-md bg-surface-container-low flex flex-col sm:flex-row items-center justify-between gap-space-sm font-label-sm text-label-sm text-outline">
+<div class="flex items-center gap-2">
+<span>Showing 1 to 6 of 1,842 user manifests</span>
+<span class="text-outline-variant">|</span>
+<span class="text-primary font-semibold">Zero-Trust Directory Active</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1 rounded bg-surface-container-lowest text-on-surface shadow-sm hover:bg-surface-container font-semibold">Previous</button>
+<span class="px-3 py-1 font-mono text-on-surface">Page 1 of 307</span>
+<button class="px-2.5 py-1 rounded bg-surface-container-lowest text-on-surface shadow-sm hover:bg-surface-container font-semibold">Next</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: RBAC Permission Matrix & Live Mutation Audit Log (4 cols) -->
+<div class="lg:col-span-4 flex flex-col gap-space-md">
+<!-- Module Clearance Matrix Card -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">policy</span>
+<span class="font-label-lg text-label-lg font-bold text-on-surface">RBAC Policy Matrix</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant">Enforced</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-4">
+          Hierarchical privilege clearance enforced at gateway edge for all five operational lifecycle domains.
+        </p>
+<!-- Dense Matrix Table -->
+<div class="rounded-lg overflow-hidden bg-surface-container-low">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead>
+<tr class="bg-surface-container-high/60 text-outline font-label-sm text-label-sm uppercase">
+<th class="py-1.5 px-3">System Module</th>
+<th class="py-1.5 px-1 text-center font-bold text-primary">Adm</th>
+<th class="py-1.5 px-1 text-center font-bold text-secondary">Off</th>
+<th class="py-1.5 px-1 text-center font-bold text-outline">Res</th>
+</tr>
+</thead>
+<tbody class="divide-y-0 text-label-md text-label-md">
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-2 px-3 text-on-surface font-medium flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-outline">dashboard</span>
+                  Telemetry Dashboard
+                </td>
+<td class="py-2 px-1 text-center text-primary"><span class="material-symbols-outlined text-[16px]">check_circle</span></td>
+<td class="py-2 px-1 text-center text-secondary"><span class="material-symbols-outlined text-[16px]">check_circle</span></td>
+<td class="py-2 px-1 text-center text-outline"><span class="material-symbols-outlined text-[16px]">visibility</span></td>
+</tr>
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-2 px-3 text-on-surface font-medium flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-outline">pending_actions</span>
+                  Triage &amp; Intake
+                </td>
+<td class="py-2 px-1 text-center text-primary"><span class="material-symbols-outlined text-[16px]">check_circle</span></td>
+<td class="py-2 px-1 text-center text-secondary"><span class="material-symbols-outlined text-[16px]">check_circle</span></td>
+<td class="py-2 px-1 text-center text-outline"><span class="material-symbols-outlined text-[16px]">block</span></td>
+</tr>
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-2 px-3 text-on-surface font-medium flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-outline">biotech</span>
+                  Physical Inspection
+                </td>
+<td class="py-2 px-1 text-center text-primary"><span class="material-symbols-outlined text-[16px]">check_circle</span></td>
+<td class="py-2 px-1 text-center text-secondary"><span class="material-symbols-outlined text-[16px]">check_circle</span></td>
+<td class="py-2 px-1 text-center text-outline"><span class="material-symbols-outlined text-[16px]">block</span></td>
+</tr>
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-2 px-3 text-on-surface font-medium flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-outline">inventory_2</span>
+                  Reuse Hub Portal
+                </td>
+<td class="py-2 px-1 text-center text-primary"><span class="material-symbols-outlined text-[16px]">check_circle</span></td>
+<td class="py-2 px-1 text-center text-secondary"><span class="material-symbols-outlined text-[16px]">check_circle</span></td>
+<td class="py-2 px-1 text-center text-primary font-bold"><span class="material-symbols-outlined text-[16px]">check_circle</span></td>
+</tr>
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-2 px-3 text-on-surface font-medium flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-outline">delete_forever</span>
+                  Disposal / Hazmat
+                </td>
+<td class="py-2 px-1 text-center text-primary"><span class="material-symbols-outlined text-[16px]">check_circle</span></td>
+<td class="py-2 px-1 text-center text-secondary"><span class="material-symbols-outlined text-[16px]">visibility</span></td>
+<td class="py-2 px-1 text-center text-outline"><span class="material-symbols-outlined text-[16px]">block</span></td>
+</tr>
+<tr class="hover:bg-surface-container/60 transition-colors bg-surface-container/40">
+<td class="py-2 px-3 text-on-surface font-medium flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-primary">admin_panel_settings</span>
+                  Users &amp; IAM Mutate
+                </td>
+<td class="py-2 px-1 text-center text-primary font-bold"><span class="material-symbols-outlined text-[16px]">check_circle</span></td>
+<td class="py-2 px-1 text-center text-error"><span class="material-symbols-outlined text-[16px]">block</span></td>
+<td class="py-2 px-1 text-center text-outline"><span class="material-symbols-outlined text-[16px]">block</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Security & Role Mutation Audit Log -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-[20px]">history_toggle_off</span>
+<span class="font-label-lg text-label-lg font-bold text-on-surface">Role Mutation Audit Log</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-primary" title="Live Tamper-Proof Audit Stream"></span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-3">
+          Cryptographically hashed chain of custody logging for all identity elevation events.
+        </p>
+<!-- Log entries stack -->
+<div class="flex flex-col gap-space-xs font-mono text-[11px]" id="auditLogStream">
+<!-- Audit item 1 -->
+<div class="p-2.5 rounded bg-surface-container-low flex flex-col gap-1">
+<div class="flex items-center justify-between text-outline text-[10px]">
+<span class="text-on-surface font-bold">MUTATION #9924-E</span>
+<span>10m ago • 14:22:04 UTC</span>
+</div>
+<div class="text-on-surface flex items-center gap-1 flex-wrap">
+<span class="font-bold text-primary">Elena Vance</span>
+<span class="text-outline">changed</span>
+<span class="font-semibold text-on-surface">Sophia Lin</span>
+<span class="text-outline">:</span>
+<span class="px-1 bg-surface-container rounded text-outline">OFFICIAL</span>
+<span>→</span>
+<span class="px-1 bg-surface-container-high rounded text-on-surface font-bold">RESIDENT</span>
+</div>
+<div class="text-[10px] text-outline flex items-center justify-between mt-0.5">
+<span>Reason: Voluntary reassignment</span>
+<span class="text-primary">SHA-256: 0x8a91...c4</span>
+</div>
+</div>
+<!-- Audit item 2 -->
+<div class="p-2.5 rounded bg-surface-container-low flex flex-col gap-1">
+<div class="flex items-center justify-between text-outline text-[10px]">
+<span class="text-on-surface font-bold">DEACTIVATION #9812-D</span>
+<span>Oct 24 • 11:30:19 UTC</span>
+</div>
+<div class="text-on-surface flex items-center gap-1 flex-wrap">
+<span class="font-bold text-primary">Elena Vance</span>
+<span class="text-outline">deactivated</span>
+<span class="font-semibold text-error">Julian Karras</span>
+</div>
+<div class="text-[10px] text-outline flex items-center justify-between mt-0.5">
+<span>Reason: Contract expiration (EPA)</span>
+<span class="text-primary">SHA-256: 0x4f22...19</span>
+</div>
+</div>
+<!-- Audit item 3 -->
+<div class="p-2.5 rounded bg-surface-container-low flex flex-col gap-1">
+<div class="flex items-center justify-between text-outline text-[10px]">
+<span class="text-on-surface font-bold">ELEVATION #9701-A</span>
+<span>Oct 22 • 09:15:42 UTC</span>
+</div>
+<div class="text-on-surface flex items-center gap-1 flex-wrap">
+<span class="font-bold text-primary">Elena Vance</span>
+<span class="text-outline">promoted</span>
+<span class="font-semibold text-on-surface">Tariq Sterling</span>
+<span>→</span>
+<span class="px-1 bg-primary-container text-on-primary rounded font-bold">ADMIN</span>
+</div>
+<div class="text-[10px] text-outline flex items-center justify-between mt-0.5">
+<span>Ticket: SEC-OPS-8840</span>
+<span class="text-primary">SHA-256: 0x11b9...ef</span>
+</div>
+</div>
+</div>
+<div class="mt-3 pt-2 flex items-center justify-between text-label-sm text-label-sm text-outline">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary">lock</span>
+            Immutable Audit Trail (ISO 27001)
+          </span>
+<a class="text-primary font-bold hover:underline" href="#">Full Log →</a>
+</div>
+</div>
+</div>
+</div>
+<!-- MODAL: Assign / Modify Role -->
+<div class="fixed inset-0 z-50 hidden bg-inverse-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="roleModal">
+<div class="bg-surface-container-lowest rounded-xl max-w-lg w-full shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+<div class="p-space-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded bg-primary-container text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">manage_accounts</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md font-bold text-on-surface">Modify System Role</h3>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Target: <span class="font-bold text-on-surface" id="modalTargetUser">User Name</span> (<span class="font-mono" id="modalTargetID">USR-XXXX</span>)</span>
+</div>
+</div>
+<button class="p-1 rounded text-outline hover:text-on-surface" onclick="closeRoleModal()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="p-space-lg flex flex-col gap-space-md">
+<!-- Self Protection Warning Notice (if triggered) -->
+<div class="hidden p-space-sm bg-error-container text-on-error-container rounded font-label-md text-label-md flex items-center gap-2" id="selfProtectionAlert">
+<span class="material-symbols-outlined text-[18px]">security</span>
+<span>Self-demotion protected: An Admin cannot remove their own admin role.</span>
+</div>
+<div>
+<label class="font-label-md text-label-md uppercase tracking-wider text-outline block mb-2">Select Clearance Tier</label>
+<div class="grid grid-cols-1 gap-2.5" id="roleSelectionGrid">
+<!-- Option 1: Admin -->
+<label class="role-radio-card flex items-start gap-3 p-3 rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors">
+<input class="mt-1 text-primary focus:ring-primary h-4 w-4" name="selectedRole" type="radio" value="ADMIN"/>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg font-bold text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">shield</span> Admin
+                  </span>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm bg-primary-container text-on-primary uppercase font-bold">Full Clearance</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                  Full root access to all lifecycle OS modules: Triage, Physical Inspection, Reuse Hub, Hazmat Disposal, and IAM User Management.
+                </p>
+</div>
+</label>
+<!-- Option 2: Official -->
+<label class="role-radio-card flex items-start gap-3 p-3 rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors">
+<input class="mt-1 text-secondary focus:ring-secondary h-4 w-4" name="selectedRole" type="radio" value="OFFICIAL"/>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg font-bold text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-secondary">policy</span> Official
+                  </span>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm bg-secondary text-on-secondary uppercase font-bold">Auditor &amp; Regulatory</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                  Municipal/EPA regulatory oversight: access to inspection logs, chain-of-custody tracking, and compliance reports. Cannot mutate user credentials.
+                </p>
+</div>
+</label>
+<!-- Option 3: Resident -->
+<label class="role-radio-card flex items-start gap-3 p-3 rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors">
+<input class="mt-1 text-outline focus:ring-outline h-4 w-4" name="selectedRole" type="radio" value="RESIDENT"/>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg font-bold text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-outline">person</span> Resident
+                  </span>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm bg-surface-container text-on-surface-variant uppercase font-bold">Public Node</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                  Community participant: drop-off scheduling, claim reservation in Reuse Hub, and personal circularity impact metrics.
+                </p>
+</div>
+</label>
+</div>
+</div>
+<div>
+<label class="font-label-md text-label-md uppercase tracking-wider text-outline block mb-1">Reason for Role Mutation (Mandatory for Audit Log)</label>
+<input class="w-full px-3 py-2 text-body-sm bg-surface-container-low rounded text-on-surface placeholder:text-outline outline-none focus:ring-1 focus:ring-primary" id="roleChangeReason" placeholder="e.g., Promotion to sorting team, external audit appointment, ticket SEC-902..." type="text"/>
+</div>
+</div>
+<div class="p-space-md bg-surface-container-low flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">lock</span> Admin privilege required
+        </span>
+<div class="flex items-center gap-2">
+<button class="px-3.5 py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg transition-colors" onclick="closeRoleModal()">
+            Cancel
+          </button>
+<button class="px-4 py-1.5 rounded bg-primary-container hover:bg-primary text-on-primary font-label-lg text-label-lg font-bold shadow-sm transition-all" id="confirmRoleBtn" onclick="saveRoleChange()">
+            Apply &amp; Sign Audit Log
+          </button>
+</div>
+</div>
+</div>
+</div>
+<!-- MODAL: Deactivate User Confirmation Dialog -->
+<div class="fixed inset-0 z-50 hidden bg-inverse-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="deactivateModal">
+<div class="bg-surface-container-lowest rounded-xl max-w-md w-full shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+<div class="p-space-lg flex flex-col gap-space-md">
+<div class="w-12 h-12 rounded-full bg-error-container text-error flex items-center justify-center">
+<span class="material-symbols-outlined text-[28px]">person_off</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md font-bold text-on-surface">Deactivate User Account?</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-2 leading-relaxed">
+            Are you sure you want to revoke access for <strong class="text-on-surface" id="deactivateUserName">Target User</strong> (<span class="font-mono" id="deactivateUserID">USR-XXXX</span>)?
+          </p>
+</div>
+<div class="p-3 rounded-lg bg-surface-container-low text-on-surface-variant font-label-md text-label-md flex items-start gap-2">
+<span class="material-symbols-outlined text-[18px] text-error flex-shrink-0 mt-0.5">warning</span>
+<span class="leading-snug">
+<strong>Explicit Constraint:</strong> When deactivated, this user can no longer log in. All active session tokens will be invalidated immediately across all EcoLoop nodes.
+          </span>
+</div>
+<div>
+<label class="font-label-md text-label-md uppercase tracking-wider text-outline block mb-1">Deactivation Reason / Security Incident ID</label>
+<input class="w-full px-3 py-2 text-body-sm bg-surface-container-low rounded text-on-surface placeholder:text-outline outline-none focus:ring-1 focus:ring-error" id="deactivationReason" placeholder="e.g. Offboarding, credential breach suspicion, audit flag..." type="text"/>
+</div>
+</div>
+<div class="p-space-md bg-surface-container-low flex items-center justify-end gap-2">
+<button class="px-3.5 py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg transition-colors" onclick="closeDeactivateModal()">
+          Cancel
+        </button>
+<button class="px-4 py-1.5 rounded bg-error text-on-error hover:bg-on-error-container font-label-lg text-label-lg font-bold shadow-sm transition-all" onclick="executeDeactivation()">
+          Confirm Deactivation
+        </button>
+</div>
+</div>
+</div>
+<!-- MODAL: Invite New User -->
+<div class="fixed inset-0 z-50 hidden bg-inverse-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="inviteModal">
+<div class="bg-surface-container-lowest rounded-xl max-w-lg w-full shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+<div class="p-space-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded bg-primary-container text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md font-bold text-on-surface">Invite Lifecycle Participant</h3>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Issue Onboarding Token</span>
+</div>
+</div>
+<button class="p-1 rounded text-outline hover:text-on-surface" onclick="closeInviteModal()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="p-space-lg flex flex-col gap-space-md">
+<div class="grid grid-cols-2 gap-space-sm">
+<div>
+<label class="font-label-md text-label-md uppercase tracking-wider text-outline block mb-1">Full Legal Name</label>
+<input class="w-full px-3 py-2 text-body-sm bg-surface-container-low rounded text-on-surface placeholder:text-outline outline-none focus:ring-1 focus:ring-primary" id="inviteName" placeholder="Dr. Arthur Vance" type="text"/>
+</div>
+<div>
+<label class="font-label-md text-label-md uppercase tracking-wider text-outline block mb-1">Corporate / Gov Email</label>
+<input class="w-full px-3 py-2 text-body-sm bg-surface-container-low rounded text-on-surface placeholder:text-outline outline-none focus:ring-1 focus:ring-primary" id="inviteEmail" placeholder="a.vance@ecoloop.org" type="email"/>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-space-sm">
+<div>
+<label class="font-label-md text-label-md uppercase tracking-wider text-outline block mb-1">Department / Organization</label>
+<input class="w-full px-3 py-2 text-body-sm bg-surface-container-low rounded text-on-surface placeholder:text-outline outline-none focus:ring-1 focus:ring-primary" id="inviteOrg" placeholder="Battery Pyrolysis Hub" type="text"/>
+</div>
+<div>
+<label class="font-label-md text-label-md uppercase tracking-wider text-outline block mb-1">Initial Assigned Role</label>
+<select class="w-full px-3 py-2 text-body-sm bg-surface-container-low rounded text-on-surface outline-none cursor-pointer" id="inviteRole">
+<option value="RESIDENT">Resident (Community Hub)</option>
+<option value="OFFICIAL">Official (Regulatory &amp; Audits)</option>
+<option value="ADMIN">Admin (Super Administrator)</option>
+</select>
+</div>
+</div>
+<div class="p-3 rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">enhanced_encryption</span>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface">Mandatory MFA Onboarding</div>
+<div class="font-body-sm text-body-sm text-outline">User must register WebAuthn or TOTP upon first challenge</div>
+</div>
+</div>
+<span class="font-label-sm text-label-sm uppercase font-bold text-primary">Enforced</span>
+</div>
+</div>
+<div class="p-space-md bg-surface-container-low flex items-center justify-end gap-2">
+<button class="px-3.5 py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg transition-colors" onclick="closeInviteModal()">
+          Cancel
+        </button>
+<button class="px-4 py-1.5 rounded bg-primary-container hover:bg-primary text-on-primary font-label-lg text-label-lg font-bold shadow-sm transition-all" onclick="sendInvitation()">
+          Generate &amp; Dispatch Token
+        </button>
+</div>
+</div>
+</div>
+<!-- Notification Toast Container -->
+<div class="fixed bottom-6 right-6 z-50 hidden bg-surface-container-lowest text-on-surface px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 transition-all duration-300" id="toastNotification">
+<div class="w-7 h-7 rounded-full bg-primary-container text-on-primary flex items-center justify-center" id="toastIconContainer">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<div>
+<div class="font-label-lg text-label-lg font-bold" id="toastTitle">Operation Successful</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant" id="toastMessage">Audit record successfully sealed.</div>
+</div>
+</div>
+</div>
+<!-- Interactive Client-side Script -->
+<script>
+  // State tracking
+  let currentActiveRoleFilter = 'ALL';
+  let activeTargetUserData = null;
+
+  // Set Role Filter Pill
+  function setRoleFilter(role) {
+    currentActiveRoleFilter = role;
+    
+    // Update button styles
+    document.querySelectorAll('.role-filter').forEach(btn => {
+      btn.className = 'role-filter px-2.5 py-1 rounded font-label-md text-label-md bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-all';
+    });
+    const activeBtn = document.getElementById(`pill-role-${role}`);
+    if (activeBtn) {
+      activeBtn.className = 'role-filter px-2.5 py-1 rounded font-label-md text-label-md bg-primary-container text-on-primary transition-all';
+    }
+
+    filterUsers();
+  }
+
+  // Combined Filter logic for search bar, role pill, and status dropdown
+  function filterUsers() {
+    const query = (document.getElementById('userSearchInput').value || '').toLowerCase().trim();
+    const statusVal = document.getElementById('statusFilter').value;
+    const rows = document.querySelectorAll('.user-row');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const name = (row.getAttribute('data-name') || '').toLowerCase();
+      const email = (row.getAttribute('data-email') || '').toLowerCase();
+      const uid = (row.getAttribute('data-id') || '').toLowerCase();
+      const role = row.getAttribute('data-role');
+      const status = row.getAttribute('data-status');
+
+      const matchesSearch = !query || name.includes(query) || email.includes(query) || uid.includes(query);
+      const matchesRole = currentActiveRoleFilter === 'ALL' || role === currentActiveRoleFilter;
+      const matchesStatus = statusVal === 'ALL' || status === statusVal;
+
+      if (matchesSearch && matchesRole && matchesStatus) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    const badge = document.getElementById('activeCountBadge');
+    if (badge) {
+      badge.textContent = `Showing ${visibleCount} users`;
+    }
+  }
+
+  // Role Modal Workflow
+  function openRoleModal(name, uid, currentRole, email) {
+    activeTargetUserData = { name, uid, currentRole, email };
+    document.getElementById('modalTargetUser').textContent = name;
+    document.getElementById('modalTargetID').textContent = uid;
+    document.getElementById('roleChangeReason').value = '';
+    
+    // Check constraint: Admin cannot remove their own admin role
+    const isSelf = (uid === 'USR-8801' || name === 'Elena Vance');
+    const selfAlert = document.getElementById('selfProtectionAlert');
+    const confirmBtn = document.getElementById('confirmRoleBtn');
+
+    if (isSelf) {
+      selfAlert.classList.remove('hidden');
+      confirmBtn.disabled = true;
+      confirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    } else {
+      selfAlert.classList.add('hidden');
+      confirmBtn.disabled = false;
+      confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    // Set radio option to currentRole
+    const radios = document.getElementsByName('selectedRole');
+    radios.forEach(r => {
+      r.checked = (r.value === currentRole);
+    });
+
+    document.getElementById('roleModal').classList.remove('hidden');
+  }
+
+  function closeRoleModal() {
+    document.getElementById('roleModal').classList.add('hidden');
+    activeTargetUserData = null;
+  }
+
+  function saveRoleChange() {
+    if (!activeTargetUserData) return;
+    const selectedRadio = document.querySelector('input[name="selectedRole"]:checked');
+    if (!selectedRadio) return;
+    const newRole = selectedRadio.value;
+    const reason = document.getElementById('roleChangeReason').value.trim() || 'Scheduled periodic access review';
+
+    // Update table row in UI
+    const rows = document.querySelectorAll('.user-row');
+    rows.forEach(row => {
+      if (row.getAttribute('data-id') === activeTargetUserData.uid) {
+        row.setAttribute('data-role', newRole);
+        const roleCell = row.children[1];
+        if (newRole === 'ADMIN') {
+          roleCell.innerHTML = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded font-label-sm text-label-sm font-bold bg-primary-container text-on-primary uppercase tracking-wider shadow-sm"><span class="material-symbols-outlined text-[14px]">shield</span> Admin</span>`;
+        } else if (newRole === 'OFFICIAL') {
+          roleCell.innerHTML = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded font-label-sm text-label-sm font-bold bg-secondary text-on-secondary uppercase tracking-wider shadow-sm"><span class="material-symbols-outlined text-[14px]">policy</span> Official</span>`;
+        } else {
+          roleCell.innerHTML = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded font-label-sm text-label-sm font-semibold bg-surface-container text-on-surface-variant uppercase tracking-wider"><span class="material-symbols-outlined text-[14px]">person</span> Resident</span>`;
+        }
+      }
+    });
+
+    // Append to live mutation audit log stream
+    addAuditEntry(
+      `MUTATION #${Math.floor(1000 + Math.random() * 9000)}-M`,
+      'Elena Vance',
+      activeTargetUserData.name,
+      activeTargetUserData.currentRole,
+      newRole,
+      reason
+    );
+
+    closeRoleModal();
+    showToast('Role Elevation Recorded', `${activeTargetUserData.name} updated to ${newRole}. SHA-256 sealed.`);
+    filterUsers();
+  }
+
+  // Deactivate User Workflow
+  function confirmDeactivate(name, uid, role) {
+    // Constraint check
+    if (uid === 'USR-8801' || name === 'Elena Vance') {
+      showToast('Action Prohibited', 'Self-demotion or self-deactivation is strictly barred.', true);
+      return;
+    }
+
+    activeTargetUserData = { name, uid, role };
+    document.getElementById('deactivateUserName').textContent = name;
+    document.getElementById('deactivateUserID').textContent = uid;
+    document.getElementById('deactivationReason').value = '';
+    document.getElementById('deactivateModal').classList.remove('hidden');
+  }
+
+  function closeDeactivateModal() {
+    document.getElementById('deactivateModal').classList.add('hidden');
+    activeTargetUserData = null;
+  }
+
+  function executeDeactivation() {
+    if (!activeTargetUserData) return;
+    const reason = document.getElementById('deactivationReason').value.trim() || 'Administrative access revocation';
+
+    // Strike through row & change status badge
+    const rows = document.querySelectorAll('.user-row');
+    rows.forEach(row => {
+      if (row.getAttribute('data-id') === activeTargetUserData.uid) {
+        row.setAttribute('data-status', 'DEACTIVATED');
+        row.classList.add('opacity-70', 'bg-surface-container-low/30');
+        
+        // Status column
+        row.children[2].innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded font-label-sm text-label-sm bg-error-container text-error font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-error"></span> Deactivated</span>`;
+        
+        // Token Column
+        row.children[3].innerHTML = `<div class="flex items-center gap-1.5 text-error"><span class="material-symbols-outlined text-[16px]">no_encryption</span><span class="font-mono text-label-sm">Tokens Purged</span></div>`;
+
+        // Action Column: replace with Reactivate
+        row.children[5].innerHTML = `<button onclick="reactivateUser('${activeTargetUserData.name}', '${activeTargetUserData.uid}')" class="px-2.5 py-1 rounded bg-surface-container-lowest hover:bg-primary-container hover:text-on-primary text-primary font-label-sm text-label-sm shadow-sm transition-all">Reactivate User</button>`;
+      }
+    });
+
+    // Append to Audit stream
+    addAuditEntry(
+      `REVOCATION #${Math.floor(1000 + Math.random() * 9000)}-D`,
+      'Elena Vance',
+      activeTargetUserData.name,
+      activeTargetUserData.role,
+      'DEACTIVATED',
+      reason
+    );
+
+    closeDeactivateModal();
+    showToast('User Deactivated', `Login blocked for ${activeTargetUserData.name}. Sessions expired.`, true);
+  }
+
+  function reactivateUser(name, uid) {
+    const rows = document.querySelectorAll('.user-row');
+    rows.forEach(row => {
+      if (row.getAttribute('data-id') === uid) {
+        row.setAttribute('data-status', 'ACTIVE');
+        row.classList.remove('opacity-70', 'bg-surface-container-low/30');
+        
+        row.children[2].innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded font-label-sm text-label-sm bg-surface-container text-primary font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Active</span>`;
+        row.children[3].innerHTML = `<div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-primary">lock_clock</span><span class="font-mono text-label-sm text-on-surface-variant">Re-Authenticated</span></div>`;
+        
+        const role = row.getAttribute('data-role');
+        row.children[5].innerHTML = `
+          <div class="inline-flex items-center gap-1">
+            <button onclick="openRoleModal('${name}', '${uid}', '${role}', '')" class="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm transition-colors">Change Role</button>
+            <button onclick="confirmDeactivate('${name}', '${uid}', '${role}')" class="p-1 rounded text-outline hover:text-error hover:bg-error-container transition-colors" title="Deactivate Access"><span class="material-symbols-outlined text-[18px]">person_off</span></button>
+          </div>
+        `;
+      }
+    });
+
+    showToast('Account Reactivated', `Access restored for ${name}.`);
+  }
+
+  // Invite Modal Workflow
+  function openInviteModal() {
+    document.getElementById('inviteName').value = '';
+    document.getElementById('inviteEmail').value = '';
+    document.getElementById('inviteOrg').value = '';
+    document.getElementById('inviteModal').classList.remove('hidden');
+  }
+
+  function closeInviteModal() {
+    document.getElementById('inviteModal').classList.add('hidden');
+  }
+
+  function sendInvitation() {
+    const name = document.getElementById('inviteName').value.trim();
+    const email = document.getElementById('inviteEmail').value.trim();
+    const role = document.getElementById('inviteRole').value;
+
+    if (!name || !email) {
+      alert('Please enter both name and email.');
+      return;
+    }
+
+    closeInviteModal();
+    showToast('Invitation Dispatched', `Onboarding credentials sent to ${email} as ${role}.`);
+  }
+
+  function resendInvite(name, email) {
+    showToast('Token Refreshed', `New verification link sent to ${email}.`);
+  }
+
+  function openExportModal() {
+    showToast('Generating CSV Audit', 'Exporting 1,842 user manifests with SHA-256 verification hash...');
+  }
+
+  // Append new audit entry dynamically
+  function addAuditEntry(eventCode, actor, target, oldRole, newRole, reason) {
+    const stream = document.getElementById('auditLogStream');
+    if (!stream) return;
+
+    const div = document.createElement('div');
+    div.className = 'p-2.5 rounded bg-surface-container-low flex flex-col gap-1 animate-in fade-in slide-in-from-top-2 duration-200';
+    div.innerHTML = `
+      <div class="flex items-center justify-between text-outline text-[10px]">
+        <span class="text-on-surface font-bold">${eventCode}</span>
+        <span>Just now</span>
+      </div>
+      <div class="text-on-surface flex items-center gap-1 flex-wrap">
+        <span class="font-bold text-primary">${actor}</span>
+        <span class="text-outline">mutated</span>
+        <span class="font-semibold text-on-surface">${target}</span>
+        <span class="text-outline">:</span>
+        <span class="px-1 bg-surface-container rounded text-outline">${oldRole}</span>
+        <span>&rarr;</span>
+        <span class="px-1 bg-surface-container-high rounded text-on-surface font-bold">${newRole}</span>
+      </div>
+      <div class="text-[10px] text-outline flex items-center justify-between mt-0.5">
+        <span>Reason: ${reason}</span>
+        <span class="text-primary font-mono">LIVE_SALT</span>
+      </div>
+    `;
+
+    stream.insertBefore(div, stream.firstChild);
+  }
+
+  // Notification Toast Helper
+  let toastTimer;
+  function showToast(title, message, isAlert = false) {
+    const toast = document.getElementById('toastNotification');
+    const toastTitle = document.getElementById('toastTitle');
+    const toastMsg = document.getElementById('toastMessage');
+    const toastIcon = document.getElementById('toastIconContainer');
+
+    if (!toast) return;
+
+    clearTimeout(toastTimer);
+    toastTitle.textContent = title;
+    toastMsg.textContent = message;
+
+    if (isAlert) {
+      toastIcon.className = 'w-7 h-7 rounded-full bg-error-container text-error flex items-center justify-center';
+      toastIcon.innerHTML = '<span class="material-symbols-outlined text-[16px]">warning</span>';
+    } else {
+      toastIcon.className = 'w-7 h-7 rounded-full bg-primary-container text-on-primary flex items-center justify-center';
+      toastIcon.innerHTML = '<span class="material-symbols-outlined text-[16px]">check</span>';
+    }
+
+    toast.classList.remove('hidden');
+    toastTimer = setTimeout(() => {
+      toast.classList.add('hidden');
+    }, 4000);
+  }
+
+  // Auto-highlight active sidebar navigation item in the host App Shell
+  document.addEventListener('DOMContentLoaded', () => {
+    const navItems = document.querySelectorAll('aside nav a');
+    navItems.forEach(item => {
+      if (item.getAttribute('data-path') === 'users-and-access') {
+        item.className = 'flex items-center gap-space-md px-space-md py-space-sm rounded bg-primary-container text-on-primary font-bold shadow-sm transition-colors';
+        const icon = item.querySelector('.material-symbols-outlined');
+        if (icon) icon.className = 'material-symbols-outlined text-[18px] text-on-primary';
+      }
+    });
+  });
+</script></main></div></body></html>

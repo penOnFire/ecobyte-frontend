@@ -1,0 +1,335 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_dashboard" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "on-secondary-fixed": "#00201d",
+          "error": "#ba1a1a",
+          "on-primary-container": "#8bd6b7",
+          "primary-container": "#065f46",
+          "on-tertiary-fixed": "#2f1500",
+          "background": "#f8f9ff",
+          "on-background": "#0b1c30",
+          "on-surface": "#0b1c30",
+          "surface-tint": "#1b6b51",
+          "tertiary-container": "#804300",
+          "secondary": "#006a61",
+          "surface-bright": "#f8f9ff",
+          "primary": "#004532",
+          "surface-variant": "#d3e4fe",
+          "surface-dim": "#cbdbf5",
+          "surface-container": "#e5eeff",
+          "secondary-container": "#86f2e4",
+          "on-primary-fixed-variant": "#00513b",
+          "tertiary-fixed": "#ffdcc3",
+          "on-error": "#ffffff",
+          "on-secondary-container": "#006f66",
+          "on-secondary": "#ffffff",
+          "surface-container-highest": "#d3e4fe",
+          "surface-container-high": "#dce9ff",
+          "inverse-primary": "#8bd6b6",
+          "secondary-fixed-dim": "#6bd8cb",
+          "on-primary": "#ffffff",
+          "tertiary-fixed-dim": "#ffb77d",
+          "tertiary": "#5e3000",
+          "primary-fixed": "#a6f2d1",
+          "surface-container-lowest": "#ffffff",
+          "primary-fixed-dim": "#8bd6b6",
+          "on-surface-variant": "#3f4944",
+          "on-tertiary-container": "#ffb87e",
+          "surface": "#f8f9ff",
+          "inverse-on-surface": "#eaf1ff",
+          "on-tertiary-fixed-variant": "#6e3900",
+          "outline": "#6f7973",
+          "error-container": "#ffdad6",
+          "surface-container-low": "#eff4ff",
+          "on-error-container": "#93000a",
+          "on-primary-fixed": "#002116",
+          "inverse-surface": "#213145",
+          "on-tertiary": "#ffffff",
+          "secondary-fixed": "#89f5e7",
+          "outline-variant": "#bec9c2",
+          "on-secondary-fixed-variant": "#005049"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "gutter": "1rem",
+          "gutter-desktop": "1.5rem",
+          "margin": "1rem",
+          "margin-desktop": "2rem",
+          "space-xl": "2rem",
+          "space-xs": "0.25rem",
+          "space-md": "0.75rem",
+          "space-sm": "0.5rem",
+          "space-lg": "1.25rem"
+        },
+        "fontFamily": {
+          "headline-xl": [
+            "Inter"
+          ],
+          "label-md": [
+            "Inter"
+          ],
+          "body-md": [
+            "Inter"
+          ],
+          "label-lg": [
+            "Inter"
+          ],
+          "headline-md": [
+            "Inter"
+          ],
+          "body-lg": [
+            "Inter"
+          ],
+          "body-sm": [
+            "Inter"
+          ],
+          "headline-xl-mobile": [
+            "Inter"
+          ],
+          "label-sm": [
+            "Inter"
+          ],
+          "headline-lg-mobile": [
+            "Inter"
+          ],
+          "headline-lg": [
+            "Inter"
+          ]
+        },
+        "fontSize": {
+          "headline-xl": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "700"
+            }
+          ],
+          "label-md": [
+            "11px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.03em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-md": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-lg": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "letterSpacing": "0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-md": [
+            "18px",
+            {
+              "lineHeight": "24px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-lg": [
+            "15px",
+            {
+              "lineHeight": "22px",
+              "fontWeight": "400"
+            }
+          ],
+          "body-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "400"
+            }
+          ],
+          "headline-xl-mobile": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.015em",
+              "fontWeight": "700"
+            }
+          ],
+          "label-sm": [
+            "10px",
+            {
+              "lineHeight": "12px",
+              "letterSpacing": "0.05em",
+              "fontWeight": "700"
+            }
+          ],
+          "headline-lg-mobile": [
+            "20px",
+            {
+              "lineHeight": "28px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-lg": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.015em",
+              "fontWeight": "600"
+            }
+          ]
+        }
+      },
+    },
+  }</script><style>body, h1, h2, h3, h4, h5, h6, p, span:not(.material-symbols-outlined):not(.material-icons), th, td, button, input, div:not(.material-symbols-outlined):not(.material-icons), a:not(.material-symbols-outlined):not(.material-icons) { font-family: 'Rethink Sans', -apple-system, BlinkMacSystemFont, sans-serif !important; }</style></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased" style="font-family: &quot;Rethink Sans&quot;, sans-serif;"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest border-r border-outline-variant/30 z-50 flex flex-col justify-between py-6 px-4 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col gap-6"><div class="px-3 flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0" style="background-color: rgb(22, 163, 74);"><span class="material-symbols-outlined text-on-primary text-[20px]">recycling</span></div><span class="font-headline-md text-headline-md font-bold tracking-tight text-on-surface">EcoByte Admin</span></div><nav class="flex flex-col gap-1.5"><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[20px] shrink-0">grid_view</span><span>Dashboard</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="to-inspect" href="#"><span class="material-symbols-outlined text-[20px] shrink-0">fact_check</span><span>To inspect</span></a><a aria-current="page" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all bg-primary-container text-on-primary font-semibold shadow-sm" data-path="reuse-hub" href="#" style="background-color: rgb(22, 163, 74); color: rgb(255, 255, 255);"><span class="material-symbols-outlined text-[20px] shrink-0 text-on-primary">inventory_2</span><span>Reuse Hub</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="disposal" href="#"><span class="material-symbols-outlined text-[20px] shrink-0">delete_sweep</span><span>Disposal</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="access" href="#"><span class="material-symbols-outlined text-[20px] shrink-0">admin_panel_settings</span><span>Access</span></a></nav></div><div class="pt-4 border-t border-outline-variant/30 px-1"><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="login" href="#"><span class="material-symbols-outlined text-[20px] shrink-0">logout</span><span>Log out</span></a></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 z-40 flex items-center justify-end px-gutter-desktop shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-3"><div class="inline-flex items-center px-3 py-1 rounded-full border border-outline-variant/60 bg-surface-container-lowest font-label-sm text-label-sm text-on-surface uppercase tracking-wider font-semibold shadow-sm">Admin</div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative w-full pt-16 bg-surface min-h-screen px-gutter-desktop py-gutter-desktop max-w-[1600px] mx-auto"><div class="flex flex-col w-full">
+<!-- Top Context Header Area -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-space-lg">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-primary font-bold" style="color: rgb(22, 163, 74);">Circulation Engine</span>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary" style="background-color: rgb(22, 163, 74);"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Auto-Synced System</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight font-bold" style="font-weight: 800;">Reuse Hub listings</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Live resident exchange portal status, auto-updated via QR station check-ins.</p>
+</div>
+<!-- Quick Telemetry & Filter Tools -->
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2 bg-surface-container-lowest px-3 py-1.5 rounded-lg shadow-sm">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse" style="background-color: rgb(22, 163, 74);"></span>
+<span class="font-label-md text-label-md text-on-surface font-medium">Node: Central-Depot-01</span>
+</div>
+<button class="flex items-center gap-1.5 bg-surface-container hover:bg-surface-container-high transition-colors px-3 py-1.5 rounded-lg text-on-surface font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+        Export Ledger
+      </button>
+</div>
+</div>
+<!-- Main Grid Layout (Left Content: Table / Listings, Right Content: Listing Summary) -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+<!-- LEFT PANEL: Filtered Listings (xl:col-span-8) -->
+<div class="xl:col-span-8 flex flex-col bg-surface-container-lowest rounded-xl shadow-sm p-space-md md:p-space-lg">
+<!-- Filter and Control Bar -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-space-md mb-space-md">
+<!-- Status Tabs -->
+<div class="flex items-center gap-1.5 bg-surface-container-low p-1 rounded-full"><button class="category-tab px-3 py-1 font-label-md text-label-md font-semibold transition-all shadow-sm rounded-full text-white" id="tab-all" onclick="filterCategory('all')" style="background-color: rgb(22, 163, 74);">All Listings <span class="ml-1 text-white/90">(6)</span></button><button class="category-tab px-3 py-1 font-label-md text-label-md font-semibold transition-all text-slate-600 hover:text-slate-900 hover:bg-white rounded-full border border-transparent hover:border-slate-200" id="tab-available" onclick="filterCategory('Available')">Available <span class="ml-1 opacity-70">(3)</span></button><button class="category-tab px-3 py-1 font-label-md text-label-md font-semibold transition-all text-slate-600 hover:text-slate-900 hover:bg-white rounded-full border border-transparent hover:border-slate-200" id="tab-reserved" onclick="filterCategory('Reserved')">Reserved <span class="ml-1 opacity-70">(2)</span></button><button class="category-tab px-3 py-1 font-label-md text-label-md font-semibold transition-all text-slate-600 hover:text-slate-900 hover:bg-white rounded-full border border-transparent hover:border-slate-200" id="tab-claimed" onclick="filterCategory('Claimed')">Claimed <span class="ml-1 opacity-70">(1)</span></button></div>
+<!-- Search input -->
+<div class="relative w-full md:w-64">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-low pl-9 pr-3 py-1.5 rounded-lg font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/60 focus:bg-surface-container-lowest focus:outline-none focus:ring-1 focus:ring-primary-container transition-all" id="searchInput" onkeyup="searchListings()" placeholder="Search serial, brand, SKU..." type="text">
+</div>
+</div>
+<!-- Listings Table / Card Row Stream -->
+<div class="overflow-hidden rounded-xl border border-outline-variant/60 bg-surface-container-lowest shadow-sm mb-space-md"><div class="overflow-x-auto"><table class="w-full text-left" id="listingsTable"><thead><tr class="bg-surface-container-low/70 border-b border-outline-variant/60"><th class="py-2.5 px-4 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold w-[38%]">Item</th><th class="py-2.5 px-4 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold w-[26%]">Drop-off</th><th class="py-2.5 px-4 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold w-[18%]">Status</th><th class="py-2.5 px-4 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold w-[18%]">Pick-up date</th></tr></thead><tbody class="divide-y-0" id="listingRows"><tr class="listing-item group transition-colors hover:bg-surface-container-low/50 border-b border-outline-variant/30 bg-surface-container-lowest" data-status="Available" data-title="Lenovo ThinkPad T480 14 FHD Core i5 16GB"><td class="py-2.5 px-4 w-[38%]"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background-color: #ecfdf5; color: #15803d;"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect height="11" rx="1.5" width="16" x="4" y="4"></rect><path d="M2 18h20" stroke-linecap="round"></path></svg></div><div class="min-w-0"><div class="font-label-lg text-label-lg text-on-surface font-semibold truncate leading-tight">Lenovo ThinkPad T480</div><div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5"><span>14" FHD Core i5, 16GB RAM</span><span class="w-1 h-1 rounded-full bg-outline-variant"></span><span>Grade A</span></div></div></div></td><td class="py-2.5 px-4 w-[26%]"><div class="font-label-lg text-label-lg text-on-surface font-medium whitespace-nowrap">Pasig Green Hub</div><div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Depot Bin 04</div></td><td class="py-2.5 px-4 w-[18%]"><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-label-sm text-label-sm uppercase tracking-wide font-semibold" style="background-color: #dcfce7; color: #15803d;"><span class="w-1.5 h-1.5 rounded-full" style="background-color: #16a34a;"></span>Available</span></td><td class="py-2.5 px-4 w-[18%] font-body-md text-body-md text-on-surface-variant">—</td></tr><tr class="listing-item group transition-colors hover:bg-surface-container-low/50 border-b border-outline-variant/30 bg-surface-container-lowest" data-status="Reserved" data-title="Keychron K2 V2 Wireless Mechanical Keyboard"><td class="py-2.5 px-4 w-[38%]"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background-color: #fef3c7; color: #b45309;"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect height="12" rx="2" width="20" x="2" y="6"></rect><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" stroke-linecap="round"></path></svg></div><div class="min-w-0"><div class="font-label-lg text-label-lg text-on-surface font-semibold truncate leading-tight">Keychron K2 V2</div><div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5"><span>Wireless Mechanical Keyboard</span><span class="w-1 h-1 rounded-full bg-outline-variant"></span><span>Gateron Brown</span></div></div></div></td><td class="py-2.5 px-4 w-[26%]"><div class="font-label-lg text-label-lg text-on-surface font-medium whitespace-nowrap">San Antonio Hub</div><div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Locker B2</div></td><td class="py-2.5 px-4 w-[18%]"><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-label-sm text-label-sm uppercase tracking-wide font-semibold" style="background-color: #fef3c7; color: #b45309;"><span class="w-1.5 h-1.5 rounded-full" style="background-color: #d97706;"></span>Reserved</span></td><td class="py-2.5 px-4 w-[18%]"><div class="font-label-lg text-label-lg font-semibold flex items-center gap-1.5" style="color: #b45309;"><svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3" stroke-linecap="round"></path></svg>Oct 28, 2024</div></td></tr><tr class="listing-item group transition-colors hover:bg-surface-container-low/50 border-b border-outline-variant/30 bg-surface-container-lowest" data-status="Available" data-title="Dell UltraSharp U2419H 24 InfinityEdge Monitor"><td class="py-2.5 px-4 w-[38%]"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background-color: #ecfdf5; color: #15803d;"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect height="12" rx="2" width="18" x="3" y="3"></rect><path d="M8 21h8m-4-6v6" stroke-linecap="round"></path></svg></div><div class="min-w-0"><div class="font-label-lg text-label-lg text-on-surface font-semibold truncate leading-tight">Dell UltraSharp U2419H</div><div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5"><span>24" InfinityEdge Monitor</span><span class="w-1 h-1 rounded-full bg-outline-variant"></span><span>IPS FHD</span></div></div></div></td><td class="py-2.5 px-4 w-[26%]"><div class="font-label-lg text-label-lg text-on-surface font-medium whitespace-nowrap">Barangay San Antonio</div><div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Display Staging Area</div></td><td class="py-2.5 px-4 w-[18%]"><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-label-sm text-label-sm uppercase tracking-wide font-semibold" style="background-color: #dcfce7; color: #15803d;"><span class="w-1.5 h-1.5 rounded-full" style="background-color: #16a34a;"></span>Available</span></td><td class="py-2.5 px-4 w-[18%] font-body-md text-body-md text-on-surface-variant">—</td></tr><tr class="listing-item group transition-colors hover:bg-surface-container-low/50 border-b border-outline-variant/30 bg-surface-container-lowest" data-status="Claimed" data-title="Apple iPad Air 4th Gen 64GB Wi-Fi Sky Blue"><td class="py-2.5 px-4 w-[38%]"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background-color: #f1f5f9; color: #475569;"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect height="18" rx="2" width="14" x="5" y="3"></rect><path d="M12 17h.01" stroke-linecap="round"></path></svg></div><div class="min-w-0"><div class="font-label-lg text-label-lg text-on-surface font-semibold truncate leading-tight">Apple iPad Air (4th Gen)</div><div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5"><span>64GB Wi-Fi Sky Blue</span><span class="w-1 h-1 rounded-full bg-outline-variant"></span><span>Checked OK</span></div></div></div></td><td class="py-2.5 px-4 w-[26%]"><div class="font-label-lg text-label-lg text-on-surface font-medium whitespace-nowrap">Pasig Green Hub</div><div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Completed Locker 01</div></td><td class="py-2.5 px-4 w-[18%]"><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-label-sm text-label-sm uppercase tracking-wide font-semibold" style="background-color: #f1f5f9; color: #475569;"><span class="w-1.5 h-1.5 rounded-full" style="background-color: #94a3b8;"></span>Claimed</span></td><td class="py-2.5 px-4 w-[18%] font-label-lg text-label-lg text-on-surface font-medium">Oct 25, 2024</td></tr><tr class="listing-item group transition-colors hover:bg-surface-container-low/50 border-b border-outline-variant/30 bg-surface-container-lowest" data-status="Reserved" data-title="Logitech MX Master 3S Ergonomic Wireless Mouse"><td class="py-2.5 px-4 w-[38%]"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background-color: #fef3c7; color: #b45309;"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect height="16" rx="5" width="10" x="7" y="4"></rect><path d="M12 7v4" stroke-linecap="round"></path></svg></div><div class="min-w-0"><div class="font-label-lg text-label-lg text-on-surface font-semibold truncate leading-tight">Logitech MX Master 3S</div><div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5"><span>Ergonomic Wireless Mouse</span><span class="w-1 h-1 rounded-full bg-outline-variant"></span><span>Quiet Clicks</span></div></div></div></td><td class="py-2.5 px-4 w-[26%]"><div class="font-label-lg text-label-lg text-on-surface font-medium whitespace-nowrap">Kapitolyo Eco-Drop</div><div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Smart Locker 08</div></td><td class="py-2.5 px-4 w-[18%]"><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-label-sm text-label-sm uppercase tracking-wide font-semibold" style="background-color: #fef3c7; color: #b45309;"><span class="w-1.5 h-1.5 rounded-full" style="background-color: #d97706;"></span>Reserved</span></td><td class="py-2.5 px-4 w-[18%]"><div class="font-label-lg text-label-lg font-semibold flex items-center gap-1.5" style="color: #b45309;"><svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3" stroke-linecap="round"></path></svg>Oct 29, 2024</div></td></tr><tr class="listing-item group transition-colors hover:bg-surface-container-low/50 border-b border-outline-variant/30 bg-surface-container-lowest" data-status="Available" data-title="Cisco Catalyst 2960-X 24-Port Gigabit Switch"><td class="py-2.5 px-4 w-[38%]"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background-color: #ecfdf5; color: #15803d;"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect height="6" rx="1" width="20" x="2" y="5"></rect><rect height="6" rx="1" width="20" x="2" y="13"></rect><circle cx="6" cy="8" fill="currentColor" r="1"></circle><circle cx="6" cy="16" fill="currentColor" r="1"></circle></svg></div><div class="min-w-0"><div class="font-label-lg text-label-lg text-on-surface font-semibold truncate leading-tight">Cisco Catalyst 2960-X</div><div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5"><span>24-Port Gigabit Switch</span><span class="w-1 h-1 rounded-full bg-outline-variant"></span><span>Rack-mount</span></div></div></div></td><td class="py-2.5 px-4 w-[26%]"><div class="font-label-lg text-label-lg text-on-surface font-medium whitespace-nowrap">Central E-Depot</div><div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Depot Bay 1</div></td><td class="py-2.5 px-4 w-[18%]"><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-label-sm text-label-sm uppercase tracking-wide font-semibold" style="background-color: #dcfce7; color: #15803d;"><span class="w-1.5 h-1.5 rounded-full" style="background-color: #16a34a;"></span>Available</span></td><td class="py-2.5 px-4 w-[18%] font-body-md text-body-md text-on-surface-variant">—</td></tr></tbody></table></div><div class="border-t border-outline-variant/30 px-4 bg-surface-container-low/50 flex justify-between items-center text-on-surface-variant py-2"><span class="font-body-sm text-body-sm">Showing 1-6 of 48 items</span><div class="flex items-center gap-2"><button class="w-8 h-8 rounded-lg bg-surface-container-lowest border border-outline-variant/60 hover:bg-surface-container flex items-center justify-center text-on-surface transition-colors disabled:opacity-30 shadow-sm" disabled=""><span class="material-symbols-outlined text-[16px]">chevron_left</span></button><span class="font-label-md text-label-md px-2 font-bold text-on-surface">Page 1</span><button class="w-8 h-8 rounded-lg bg-surface-container-lowest border border-outline-variant/60 hover:bg-surface-container flex items-center justify-center text-on-surface transition-colors shadow-sm"><span class="material-symbols-outlined text-[16px]">chevron_right</span></button></div></div></div>
+<!-- Pagination / Registry Status -->
+
+</div>
+<!-- RIGHT PANEL: Listing Summary (xl:col-span-4) -->
+<div class="xl:col-span-4 flex flex-col bg-surface-container-lowest rounded-xl shadow-sm p-space-md md:p-space-lg">
+<!-- Panel Header -->
+<div class="flex items-center justify-between pb-space-md mb-space-md">
+<div>
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface" style="font-weight: 700;">Listing summary</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Circulation inventory &amp; turnover metrics</p>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">query_stats</span>
+</div>
+</div>
+<!-- 2x2 Metric Count Cards -->
+<div class="grid grid-cols-2 gap-space-md mb-space-lg"><div class="bg-surface-container-low rounded-xl p-space-md hover:bg-surface-container/70 transition-all flex flex-col justify-between"><div class="flex items-center justify-between mb-2"><span class="font-label-md text-label-md text-on-surface-variant uppercase font-semibold">Available</span><div class="w-2 h-2 rounded-full" style="background-color: #16a34a;"></div></div><div class="font-headline-xl text-headline-xl font-bold tracking-tight" style="color: #0f172a; font-weight: 800;">28</div><div class="flex items-center gap-1 mt-2 font-label-sm text-label-sm" style="color: #15803d;"><span class="material-symbols-outlined text-[14px]">arrow_upward</span><span>+3 today</span></div></div><div class="bg-surface-container-low rounded-xl p-space-md hover:bg-surface-container/70 transition-all flex flex-col justify-between"><div class="flex items-center justify-between mb-2"><span class="font-label-md text-label-md text-on-surface-variant uppercase font-semibold">Reserved</span><div class="w-2 h-2 rounded-full" style="background-color: #d97706;"></div></div><div class="font-headline-xl text-headline-xl font-bold tracking-tight" style="color: #0f172a; font-weight: 800;">12</div><div class="flex items-center gap-1 mt-2 text-on-surface-variant font-label-sm text-label-sm"><span class="material-symbols-outlined text-[14px]" style="color: #d97706;">hourglass_top</span><span>Pickup window &lt; 24h</span></div></div><div class="bg-surface-container-low rounded-xl p-space-md hover:bg-surface-container/70 transition-all flex flex-col justify-between"><div class="flex items-center justify-between mb-2"><span class="font-label-md text-label-md text-on-surface-variant uppercase font-semibold">Claimed</span><div class="w-2 h-2 rounded-full" style="background-color: #64748b;"></div></div><div class="font-headline-xl text-headline-xl font-bold tracking-tight" style="color: #0f172a; font-weight: 800;">64</div><div class="flex items-center gap-1 mt-2 text-on-surface-variant font-label-sm text-label-sm"><span class="material-symbols-outlined text-[14px]" style="color: #16a34a;">verified</span><span>98.4% success</span></div></div><div class="bg-surface-container-low rounded-xl p-space-md hover:bg-surface-container/70 transition-all flex flex-col justify-between"><div class="flex items-center justify-between mb-2"><span class="font-label-md text-label-md text-on-surface-variant uppercase font-semibold">Expired</span><div class="w-2 h-2 rounded-full bg-error"></div></div><div class="font-headline-xl text-headline-xl text-error font-bold tracking-tight" style="font-weight: 800;">4</div><div class="flex items-center gap-1 mt-2 text-on-surface-variant font-label-sm text-label-sm"><span class="material-symbols-outlined text-[14px] text-error">restart_alt</span><span>Restocked to pool</span></div></div></div>
+<!-- Live Flow Visualizer (Inline SVG Chart) -->
+<div class="bg-surface-container-low rounded-xl p-space-md mb-space-lg flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase font-bold text-on-surface-variant">Locker Occupancy &amp; Circulation</span>
+<span class="font-label-sm text-label-sm font-semibold text-secondary" style="color: rgb(22, 163, 74);">86% Efficiency</span>
+</div>
+<!-- Compact SVG Sparkline Bar Visualization -->
+<svg class="w-full h-12" fill="none" preserveAspectRatio="none" viewBox="0 0 280 40"><rect fill="#e2e8f0" height="6" rx="3" width="280" x="0" y="24"></rect><rect fill="#16a34a" height="6" rx="3" width="115" x="0" y="24"></rect><rect fill="#f59e0b" height="6" rx="3" width="55" x="119" y="24"></rect><rect fill="#64748b" height="6" rx="3" width="98" x="178" y="24"></rect><circle cx="20" cy="12" fill="#16a34a" r="3"></circle><circle cx="80" cy="8" fill="#16a34a" r="3"></circle><circle cx="140" cy="14" fill="#f59e0b" r="3"></circle><circle cx="210" cy="6" fill="#64748b" r="3"></circle><circle cx="265" cy="10" fill="#64748b" r="3"></circle><path d="M 20 12 Q 50 4 80 8 T 140 14 T 210 6 T 265 10" fill="none" stroke="#94a3b8" stroke-dasharray="2 2" stroke-width="1.5"></path></svg>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm pt-1"><div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background-color: #16a34a;"></span> Avail (412)</div><div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background-color: #f59e0b;"></span> Res (189)</div><div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background-color: #64748b;"></span> Claimed</div></div>
+</div>
+<!-- Wireframe Bottom Status Callout: 'Automatic: no admin action needed here' -->
+<div class="mt-auto bg-surface-container-low rounded-xl p-space-md flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center shrink-0 text-primary" style="background-color: rgb(236, 253, 245); color: rgb(22, 163, 74);">
+<span class="material-symbols-outlined text-[18px]" style="color: rgb(22, 163, 74);">bolt</span>
+</div>
+<div>
+<div class="font-label-lg text-label-lg font-semibold text-on-surface">Automatic: no admin action needed here</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-tight mt-0.5">Hardware lockers self-unlock upon NFC verification. All item states and reservations mutate programmatically.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Interactive JavaScript logic for filtering & search -->
+<script>
+    let activeCategory = 'all';
+
+    function filterCategory(category) {
+      activeCategory = category;
+      
+      // Update Tab Styles
+      const tabs = {
+        'all': document.getElementById('tab-all'),
+        'Available': document.getElementById('tab-available'),
+        'Reserved': document.getElementById('tab-reserved'),
+        'Claimed': document.getElementById('tab-claimed')
+      };
+
+      Object.keys(tabs).forEach(k => {
+        const tab = tabs[k];
+        if (k === category) {
+          tab.className = 'category-tab px-3 py-1 rounded font-label-md text-label-md font-semibold transition-all bg-primary-container text-on-primary shadow-sm';
+        } else {
+          tab.className = 'category-tab px-3 py-1 rounded font-label-md text-label-md font-semibold transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container';
+        }
+      });
+
+      applyFilters();
+    }
+
+    function searchListings() {
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const query = (document.getElementById('searchInput').value || '').toLowerCase();
+      const rows = document.querySelectorAll('.listing-item');
+
+      rows.forEach(row => {
+        const rowStatus = row.getAttribute('data-status');
+        const rowTitle = (row.getAttribute('data-title') || '').toLowerCase();
+
+        const matchesCategory = (activeCategory === 'all' || rowStatus === activeCategory);
+        const matchesQuery = rowTitle.includes(query);
+
+        if (matchesCategory && matchesQuery) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</div></main></div>
+
+
+
+
+
+
+
+
+
+</body></html>

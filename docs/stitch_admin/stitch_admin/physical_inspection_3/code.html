@@ -1,0 +1,440 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_dashboard" name="shell-type"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "on-secondary-fixed": "#00201d",
+          "error": "#ba1a1a",
+          "on-primary-container": "#8bd6b7",
+          "primary-container": "#065f46",
+          "on-tertiary-fixed": "#2f1500",
+          "background": "#f8f9ff",
+          "on-background": "#0b1c30",
+          "on-surface": "#0b1c30",
+          "surface-tint": "#1b6b51",
+          "tertiary-container": "#804300",
+          "secondary": "#006a61",
+          "surface-bright": "#f8f9ff",
+          "primary": "#004532",
+          "surface-variant": "#d3e4fe",
+          "surface-dim": "#cbdbf5",
+          "surface-container": "#e5eeff",
+          "secondary-container": "#86f2e4",
+          "on-primary-fixed-variant": "#00513b",
+          "tertiary-fixed": "#ffdcc3",
+          "on-error": "#ffffff",
+          "on-secondary-container": "#006f66",
+          "on-secondary": "#ffffff",
+          "surface-container-highest": "#d3e4fe",
+          "surface-container-high": "#dce9ff",
+          "inverse-primary": "#8bd6b6",
+          "secondary-fixed-dim": "#6bd8cb",
+          "on-primary": "#ffffff",
+          "tertiary-fixed-dim": "#ffb77d",
+          "tertiary": "#5e3000",
+          "primary-fixed": "#a6f2d1",
+          "surface-container-lowest": "#ffffff",
+          "primary-fixed-dim": "#8bd6b6",
+          "on-surface-variant": "#3f4944",
+          "on-tertiary-container": "#ffb87e",
+          "surface": "#f8f9ff",
+          "inverse-on-surface": "#eaf1ff",
+          "on-tertiary-fixed-variant": "#6e3900",
+          "outline": "#6f7973",
+          "error-container": "#ffdad6",
+          "surface-container-low": "#eff4ff",
+          "on-error-container": "#93000a",
+          "on-primary-fixed": "#002116",
+          "inverse-surface": "#213145",
+          "on-tertiary": "#ffffff",
+          "secondary-fixed": "#89f5e7",
+          "outline-variant": "#bec9c2",
+          "on-secondary-fixed-variant": "#005049"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "gutter": "1rem",
+          "gutter-desktop": "1.5rem",
+          "margin": "1rem",
+          "margin-desktop": "2rem",
+          "space-xl": "2rem",
+          "space-xs": "0.25rem",
+          "space-md": "0.75rem",
+          "space-sm": "0.5rem",
+          "space-lg": "1.25rem"
+        },
+        "fontFamily": {
+          "headline-xl": [
+            "Inter"
+          ],
+          "label-md": [
+            "Inter"
+          ],
+          "body-md": [
+            "Inter"
+          ],
+          "label-lg": [
+            "Inter"
+          ],
+          "headline-md": [
+            "Inter"
+          ],
+          "body-lg": [
+            "Inter"
+          ],
+          "body-sm": [
+            "Inter"
+          ],
+          "headline-xl-mobile": [
+            "Inter"
+          ],
+          "label-sm": [
+            "Inter"
+          ],
+          "headline-lg-mobile": [
+            "Inter"
+          ],
+          "headline-lg": [
+            "Inter"
+          ]
+        },
+        "fontSize": {
+          "headline-xl": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "700"
+            }
+          ],
+          "label-md": [
+            "11px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.03em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-md": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-lg": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "letterSpacing": "0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-md": [
+            "18px",
+            {
+              "lineHeight": "24px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-lg": [
+            "15px",
+            {
+              "lineHeight": "22px",
+              "fontWeight": "400"
+            }
+          ],
+          "body-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "400"
+            }
+          ],
+          "headline-xl-mobile": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.015em",
+              "fontWeight": "700"
+            }
+          ],
+          "label-sm": [
+            "10px",
+            {
+              "lineHeight": "12px",
+              "letterSpacing": "0.05em",
+              "fontWeight": "700"
+            }
+          ],
+          "headline-lg-mobile": [
+            "20px",
+            {
+              "lineHeight": "28px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-lg": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.015em",
+              "fontWeight": "600"
+            }
+          ]
+        }
+      },
+    },
+  }</script><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&amp;display=swap" rel="stylesheet"><style>* { font-family: 'Rethink Sans', sans-serif !important; }</style></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest border-r border-outline-variant/30 z-50 flex flex-col justify-between py-6 px-4 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col gap-6"><div class="px-3 flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm shrink-0" style="background-color: rgb(22, 163, 74);"><svg class="w-5 h-5 text-on-primary" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M7 19H4.815a1.83 1.83 0 0 1-1.57-.881 1.785 1.785 0 0 1-.004-1.784L7.196 9.5"></path><path d="M11 19h8.2a1.8 1.8 0 0 0 1.558-.9 1.79 1.79 0 0 0 .006-1.789l-2.02-3.411"></path><path d="m14 4.8 2.05 3.5"></path><path d="M13.2 4.4a1.8 1.8 0 0 0-3.088-.008L8.2 7.7"></path><polyline points="7 14 4 19 1 14"></polyline><polyline points="15 14 19 19 22 14"></polyline><polyline points="16 5 13.5 2 11 5"></polyline></svg></div><span class="font-headline-md text-headline-md font-bold tracking-tight text-on-surface">EcoByte Admin</span></div><nav class="flex flex-col gap-1.5" data-active-classes="bg-primary text-on-primary font-semibold shadow-sm"><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="dashboard" href="#"><svg class="w-5 h-5 text-on-surface-variant shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><rect height="7" rx="1" width="7" x="3" y="3"></rect><rect height="7" rx="1" width="7" x="14" y="3"></rect><rect height="7" rx="1" width="7" x="14" y="14"></rect><rect height="7" rx="1" width="7" x="3" y="14"></rect></svg><span>Dashboard</span></a><a aria-current="page" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors bg-primary text-on-primary font-semibold shadow-sm" data-path="to-inspect" href="#" style="background-color: rgb(22, 163, 74); color: rgb(255, 255, 255);"><svg class="w-5 h-5 text-on-primary shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect height="4" rx="1" width="8" x="8" y="2"></rect><polyline points="9 13 11 15 15 10"></polyline></svg><span class="text-on-primary font-semibold">To inspect</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="reuse-hub" href="#"><svg class="w-5 h-5 text-on-surface-variant shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg><span>Reuse Hub</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="disposal" href="#"><svg class="w-5 h-5 text-on-surface-variant shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg><span>Disposal</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="access" href="#"><svg class="w-5 h-5 text-on-surface-variant shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg><span>Access</span></a></nav></div><div class="pt-4 border-t border-outline-variant/30 px-1"><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="login" href="#"><svg class="w-[18px] h-[18px] text-on-surface-variant shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" x2="9" y1="12" y2="12"></line></svg><span>Log out</span></a></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 z-40 flex items-center justify-end px-gutter-desktop shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-3"><div class="inline-flex items-center px-3 py-1 rounded-full border border-outline-variant/60 bg-surface-container-lowest font-label-sm text-label-sm text-on-surface uppercase tracking-wider font-semibold shadow-sm">Admin</div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary" style="background-color: rgb(22, 163, 74); color: rgb(255, 255, 255);"><svg class="w-4 h-4 text-on-primary" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></div></div></header><main class="relative w-full pt-16 bg-surface min-h-screen px-gutter-desktop py-gutter-desktop max-w-[1600px] mx-auto"><div class="flex flex-col w-full gap-space-lg">
+<!-- Top Level Metadata Header -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+<div class="flex flex-col">
+<div class="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
+<span>TRIAGE PROTOCOL</span>
+<span>/</span>
+<span class="text-primary font-semibold">LOT #EB-8942-NY</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight" style="font-weight: 800; letter-spacing: -0.025em; color: var(--tw-color-on-surface, #0b1c30);">Physical inspection</h1>
+</div>
+<!-- Live Operator Status Bar -->
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm uppercase font-semibold">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse" style="background-color: rgb(22, 163, 74);"></span>
+<span>• STATION 04-B • ACTIVE SENSOR FEED</span>
+</div>
+<div class="inline-flex items-center px-3 py-1.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm uppercase font-bold tracking-wider" style="background-color: rgb(220, 252, 231); color: rgb(21, 128, 61); font-weight: 700; letter-spacing: 0.05em;">
+        AUDITOR VERIFIED
+      </div>
+</div>
+</div>
+<!-- Main Split Architecture -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- LEFT PANEL: AI result (reference only) -->
+<div class="lg:col-span-7 flex flex-col gap-space-md p-space-lg bg-surface-container-lowest rounded-xl shadow-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<svg class="w-5 h-5 text-primary shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><rect height="12" rx="2" width="16" x="4" y="8"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path><path d="M12 2v6"></path><circle cx="12" cy="2" r="1"></circle></svg>
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold" style="font-weight: 800; letter-spacing: -0.015em;">AI result (reference only)</h2>
+</div>
+<span class="px-2.5 py-1 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm uppercase font-semibold" style="font-weight: 700; letter-spacing: 0.05em; color: var(--tw-color-on-surface, #0b1c30);">
+          CONFIDENCE 96.4%
+        </span>
+</div>
+<!-- Scanned Photos Visual Stage with Computer Vision Annotations -->
+<div class="relative w-full aspect-[4/3] rounded-lg bg-surface-container-low overflow-hidden flex items-center justify-center group shadow-inner">
+<!-- Diagnostic Hardware Photo Placeholder -->
+<img class="w-full h-full object-cover mix-blend-multiply opacity-90 transition-transform duration-500 group-hover:scale-105" data-alt="Top down overhead technical workbench photo of a dismantled laptop chassis showing exposed swollen lithium ion battery cells with precision diagnostic grid markers, studio lighting with green technical highlights, high contrast minimal industrial aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbUEfyE4wj4fO6YI-8_sgQL9l-SOP1zvLCejASNhQzymJymoK5PIjfUP5AcUNSeaORrqgo50mNNP82XTrTxMVHB5_J_6xs60c03nZR9lpDYGbTl2nLFzV_QqVODZjR-3FlcIoWJDFuULRWVPPZMLpRFxXMOWs0OsiKpVsodXxHNwsz0fgBLXQSwlDgYC-W46Fk909RDYtoEBiZ7vEPv0hMfX6162CjMT0WWGe3uaG7">
+<!-- Computer Vision Overlay UI -->
+<div class="absolute inset-0 p-4 pointer-events-none flex flex-col justify-between bg-gradient-to-t from-on-background/70 via-transparent to-transparent">
+<!-- Top Telemetry Tag -->
+<div class="flex items-center justify-between">
+<span class="px-2 py-1 rounded bg-inverse-surface/80 backdrop-blur-sm text-inverse-on-surface font-label-sm text-label-sm tracking-widest font-mono">
+              CAM_02 [SPECTRAL_RGB]
+            </span>
+<span class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-error/90 text-on-error font-label-sm text-label-sm font-semibold tracking-wider uppercase">
+<svg class="w-3.5 h-3.5 text-on-error shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" x2="12" y1="9" y2="13"></line><line x1="12" x2="12.01" y1="17" y2="17"></line></svg>
+              THERMAL DEFECT DETECTED
+            </span>
+</div>
+<!-- Bounding Box Overlay for Battery Swell -->
+<div class="relative self-center w-3/5 h-2/5 my-auto pointer-events-none">
+<div class="absolute inset-0 bg-error/15 rounded-md animate-pulse"></div>
+<!-- Dynamic Corner Reticles using pseudo styling with background colors -->
+<div class="absolute -top-1 -left-1 w-3 h-3 bg-error rounded-xs"></div>
+<div class="absolute -top-1 -right-1 w-3 h-3 bg-error rounded-xs"></div>
+<div class="absolute -bottom-1 -left-1 w-3 h-3 bg-error rounded-xs"></div>
+<div class="absolute -bottom-1 -right-1 w-3 h-3 bg-error rounded-xs"></div>
+<div class="absolute -top-6 left-0 px-2 py-0.5 bg-error text-on-error font-label-sm text-label-sm rounded uppercase font-mono">
+              CELL_BLISTER • +4.2MM DEFLECTION
+            </div>
+</div>
+<!-- Bottom Micro Specs Bar -->
+<div class="flex items-center justify-between text-inverse-on-surface font-label-sm text-label-sm">
+<span class="font-mono">FOV: 68.4° • EXPOSURE: AUTO</span>
+<span class="underline underline-offset-4 decoration-primary cursor-pointer pointer-events-auto">Toggle Thermal Layer</span>
+</div>
+</div>
+</div>
+<!-- Reference Notice Banner -->
+<div class="flex items-start gap-3 p-3 rounded-lg bg-surface-container text-on-surface-variant font-body-sm text-body-sm">
+<svg class="w-[18px] h-[18px] text-primary shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="16" y2="12"></line><line x1="12" x2="12.01" y1="8" y2="8"></line></svg>
+<p class="leading-relaxed">
+<strong class="font-semibold text-on-surface">Reference only — actual inspection decides.</strong> Hardware sensors and automated optical triage identify potential hazards, but final operational routing rests with certified technical personnel.
+        </p>
+</div>
+<!-- 3 Summary Data Boxes matching wireframe -->
+<div class="flex flex-col gap-2.5">
+<!-- Box 1: Device -->
+<div class="flex items-center justify-between p-3.5 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors">
+<span class="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-wider font-semibold">DEVICE:</span>
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">MacBook Pro 15" (Late 2019)</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-mono font-label-sm text-label-sm">A2141</span>
+</div>
+</div>
+<!-- Box 2: Health risk -->
+<div class="flex items-center justify-between p-3.5 rounded-lg bg-error-container text-on-error-container">
+<div class="flex items-center gap-2">
+<svg class="w-5 h-5 text-error shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" x2="12" y1="9" y2="13"></line><line x1="12" x2="12.01" y1="17" y2="17"></line></svg>
+<span class="font-label-lg text-label-lg uppercase tracking-wider font-semibold">HEALTH RISK</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-error text-on-error font-label-sm text-label-sm uppercase font-bold">HIGH</span>
+<span class="font-body-md text-body-md font-medium">Swollen Li-ion pouch detected</span>
+</div>
+</div>
+<!-- Box 3: AI suggestion -->
+<div class="flex items-center justify-between p-3.5 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors">
+<span class="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-wider" style="font-weight: 700; letter-spacing: 0.05em;">AI SUGGESTION</span>
+<div class="flex items-center gap-2 font-body-md text-body-md">
+<span class="text-tertiary-container font-semibold">Further assessment</span>
+<span class="text-on-surface-variant">• Battery decommission mandatory</span>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT PANEL: Physical inspection (Manual Admin Form) -->
+<div class="lg:col-span-5 flex flex-col gap-space-md p-space-lg bg-surface-container-lowest rounded-xl shadow-sm">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2.5">
+<svg class="w-5 h-5 text-primary shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect height="4" rx="1" width="8" x="8" y="2"></rect><path d="m9 14 2 2 4-4"></path></svg>
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold" style="font-weight: 800; letter-spacing: -0.015em;">Physical inspection</h2>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">Check the actual device, then decide</p>
+</div>
+<div class="h-0.5 w-full bg-surface-container-high rounded-full my-1"></div>
+<!-- Interactive Form Controls -->
+<form class="flex flex-col gap-space-lg" id="inspection-form" onsubmit="event.preventDefault();">
+<!-- Field 1: Works? -->
+<div class="flex flex-col gap-2.5">
+<label class="font-label-lg text-label-lg text-on-surface uppercase tracking-wider flex items-center justify-between" style="font-weight: 700; letter-spacing: 0.05em;">
+<span>WORKS?</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-normal">POST diagnostic status</span>
+</label>
+<div aria-label="Works status" class="flex items-center gap-2" role="radiogroup">
+<button class="works-btn flex-1 py-2.5 px-4 rounded-full font-label-lg text-label-lg bg-surface-container-low text-on-surface hover:bg-surface-container transition-all text-center" onclick="setWorks(this, 'Yes')" type="button">
+              Yes
+            </button>
+<button class="works-btn active-state flex-1 py-2.5 px-4 rounded-full font-label-lg text-label-lg bg-on-background text-surface-container-lowest hover:opacity-90 shadow-sm transition-all text-center font-semibold" onclick="setWorks(this, 'No')" type="button" style="background-color: rgb(22, 163, 74); color: rgb(255, 255, 255); font-weight: 600;">
+              No
+            </button>
+<button class="works-btn flex-1 py-2.5 px-4 rounded-full font-label-lg text-label-lg bg-surface-container-low text-on-surface hover:bg-surface-container transition-all text-center" onclick="setWorks(this, 'Not sure')" type="button">
+              Not sure
+            </button>
+</div>
+</div>
+<!-- Field 2: Condition -->
+<div class="flex flex-col gap-2.5">
+<label class="font-label-lg text-label-lg text-on-surface uppercase tracking-wider flex items-center justify-between" style="font-weight: 700; letter-spacing: 0.05em;">
+<span>CONDITION</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-normal">Tactile assessment</span>
+</label>
+<div aria-label="Device physical condition" class="flex flex-wrap items-center gap-2" role="radiogroup">
+<button class="cond-btn py-2 px-4 rounded-full font-label-lg text-label-lg bg-surface-container-low text-on-surface hover:bg-surface-container transition-all" onclick="setCondition(this, 'Good')" type="button">
+              Good
+            </button>
+<button class="cond-btn py-2 px-4 rounded-full font-label-lg text-label-lg bg-surface-container-low text-on-surface hover:bg-surface-container transition-all" onclick="setCondition(this, 'Damaged')" type="button">
+              Damaged
+            </button>
+<button class="cond-btn active-warning py-2 px-4 rounded-full font-label-lg text-label-lg bg-error-container text-on-error-container font-semibold shadow-sm flex items-center gap-1.5 transition-all" onclick="setCondition(this, 'Swollen battery')" type="button" style="background-color: rgb(255, 218, 214); color: rgb(147, 0, 10); border: 1px solid rgb(255, 180, 171);">
+<svg class="w-4 h-4 text-error shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+              Swollen battery
+            </button>
+</div>
+</div>
+<!-- Field 3: Notes (optional) -->
+<div class="flex flex-col gap-2">
+<label class="font-label-lg text-label-lg text-on-surface uppercase tracking-wider" for="inspection-notes" style="font-weight: 700; letter-spacing: 0.05em;">
+            NOTES (OPTIONAL)
+          </label>
+<div class="relative">
+<textarea class="w-full rounded-xl bg-surface-container-low text-on-surface placeholder:text-outline p-3.5 font-body-md text-body-md focus:bg-surface-container-lowest focus:shadow-md transition-all resize-none outline-none" id="inspection-notes" placeholder="Inspection notes (e.g. Multimeter indicates no boot power. Slight lower chassis bulge detected near center cells.)" rows="4">Multimeter indicates no boot power. Slight lower chassis bulge detected near center cells. Primary logic board intact; battery removal protocol mandatory before refurbishment triage.</textarea>
+</div>
+</div>
+<!-- Action CTAs -->
+<div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
+<!-- CTA 1: List in Reuse Hub -->
+<button class="w-full sm:flex-1 py-3 px-4 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-label-lg text-label-lg flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98]" id="reuse-btn" onclick="routeAction('reuse')" style="background-color: rgb(22, 163, 74); color: rgb(255, 255, 255); font-weight: 600; letter-spacing: 0.01em; box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 3px;" type="button">
+<svg class="w-[18px] h-[18px] text-on-primary shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>
+<span>List in Reuse Hub</span>
+</button>
+<!-- CTA 2: Mark for disposal -->
+<button class="w-full sm:flex-1 py-3 px-4 rounded-lg bg-surface-container-highest hover:bg-error-container text-on-surface hover:text-on-error-container font-label-lg text-label-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]" id="disposal-btn" onclick="routeAction('disposal')" style="border: 1.5px solid rgb(190, 201, 194); background-color: rgb(255, 255, 255); color: rgb(63, 73, 68); font-weight: 600; letter-spacing: 0.02em;" type="button">
+<svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg>
+<span>Mark for disposal</span>
+</button>
+</div>
+<!-- Bottom Feedback Toast Placeholder & Footer Hint -->
+<div class="flex flex-col gap-2 pt-1">
+<div class="hidden items-center justify-between p-3 rounded-lg bg-primary text-on-primary font-body-sm text-body-sm" id="action-toast">
+<span class="flex items-center gap-2" id="toast-text">
+<svg class="w-4 h-4 text-on-primary" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+<span>Updated routing manifest.</span>
+</span>
+<span class="font-mono text-label-sm">AUTOLOG_ACK</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant text-center tracking-wide">
+            Everything after this is automatic
+          </p>
+</div>
+</form>
+</div>
+</div>
+<!-- Interactive State Engine -->
+<script>
+    function setWorks(button, value) {
+      document.querySelectorAll('.works-btn').forEach(btn => {
+        btn.classList.remove('bg-on-background', 'text-surface-container-lowest', 'shadow-sm', 'font-semibold');
+        btn.classList.add('bg-surface-container-low', 'text-on-surface');
+      });
+      button.classList.remove('bg-surface-container-low', 'text-on-surface');
+      button.classList.add('bg-on-background', 'text-surface-container-lowest', 'shadow-sm', 'font-semibold');
+    }
+
+    function setCondition(button, value) {
+      document.querySelectorAll('.cond-btn').forEach(btn => {
+        btn.classList.remove('bg-error-container', 'text-on-error-container', 'font-semibold', 'bg-on-background', 'text-surface-container-lowest');
+        btn.classList.add('bg-surface-container-low', 'text-on-surface');
+      });
+
+      if (value === 'Swollen battery') {
+        button.classList.remove('bg-surface-container-low', 'text-on-surface');
+        button.classList.add('bg-error-container', 'text-on-error-container', 'font-semibold', 'shadow-sm');
+      } else {
+        button.classList.remove('bg-surface-container-low', 'text-on-surface');
+        button.classList.add('bg-on-background', 'text-surface-container-lowest', 'shadow-sm');
+      }
+    }
+
+    function routeAction(destination) {
+      const toast = document.getElementById('action-toast');
+      const toastText = document.getElementById('toast-text');
+      
+      toast.classList.remove('hidden');
+      toast.classList.add('flex');
+
+      if (destination === 'reuse') {
+        toast.className = 'flex items-center justify-between p-3 rounded-lg bg-primary text-on-primary font-body-sm text-body-sm transition-all';
+        toastText.innerHTML = '<svg class="w-4 h-4 text-on-primary shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg><span>Dispatched to Reuse Hub: Refurbishment queue opened.</span>';
+      } else {
+        toast.className = 'flex items-center justify-between p-3 rounded-lg bg-error text-on-error font-body-sm text-body-sm transition-all';
+        toastText.innerHTML = '<svg class="w-4 h-4 text-on-error shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg><span>Dispatched to Disposal: E-Waste manifest generated.</span>';
+      }
+
+      setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('flex');
+      }, 4000);
+    }
+  </script>
+</div></main></div>
+
+
+</body></html>

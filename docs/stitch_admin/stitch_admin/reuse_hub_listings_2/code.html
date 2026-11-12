@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-container": "#e5eeff", "on-error": "#ffffff", "surface-container-high": "#dce9ff", "primary-container": "#065f46", "tertiary-fixed": "#ffdcc3", "surface-dim": "#cbdbf5", "on-primary-container": "#8bd6b7", "secondary-container": "#86f2e4", "on-primary-fixed-variant": "#00513b", "tertiary-container": "#804300", "inverse-on-surface": "#eaf1ff", "on-surface-variant": "#3f4944", "on-background": "#0b1c30", "on-primary-fixed": "#002116", "surface": "#f8f9ff", "secondary-fixed-dim": "#6bd8cb", "on-tertiary-container": "#ffb87e", "secondary-fixed": "#89f5e7", "tertiary": "#5e3000", "on-primary": "#ffffff", "outline-variant": "#bec9c2", "error-container": "#ffdad6", "on-surface": "#0b1c30", "on-secondary": "#ffffff", "primary": "#004532", "surface-container-low": "#eff4ff", "outline": "#6f7973", "on-secondary-fixed-variant": "#005049", "surface-bright": "#f8f9ff", "surface-variant": "#d3e4fe", "on-tertiary-fixed-variant": "#6e3900", "tertiary-fixed-dim": "#ffb77d", "on-secondary-container": "#006f66", "inverse-surface": "#213145", "background": "#f8f9ff", "error": "#ba1a1a", "secondary": "#006a61", "on-tertiary": "#ffffff", "on-tertiary-fixed": "#2f1500", "on-secondary-fixed": "#00201d", "on-error-container": "#93000a", "primary-fixed": "#a6f2d1", "surface-container-highest": "#d3e4fe", "inverse-primary": "#8bd6b6", "surface-container-lowest": "#ffffff", "surface-tint": "#1b6b51", "primary-fixed-dim": "#8bd6b6" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "gutter-desktop": "1.5rem", "margin": "1rem", "space-xl": "2rem", "margin-desktop": "2rem", "space-lg": "1.25rem", "gutter": "1rem", "space-xs": "0.25rem", "space-md": "0.75rem", "space-sm": "0.5rem" }, "fontFamily": { "label-sm": ["Inter"], "headline-lg": ["Inter"], "body-sm": ["Inter"], "body-lg": ["Inter"], "headline-xl-mobile": ["Inter"], "headline-xl": ["Inter"], "headline-lg-mobile": ["Inter"], "body-md": ["Inter"], "label-md": ["Inter"], "headline-md": ["Inter"], "label-lg": ["Inter"] }, "fontSize": { "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "700" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }], "headline-xl-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-lg-mobile": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }], "label-md": ["11px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "600" }], "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "label-lg": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "600" }] } } } };</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-low z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="EcoLoop Admin Portal Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuComOooAdp2D83xFnmqmA7NySJLgRN1QNtJmFfu185Il75Gz0f1WPjBCl3XmwT6bdBdrU6UY1BOI9fR-QP-ryVvjwoHdLxTwdUTOdgToXeJ3Kvj1iU9Dcv41uYxk_MZ53-BpBpyxaOku16nH-oRmf_F9oB1zmSeQSnRCFkThVuXpQXKInoGrHQvPsMCy2CgqZF4uDPpFEao_Q5gQ9PCqvqNtxaEm6apvR038XSeV5Im"/><div class="flex flex-col"><span class="font-headline-md text-headline-md font-bold tracking-tight text-primary leading-none">EcoLoop</span><span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Lifecycle OS</span></div></div></div><div class="px-gutter py-space-sm"><div class="flex items-center gap-space-xs px-space-sm py-space-xs rounded bg-surface-container-high text-on-surface-variant"><span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span><span class="font-label-sm text-label-sm uppercase tracking-wide">Hub Node: Online</span></div></div><nav class="flex flex-col gap-space-xs px-space-sm mt-space-sm" data-active-classes="bg-primary-container text-on-primary font-bold"><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[18px]">dashboard</span><span class="font-label-lg text-label-lg">Dashboard</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="awaiting-inspection" href="#"><span class="material-symbols-outlined text-[18px]">pending_actions</span><span class="font-label-lg text-label-lg">Awaiting Inspection</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="physical-inspection" href="#"><span class="material-symbols-outlined text-[18px]">biotech</span><span class="font-label-lg text-label-lg">Physical Inspection</span></a><a aria-current="page" class="flex items-center gap-space-md px-space-md py-space-sm rounded transition-colors bg-primary-container text-on-primary font-bold" data-path="reuse-hub" href="#"><span class="material-symbols-outlined text-[18px]">inventory_2</span><span class="font-label-lg text-label-lg">Reuse Hub</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="disposal-records" href="#"><span class="material-symbols-outlined text-[18px]">delete_forever</span><span class="font-label-lg text-label-lg">Disposal Records</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="users-and-access" href="#"><span class="material-symbols-outlined text-[18px]">admin_panel_settings</span><span class="font-label-lg text-label-lg">Users & Access</span></a></nav></div><div class="p-gutter flex flex-col gap-space-sm bg-surface-container-high"><div class="flex items-center justify-between text-on-surface-variant"><span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Audit Compliance</span><span class="font-label-sm text-label-sm font-bold text-primary">ISO 14001</span></div><div class="w-full bg-surface-container-lowest h-1.5 rounded overflow-hidden"><div class="bg-primary h-full w-[94%]"></div></div><div class="flex justify-between items-center font-label-sm text-label-sm text-outline"><span>Chain-of-Custody</span><span class="font-bold text-on-surface">94.2%</span></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-gutter-desktop"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs text-on-surface-variant"><span class="material-symbols-outlined text-[18px] text-outline">hub</span><span class="font-label-md text-label-md uppercase tracking-wider text-outline">Central Sorting</span><span class="material-symbols-outlined text-[14px] text-outline-variant">chevron_right</span><span class="font-label-md text-label-md text-on-surface">Regional Intake</span></div><div class="hidden md:flex items-center bg-surface-container-lowest px-space-md py-1.5 rounded shadow-[0_1px_4px_rgba(0,0,0,0.02)] gap-space-sm ml-space-md"><span class="material-symbols-outlined text-outline text-[16px]">search</span><input class="bg-transparent font-body-sm text-body-sm text-on-surface placeholder:text-outline outline-none w-52" placeholder="Search lot ID, serial or SKU..." type="text"/><kbd class="font-label-sm text-label-sm bg-surface-container text-on-surface-variant px-1.5 py-0.5 rounded">Ctrl+K</kbd></div></div><div class="flex items-center gap-gutter"><div class="flex items-center gap-space-sm"><button aria-label="Notifications" class="relative p-space-xs rounded text-on-surface-variant hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-error"></span></button><button aria-label="System Logs" class="p-space-xs rounded text-on-surface-variant hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[20px]">sync_alt</span></button></div><div class="flex items-center gap-space-md pl-space-md"><div class="flex flex-col text-right hidden sm:flex"><span class="font-label-lg text-label-lg text-on-surface">Elena Vance</span><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-primary-container text-on-primary uppercase tracking-wider self-end mt-0.5">Super Admin</span></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACbbrVZZOiQDxKgZVAIUd3Sp8bGQVMPrfvRqL-LxBdOS7nodjK9znCMcRpmNV_mOhP_n1dKZJrhAtkQGXmlfd1Gc3uvGEzsZ-wwHURNJybQZVohgmPsKXTXW_T-21OSn-4XTwuz__x3DrQYyaH5WBrzzN18FoxA4l-HInNKYgFG-h15qnQdoTsTMuOo0Rvtaq_TnMsp8WLhI8rw2mhSYMDpNQH6XI7NLoGKLdOrYqu"/></div></div></header><main class="relative pt-16 bg-surface min-h-screen w-full px-gutter-desktop"><div class="flex flex-col w-full pb-margin-desktop">
+<!-- Top Operational Banner & Automated Routing Notice -->
+<div class="mb-gutter-desktop mt-space-md">
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low p-space-lg shadow-sm">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex items-start gap-space-md max-w-3xl">
+<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface-container text-primary">
+<span class="material-symbols-outlined text-[22px]">swap_horiz</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Autonomous Dispatch System</span>
+<span class="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-ping"></span>
+</div>
+<p class="font-body-md text-body-md text-on-surface mt-0.5 leading-snug">
+              Community members reserve and claim items directly through the resident portal. All records and inventory balances transition automatically.
+            </p>
+</div>
+</div>
+<div class="flex items-center gap-space-sm shrink-0 self-start md:self-auto">
+<div class="flex items-center gap-space-xs px-space-md py-1.5 rounded-lg bg-surface-container-lowest text-on-surface-variant shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-primary">sync</span>
+<span class="font-label-sm text-label-sm tracking-wide">Sync: Realtime Event Stream</span>
+</div>
+<button class="flex items-center gap-space-xs px-space-md py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" id="exportCsvBtn">
+<span class="material-symbols-outlined text-[16px]">download</span>
+<span class="font-label-md text-label-md">Export Audit Log</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Realtime Metric Status Counters -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-gutter mb-gutter-desktop">
+<!-- Total Listed -->
+<div class="relative rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between overflow-hidden group">
+<div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-surface-container-low opacity-60 pointer-events-none group-hover:scale-110 transition-transform duration-300"></div>
+<div class="flex items-center justify-between relative z-10">
+<span class="font-label-md text-label-md uppercase tracking-wider text-outline">Total Listed</span>
+<span class="material-symbols-outlined text-[20px] text-outline">inventory_2</span>
+</div>
+<div class="mt-space-md relative z-10">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight">9,420</span>
+<span class="font-label-sm text-label-sm text-primary">+12 today</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Cumulative verified assets</p>
+</div>
+</div>
+<!-- Available -->
+<div class="relative rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between overflow-hidden group">
+<div class="absolute top-0 left-0 right-0 h-1 bg-primary"></div>
+<div class="flex items-center justify-between relative z-10">
+<span class="font-label-md text-label-md uppercase tracking-wider text-primary font-bold">Available Now</span>
+<span class="material-symbols-outlined text-[20px] text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="mt-space-md relative z-10">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-headline-xl text-headline-xl text-primary font-bold tracking-tight">412</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">4.4% of total</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Ready for instant resident pickup</p>
+</div>
+</div>
+<!-- Reserved -->
+<div class="relative rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between overflow-hidden group">
+<div class="absolute top-0 left-0 right-0 h-1 bg-tertiary-container"></div>
+<div class="flex items-center justify-between relative z-10">
+<span class="font-label-md text-label-md uppercase tracking-wider text-tertiary font-bold">Reserved</span>
+<span class="material-symbols-outlined text-[20px] text-tertiary-container">schedule</span>
+</div>
+<div class="mt-space-md relative z-10">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-headline-xl text-headline-xl text-tertiary font-bold tracking-tight">189</span>
+<span class="font-label-sm text-label-sm text-tertiary font-semibold">24h hold window</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Awaiting depot hand-off</p>
+</div>
+</div>
+<!-- Claimed -->
+<div class="relative rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between overflow-hidden group">
+<div class="absolute top-0 left-0 right-0 h-1 bg-outline"></div>
+<div class="flex items-center justify-between relative z-10">
+<span class="font-label-md text-label-md uppercase tracking-wider text-outline font-bold">Claimed</span>
+<span class="material-symbols-outlined text-[20px] text-outline">verified</span>
+</div>
+<div class="mt-space-md relative z-10">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight">8,819</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">93.6% reuse rate</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Circulated to verified residents</p>
+</div>
+</div>
+</div>
+<!-- Filtration & Navigation Bar -->
+<div class="flex flex-col gap-space-md bg-surface-container-lowest rounded-xl p-space-md shadow-sm mb-gutter">
+<div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md">
+<!-- Search Input -->
+<div class="relative flex-1 min-w-[280px]">
+<span class="material-symbols-outlined text-outline absolute left-3 top-2.5 text-[18px]">search</span>
+<input class="w-full bg-surface-container-low rounded-lg pl-10 pr-space-md py-2 font-body-sm text-body-sm text-on-surface placeholder:text-outline outline-none focus:bg-surface-container transition-colors" id="itemSearchInput" placeholder="Filter by listing ID (e.g. #RH-10492), manufacturer, or device model..." type="text"/>
+<button class="hidden absolute right-3 top-2.5 text-outline hover:text-on-surface" id="clearSearchBtn">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+<!-- Quick Action Toggles -->
+<div class="flex items-center gap-space-xs overflow-x-auto pb-1 lg:pb-0">
+<!-- Status Filter Pills -->
+<div class="flex items-center bg-surface-container-low p-1 rounded-lg shrink-0">
+<button class="status-tab-btn px-space-md py-1 rounded font-label-md text-label-md bg-primary-container text-on-primary font-bold shadow-sm transition-all" data-status-filter="all">All</button>
+<button class="status-tab-btn px-space-md py-1 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all" data-status-filter="available">Available (412)</button>
+<button class="status-tab-btn px-space-md py-1 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all" data-status-filter="reserved">Reserved (189)</button>
+<button class="status-tab-btn px-space-md py-1 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all" data-status-filter="claimed">Claimed (8,819)</button>
+</div>
+</div>
+</div>
+<!-- Secondary Category Pills -->
+<div class="flex items-center justify-between pt-space-xs border-t-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline mr-space-xs">Category:</span>
+<button class="cat-pill active-cat px-space-sm py-1 rounded-full text-label-sm font-label-sm bg-primary text-on-primary" data-category-filter="all">All Hardware</button>
+<button class="cat-pill px-space-sm py-1 rounded-full text-label-sm font-label-sm bg-surface-container-low text-on-surface-variant hover:bg-surface-container" data-category-filter="laptops">Laptops</button>
+<button class="cat-pill px-space-sm py-1 rounded-full text-label-sm font-label-sm bg-surface-container-low text-on-surface-variant hover:bg-surface-container" data-category-filter="tablets">Tablets</button>
+<button class="cat-pill px-space-sm py-1 rounded-full text-label-sm font-label-sm bg-surface-container-low text-on-surface-variant hover:bg-surface-container" data-category-filter="monitors">Monitors</button>
+<button class="cat-pill px-space-sm py-1 rounded-full text-label-sm font-label-sm bg-surface-container-low text-on-surface-variant hover:bg-surface-container" data-category-filter="audio">Audio</button>
+<button class="cat-pill px-space-sm py-1 rounded-full text-label-sm font-label-sm bg-surface-container-low text-on-surface-variant hover:bg-surface-container" data-category-filter="accessories">Accessories</button>
+</div>
+<div class="hidden sm:flex items-center gap-space-sm text-outline font-label-sm text-label-sm">
+<span>Showing <strong class="text-on-surface" id="visibleRowCount">8</strong> matching records</span>
+</div>
+</div>
+</div>
+<!-- Listings Table -->
+<div class="w-full bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col">
+<div class="overflow-x-auto w-full">
+<table class="w-full text-left min-w-[980px]">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant">
+<th class="py-space-md px-space-lg font-label-md text-label-md uppercase tracking-wider">Listing ID</th>
+<th class="py-space-md px-space-lg font-label-md text-label-md uppercase tracking-wider">Item & Specifications</th>
+<th class="py-space-md px-space-lg font-label-md text-label-md uppercase tracking-wider">Drop-off Date</th>
+<th class="py-space-md px-space-lg font-label-md text-label-md uppercase tracking-wider">Current Status</th>
+<th class="py-space-md px-space-lg font-label-md text-label-md uppercase tracking-wider">Pick-up / Scheduled</th>
+<th class="py-space-md px-space-lg font-label-md text-label-md uppercase tracking-wider text-right">Certificate</th>
+</tr>
+</thead>
+<tbody class="divide-y-0" id="listingsTableBody">
+<!-- Row 1: Available -->
+<tr class="listing-row hover:bg-surface-container-low/60 transition-colors" data-category="laptops" data-search="#rh-10492 dell latitude 5420 i5 16gb laptop" data-status="available">
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-label-md text-label-md font-mono font-bold text-on-surface">#RH-10492</span>
+<div class="font-label-sm text-label-sm text-outline">Tier 1 Circular</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<div class="flex items-center gap-space-md">
+<img class="w-12 h-12 rounded-lg object-cover bg-surface-container shrink-0 shadow-sm" data-alt="Refurbished metallic grey Dell business laptop cleanly resting on a sterile lab intake table, studio technical lighting, high resolution product shot." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD76EETGoRng6XMnbBtaoQJXHzurCTvUniO0awc3tl4oV0OALbd9yNULl55ZWkuyX_wKgiw_v9fYjSPBddZFxOnF7P1w3bxi5mvYjY2Pl13_52yeMuYwAvOy4QduFrQDnrzMptqovCsPzn_tO36SAIDHu6m0m09xTyT8OkL6R4RYDtqwsbf5TcFiVnlb2IKI_3G1PympUwZPZ0UEGPtVlHWQpbaCIipulzWoL2Rylq7"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Dell Latitude 5420</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Intel Core i5-1135G7 · 16GB RAM · 512GB NVMe SSD · 14" FHD</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-body-md text-body-md text-on-surface">Oct 18, 2024</span>
+<div class="font-label-sm text-label-sm text-outline">Depot Bay C-04</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-primary-fixed/30 text-primary font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                Available
+              </span>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-body-sm text-body-sm text-on-surface-variant italic">Unclaimed — Ready for Reservation</span>
+</td>
+<td class="py-space-md px-space-lg align-middle text-right">
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-primary font-label-sm text-label-sm transition-colors" onclick="viewCertificate('RH-10492', 'Dell Latitude 5420', 'Grade A - Refurbished', 'Oct 19, 2024')">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+<span>Cert #8821</span>
+</button>
+</td>
+</tr>
+<!-- Row 2: Reserved -->
+<tr class="listing-row hover:bg-surface-container-low/60 transition-colors" data-category="tablets" data-search="#rh-10488 apple ipad air 4th gen 64gb wifi tablet marcus chen" data-status="reserved">
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-label-md text-label-md font-mono font-bold text-on-surface">#RH-10488</span>
+<div class="font-label-sm text-label-sm text-outline">Tier 1 Circular</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<div class="flex items-center gap-space-md">
+<img class="w-12 h-12 rounded-lg object-cover bg-surface-container shrink-0 shadow-sm" data-alt="Refurbished space gray tablet computer with stylus on a minimalist wooden clean surface, high fidelity display, professional inspection desk." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoKJdg_m864oLRQ-qSf5-GzHWYKN3Gva7bKxzFM62-EYUhffWwC6v_-ICF-z-w1UKQ8n1r7WkStGk3X3qa8BslaVbKCto2hc8e0Kaqe_QzAHUq9PA-oEFcldIMgGZJOPNGxK_rnCzk1ZyCZOv-qaKnCl9CQLiKyiUrMIzBQKqnfpbATgylwACCRqj5TFpGK_QR-fcfmX93FERzUTibl3GeKfupP14WRDm6nr6VoBKi"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Apple iPad Air (4th Gen)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">A14 Bionic · 64GB Wi-Fi · Space Gray · Battery Health 92%</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-body-md text-body-md text-on-surface">Oct 16, 2024</span>
+<div class="font-label-sm text-label-sm text-outline">Locker 12</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<div class="flex flex-col items-start gap-0.5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-tertiary-fixed text-tertiary font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-pulse"></span>
+                  Reserved
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant pl-1">Marcus Chen (ID: #R-8820)</span>
+</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-tertiary">Pickup: Today @ 16:30</span>
+<span class="font-label-sm text-label-sm text-outline">Hold expires in 5h 14m</span>
+</div>
+</td>
+<td class="py-space-md px-space-lg align-middle text-right">
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-primary font-label-sm text-label-sm transition-colors" onclick="viewCertificate('RH-10488', 'Apple iPad Air (4th Gen)', 'Grade A+ Pristine', 'Oct 17, 2024')">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+<span>Cert #8809</span>
+</button>
+</td>
+</tr>
+<!-- Row 3: Claimed -->
+<tr class="listing-row hover:bg-surface-container-low/60 transition-colors" data-category="monitors" data-search="#rh-10481 lg 27uk850-w 4k uhd monitor display claimed" data-status="claimed">
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-label-md text-label-md font-mono font-bold text-on-surface">#RH-10481</span>
+<div class="font-label-sm text-label-sm text-outline">Tier 2 Circular</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<div class="flex items-center gap-space-md">
+<img class="w-12 h-12 rounded-lg object-cover bg-surface-container shrink-0 shadow-sm" data-alt="Refurbished 27 inch ultra high definition borderless computer monitor on a sleek white ergonomic stand, clean technical lab background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADLY4z6_BrnB6etUoKriyDKwXCRzvgp9OKvBVdY8oVMMOFS18eY_qZWiVNlTVs5jDUxe8R8sa9p2m4M41xFtPTvCdHicImKWk6osw7w4tVmes1vk05Bs7sy7VbS8Peh8GOdp6C2PlFFV201F_Z5qqSfweX1ctCwFC906l4__t0pMMow6Y_aEQE_2hFjBoMkM0Wi5ehEU_pLlhnyIFE2E7WC7beNnDvKLcIIFUwmdfK"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">LG 27UK850-W 4K UHD</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">27-inch IPS · USB-C 60W PD · HDR10 · Stand & Cable Set Included</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-body-md text-body-md text-on-surface">Oct 12, 2024</span>
+<div class="font-label-sm text-label-sm text-outline">Depot Bay A-02</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-surface-container text-on-surface-variant font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                Claimed
+              </span>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface">Claimed on Oct 22</span>
+<span class="font-label-sm text-label-sm text-outline">Dispatched to Sarah Jenkins</span>
+</div>
+</td>
+<td class="py-space-md px-space-lg align-middle text-right">
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-primary font-label-sm text-label-sm transition-colors" onclick="viewCertificate('RH-10481', 'LG 27UK850-W 4K', 'Grade B+ Operational', 'Oct 14, 2024')">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+<span>Cert #8794</span>
+</button>
+</td>
+</tr>
+<!-- Row 4: Available -->
+<tr class="listing-row hover:bg-surface-container-low/60 transition-colors" data-category="audio" data-search="#rh-10476 sony wh-1000xm4 noise cancelling headphones audio" data-status="available">
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-label-md text-label-md font-mono font-bold text-on-surface">#RH-10476</span>
+<div class="font-label-sm text-label-sm text-outline">Tier 1 Circular</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<div class="flex items-center gap-space-md">
+<img class="w-12 h-12 rounded-lg object-cover bg-surface-container shrink-0 shadow-sm" data-alt="Refurbished matte black over-ear wireless headphones with sanitized earcups on a sleek acoustic testing pedestal, professional product photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1EevwXlExMzgLQcReJ5B5N7DCSnUODkJehJZ6Z0xVEWyjg1motweP9gpZO_nCf8f0E9gy63xUpn2KsTLa6hbjtQafr3fQWc2c3oq1oIfGYB8cjtWzoFU-HYS0zcIG0ddNZIuRUljQXZxUEHR0GcJ4bKeen3G_JjbOLT5WjR8pkFxChy10yliDw_D8zqjuINk6AHWMZho112iskCQ2PzisZ2WV0axaU9VWw9sDTkTt"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Sony WH-1000XM4 Wireless</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Active Noise Cancellation · Sanitized Earpads · USB-C Charging Cable</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-body-md text-body-md text-on-surface">Oct 20, 2024</span>
+<div class="font-label-sm text-label-sm text-outline">Cabinet B-11</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-primary-fixed/30 text-primary font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                Available
+              </span>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-body-sm text-body-sm text-on-surface-variant italic">Unclaimed — Ready for Reservation</span>
+</td>
+<td class="py-space-md px-space-lg align-middle text-right">
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-primary font-label-sm text-label-sm transition-colors" onclick="viewCertificate('RH-10476', 'Sony WH-1000XM4', 'Grade A - Certified Clean', 'Oct 20, 2024')">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+<span>Cert #8833</span>
+</button>
+</td>
+</tr>
+<!-- Row 5: Reserved -->
+<tr class="listing-row hover:bg-surface-container-low/60 transition-colors" data-category="laptops" data-search="#rh-10469 lenovo thinkpad t14 gen 2 laptop priya nair" data-status="reserved">
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-label-md text-label-md font-mono font-bold text-on-surface">#RH-10469</span>
+<div class="font-label-sm text-label-sm text-outline">Tier 1 Circular</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<div class="flex items-center gap-space-md">
+<img class="w-12 h-12 rounded-lg object-cover bg-surface-container shrink-0 shadow-sm" data-alt="Refurbished durable black ThinkPad business notebook computer opened at 90 degrees, crisp high resolution display, lab diagnostics bench." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXwgWCOJzWIwX2EDF1RGNeOt1gfExVVayEfAlD7STLEMxfI8CygPvjxqfPcMVX6vGhXtfXtyqV7bRXwpqqzFtvyRcSxsi09a7NFL2bRTPn1fwH0fA_dvm-ZA_xc3Qh6gZCOK8AuuapFiGX6_xeYVPTdBu9ZA445fUoTrXppbOL_kFfgFn92anuiS_onDlA4w2RT3Z29Zi4kiDoZVAVdrHFruwxW719As4b2g5f4Z_E"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Lenovo ThinkPad T14 Gen 2</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">AMD Ryzen 5 PRO 5650U · 16GB RAM · 256GB SSD · OEM 65W AC Adapter</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-body-md text-body-md text-on-surface">Oct 17, 2024</span>
+<div class="font-label-sm text-label-sm text-outline">Locker 03</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<div class="flex flex-col items-start gap-0.5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-tertiary-fixed text-tertiary font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-pulse"></span>
+                  Reserved
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant pl-1">Priya Nair (ID: #R-9104)</span>
+</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-tertiary">Pickup: Tomorrow @ 10:00</span>
+<span class="font-label-sm text-label-sm text-outline">Scheduled Locker Hand-off</span>
+</div>
+</td>
+<td class="py-space-md px-space-lg align-middle text-right">
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-primary font-label-sm text-label-sm transition-colors" onclick="viewCertificate('RH-10469', 'Lenovo ThinkPad T14', 'Grade A - Refurbished', 'Oct 18, 2024')">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+<span>Cert #8812</span>
+</button>
+</td>
+</tr>
+<!-- Row 6: Claimed -->
+<tr class="listing-row hover:bg-surface-container-low/60 transition-colors" data-category="accessories" data-search="#rh-10455 logitech mx master 3 mouse claimed accessories" data-status="claimed">
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-label-md text-label-md font-mono font-bold text-on-surface">#RH-10455</span>
+<div class="font-label-sm text-label-sm text-outline">Tier 3 Circular</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<div class="flex items-center gap-space-md">
+<img class="w-12 h-12 rounded-lg object-cover bg-surface-container shrink-0 shadow-sm" data-alt="Ergonomic refurbished wireless computer mouse on a matte dark graphite clean desk mat, pristine condition, sharp lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMavfWNyjXDvSRr9d2kSC6c51bfSw6Jbjott7mip5q889AeS45QKxA4G9ts7rDT6WfgS5icP2oJhTCXU02Q4dNYeGQPGp8OlAPyQQBCU8CcgDX15vk9ffGuDZ4MDtMUDAx5gaTvnV-Sz4yS2Jo2Xcd8lWLXK0p_WaGDW_yTHp-VeS-2UvIr-LyLyKoR8Be2lfaSsX1mf4Pa4eQuNLmrMjGoqzOmwgDwUFNOqC8gblD"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Logitech MX Master 3</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Wireless Ergonomic Sensor · USB Bolt Dongle · Clean firmware wiped</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-body-md text-body-md text-on-surface">Oct 11, 2024</span>
+<div class="font-label-sm text-label-sm text-outline">Bin 19</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-surface-container text-on-surface-variant font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                Claimed
+              </span>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface">Claimed on Oct 19</span>
+<span class="font-label-sm text-label-sm text-outline">Self-checkout kiosk depot</span>
+</div>
+</td>
+<td class="py-space-md px-space-lg align-middle text-right">
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-primary font-label-sm text-label-sm transition-colors" onclick="viewCertificate('RH-10455', 'Logitech MX Master 3', 'Grade B Tested', 'Oct 12, 2024')">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+<span>Cert #8762</span>
+</button>
+</td>
+</tr>
+<!-- Row 7: Available -->
+<tr class="listing-row hover:bg-surface-container-low/60 transition-colors" data-category="tablets" data-search="#rh-10449 samsung galaxy tab s7 128gb tablet available" data-status="available">
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-label-md text-label-md font-mono font-bold text-on-surface">#RH-10449</span>
+<div class="font-label-sm text-label-sm text-outline">Tier 1 Circular</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<div class="flex items-center gap-space-md">
+<img class="w-12 h-12 rounded-lg object-cover bg-surface-container shrink-0 shadow-sm" data-alt="Refurbished bronze Android tablet with active stylus on a tech workbench, clean glass screen reflecting soft diffuse lights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHvM_nOJUwgeGRHLa4jWf7SrdDqyIEmSxNQ2dQzzc5OPAwCShz0IEgaEKuRdq9cJIAlcD7zLuG9PwjIMFzMKwL9KTKFJefTdi06Mq9DsORdUDV_f-aC9jYfdVW2eiceWhTEXOdvH-YBaZ1ikuiKQvB77ynjM7vtdlZ3cUZmEZ4L9KqtgqxVQutpKmWnrd5bBVTqckC_pPVtKWiYiKgC78ON2UOsNCb2rKfywBq6lHp"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Samsung Galaxy Tab S7</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">11" 120Hz · 128GB Storage · S-Pen Included · Factory Cleared OS</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-body-md text-body-md text-on-surface">Oct 21, 2024</span>
+<div class="font-label-sm text-label-sm text-outline">Cabinet B-04</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-primary-fixed/30 text-primary font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                Available
+              </span>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-body-sm text-body-sm text-on-surface-variant italic">Unclaimed — Ready for Reservation</span>
+</td>
+<td class="py-space-md px-space-lg align-middle text-right">
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-primary font-label-sm text-label-sm transition-colors" onclick="viewCertificate('RH-10449', 'Samsung Galaxy Tab S7', 'Grade A - Pristine', 'Oct 21, 2024')">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+<span>Cert #8841</span>
+</button>
+</td>
+</tr>
+<!-- Row 8: Claimed -->
+<tr class="listing-row hover:bg-surface-container-low/60 transition-colors" data-category="laptops" data-search="#rh-10432 apple macbook pro 13 m1 laptop claimed" data-status="claimed">
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-label-md text-label-md font-mono font-bold text-on-surface">#RH-10432</span>
+<div class="font-label-sm text-label-sm text-outline">Tier 1 Circular</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<div class="flex items-center gap-space-md">
+<img class="w-12 h-12 rounded-lg object-cover bg-surface-container shrink-0 shadow-sm" data-alt="Refurbished silver MacBook notebook computer closed on a clean diagnostic sorting table with green inventory barcode tag." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_6GaODuRbGJ5i2f2bADi-0OhAUqCUehTm8ybCUayVbBI2IcLpdq1johSzKjpatmiLhbusQimajA-iu2APhABO7vTEpPgp3QhNQ2zKuLfGr6q7pEtKsZ5BHxvcihrgf5AkbtvVo3QG_bem1nBHw2tYqjRc2lEnEM1ROgg0MzK0T45reqt4ynzGU-ljJwh-yyqai8836beaFXOvOJEkqIykdGQxIesQ5jTl5G3hhGO-"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Apple MacBook Pro 13" (M1)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Apple Silicon M1 · 16GB Unified RAM · 256GB SSD · Cycle Count: 48</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<span class="font-body-md text-body-md text-on-surface">Oct 09, 2024</span>
+<div class="font-label-sm text-label-sm text-outline">Depot Bay C-01</div>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-surface-container text-on-surface-variant font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                Claimed
+              </span>
+</td>
+<td class="py-space-md px-space-lg align-middle">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface">Claimed on Oct 18</span>
+<span class="font-label-sm text-label-sm text-outline">Issued to David Zhao</span>
+</div>
+</td>
+<td class="py-space-md px-space-lg align-middle text-right">
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-primary font-label-sm text-label-sm transition-colors" onclick="viewCertificate('RH-10432', 'Apple MacBook Pro 13 (M1)', 'Grade A Refurbished', 'Oct 10, 2024')">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+<span>Cert #8731</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Empty State Container (Hidden by default) -->
+<div class="hidden flex-col items-center justify-center p-space-xl text-center" id="noResultsState">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-outline mb-space-sm">
+<span class="material-symbols-outlined text-[24px]">search_off</span>
+</div>
+<span class="font-headline-md text-headline-md text-on-surface">No matching listings found</span>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 max-w-sm">Try relaxing your search terms or selecting another category filter.</p>
+<button class="mt-space-md px-space-md py-1.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md" onclick="resetFilters()">Reset Filters</button>
+</div>
+<!-- Table Footer / Pagination Indicators -->
+<div class="flex flex-col sm:flex-row items-center justify-between px-space-lg py-space-md bg-surface-container-low border-t-0 text-on-surface-variant gap-space-sm">
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-primary">lock_clock</span>
+<span>Administrative Observation Mode: State mutations driven by resident actions</span>
+</div>
+<div class="flex items-center gap-space-md font-label-sm text-label-sm">
+<span>Rows per page: <strong>25</strong></span>
+<span>Page 1 of 377</span>
+<div class="flex items-center gap-space-xs">
+<button class="p-1 rounded bg-surface-container-lowest text-outline opacity-50 cursor-not-allowed" disabled="">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</button>
+<button class="p-1 rounded bg-surface-container-lowest hover:bg-surface-container text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Read-Only Certificate Inspection Modal -->
+<div class="fixed inset-0 z-50 hidden items-center justify-center bg-inverse-surface/40 backdrop-blur-sm p-margin" id="certificateModal">
+<div class="relative w-full max-w-xl bg-surface-container-lowest rounded-xl shadow-2xl p-space-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+<!-- Modal Accent Header Ribbon -->
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-primary"></div>
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary-fixed/40 text-primary">
+<span class="material-symbols-outlined text-[24px]">verified_user</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-on-surface">Reuse Hub Inspection Record</span>
+<span class="font-label-sm text-label-sm text-outline font-mono" id="modalCertId">CERT-REF #8821</span>
+</div>
+</div>
+<button class="text-outline hover:text-on-surface p-1 rounded-lg hover:bg-surface-container transition-colors" onclick="closeCertificate()">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="mt-space-lg flex flex-col gap-space-md bg-surface-container-low p-space-md rounded-lg">
+<div class="flex justify-between items-center py-1">
+<span class="font-label-md text-label-md text-outline">Hardware Asset</span>
+<span class="font-label-md text-label-md font-semibold text-on-surface" id="modalDeviceName">Dell Latitude 5420</span>
+</div>
+<div class="flex justify-between items-center py-1">
+<span class="font-label-md text-label-md text-outline">Listing Identifier</span>
+<span class="font-label-md text-label-md font-mono text-on-surface" id="modalListingId">#RH-10492</span>
+</div>
+<div class="flex justify-between items-center py-1">
+<span class="font-label-md text-label-md text-outline">Certified Diagnostic Tier</span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-primary text-on-primary font-bold" id="modalGrade">Grade A - Refurbished</span>
+</div>
+<div class="flex justify-between items-center py-1">
+<span class="font-label-md text-label-md text-outline">Chain-of-Custody Test Date</span>
+<span class="font-body-sm text-body-sm text-on-surface font-semibold" id="modalCertDate">Oct 19, 2024</span>
+</div>
+<div class="flex justify-between items-center py-1">
+<span class="font-label-md text-label-md text-outline">NIST 800-88 Data Sanitization</span>
+<span class="font-label-sm text-label-sm text-primary font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check</span> Verified Cryptographic Erase
+          </span>
+</div>
+<div class="flex justify-between items-center py-1">
+<span class="font-label-md text-label-md text-outline">Certifying Technician</span>
+<span class="font-body-sm text-body-sm text-on-surface">T. Morrison (Tech ID: 418)</span>
+</div>
+</div>
+<div class="mt-space-lg flex items-center justify-between">
+<div class="flex items-center gap-1.5 text-outline font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-primary">lock</span>
+<span>Digitally Signed & Non-Mutable</span>
+</div>
+<div class="flex gap-space-sm">
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors" onclick="closeCertificate()">
+            Close View
+          </button>
+<button class="px-space-md py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md flex items-center gap-1 shadow-sm transition-colors" onclick="printCertificate()">
+<span class="material-symbols-outlined text-[16px]">print</span>
+<span>Print Ledger</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    let currentStatus = 'all';
+    let currentCategory = 'all';
+    let searchQuery = '';
+
+    const searchInput = document.getElementById('itemSearchInput');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const rows = Array.from(document.querySelectorAll('.listing-row'));
+    const statusBtns = document.querySelectorAll('.status-tab-btn');
+    const catPills = document.querySelectorAll('.cat-pill');
+    const visibleCountEl = document.getElementById('visibleRowCount');
+    const noResults = document.getElementById('noResultsState');
+
+    function filterRows() {
+      let visibleCount = 0;
+      rows.forEach(row => {
+        const rowStatus = row.getAttribute('data-status');
+        const rowCategory = row.getAttribute('data-category');
+        const searchCorpus = (row.getAttribute('data-search') || '').toLowerCase();
+
+        const matchesStatus = (currentStatus === 'all') || (rowStatus === currentStatus);
+        const matchesCategory = (currentCategory === 'all') || (rowCategory === currentCategory);
+        const matchesSearch = !searchQuery || searchCorpus.includes(searchQuery.toLowerCase());
+
+        if (matchesStatus && matchesCategory && matchesSearch) {
+          row.style.display = '';
+          visibleCount++;
+        } else {
+          row.style.display = 'none';
+        }
+      });
+
+      if (visibleCountEl) {
+        visibleCountEl.textContent = visibleCount;
+      }
+
+      if (visibleCount === 0) {
+        noResults.classList.remove('hidden');
+        noResults.classList.add('flex');
+      } else {
+        noResults.classList.add('hidden');
+        noResults.classList.remove('flex');
+      }
+    }
+
+    // Status tabs handler
+    statusBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        statusBtns.forEach(b => {
+          b.className = 'status-tab-btn px-space-md py-1 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all';
+        });
+        btn.className = 'status-tab-btn px-space-md py-1 rounded font-label-md text-label-md bg-primary-container text-on-primary font-bold shadow-sm transition-all';
+        currentStatus = btn.getAttribute('data-status-filter');
+        filterRows();
+      });
+    });
+
+    // Category pills handler
+    catPills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        catPills.forEach(p => {
+          p.className = 'cat-pill px-space-sm py-1 rounded-full text-label-sm font-label-sm bg-surface-container-low text-on-surface-variant hover:bg-surface-container';
+        });
+        pill.className = 'cat-pill active-cat px-space-sm py-1 rounded-full text-label-sm font-label-sm bg-primary text-on-primary';
+        currentCategory = pill.getAttribute('data-category-filter');
+        filterRows();
+      });
+    });
+
+    // Search query listener
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value.trim();
+        if (searchQuery.length > 0) {
+          clearSearchBtn.classList.remove('hidden');
+        } else {
+          clearSearchBtn.classList.add('hidden');
+        }
+        filterRows();
+      });
+    }
+
+    if (clearSearchBtn) {
+      clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchQuery = '';
+        clearSearchBtn.classList.add('hidden');
+        filterRows();
+      });
+    }
+
+    window.resetFilters = function() {
+      if (searchInput) searchInput.value = '';
+      searchQuery = '';
+      clearSearchBtn.classList.add('hidden');
+      
+      // Reset Status
+      statusBtns.forEach((b, idx) => {
+        if (idx === 0) {
+          b.className = 'status-tab-btn px-space-md py-1 rounded font-label-md text-label-md bg-primary-container text-on-primary font-bold shadow-sm transition-all';
+        } else {
+          b.className = 'status-tab-btn px-space-md py-1 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all';
+        }
+      });
+      currentStatus = 'all';
+
+      // Reset Category
+      catPills.forEach((p, idx) => {
+        if (idx === 0) {
+          p.className = 'cat-pill active-cat px-space-sm py-1 rounded-full text-label-sm font-label-sm bg-primary text-on-primary';
+        } else {
+          p.className = 'cat-pill px-space-sm py-1 rounded-full text-label-sm font-label-sm bg-surface-container-low text-on-surface-variant hover:bg-surface-container';
+        }
+      });
+      currentCategory = 'all';
+
+      filterRows();
+    };
+
+    // Modal view certificate handlers
+    window.viewCertificate = function(id, name, grade, date) {
+      const modal = document.getElementById('certificateModal');
+      document.getElementById('modalListingId').textContent = '#' + id;
+      document.getElementById('modalDeviceName').textContent = name;
+      document.getElementById('modalGrade').textContent = grade;
+      document.getElementById('modalCertDate').textContent = date;
+      document.getElementById('modalCertId').textContent = 'CERT-REF #' + Math.floor(1000 + Math.random() * 9000);
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    };
+
+    window.closeCertificate = function() {
+      const modal = document.getElementById('certificateModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    };
+
+    window.printCertificate = function() {
+      window.print();
+    };
+
+    const exportBtn = document.getElementById('exportCsvBtn');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        const originalText = exportBtn.innerHTML;
+        exportBtn.innerHTML = '<span class="material-symbols-outlined text-[16px] animate-spin">refresh</span><span class="font-label-md text-label-md">Generating CSV...</span>';
+        setTimeout(() => {
+          exportBtn.innerHTML = '<span class="material-symbols-outlined text-[16px] text-primary">done</span><span class="font-label-md text-label-md">Export Complete</span>';
+          setTimeout(() => {
+            exportBtn.innerHTML = originalText;
+          }, 2000);
+        }, 800);
+      });
+    }
+  })();
+</script></main></div></body></html>

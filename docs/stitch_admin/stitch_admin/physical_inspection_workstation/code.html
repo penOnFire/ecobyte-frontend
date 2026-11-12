@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-container": "#e5eeff", "on-error": "#ffffff", "surface-container-high": "#dce9ff", "primary-container": "#065f46", "tertiary-fixed": "#ffdcc3", "surface-dim": "#cbdbf5", "on-primary-container": "#8bd6b7", "secondary-container": "#86f2e4", "on-primary-fixed-variant": "#00513b", "tertiary-container": "#804300", "inverse-on-surface": "#eaf1ff", "on-surface-variant": "#3f4944", "on-background": "#0b1c30", "on-primary-fixed": "#002116", "surface": "#f8f9ff", "secondary-fixed-dim": "#6bd8cb", "on-tertiary-container": "#ffb87e", "secondary-fixed": "#89f5e7", "tertiary": "#5e3000", "on-primary": "#ffffff", "outline-variant": "#bec9c2", "error-container": "#ffdad6", "on-surface": "#0b1c30", "on-secondary": "#ffffff", "primary": "#004532", "surface-container-low": "#eff4ff", "outline": "#6f7973", "on-secondary-fixed-variant": "#005049", "surface-bright": "#f8f9ff", "surface-variant": "#d3e4fe", "on-tertiary-fixed-variant": "#6e3900", "tertiary-fixed-dim": "#ffb77d", "on-secondary-container": "#006f66", "inverse-surface": "#213145", "background": "#f8f9ff", "error": "#ba1a1a", "secondary": "#006a61", "on-tertiary": "#ffffff", "on-tertiary-fixed": "#2f1500", "on-secondary-fixed": "#00201d", "on-error-container": "#93000a", "primary-fixed": "#a6f2d1", "surface-container-highest": "#d3e4fe", "inverse-primary": "#8bd6b6", "surface-container-lowest": "#ffffff", "surface-tint": "#1b6b51", "primary-fixed-dim": "#8bd6b6" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "gutter-desktop": "1.5rem", "margin": "1rem", "space-xl": "2rem", "margin-desktop": "2rem", "space-lg": "1.25rem", "gutter": "1rem", "space-xs": "0.25rem", "space-md": "0.75rem", "space-sm": "0.5rem" }, "fontFamily": { "label-sm": ["Inter"], "headline-lg": ["Inter"], "body-sm": ["Inter"], "body-lg": ["Inter"], "headline-xl-mobile": ["Inter"], "headline-xl": ["Inter"], "headline-lg-mobile": ["Inter"], "body-md": ["Inter"], "label-md": ["Inter"], "headline-md": ["Inter"], "label-lg": ["Inter"] }, "fontSize": { "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "700" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }], "headline-xl-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-lg-mobile": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }], "label-md": ["11px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "600" }], "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "label-lg": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "600" }] } } } };</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-low z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="EcoLoop Admin Portal Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuComOooAdp2D83xFnmqmA7NySJLgRN1QNtJmFfu185Il75Gz0f1WPjBCl3XmwT6bdBdrU6UY1BOI9fR-QP-ryVvjwoHdLxTwdUTOdgToXeJ3Kvj1iU9Dcv41uYxk_MZ53-BpBpyxaOku16nH-oRmf_F9oB1zmSeQSnRCFkThVuXpQXKInoGrHQvPsMCy2CgqZF4uDPpFEao_Q5gQ9PCqvqNtxaEm6apvR038XSeV5Im"/><div class="flex flex-col"><span class="font-headline-md text-headline-md font-bold tracking-tight text-primary leading-none">EcoLoop</span><span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Lifecycle OS</span></div></div></div><div class="px-gutter py-space-sm"><div class="flex items-center gap-space-xs px-space-sm py-space-xs rounded bg-surface-container-high text-on-surface-variant"><span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span><span class="font-label-sm text-label-sm uppercase tracking-wide">Hub Node: Online</span></div></div><nav class="flex flex-col gap-space-xs px-space-sm mt-space-sm" data-active-classes="bg-primary-container text-on-primary font-bold"><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[18px]">dashboard</span><span class="font-label-lg text-label-lg">Dashboard</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="awaiting-inspection" href="#"><span class="material-symbols-outlined text-[18px]">pending_actions</span><span class="font-label-lg text-label-lg">Awaiting Inspection</span></a><a aria-current="page" class="flex items-center gap-space-md px-space-md py-space-sm rounded transition-colors bg-primary-container text-on-primary font-bold" data-path="physical-inspection" href="#"><span class="material-symbols-outlined text-[18px]">biotech</span><span class="font-label-lg text-label-lg">Physical Inspection</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="reuse-hub" href="#"><span class="material-symbols-outlined text-[18px]">inventory_2</span><span class="font-label-lg text-label-lg">Reuse Hub</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="disposal-records" href="#"><span class="material-symbols-outlined text-[18px]">delete_forever</span><span class="font-label-lg text-label-lg">Disposal Records</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="users-and-access" href="#"><span class="material-symbols-outlined text-[18px]">admin_panel_settings</span><span class="font-label-lg text-label-lg">Users & Access</span></a></nav></div><div class="p-gutter flex flex-col gap-space-sm bg-surface-container-high"><div class="flex items-center justify-between text-on-surface-variant"><span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Audit Compliance</span><span class="font-label-sm text-label-sm font-bold text-primary">ISO 14001</span></div><div class="w-full bg-surface-container-lowest h-1.5 rounded overflow-hidden"><div class="bg-primary h-full w-[94%]"></div></div><div class="flex justify-between items-center font-label-sm text-label-sm text-outline"><span>Chain-of-Custody</span><span class="font-bold text-on-surface">94.2%</span></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-gutter-desktop"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs text-on-surface-variant"><span class="material-symbols-outlined text-[18px] text-outline">hub</span><span class="font-label-md text-label-md uppercase tracking-wider text-outline">Central Sorting</span><span class="material-symbols-outlined text-[14px] text-outline-variant">chevron_right</span><span class="font-label-md text-label-md text-on-surface">Regional Intake</span></div><div class="hidden md:flex items-center bg-surface-container-lowest px-space-md py-1.5 rounded shadow-[0_1px_4px_rgba(0,0,0,0.02)] gap-space-sm ml-space-md"><span class="material-symbols-outlined text-outline text-[16px]">search</span><input class="bg-transparent font-body-sm text-body-sm text-on-surface placeholder:text-outline outline-none w-52" placeholder="Search lot ID, serial or SKU..." type="text"/><kbd class="font-label-sm text-label-sm bg-surface-container text-on-surface-variant px-1.5 py-0.5 rounded">Ctrl+K</kbd></div></div><div class="flex items-center gap-gutter"><div class="flex items-center gap-space-sm"><button aria-label="Notifications" class="relative p-space-xs rounded text-on-surface-variant hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-error"></span></button><button aria-label="System Logs" class="p-space-xs rounded text-on-surface-variant hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[20px]">sync_alt</span></button></div><div class="flex items-center gap-space-md pl-space-md"><div class="flex flex-col text-right hidden sm:flex"><span class="font-label-lg text-label-lg text-on-surface">Elena Vance</span><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-primary-container text-on-primary uppercase tracking-wider self-end mt-0.5">Super Admin</span></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACbbrVZZOiQDxKgZVAIUd3Sp8bGQVMPrfvRqL-LxBdOS7nodjK9znCMcRpmNV_mOhP_n1dKZJrhAtkQGXmlfd1Gc3uvGEzsZ-wwHURNJybQZVohgmPsKXTXW_T-21OSn-4XTwuz__x3DrQYyaH5WBrzzN18FoxA4l-HInNKYgFG-h15qnQdoTsTMuOo0Rvtaq_TnMsp8WLhI8rw2mhSYMDpNQH6XI7NLoGKLdOrYqu"/></div></div></header><main class="relative pt-16 bg-surface min-h-screen w-full px-gutter-desktop"><div class="flex flex-col w-full pb-16">
+<!-- Operational Breadcrumb / Notification strip -->
+<div class="flex flex-wrap items-center justify-between gap-space-sm py-space-sm mb-space-md">
+<div class="flex items-center gap-space-sm bg-surface-container px-space-md py-space-xs rounded-full">
+<span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-primary font-bold">Manual Decision Gate</span>
+<span class="text-outline-variant font-label-sm text-label-sm">/</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Step 4 of 4 Automated Flow</span>
+</div>
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px] text-primary">verified_user</span>
+<span>Chain-of-Custody Active</span>
+</div>
+<div class="h-3 w-px bg-surface-container-highest"></div>
+<span class="font-label-sm text-label-sm bg-surface-container-high text-on-surface-variant px-space-sm py-0.5 rounded">Station #04-WEST</span>
+</div>
+</div>
+<!-- Inspector Metadata Header Banner -->
+<section class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg mb-space-lg">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex flex-wrap items-center gap-x-space-lg gap-y-space-xs">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold text-headline-md">
+            SJ
+          </div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase text-outline">Active Inspector</span>
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Sarah Jenkins (Admin)</span>
+</div>
+</div>
+<div class="hidden sm:block h-8 w-px bg-surface-container-high"></div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase text-outline">Inspection Token</span>
+<span class="font-label-lg text-label-lg font-mono text-on-surface font-bold tracking-tight">#INS-89021</span>
+</div>
+<div class="hidden sm:block h-8 w-px bg-surface-container-high"></div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase text-outline">Asset Tracking SKU / Barcode</span>
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[16px] text-primary">qr_code_2</span>
+<span class="font-label-lg text-label-lg font-mono text-primary font-bold">#EWT-49129</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-sm bg-surface-container-low px-space-md py-space-sm rounded-lg self-start lg:self-center">
+<span class="material-symbols-outlined text-secondary text-[20px]">info</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-sm">
+<strong class="font-semibold text-on-surface">Admin Manual Gate:</strong> AI result provides visual diagnostic inference; manual hardware triage determines irreversible lifecycle routing.
+        </p>
+</div>
+</div>
+</section>
+<!-- Split Screen Diagnostic Layout: AI Inference Left vs Manual Physical Triage Right -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg mb-space-xl">
+<!-- LEFT PANEL: Automated AI Diagnostic Dossier (Reference Only) -->
+<div class="xl:col-span-5 flex flex-col gap-space-md">
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col h-full">
+<!-- AI Card Title & Flag -->
+<div class="flex items-center justify-between pb-space-md mb-space-md bg-surface-container-low/50 -mx-space-lg -mt-space-lg p-space-lg rounded-t-xl">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">smart_toy</span>
+<span class="font-label-lg text-label-lg text-on-surface uppercase tracking-wide">Automated Optical Diagnostic</span>
+</div>
+<span class="font-label-sm text-label-sm px-space-sm py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-bold uppercase tracking-wider">
+            Inference Baseline
+          </span>
+</div>
+<!-- Reference Notice Callout -->
+<div class="bg-amber-50 text-amber-900 px-space-md py-space-sm rounded-lg flex items-start gap-space-sm mb-space-md">
+<span class="material-symbols-outlined text-[18px] text-amber-700 flex-shrink-0 mt-0.5">warning</span>
+<p class="font-label-md text-label-md leading-snug">
+<span class="font-bold uppercase tracking-wider">Reference Notice:</span> AI defect analysis is assistive telemetry. Your physical triage inputs override all machine classifications.
+          </p>
+</div>
+<!-- Vision Defect Heatmap / Bounding Boxes Asset -->
+<div class="relative w-full h-56 rounded-lg overflow-hidden mb-space-md bg-surface-container-high group">
+<img class="w-full h-full object-cover brightness-95 contrast-105" data-alt="Overhead diagnostic studio photo of a space gray 15-inch Apple MacBook Pro open on a matte ESD antistatic rubber workbench with digital neon green and amber machine-vision bounding boxes highlighting micro-scratches on display hinge and an expanded battery chassis heat signature map, precise industrial hardware inspection photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDdgMFLv-7LFiK6ynboYTeatjII0ZwDeUwu-qGpT6bjv-Xi4SABS9Jn3dmVW2lwFCM-aed22aEnCvt4O9Ru_SwZZH0_F1263eOwkU8MG64Tnh5Yj1qCK5FeGcmmqGatauV7QMR6A6DnQRXkrTlaYnbJhAHmKGX9u8Zu9bXm0Pi3VZBSe4X31RCtvbvvAAM7MaORkh0XAarLQHzeeDgqWuUOCuCdTaMrEuQnd0JlCKq"/>
+<!-- Defect Heatmap Overlay Elements -->
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-between p-space-sm pointer-events-none">
+<div class="flex justify-between items-start">
+<span class="bg-surface-container-lowest/90 backdrop-blur text-primary font-mono font-bold text-label-sm px-2 py-0.5 rounded shadow-sm">
+                CAM_02 [OPTICAL_HEAT_MAP]
+              </span>
+<span class="bg-amber-500/90 text-white font-mono font-bold text-label-sm px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> THERMAL BULGE DETECTED
+              </span>
+</div>
+<!-- Bounding Box Annotation Tag in image -->
+<div class="flex justify-between items-end">
+<div class="bg-black/80 backdrop-blur px-2 py-1 rounded text-white font-mono text-[11px] leading-tight">
+<div>PALMREST: <span class="text-amber-400 font-bold">+1.8mm deflection</span></div>
+<div>CONFIDENCE: <span class="text-on-primary-container font-bold">96.4%</span></div>
+</div>
+<span class="text-white/80 font-mono text-label-sm">ISO 14001 Tagged</span>
+</div>
+</div>
+</div>
+<!-- Identified Device Details -->
+<div class="bg-surface-container-low p-space-md rounded-lg mb-space-md">
+<div class="flex justify-between items-start mb-space-xs">
+<div>
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Identified Hardware Model</span>
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">MacBook Pro 15" (Late 2019)</h3>
+</div>
+<span class="font-label-sm text-label-sm px-space-sm py-0.5 bg-surface-container-highest text-on-surface rounded font-mono">
+              A2141 / EMC 3347
+            </span>
+</div>
+<div class="grid grid-cols-2 gap-space-sm mt-space-sm pt-space-sm bg-surface-container/40 rounded p-space-sm font-label-md text-label-md">
+<div>
+<span class="text-outline block font-label-sm text-label-sm">Processor</span>
+<span class="font-medium text-on-surface">Intel Core i9 2.3GHz 8-Core</span>
+</div>
+<div>
+<span class="text-outline block font-label-sm text-label-sm">Memory / Storage</span>
+<span class="font-medium text-on-surface">32GB RAM / 1TB NVMe</span>
+</div>
+</div>
+</div>
+<!-- Telemetry & Health Risk Scores -->
+<div class="grid grid-cols-2 gap-space-sm mb-space-md">
+<div class="bg-surface-container-low p-space-md rounded-lg flex flex-col justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline">Health Risk Score</span>
+<div class="flex items-center gap-space-xs my-space-xs">
+<span class="material-symbols-outlined text-[20px] text-amber-600">report_problem</span>
+<span class="font-headline-md text-headline-md font-bold text-amber-700">Moderate</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant leading-tight">Degraded Battery Subsystem</span>
+</div>
+<div class="bg-surface-container-low p-space-md rounded-lg flex flex-col justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline">Battery Degradation</span>
+<div class="flex items-center justify-between my-space-xs">
+<span class="font-headline-md text-headline-md font-bold text-on-surface font-mono">71.8%</span>
+<span class="font-label-sm text-label-sm text-error bg-error-container/40 px-1.5 py-0.5 rounded font-mono">980 Cyc</span>
+</div>
+<!-- Progress Bar -->
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-amber-500 h-full w-[71.8%]"></div>
+</div>
+</div>
+</div>
+<!-- AI Suggested Lifecycle Vector -->
+<div class="mt-auto bg-surface-container p-space-md rounded-lg flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">recommend</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline block">AI Recommendation</span>
+<span class="font-label-lg text-label-lg text-primary font-bold">Reuse Hub (Refurb Ready)</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm bg-primary-container text-on-primary px-space-sm py-1 rounded">
+            Cell Replacement
+          </span>
+</div>
+</div>
+</div>
+<!-- RIGHT PANEL: Admin Physical Inspection Form (The Manual Action Gate) -->
+<div class="xl:col-span-7 flex flex-col gap-space-lg">
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col">
+<div class="flex items-center justify-between pb-space-md mb-space-lg bg-surface-container-low/50 -mx-space-lg -mt-space-lg p-space-lg rounded-t-xl">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold">Physical Bench Verification</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Perform bench multimeter check, power drawdown test, and tactile inspection.</p>
+</div>
+<span class="flex items-center gap-1 font-label-sm text-label-sm text-primary font-semibold">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+            ACTIVE SESSION
+          </span>
+</div>
+<form class="flex flex-col gap-space-lg" id="inspectionForm" onsubmit="event.preventDefault();">
+<!-- Question 1: Does it Work? (Selectable button group) -->
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-lg text-label-lg text-on-surface font-semibold flex items-center gap-space-xs">
+<span class="w-5 h-5 rounded-full bg-surface-container-high text-on-surface font-mono text-[11px] flex items-center justify-center">1</span>
+              Operational Power State: Does it turn on and boot?
+            </label>
+<p class="font-body-sm text-body-sm text-outline mb-space-xs">Confirm display initialization, fan spin, chime, and basic bootloader response.</p>
+<div aria-label="Does it Work?" class="grid grid-cols-3 gap-space-sm" role="radiogroup">
+<!-- Radio Yes -->
+<label class="relative flex flex-col items-center justify-center p-space-md rounded-lg cursor-pointer transition-all bg-surface-container-low hover:bg-surface-container has-[:checked]:bg-primary-container has-[:checked]:text-on-primary group shadow-sm">
+<input checked="" class="sr-only" name="operational_state" onchange="handleStateChange()" type="radio" value="yes"/>
+<span class="material-symbols-outlined text-[24px] mb-1 group-has-[:checked]:text-on-primary text-primary">check_circle</span>
+<span class="font-label-lg text-label-lg font-bold group-has-[:checked]:text-on-primary text-on-surface">Yes, Boots</span>
+<span class="font-label-sm text-label-sm text-outline group-has-[:checked]:text-on-primary/80">Display & OS Load</span>
+</label>
+<!-- Radio No -->
+<label class="relative flex flex-col items-center justify-center p-space-md rounded-lg cursor-pointer transition-all bg-surface-container-low hover:bg-surface-container has-[:checked]:bg-primary-container has-[:checked]:text-on-primary group shadow-sm">
+<input class="sr-only" name="operational_state" onchange="handleStateChange()" type="radio" value="no"/>
+<span class="material-symbols-outlined text-[24px] mb-1 group-has-[:checked]:text-on-primary text-error">cancel</span>
+<span class="font-label-lg text-label-lg font-bold group-has-[:checked]:text-on-primary text-on-surface">No Power</span>
+<span class="font-label-sm text-label-sm text-outline group-has-[:checked]:text-on-primary/80">Zero Current Draw</span>
+</label>
+<!-- Radio Not Sure -->
+<label class="relative flex flex-col items-center justify-center p-space-md rounded-lg cursor-pointer transition-all bg-surface-container-low hover:bg-surface-container has-[:checked]:bg-primary-container has-[:checked]:text-on-primary group shadow-sm">
+<input class="sr-only" name="operational_state" onchange="handleStateChange()" type="radio" value="not_sure"/>
+<span class="material-symbols-outlined text-[24px] mb-1 group-has-[:checked]:text-on-primary text-secondary">help</span>
+<span class="font-label-lg text-label-lg font-bold group-has-[:checked]:text-on-primary text-on-surface">Intermittent</span>
+<span class="font-label-sm text-label-sm text-outline group-has-[:checked]:text-on-primary/80">Needs Diagnostic Hub</span>
+</label>
+</div>
+</div>
+<!-- Question 2: Physical Condition (Selectable pills with swollen battery hazard badge) -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<label class="font-label-lg text-label-lg text-on-surface font-semibold flex items-center gap-space-xs">
+<span class="w-5 h-5 rounded-full bg-surface-container-high text-on-surface font-mono text-[11px] flex items-center justify-center">2</span>
+                Chassis & Battery Physical Assessment
+              </label>
+<span class="font-label-sm text-label-sm text-error uppercase font-bold tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">shield</span> Fire Protocol 9B applies
+              </span>
+</div>
+<p class="font-body-sm text-body-sm text-outline mb-space-xs">Visually gauge enclosure warping, glass fractures, and Li-ion pack expansion.</p>
+<div aria-label="Physical Condition" class="grid grid-cols-1 md:grid-cols-3 gap-space-sm" role="radiogroup">
+<!-- Good Condition -->
+<label class="flex items-center gap-space-sm p-space-md rounded-lg cursor-pointer bg-surface-container-low hover:bg-surface-container has-[:checked]:bg-surface-container-highest shadow-sm transition-colors">
+<input class="w-4 h-4 text-primary accent-primary" name="chassis_condition" onchange="handleConditionChange('good')" type="radio" value="good"/>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg font-bold text-on-surface">Grade A/B Clean</span>
+<span class="font-body-sm text-body-sm text-outline">Minimal wear, no chassis flex</span>
+</div>
+</label>
+<!-- Damaged Condition -->
+<label class="flex items-center gap-space-sm p-space-md rounded-lg cursor-pointer bg-surface-container-low hover:bg-surface-container has-[:checked]:bg-surface-container-highest shadow-sm transition-colors">
+<input class="w-4 h-4 text-primary accent-primary" name="chassis_condition" onchange="handleConditionChange('damaged')" type="radio" value="damaged"/>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg font-bold text-on-surface">Dented / Cracked</span>
+<span class="font-body-sm text-body-sm text-outline">Housing bent, screen intact</span>
+</div>
+</label>
+<!-- Swollen Battery Warning Pill -->
+<label class="flex items-start gap-space-sm p-space-md rounded-lg cursor-pointer bg-error-container/40 hover:bg-error-container/60 has-[:checked]:bg-error has-[:checked]:text-on-error shadow-sm transition-colors group">
+<input checked="" class="w-4 h-4 text-error accent-error mt-0.5" name="chassis_condition" onchange="handleConditionChange('swollen')" type="radio" value="swollen"/>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg font-bold text-on-surface group-has-[:checked]:text-on-error flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-error group-has-[:checked]:text-on-error animate-pulse">warning</span>
+                    Swollen Battery
+                  </span>
+<span class="font-body-sm text-body-sm text-on-surface-variant group-has-[:checked]:text-on-error/90">Expansion > 1.5mm. Hazardous.</span>
+</div>
+</label>
+</div>
+<!-- Contextual Warning Alert for Swollen Battery -->
+<div class="mt-space-xs p-space-sm bg-error-container/30 rounded flex items-center gap-space-sm" id="swollenAlert">
+<span class="material-symbols-outlined text-error text-[18px]">emergency_home</span>
+<p class="font-label-md text-label-md text-error leading-tight">
+<strong>Hazardous Flag:</strong> Swollen battery triggers mandatory fire-retardant storage bin routing if slated for disposal. Refurbishing will mandate certified pack extraction.
+              </p>
+</div>
+</div>
+<!-- Question 3: Physical Findings Notes -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex justify-between items-center">
+<label class="font-label-lg text-label-lg text-on-surface font-semibold flex items-center gap-space-xs" for="physicalNotes">
+<span class="w-5 h-5 rounded-full bg-surface-container-high text-on-surface font-mono text-[11px] flex items-center justify-center">3</span>
+                Physical Triage Telemetry Findings & Bench Notes
+              </label>
+<button class="font-label-sm text-label-sm text-secondary hover:underline flex items-center gap-0.5" onclick="populateQuickTemplate()" type="button">
+<span class="material-symbols-outlined text-[14px]">auto_fix_high</span> Insert Bench Telemetry
+              </button>
+</div>
+<div class="relative">
+<textarea class="w-full bg-surface-container-low rounded-lg p-space-md font-mono text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary border-0 shadow-inner resize-y" id="physicalNotes" placeholder="Log physical findings (e.g., chassis warping, power draw in Watts, scratch severity, port integrity)..." rows="3">Chassis deflection 1.8mm at palmrest. Bench multimeter: Power draws 45W stable on USB-C port 1. Minor screen scratch top bezel (grade B-). Keyboard and trackpad intact. Battery cycle counter logged at 980 cycles.</textarea>
+<div class="absolute bottom-2 right-2 flex items-center gap-1 font-label-sm text-label-sm text-outline bg-surface-container-lowest/80 px-1.5 py-0.5 rounded pointer-events-none">
+<span class="material-symbols-outlined text-[12px]">keyboard</span> UTF-8 Verified
+              </div>
+</div>
+</div>
+</form>
+</div>
+<!-- Decision Action Cards Section (Primary Fork of the Entire Flow) -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-bold">Terminal Lifecycle Routing</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">Immediate State Transition</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- OPTION A: LIST IN REUSE HUB -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col justify-between hover:shadow-md transition-all group relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-primary"></div>
+<div>
+<div class="flex items-center justify-between mb-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[24px]">compost</span>
+</div>
+<span class="font-label-sm text-label-sm px-space-sm py-0.5 rounded bg-primary-container/20 text-primary font-bold uppercase tracking-wider">
+                  Refurb & Reuse
+                </span>
+</div>
+<h3 class="font-headline-md text-headline-md font-bold text-on-surface mb-space-xs">List in Reuse Hub</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+                Allocates to internal inventory, creates public circular listing, and queues for battery replacement kit refit.
+              </p>
+</div>
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-outline">
+<span class="material-symbols-outlined text-[14px] text-primary">check_circle</span>
+<span>Sets status to <strong class="text-on-surface font-semibold">Available in Reuse Hub</strong></span>
+</div>
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-outline mb-space-sm">
+<span class="material-symbols-outlined text-[14px] text-primary">check_circle</span>
+<span>Makes discoverable to verified recyclers/buyers</span>
+</div>
+<button class="w-full bg-primary hover:bg-primary-container text-on-primary py-space-sm px-space-md rounded-lg font-label-lg text-label-lg font-bold flex items-center justify-center gap-space-sm transition-colors shadow-sm active:scale-[0.99]" onclick="openConfirmModal('reuse')" type="button">
+<span class="material-symbols-outlined text-[20px]">recycling</span>
+<span>List in Reuse Hub</span>
+</button>
+</div>
+</div>
+<!-- OPTION B: MARK FOR DISPOSAL -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col justify-between hover:shadow-md transition-all group relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-tertiary"></div>
+<div>
+<div class="flex items-center justify-between mb-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-tertiary group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[24px]">delete_forever</span>
+</div>
+<span class="font-label-sm text-label-sm px-space-sm py-0.5 rounded bg-tertiary-fixed text-tertiary font-bold uppercase tracking-wider">
+                  Certified Destruction
+                </span>
+</div>
+<h3 class="font-headline-md text-headline-md font-bold text-on-surface mb-space-xs">Mark for Disposal</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+                Deems unit beyond practical economic recovery. Mandates certified downstream smelting, parts stripping, and EPA e-waste log.
+              </p>
+</div>
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-outline">
+<span class="material-symbols-outlined text-[14px] text-tertiary">warning</span>
+<span>Auto-generates official e-waste compliance record</span>
+</div>
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-outline mb-space-sm">
+<span class="material-symbols-outlined text-[14px] text-tertiary">warning</span>
+<span>Sets asset ledger state to <strong class="text-on-surface font-semibold">Turned Over</strong></span>
+</div>
+<button class="w-full bg-tertiary-fixed text-tertiary hover:bg-tertiary hover:text-on-tertiary py-space-sm px-space-md rounded-lg font-label-lg text-label-lg font-bold flex items-center justify-center gap-space-sm transition-colors shadow-sm active:scale-[0.99]" onclick="openConfirmModal('disposal')" type="button">
+<span class="material-symbols-outlined text-[20px]">lock_reset</span>
+<span>Mark for Disposal</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- CONFIRMATION & LEDGER OVERLAY MODAL -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-inverse-surface/60 backdrop-blur-sm p-space-md hidden transition-opacity duration-200" id="confirmationModal">
+<div class="bg-surface-container-lowest rounded-xl shadow-xl max-w-xl w-full p-space-xl flex flex-col transform transition-all scale-95 duration-150" id="modalCard">
+<!-- Modal Header -->
+<div class="flex items-center justify-between pb-space-md mb-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg flex items-center justify-center bg-primary-container text-on-primary" id="modalIconContainer">
+<span class="material-symbols-outlined text-[22px]" id="modalIcon">verified</span>
+</div>
+<div>
+<h3 class="font-headline-lg text-headline-lg font-bold text-on-surface leading-tight" id="modalTitle">Confirm Asset Disposition</h3>
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Irreversible Action Log</span>
+</div>
+</div>
+<button class="p-1 rounded-full text-outline hover:text-on-surface hover:bg-surface-container transition-colors" onclick="closeConfirmModal()">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Audit Notice Content -->
+<div class="bg-surface-container-low p-space-md rounded-lg mb-space-lg flex flex-col gap-space-sm">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[20px] flex-shrink-0 mt-0.5">assignment_turned_in</span>
+<p class="font-body-md text-body-md text-on-surface leading-relaxed">
+            System will automatically record that <strong class="font-bold text-primary">Sarah Jenkins (Admin)</strong> inspected item <code class="font-mono bg-surface-container px-1 py-0.5 rounded text-on-surface">#EWT-49129</code> and complete everything else (<span id="modalActionText">listing in Reuse Hub</span> with status <span class="font-bold text-primary uppercase" id="modalStatusBadge">Available</span>) upon your confirmation.
+          </p>
+</div>
+<div class="border-t border-surface-container pt-space-sm mt-space-xs grid grid-cols-2 gap-space-sm font-label-sm text-label-sm">
+<div>
+<span class="text-outline block">Logged Condition:</span>
+<span class="font-semibold text-on-surface font-mono" id="summaryCondition">Swollen Battery / Grade B-</span>
+</div>
+<div>
+<span class="text-outline block">Audit Hash ID:</span>
+<span class="font-semibold text-on-surface font-mono">#901-SHA256-49129</span>
+</div>
+</div>
+</div>
+<!-- Compliance Checkbox confirmation -->
+<label class="flex items-center gap-space-sm mb-space-lg cursor-pointer">
+<input checked="" class="w-4 h-4 text-primary accent-primary rounded" id="complianceCheck" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface font-medium select-none">
+          I attest that physical bench verification meets ISO 14001 e-waste protocols.
+        </span>
+</label>
+<!-- Action Footer Buttons -->
+<div class="flex items-center justify-end gap-space-md">
+<button class="px-space-lg py-space-sm rounded-lg font-label-lg text-label-lg font-semibold text-on-surface-variant hover:bg-surface-container transition-colors" onclick="closeConfirmModal()" type="button">
+          Cancel & Edit
+        </button>
+<button class="px-space-xl py-space-sm rounded-lg font-label-lg text-label-lg font-bold bg-primary text-on-primary shadow-sm hover:opacity-95 transition-all flex items-center gap-space-xs" id="confirmSubmitButton" onclick="executeDisposition()" type="button">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span id="confirmButtonText">Authorize & Publish</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Notification Banner Toast (Hidden by default) -->
+<div class="fixed bottom-6 right-6 z-50 bg-primary-container text-on-primary px-space-lg py-space-md rounded-xl shadow-xl flex items-center gap-space-md translate-y-24 opacity-0 transition-all duration-300" id="successToast">
+<span class="material-symbols-outlined text-[24px]">task_alt</span>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg font-bold" id="toastTitle">Inspection Finalized</span>
+<span class="font-body-sm text-body-sm opacity-90" id="toastMessage">Device #EWT-49129 status set and chain updated.</span>
+</div>
+</div>
+</div>
+<script>
+  let activeDecisionMode = 'reuse';
+
+  function handleStateChange() {
+    // Interactive hook for operational radio state
+  }
+
+  function handleConditionChange(condition) {
+    const swollenAlert = document.getElementById('swollenAlert');
+    if (condition === 'swollen') {
+      swollenAlert.classList.remove('hidden');
+    } else {
+      swollenAlert.classList.add('hidden');
+    }
+  }
+
+  function populateQuickTemplate() {
+    const notes = document.getElementById('physicalNotes');
+    notes.value = 'Chassis deflection 1.8mm at palmrest. Bench multimeter: Power draws 45W stable on USB-C port 1. Minor screen scratch top bezel (grade B-). Keyboard and trackpad intact. Battery cycle counter logged at 980 cycles.';
+    notes.classList.add('bg-surface-container');
+    setTimeout(() => notes.classList.remove('bg-surface-container'), 400);
+  }
+
+  function openConfirmModal(type) {
+    activeDecisionMode = type;
+    const modal = document.getElementById('confirmationModal');
+    const modalCard = document.getElementById('modalCard');
+    const iconContainer = document.getElementById('modalIconContainer');
+    const icon = document.getElementById('modalIcon');
+    const title = document.getElementById('modalTitle');
+    const actionText = document.getElementById('modalActionText');
+    const statusBadge = document.getElementById('modalStatusBadge');
+    const confirmBtn = document.getElementById('confirmSubmitButton');
+    const confirmBtnText = document.getElementById('confirmButtonText');
+    const summaryCondition = document.getElementById('summaryCondition');
+
+    // Get current condition radio
+    const selectedCondition = document.querySelector('input[name="chassis_condition"]:checked')?.value || 'swollen';
+    summaryCondition.textContent = selectedCondition === 'swollen' ? 'Swollen Battery (Hazard)' : (selectedCondition === 'damaged' ? 'Chassis Damaged' : 'Grade A/B Intact');
+
+    if (type === 'reuse') {
+      iconContainer.className = 'w-10 h-10 rounded-lg flex items-center justify-center bg-primary-container text-on-primary';
+      icon.textContent = 'recycling';
+      title.textContent = 'Publish to Reuse Hub';
+      actionText.textContent = 'creating a verified inventory listing';
+      statusBadge.textContent = 'Available in Reuse Hub';
+      statusBadge.className = 'font-bold text-primary uppercase';
+      confirmBtn.className = 'px-space-xl py-space-sm rounded-lg font-label-lg text-label-lg font-bold bg-primary hover:bg-primary-container text-on-primary shadow-sm transition-all flex items-center gap-space-xs';
+      confirmBtnText.textContent = 'Authorize & List in Reuse Hub';
+    } else {
+      iconContainer.className = 'w-10 h-10 rounded-lg flex items-center justify-center bg-tertiary-fixed text-tertiary';
+      icon.textContent = 'delete_forever';
+      title.textContent = 'Authorise Permanent Disposal';
+      actionText.textContent = 'generating an official e-waste destruction manifest';
+      statusBadge.textContent = 'Turned Over';
+      statusBadge.className = 'font-bold text-tertiary uppercase';
+      confirmBtn.className = 'px-space-xl py-space-sm rounded-lg font-label-lg text-label-lg font-bold bg-tertiary hover:opacity-90 text-on-tertiary shadow-sm transition-all flex items-center gap-space-xs';
+      confirmBtnText.textContent = 'Log Disposal & Turn Over';
+    }
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+      modalCard.classList.remove('scale-95');
+      modalCard.classList.add('scale-100');
+    }, 10);
+  }
+
+  function closeConfirmModal() {
+    const modal = document.getElementById('confirmationModal');
+    const modalCard = document.getElementById('modalCard');
+    modalCard.classList.remove('scale-100');
+    modalCard.classList.add('scale-95');
+    setTimeout(() => {
+      modal.classList.add('hidden');
+    }, 150);
+  }
+
+  function executeDisposition() {
+    closeConfirmModal();
+    const toast = document.getElementById('successToast');
+    const toastTitle = document.getElementById('toastTitle');
+    const toastMessage = document.getElementById('toastMessage');
+
+    if (activeDecisionMode === 'reuse') {
+      toastTitle.textContent = 'Listed in Reuse Hub!';
+      toastMessage.textContent = 'Asset #EWT-49129 marked Available. Chain-of-custody sealed by Sarah Jenkins.';
+      toast.className = 'fixed bottom-6 right-6 z-50 bg-primary-container text-on-primary px-space-lg py-space-md rounded-xl shadow-xl flex items-center gap-space-md translate-y-0 opacity-100 transition-all duration-300';
+    } else {
+      toastTitle.textContent = 'Marked for Disposal!';
+      toastMessage.textContent = 'Disposal record #DSP-9042 created with status Turned Over. Sarah Jenkins logged as inspector.';
+      toast.className = 'fixed bottom-6 right-6 z-50 bg-tertiary text-on-tertiary px-space-lg py-space-md rounded-xl shadow-xl flex items-center gap-space-md translate-y-0 opacity-100 transition-all duration-300';
+    }
+
+    setTimeout(() => {
+      toast.classList.add('translate-y-24', 'opacity-0');
+    }, 5000);
+  }
+</script></main></div></body></html>
