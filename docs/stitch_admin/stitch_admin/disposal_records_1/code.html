@@ -1,0 +1,542 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_dashboard" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "on-secondary-fixed": "#00201d",
+          "error": "#ba1a1a",
+          "on-primary-container": "#8bd6b7",
+          "primary-container": "#065f46",
+          "on-tertiary-fixed": "#2f1500",
+          "background": "#f8f9ff",
+          "on-background": "#0b1c30",
+          "on-surface": "#0b1c30",
+          "surface-tint": "#1b6b51",
+          "tertiary-container": "#804300",
+          "secondary": "#006a61",
+          "surface-bright": "#f8f9ff",
+          "primary": "#004532",
+          "surface-variant": "#d3e4fe",
+          "surface-dim": "#cbdbf5",
+          "surface-container": "#e5eeff",
+          "secondary-container": "#86f2e4",
+          "on-primary-fixed-variant": "#00513b",
+          "tertiary-fixed": "#ffdcc3",
+          "on-error": "#ffffff",
+          "on-secondary-container": "#006f66",
+          "on-secondary": "#ffffff",
+          "surface-container-highest": "#d3e4fe",
+          "surface-container-high": "#dce9ff",
+          "inverse-primary": "#8bd6b6",
+          "secondary-fixed-dim": "#6bd8cb",
+          "on-primary": "#ffffff",
+          "tertiary-fixed-dim": "#ffb77d",
+          "tertiary": "#5e3000",
+          "primary-fixed": "#a6f2d1",
+          "surface-container-lowest": "#ffffff",
+          "primary-fixed-dim": "#8bd6b6",
+          "on-surface-variant": "#3f4944",
+          "on-tertiary-container": "#ffb87e",
+          "surface": "#f8f9ff",
+          "inverse-on-surface": "#eaf1ff",
+          "on-tertiary-fixed-variant": "#6e3900",
+          "outline": "#6f7973",
+          "error-container": "#ffdad6",
+          "surface-container-low": "#eff4ff",
+          "on-error-container": "#93000a",
+          "on-primary-fixed": "#002116",
+          "inverse-surface": "#213145",
+          "on-tertiary": "#ffffff",
+          "secondary-fixed": "#89f5e7",
+          "outline-variant": "#bec9c2",
+          "on-secondary-fixed-variant": "#005049"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "gutter": "1rem",
+          "gutter-desktop": "1.5rem",
+          "margin": "1rem",
+          "margin-desktop": "2rem",
+          "space-xl": "2rem",
+          "space-xs": "0.25rem",
+          "space-md": "0.75rem",
+          "space-sm": "0.5rem",
+          "space-lg": "1.25rem"
+        },
+        "fontFamily": {
+          "headline-xl": [
+            "Inter"
+          ],
+          "label-md": [
+            "Inter"
+          ],
+          "body-md": [
+            "Inter"
+          ],
+          "label-lg": [
+            "Inter"
+          ],
+          "headline-md": [
+            "Inter"
+          ],
+          "body-lg": [
+            "Inter"
+          ],
+          "body-sm": [
+            "Inter"
+          ],
+          "headline-xl-mobile": [
+            "Inter"
+          ],
+          "label-sm": [
+            "Inter"
+          ],
+          "headline-lg-mobile": [
+            "Inter"
+          ],
+          "headline-lg": [
+            "Inter"
+          ]
+        },
+        "fontSize": {
+          "headline-xl": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "700"
+            }
+          ],
+          "label-md": [
+            "11px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.03em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-md": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-lg": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "letterSpacing": "0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-md": [
+            "18px",
+            {
+              "lineHeight": "24px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-lg": [
+            "15px",
+            {
+              "lineHeight": "22px",
+              "fontWeight": "400"
+            }
+          ],
+          "body-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "400"
+            }
+          ],
+          "headline-xl-mobile": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.015em",
+              "fontWeight": "700"
+            }
+          ],
+          "label-sm": [
+            "10px",
+            {
+              "lineHeight": "12px",
+              "letterSpacing": "0.05em",
+              "fontWeight": "700"
+            }
+          ],
+          "headline-lg-mobile": [
+            "20px",
+            {
+              "lineHeight": "28px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-lg": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.015em",
+              "fontWeight": "600"
+            }
+          ]
+        }
+      },
+    },
+  }</script><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&amp;display=swap" rel="stylesheet"><style>html, body, * { font-family: 'Rethink Sans', sans-serif !important; }</style></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest border-r border-outline-variant/30 z-50 flex flex-col justify-between py-6 px-4 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col gap-6"><div class="px-3 flex items-center gap-3"><div class="w-7 h-7 rounded-lg bg-primary flex items-center justify-center flex-shrink-0" style="background-color: rgb(22, 163, 74);"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-on-primary"><polyline points="7 19 3 19 3 15"></polyline><path d="M3 19l4.5-8"></path><polyline points="17 5 21 5 21 9"></polyline><path d="M21 5l-4.5 8"></path><polyline points="12 12 12 7 8 7"></polyline><path d="M12 12L8 4.5"></path><path d="M16 20h5"></path></svg></div><span class="font-headline-md text-headline-md font-bold tracking-tight text-on-surface">EcoByte Admin</span></div><nav class="flex flex-col gap-1.5" data-active-classes="bg-primary text-on-primary font-semibold shadow-sm"><a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="dashboard" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 flex-shrink-0"><path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"></path></svg><span>Dashboard</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="to-inspect" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 flex-shrink-0"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg><span>To inspect</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="reuse-hub" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 flex-shrink-0"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg><span>Reuse Hub</span></a><a aria-current="page" class="flex items-center gap-3 px-3 py-2 rounded-full transition-colors bg-primary text-on-primary font-semibold shadow-sm" data-path="disposal" href="#" style="background-color: rgb(22, 163, 74); color: rgb(255, 255, 255);"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 flex-shrink-0"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg><span>Disposal</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="access" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 flex-shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><circle cx="12" cy="11" r="3"></circle></svg><span>Access</span></a></nav></div><div class="pt-4 border-t border-outline-variant/30 px-1"><a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="login" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 flex-shrink-0"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" x2="9" y1="12" y2="12"></line></svg><span>Log out</span></a></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 z-40 flex items-center justify-end px-gutter-desktop shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-3"><div class="inline-flex items-center px-3 py-1 rounded-full border border-outline-variant/60 bg-surface-container-lowest font-label-sm text-label-sm text-on-surface uppercase tracking-wider font-semibold shadow-sm">Admin</div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 text-on-primary"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg></div></div></header><main class="relative w-full pt-16 bg-surface min-h-screen px-gutter-desktop py-gutter-desktop max-w-[1600px] mx-auto"><div class="flex flex-col w-full gap-space-lg">
+<!-- Page Header Row -->
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
+<span>Lifecycle Governance</span>
+<span>/</span>
+<span class="text-primary font-bold">Audit Manifest</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight font-extrabold" style="font-weight: 800;">Disposal records</h1>
+</div>
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-2 bg-surface-container-low px-space-md py-1.5 rounded-full shadow-sm text-on-surface-variant font-label-md text-label-md">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse" style="background-color: rgb(22, 163, 74);"></span>
+<span>EPA &amp; Basel Convention Sync: Active</span>
+</div>
+<button class="flex items-center gap-2 bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg px-4 py-2 rounded-lg shadow-sm transition-all duration-150" style="background-color: rgb(22, 163, 74); color: rgb(255, 255, 255);"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 flex-shrink-0"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg><span>Export Manifest CSV</span></button>
+</div>
+</div>
+<!-- Primary Split Grid: Wireframe Alignment (Left wide records table, Right summary breakdown) -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+<!-- Left Main Panel: Records Table & Controls (8 cols on desktop) -->
+<div class="xl:col-span-8 flex flex-col gap-space-md">
+<!-- Filter and Operational Bar -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-wrap items-center justify-between gap-space-md">
+<div class="flex items-center gap-3 flex-1 min-w-[280px]">
+<div class="relative w-full">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-2.5 text-on-surface-variant w-[18px] h-[18px]"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+<input class="w-full pl-10 pr-4 py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md placeholder:text-outline focus:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all" id="record-search" placeholder="Search by Record ID (#DR-...), Serial, or Item..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-2 flex-wrap"><div class="flex items-center gap-1.5 bg-surface-container-low px-3 py-2 rounded-lg text-on-surface-variant font-label-md text-label-md"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg><span>Period: Oct 2024</span></div><div class="flex items-center gap-1.5 bg-surface-container-low px-3 py-2 rounded-lg text-on-surface-variant font-label-md text-label-md"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-primary"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg><span>Chain-of-Custody: 100%</span></div><button class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg><span>Filters</span></button></div>
+</div>
+<!-- High-Density Certified Records Table -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col">
+<!-- Table Column Header -->
+<div class="grid grid-cols-12 px-4 py-2.5 bg-surface-container-low/70 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider select-none font-semibold">
+<div class="col-span-2 flex items-center gap-1">
+<span>Record</span>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><polyline points="8 9 12 5 16 9"></polyline><polyline points="16 15 12 19 8 15"></polyline></svg>
+</div>
+<div class="col-span-3">Item Description</div>
+<div class="col-span-4">AI Suggestion &amp; Pathway</div>
+<div class="col-span-2">Marked On</div>
+<div class="col-span-1 text-right">Status</div>
+</div>
+<!-- Table Row R1 -->
+<div class="record-row grid grid-cols-12 px-4 py-2.5 hover:bg-surface-container-low/50 transition-colors items-center group border-b border-outline-variant/30">
+<div class="col-span-2 flex items-center gap-2">
+<span class="font-semibold text-primary text-body-md font-mono tracking-tight group-hover:underline cursor-pointer">#DR-9842</span>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5 text-primary flex-shrink-0"><path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 00-7.5 0v3h7.5z" clip-rule="evenodd"></path></svg>
+</div>
+<div class="col-span-3 flex flex-col min-w-0 pr-2">
+<span class="font-semibold text-on-surface text-body-md truncate">Cisco Catalyst 3850</span>
+
+</div>
+<div class="col-span-4 pr-3 flex flex-col justify-center">
+<div class="flex items-center gap-1.5 mb-1">
+<span class="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-primary-container/15 text-primary">Precious Metals</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">99.2% match</span>
+</div>
+<span class="text-on-surface font-body-sm text-body-sm truncate">Further assessment (Gold/Palladium Recovery)</span>
+</div>
+<div class="col-span-2 flex flex-col">
+<span class="text-on-surface font-body-md text-body-md">Oct 24, 2024</span>
+
+</div>
+<div class="col-span-1 flex justify-end">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-label-sm font-label-sm uppercase tracking-wide bg-secondary-container/60 text-on-secondary-container" style="background-color: rgb(220, 252, 231); color: rgb(21, 128, 61); font-weight: 600;">
+              Turned over
+            </span>
+</div>
+</div>
+<!-- Table Row R2 -->
+<div class="record-row grid grid-cols-12 px-4 py-2.5 bg-surface-container-lowest hover:bg-surface-container-low/50 transition-colors items-center group border-b border-outline-variant/30">
+<div class="col-span-2 flex items-center gap-2">
+<span class="font-semibold text-primary text-body-md font-mono tracking-tight group-hover:underline cursor-pointer">#DR-9839</span>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5 text-tertiary-container flex-shrink-0"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd"></path></svg>
+</div>
+<div class="col-span-3 flex flex-col min-w-0 pr-2">
+<span class="font-semibold text-on-surface text-body-md truncate">DJI Matrice 300 TB60 LiPo</span>
+
+</div>
+<div class="col-span-4 pr-3 flex flex-col justify-center">
+<div class="flex items-center gap-1.5 mb-1">
+<span class="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-error-container text-on-error-container">Critical Hazard</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">Class 9</span>
+</div>
+<span class="text-on-surface font-body-sm text-body-sm truncate">Further assessment (Severe Thermal Risk / Swollen)</span>
+</div>
+<div class="col-span-2 flex flex-col">
+<span class="text-on-surface font-body-md text-body-md">Oct 24, 2024</span>
+
+</div>
+<div class="col-span-1 flex justify-end">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-label-sm font-label-sm uppercase tracking-wide bg-secondary-container/60 text-on-secondary-container" style="background-color: rgb(220, 252, 231); color: rgb(21, 128, 61); font-weight: 600;">
+              Turned over
+            </span>
+</div>
+</div>
+<!-- Table Row R3 -->
+<div class="record-row grid grid-cols-12 px-4 py-2.5 hover:bg-surface-container-low/50 transition-colors items-center group border-b border-outline-variant/30">
+<div class="col-span-2 flex items-center gap-2">
+<span class="font-semibold text-primary text-body-md font-mono tracking-tight group-hover:underline cursor-pointer">#DR-9831</span>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5 text-primary flex-shrink-0"><path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 00-7.5 0v3h7.5z" clip-rule="evenodd"></path></svg>
+</div>
+<div class="col-span-3 flex flex-col min-w-0 pr-2">
+<span class="font-semibold text-on-surface text-body-md truncate">Dell PowerEdge R740xd Server</span>
+
+</div>
+<div class="col-span-4 pr-3 flex flex-col justify-center">
+<div class="flex items-center gap-1.5 mb-1">
+<span class="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-surface-container-high text-on-surface-variant">Mechanical</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">Depreciated Core</span>
+</div>
+<span class="text-on-surface font-body-sm text-body-sm truncate">Further assessment (Material Disassembly)</span>
+</div>
+<div class="col-span-2 flex flex-col">
+<span class="text-on-surface font-body-md text-body-md">Oct 23, 2024</span>
+
+</div>
+<div class="col-span-1 flex justify-end">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-label-sm font-label-sm uppercase tracking-wide bg-secondary-container/60 text-on-secondary-container" style="background-color: rgb(220, 252, 231); color: rgb(21, 128, 61); font-weight: 600;">
+              Turned over
+            </span>
+</div>
+</div>
+<!-- Table Row R4 -->
+<div class="record-row grid grid-cols-12 px-4 py-2.5 hover:bg-surface-container-low/50 transition-colors items-center group border-b border-outline-variant/30">
+<div class="col-span-2 flex items-center gap-2">
+<span class="font-semibold text-primary text-body-md font-mono tracking-tight group-hover:underline cursor-pointer">#DR-9820</span>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5 text-tertiary-container flex-shrink-0"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd"></path></svg>
+</div>
+<div class="col-span-3 flex flex-col min-w-0 pr-2">
+<span class="font-semibold text-on-surface text-body-md truncate">MacBook Pro 15" Battery Pack</span>
+
+</div>
+<div class="col-span-4 pr-3 flex flex-col justify-center">
+<div class="flex items-center gap-1.5 mb-1">
+<span class="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-tertiary-fixed text-on-tertiary-fixed">Containment</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">UN3480 Protocol</span>
+</div>
+<span class="text-on-surface font-body-sm text-body-sm truncate">Further assessment (Swollen Li-ion Cell)</span>
+</div>
+<div class="col-span-2 flex flex-col">
+<span class="text-on-surface font-body-md text-body-md">Oct 23, 2024</span>
+
+</div>
+<div class="col-span-1 flex justify-end">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-label-sm font-label-sm uppercase tracking-wide bg-secondary-container/60 text-on-secondary-container" style="background-color: rgb(220, 252, 231); color: rgb(21, 128, 61); font-weight: 600;">
+              Turned over
+            </span>
+</div>
+</div>
+<!-- Table Row R5 -->
+<div class="record-row grid grid-cols-12 px-4 py-2.5 hover:bg-surface-container-low/50 transition-colors items-center group border-b border-outline-variant/30">
+<div class="col-span-2 flex items-center gap-2">
+<span class="font-semibold text-primary text-body-md font-mono tracking-tight group-hover:underline cursor-pointer">#DR-9814</span>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5 text-primary flex-shrink-0"><path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 00-7.5 0v3h7.5z" clip-rule="evenodd"></path></svg>
+</div>
+<div class="col-span-3 flex flex-col min-w-0 pr-2">
+<span class="font-semibold text-on-surface text-body-md truncate">Zebra TC52x Handheld Scanner</span>
+
+</div>
+<div class="col-span-4 pr-3 flex flex-col justify-center">
+<div class="flex items-center gap-1.5 mb-1">
+<span class="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-surface-container-high text-on-surface-variant">Polymer Shred</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">Zero Landfill</span>
+</div>
+<span class="text-on-surface font-body-sm text-body-sm truncate">Further assessment (Plastic Shredding)</span>
+</div>
+<div class="col-span-2 flex flex-col">
+<span class="text-on-surface font-body-md text-body-md">Oct 22, 2024</span>
+
+</div>
+<div class="col-span-1 flex justify-end">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-label-sm font-label-sm uppercase tracking-wide bg-secondary-container/60 text-on-secondary-container" style="background-color: rgb(220, 252, 231); color: rgb(21, 128, 61); font-weight: 600;">
+              Turned over
+            </span>
+</div>
+</div><div class="record-row grid grid-cols-12 px-4 py-2.5 hover:bg-surface-container-low/50 transition-colors items-center group border-b border-outline-variant/30"><div class="col-span-2 flex items-center gap-2"><span class="font-semibold text-primary text-body-md font-mono tracking-tight group-hover:underline cursor-pointer">#DR-9807</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5 text-primary flex-shrink-0"><path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 00-7.5 0v3h7.5z" clip-rule="evenodd"></path></svg></div><div class="col-span-3 flex flex-col min-w-0 pr-2"><span class="font-semibold text-on-surface text-body-md truncate">HP LaserJet Enterprise M608</span></div><div class="col-span-4 pr-3 flex flex-col justify-center"><div class="flex items-center gap-1.5 mb-1"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-surface-container-high text-on-surface-variant">Salvage Components</span></div><span class="text-on-surface font-body-sm text-body-sm truncate">Further assessment (Fuser unit &amp; board recycling)</span></div><div class="col-span-2 flex flex-col"><span class="text-on-surface font-body-md text-body-md">Oct 21, 2024</span></div><div class="col-span-1 flex justify-end"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-label-sm font-label-sm uppercase tracking-wide bg-secondary-container/60 text-on-secondary-container" style="background-color: rgb(220, 252, 231); color: rgb(21, 128, 61); font-weight: 600;">Turned over</span></div></div>
+<!-- Table Footer: Chain of Custody & Paginated Summary -->
+<div class="flex items-center justify-between px-space-lg py-3 bg-surface-container-low text-on-surface-variant font-body-sm text-body-sm"><div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-primary flex-shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg><span>All 5 batch manifests cryptographically signed and turned over to certified downstream smelters.</span></div><div class="flex items-center gap-3"><span>Showing 1-6 of 142 total turned over</span><div class="flex items-center gap-1"><button class="w-7 h-7 rounded bg-surface-container-lowest flex items-center justify-center hover:bg-surface-container shadow-xs text-on-surface" title="Previous page"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polyline points="15 18 9 12 15 6"></polyline></svg></button><button class="w-7 h-7 rounded bg-surface-container-lowest flex items-center justify-center hover:bg-surface-container shadow-xs text-on-surface" title="Next page"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polyline points="9 18 15 12 9 6"></polyline></svg></button></div></div></div>
+</div>
+<!-- Quick Facility Logistics Note -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md"><div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex items-center gap-3"><div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg></div><div class="flex flex-col"><span class="font-semibold text-on-surface text-body-md">Next Courier Haul</span><span class="text-on-surface-variant font-body-sm text-body-sm">Tomorrow, 08:30 AM (Umicore)</span></div></div><div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex items-center gap-3"><div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-secondary"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg></div><div class="flex flex-col"><span class="font-semibold text-on-surface text-body-md">Buffer Zone Load</span><span class="text-on-surface-variant font-body-sm text-body-sm">480 kg / 2,000 kg (24%)</span></div></div><div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex items-center gap-3"><div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-tertiary-container"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div><div class="flex flex-col"><span class="font-semibold text-on-surface text-body-md">R2v3 / e-Stewards</span><span class="text-on-surface-variant font-body-sm text-body-sm">Certified downstream chain</span></div></div></div>
+</div>
+<!-- Right Secondary Panel: Records & Disposal Summary (4 cols on desktop) -->
+<div class="xl:col-span-4 flex flex-col gap-space-md">
+<!-- Records Explainer Card (faithfully matching wireframe right header) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex flex-col gap-1 pb-space-sm border-b border-surface-container">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-md text-headline-md font-semibold text-on-surface tracking-tight">Records</h2>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-surface-container text-on-surface-variant">Auto-Pipeline</span>
+</div>
+<p class="text-on-surface-variant font-body-md text-body-md">
+            Created automatically when an item is marked for disposal.
+          </p>
+</div>
+<!-- Disposal Summary By E-Waste Type Container -->
+<div class="flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg font-semibold text-on-surface uppercase tracking-wider">Disposal summary by e-waste type</span>
+<span class="text-primary font-label-md text-label-md font-semibold">Q4 Fiscal Target</span>
+</div>
+<!-- Circular Metric & High-Level Diverted Tonnage -->
+<div class="bg-surface-container-low p-space-md rounded-xl flex items-center justify-between gap-space-md">
+<div class="flex flex-col">
+<span class="text-on-surface-variant font-label-sm text-label-sm uppercase">Total Diverted to Smelters</span>
+<span class="font-headline-xl text-headline-xl text-on-surface tracking-tight font-extrabold" style="font-weight: 800;">18.4 <span class="text-headline-md font-bold text-primary" style="color: rgb(22, 163, 74);">Tons</span></span>
+<span class="text-on-surface-variant font-body-sm text-body-sm mt-0.5 flex items-center gap-1">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 text-primary"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+<span>+12.4% vs last billing cycle</span>
+</span>
+</div>
+<!-- Donut Visual SVG -->
+<div class="relative w-20 h-20 flex-shrink-0 flex items-center justify-center">
+<svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+<!-- Background Ring -->
+<circle class="text-surface-container-highest" cx="18" cy="18" fill="none" r="15.5" stroke="currentColor" stroke-width="3"></circle>
+<!-- Segment 1: Precious Metals (42%) -->
+<circle class="text-primary" cx="18" cy="18" fill="none" r="15.5" stroke="currentColor" stroke-dasharray="42 100" stroke-linecap="round" stroke-width="3" style="stroke: rgb(22, 163, 74);"></circle>
+<!-- Segment 2: Li-Ion Hazmat (28%) -->
+<circle class="text-tertiary-container" cx="18" cy="18" fill="none" r="15.5" stroke="currentColor" stroke-dasharray="28 100" stroke-dashoffset="-42" stroke-linecap="round" stroke-width="3"></circle>
+<!-- Segment 3: Mechanical (20%) -->
+<circle class="text-secondary" cx="18" cy="18" fill="none" r="15.5" stroke="currentColor" stroke-dasharray="20 100" stroke-dashoffset="-70" stroke-linecap="round" stroke-width="3"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-[12px] font-bold text-on-surface font-mono">100%</span>
+<span class="text-[8px] uppercase tracking-tighter text-on-surface-variant">Tracked</span>
+</div>
+</div>
+</div>
+<!-- Category Breakdown Bars -->
+<div class="flex flex-col gap-space-sm pt-1">
+<!-- Category 1 -->
+<div class="flex flex-col gap-1 p-2.5 rounded-lg bg-surface hover:bg-surface-container-low transition-colors">
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-sm bg-primary" style="background-color: rgb(22, 163, 74);"></span>
+<span class="font-semibold text-on-surface">Precious Metals Smelting</span>
+</div>
+<span class="font-mono font-semibold text-on-surface">7.73 Tons (42%)</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 42%; background-color: rgb(22, 163, 74);"></div>
+</div>
+<div class="flex justify-between text-[11px] text-on-surface-variant">
+<span>Au, Ag, Pd Recovery</span>
+<span>Umicore Hoboken Ref.</span>
+</div>
+</div>
+<!-- Category 2 -->
+<div class="flex flex-col gap-1 p-2.5 rounded-lg bg-surface hover:bg-surface-container-low transition-colors">
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-sm bg-tertiary-container"></span>
+<span class="font-semibold text-on-surface">Battery Hazardous Containment</span>
+</div>
+<span class="font-mono font-semibold text-on-surface">5.15 Tons (28%)</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-tertiary-container h-full rounded-full" style="width: 28%;"></div>
+</div>
+<div class="flex justify-between text-[11px] text-on-surface-variant">
+<span>Lithium / Cobalt Isolation</span>
+<span>Redux Closed-Loop</span>
+</div>
+</div>
+<!-- Category 3 -->
+<div class="flex flex-col gap-1 p-2.5 rounded-lg bg-surface hover:bg-surface-container-low transition-colors">
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-sm bg-secondary"></span>
+<span class="font-semibold text-on-surface">Mechanical Shredding</span>
+</div>
+<span class="font-mono font-semibold text-on-surface">3.68 Tons (20%)</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 20%;"></div>
+</div>
+<div class="flex justify-between text-[11px] text-on-surface-variant">
+<span>Aluminum &amp; Steel Separators</span>
+<span>Sims Lifecycle Yard</span>
+</div>
+</div>
+<!-- Category 4 -->
+<div class="flex flex-col gap-1 p-2.5 rounded-lg bg-surface hover:bg-surface-container-low transition-colors">
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-sm bg-outline"></span>
+<span class="font-semibold text-on-surface">PCB Hydrometallurgy</span>
+</div>
+<span class="font-mono font-semibold text-on-surface">1.84 Tons (10%)</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-outline h-full rounded-full" style="width: 10%;"></div>
+</div>
+<div class="flex justify-between text-[11px] text-on-surface-variant">
+<span>Copper Leaching Bath</span>
+<span>Certified Smelter 04</span>
+</div>
+</div>
+</div>
+<!-- Bottom Audit Compliance Badge -->
+<div class="mt-2 p-space-md rounded-xl bg-surface-container border border-surface-container-highest flex items-start gap-3">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-[22px] h-[22px] text-primary flex-shrink-0"><path fill-rule="evenodd" d="M5.166 2.621v.858c-1.035.148-2.059.33-3.071.543a.75.75 0 00-.584.859 6.753 6.753 0 006.138 5.6 6.73 6.73 0 002.743 1.346A6.707 6.707 0 019.25 15v.75a3 3 0 003 3h.5a3 3 0 003-3V15a6.709 6.709 0 01-1.142-3.176 6.733 6.733 0 002.743-1.346 6.753 6.753 0 006.139-5.6.75.75 0 00-.585-.858 47.077 47.077 0 00-3.07-.543V2.62a.75.75 0 00-.658-.744 49.22 49.22 0 00-6.093-.377c-2.063 0-4.096.128-6.093.377a.75.75 0 00-.657.744zm0 2.629c1.663-.187 3.35-.302 5.059-.34V8.5a5.25 5.25 0 01-5.059-3.25zm13.668 0a5.25 5.25 0 01-5.059 3.25V4.91c1.709.038 3.396.153 5.059.34z" clip-rule="evenodd"></path></svg>
+<div class="flex flex-col gap-1">
+<span class="font-semibold text-on-surface text-body-md">Hazmat Manifests Certified 100%</span>
+<p class="text-on-surface-variant font-body-sm text-body-sm">
+                Every turned-over manifest is signed by certified hazmat handlers. Tamper-evident immutable ledger recorded for audit year 2024.
+              </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Live Stream Micro Feed of Destruction Certifications -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-3"><div class="flex items-center justify-between"><span class="font-label-md text-label-md text-on-surface uppercase tracking-wider font-semibold">Recent Certificates</span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-primary"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg></div><div class="flex flex-col gap-2"><div class="flex items-center justify-between p-2 rounded-lg bg-surface-container-low text-body-sm font-body-sm"><div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-primary"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" x2="8" y1="13" y2="13"></line><line x1="16" x2="8" y1="17" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg><span class="font-mono font-semibold text-on-surface">CERT-2024-8841</span></div><span class="text-on-surface-variant font-mono">0.42 t · Oct 24</span></div><div class="flex items-center justify-between p-2 rounded-lg bg-surface-container-low text-body-sm font-body-sm"><div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-primary"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" x2="8" y1="13" y2="13"></line><line x1="16" x2="8" y1="17" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg><span class="font-mono font-semibold text-on-surface">CERT-2024-8837</span></div><span class="text-on-surface-variant font-mono">1.10 t · Oct 23</span></div></div></div>
+</div>
+</div>
+</div>
+<script>
+  // Simple client-side search simulation for filtering rows
+  const searchInput = document.getElementById('record-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase().trim();
+      const rows = document.querySelectorAll('.record-row');
+      rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        if (text.includes(query)) {
+          row.style.display = 'grid';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+  }
+</script></main></div>
+
+
+
+
+
+
+</body></html>

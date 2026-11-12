@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<style>
+  @layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}
+  ::-webkit-scrollbar{display:none;}
+  body, button, input, select, textarea { font-family: 'Rethink Sans', sans-serif; }
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined' !important;
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'liga';
+  }
+</style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "on-secondary-fixed": "#00201d",
+          "error": "#ba1a1a",
+          "on-primary-container": "#8bd6b7",
+          "primary-container": "#065f46",
+          "on-tertiary-fixed": "#2f1500",
+          "background": "#f8f9ff",
+          "on-background": "#0b1c30",
+          "on-surface": "#0b1c30",
+          "surface-tint": "#1b6b51",
+          "tertiary-container": "#804300",
+          "secondary": "#006a61",
+          "surface-bright": "#f8f9ff",
+          "primary": "#004532",
+          "surface-variant": "#d3e4fe",
+          "surface-dim": "#cbdbf5",
+          "surface-container": "#e5eeff",
+          "secondary-container": "#86f2e4",
+          "on-primary-fixed-variant": "#00513b",
+          "tertiary-fixed": "#ffdcc3",
+          "on-error": "#ffffff",
+          "on-secondary-container": "#006f66",
+          "on-secondary": "#ffffff",
+          "surface-container-highest": "#d3e4fe",
+          "surface-container-high": "#dce9ff",
+          "inverse-primary": "#8bd6b6",
+          "secondary-fixed-dim": "#6bd8cb",
+          "on-primary": "#ffffff",
+          "tertiary-fixed-dim": "#ffb77d",
+          "tertiary": "#5e3000",
+          "primary-fixed": "#a6f2d1",
+          "surface-container-lowest": "#ffffff",
+          "primary-fixed-dim": "#8bd6b6",
+          "on-surface-variant": "#3f4944",
+          "on-tertiary-container": "#ffb87e",
+          "surface": "#f8f9ff",
+          "inverse-on-surface": "#eaf1ff",
+          "on-tertiary-fixed-variant": "#6e3900",
+          "outline": "#6f7973",
+          "error-container": "#ffdad6",
+          "surface-container-low": "#eff4ff",
+          "on-error-container": "#93000a",
+          "on-primary-fixed": "#002116",
+          "inverse-surface": "#213145",
+          "on-tertiary": "#ffffff",
+          "secondary-fixed": "#89f5e7",
+          "outline-variant": "#bec9c2",
+          "on-secondary-fixed-variant": "#005049"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "gutter": "1rem",
+          "gutter-desktop": "1.5rem",
+          "margin": "1rem",
+          "margin-desktop": "2rem",
+          "space-xl": "2rem",
+          "space-xs": "0.25rem",
+          "space-md": "0.75rem",
+          "space-sm": "0.5rem",
+          "space-lg": "1.25rem"
+        },
+        "fontFamily": {
+          "headline-xl": [
+            "Inter"
+          ],
+          "label-md": [
+            "Inter"
+          ],
+          "body-md": [
+            "Inter"
+          ],
+          "label-lg": [
+            "Inter"
+          ],
+          "headline-md": [
+            "Inter"
+          ],
+          "body-lg": [
+            "Inter"
+          ],
+          "body-sm": [
+            "Inter"
+          ],
+          "headline-xl-mobile": [
+            "Inter"
+          ],
+          "label-sm": [
+            "Inter"
+          ],
+          "headline-lg-mobile": [
+            "Inter"
+          ],
+          "headline-lg": [
+            "Inter"
+          ]
+        },
+        "fontSize": {
+          "headline-xl": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "700"
+            }
+          ],
+          "label-md": [
+            "11px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.03em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-md": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-lg": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "letterSpacing": "0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-md": [
+            "18px",
+            {
+              "lineHeight": "24px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-lg": [
+            "15px",
+            {
+              "lineHeight": "22px",
+              "fontWeight": "400"
+            }
+          ],
+          "body-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "400"
+            }
+          ],
+          "headline-xl-mobile": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.015em",
+              "fontWeight": "700"
+            }
+          ],
+          "label-sm": [
+            "10px",
+            {
+              "lineHeight": "12px",
+              "letterSpacing": "0.05em",
+              "fontWeight": "700"
+            }
+          ],
+          "headline-lg-mobile": [
+            "20px",
+            {
+              "lineHeight": "28px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-lg": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.015em",
+              "fontWeight": "600"
+            }
+          ]
+        }
+      },
+    },
+  }</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest border-r border-outline-variant/30 z-50 flex flex-col justify-between py-6 px-4 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col gap-6"><div class="px-3 flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-primary text-[20px]">recycling</span></div><span class="font-headline-md text-headline-md font-bold tracking-tight text-on-surface">EcoByte Admin</span></div><nav class="flex flex-col gap-1.5"><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[20px] shrink-0">grid_view</span><span>Dashboard</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="to-inspect" href="#"><span class="material-symbols-outlined text-[20px] shrink-0">fact_check</span><span>To inspect</span></a><a aria-current="page" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all bg-primary text-on-primary font-semibold shadow-sm" data-path="reuse-hub" href="#"><span class="material-symbols-outlined text-[20px] shrink-0 text-on-primary">inventory_2</span><span>Reuse Hub</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="disposal" href="#"><span class="material-symbols-outlined text-[20px] shrink-0">delete_sweep</span><span>Disposal</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="access" href="#"><span class="material-symbols-outlined text-[20px] shrink-0">admin_panel_settings</span><span>Access</span></a></nav></div><div class="pt-4 border-t border-outline-variant/30 px-1"><a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="login" href="#"><span class="material-symbols-outlined text-[20px] shrink-0">logout</span><span>Log out</span></a></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 z-40 flex items-center justify-end px-gutter-desktop shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-3"><div class="inline-flex items-center px-3 py-1 rounded-full border border-outline-variant/60 bg-surface-container-lowest font-label-sm text-label-sm text-on-surface uppercase tracking-wider font-semibold shadow-sm">Admin</div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative w-full pt-16 bg-surface min-h-screen px-gutter-desktop py-gutter-desktop max-w-[1600px] mx-auto"><div class="flex flex-col w-full">
+<!-- Top Context Header Area -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-space-lg">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-primary font-bold">Circulation Engine</span>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Auto-Synced System</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight font-bold" style="font-weight: 800;">Reuse Hub listings</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Live resident exchange portal status, auto-updated via QR station check-ins.</p>
+</div>
+<!-- Quick Telemetry & Filter Tools -->
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2 bg-surface-container-lowest px-3 py-1.5 rounded-lg shadow-sm">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+<span class="font-label-md text-label-md text-on-surface font-medium">Node: Central-Depot-01</span>
+</div>
+<button class="flex items-center gap-1.5 bg-surface-container hover:bg-surface-container-high transition-colors px-3 py-1.5 rounded-lg text-on-surface font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+        Export Ledger
+      </button>
+</div>
+</div>
+<!-- Main Grid Layout (Left Content: Table / Listings, Right Content: Listing Summary) -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+<!-- LEFT PANEL: Filtered Listings (xl:col-span-8) -->
+<div class="xl:col-span-8 flex flex-col bg-surface-container-lowest rounded-xl shadow-sm p-space-md md:p-space-lg">
+<!-- Filter and Control Bar -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-space-md mb-space-md">
+<!-- Status Tabs -->
+<div class="flex items-center gap-1.5 bg-surface-container-low p-1 rounded-lg">
+<button class="category-tab px-3 py-1 rounded font-label-md text-label-md font-semibold transition-all bg-primary-container text-on-primary shadow-sm" id="tab-all" onclick="filterCategory('all')">
+            All Listings <span class="ml-1 opacity-80">(6)</span>
+</button>
+<button class="category-tab px-3 py-1 rounded font-label-md text-label-md font-semibold transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container" id="tab-available" onclick="filterCategory('Available')">
+            Available <span class="ml-1 opacity-70">(2)</span>
+</button>
+<button class="category-tab px-3 py-1 rounded font-label-md text-label-md font-semibold transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container" id="tab-reserved" onclick="filterCategory('Reserved')">
+            Reserved <span class="ml-1 opacity-70">(2)</span>
+</button>
+<button class="category-tab px-3 py-1 rounded font-label-md text-label-md font-semibold transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container" id="tab-claimed" onclick="filterCategory('Claimed')">
+            Claimed <span class="ml-1 opacity-70">(2)</span>
+</button>
+</div>
+<!-- Search input -->
+<div class="relative w-full md:w-64">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant pointer-events-none">search</span>
+<input class="w-full bg-surface-container-low pl-9 pr-3 py-1.5 rounded-lg font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/60 focus:bg-surface-container-lowest focus:outline-none focus:ring-1 focus:ring-primary-container transition-all" id="searchInput" onkeyup="searchListings()" placeholder="Search serial, brand, SKU..." type="text"/>
+</div>
+</div>
+<!-- Listings Table / Card Row Stream -->
+<div class="overflow-x-auto">
+<table class="w-full text-left" id="listingsTable">
+<thead>
+<tr class="bg-surface-container-low/70">
+<th class="py-2.5 px-4 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-bold rounded-l-lg">Item</th>
+<th class="py-2.5 px-4 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-bold">Drop-off</th>
+<th class="py-2.5 px-4 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-bold">Status</th>
+<th class="py-2.5 px-4 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-bold rounded-r-lg">Pick-up date</th>
+</tr>
+</thead>
+<tbody class="divide-y-0 space-y-1" id="listingRows">
+<!-- Row 1: Dell Latitude -->
+<tr class="listing-item group transition-colors hover:bg-surface-container-low/50" data-status="Available" data-title="Dell Latitude 5420 i7 16GB">
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center shrink-0 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">laptop_mac</span>
+</div>
+<div class="min-w-0">
+<div class="font-headline-md text-headline-md text-on-surface font-semibold truncate leading-tight">Dell Latitude 5420</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5">
+<span>SN-LAT-94022</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>Grade A</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-body-md text-body-md text-on-surface font-medium">Central Depot</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Oct 18, 2024</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-secondary-container/40 text-on-secondary-container font-label-sm text-label-sm uppercase tracking-wide font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                  Available
+                </span>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-on-surface-variant">
+                —
+              </td>
+</tr>
+<!-- Row 2: Apple iPad Air -->
+<tr class="listing-item group transition-colors hover:bg-surface-container-low/50" data-status="Reserved" data-title="Apple iPad Air 4th Gen 64GB">
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center shrink-0 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">tablet</span>
+</div>
+<div class="min-w-0">
+<div class="font-headline-md text-headline-md text-on-surface font-semibold truncate leading-tight">Apple iPad Air (4th Gen)</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5">
+<span>SN-IPA-1048</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>Sky Blue / 64GB</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-body-md text-body-md text-on-surface font-medium">North Locker</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Oct 16, 2024</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-tertiary-fixed text-tertiary font-label-sm text-label-sm uppercase tracking-wide font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span>
+                  Reserved
+                </span>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-body-md text-body-md text-tertiary font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">schedule</span>
+                  Today, 16:30
+                </div>
+</td>
+</tr>
+<!-- Row 3: LG 27UK850 Monitor -->
+<tr class="listing-item group transition-colors hover:bg-surface-container-low/50" data-status="Claimed" data-title="LG 27UK850-W 4K Monitor IPS">
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center shrink-0 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">monitor</span>
+</div>
+<div class="min-w-0">
+<div class="font-headline-md text-headline-md text-on-surface font-semibold truncate leading-tight">LG 27UK850-W 4K Monitor</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5">
+<span>SN-LG-88319</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>USB-C / HDR400</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-body-md text-body-md text-on-surface font-medium">Depot Bay A</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Oct 12, 2024</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wide font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                  Claimed
+                </span>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-on-surface font-medium">
+                Oct 22, 2024
+              </td>
+</tr>
+<!-- Row 4: Lenovo ThinkPad T14 -->
+<tr class="listing-item group transition-colors hover:bg-surface-container-low/50" data-status="Reserved" data-title="Lenovo ThinkPad T14 Gen 2 Ryzen 7">
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center shrink-0 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">laptop_chromebook</span>
+</div>
+<div class="min-w-0">
+<div class="font-headline-md text-headline-md text-on-surface font-semibold truncate leading-tight">Lenovo ThinkPad T14 Gen 2</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5">
+<span>SN-THK-5541</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>Battery Health 91%</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-body-md text-body-md text-on-surface font-medium">Central Depot</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Oct 17, 2024</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-tertiary-fixed text-tertiary font-label-sm text-label-sm uppercase tracking-wide font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span>
+                  Reserved
+                </span>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-body-md text-body-md text-tertiary font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">event</span>
+                  Tomorrow, 10:00
+                </div>
+</td>
+</tr>
+<!-- Row 5: Samsung Galaxy Tab S7 -->
+<tr class="listing-item group transition-colors hover:bg-surface-container-low/50" data-status="Available" data-title="Samsung Galaxy Tab S7 128GB">
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center shrink-0 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">tablet_android</span>
+</div>
+<div class="min-w-0">
+<div class="font-headline-md text-headline-md text-on-surface font-semibold truncate leading-tight">Samsung Galaxy Tab S7</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5">
+<span>SN-GLX-3310</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>S-Pen Included</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-body-md text-body-md text-on-surface font-medium">Depot Cabinet B</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Oct 21, 2024</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-secondary-container/40 text-on-secondary-container font-label-sm text-label-sm uppercase tracking-wide font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                  Available
+                </span>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-on-surface-variant">
+                —
+              </td>
+</tr>
+<!-- Row 6: Apple MacBook Pro 13 M1 -->
+<tr class="listing-item group transition-colors hover:bg-surface-container-low/50" data-status="Claimed" data-title="Apple MacBook Pro 13 M1 Space Gray">
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center shrink-0 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">devices</span>
+</div>
+<div class="min-w-0">
+<div class="font-headline-md text-headline-md text-on-surface font-semibold truncate leading-tight">Apple MacBook Pro 13" M1</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5 mt-0.5">
+<span>SN-MBP-7729</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>Cycle Count: 142</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<div class="font-body-md text-body-md text-on-surface font-medium">Depot Bay C</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Oct 09, 2024</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wide font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                  Claimed
+                </span>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-on-surface font-medium">
+                Oct 18, 2024
+              </td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination / Registry Status -->
+<div class="flex items-center justify-between pt-space-lg mt-auto text-on-surface-variant">
+<span class="font-body-sm text-body-sm">Displaying 6 of 9,434 total community cycle listings</span>
+<div class="flex items-center gap-2">
+<button class="w-8 h-8 rounded-lg bg-surface-container-low hover:bg-surface-container flex items-center justify-center text-on-surface transition-colors disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</button>
+<span class="font-label-md text-label-md px-2 font-bold text-on-surface">Page 1</span>
+<button class="w-8 h-8 rounded-lg bg-surface-container-low hover:bg-surface-container flex items-center justify-center text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- RIGHT PANEL: Listing Summary (xl:col-span-4) -->
+<div class="xl:col-span-4 flex flex-col bg-surface-container-lowest rounded-xl shadow-sm p-space-md md:p-space-lg">
+<!-- Panel Header -->
+<div class="flex items-center justify-between pb-space-md mb-space-md">
+<div>
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface" style="font-weight: 700;">Listing summary</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Circulation inventory &amp; turnover metrics</p>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">query_stats</span>
+</div>
+</div>
+<!-- 2x2 Metric Count Cards -->
+<div class="grid grid-cols-2 gap-space-md mb-space-lg">
+<!-- Metric 1: Available -->
+<div class="bg-surface-container-low rounded-xl p-space-md hover:bg-surface-container/70 transition-all flex flex-col justify-between">
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase font-semibold">Available</span>
+<div class="w-2 h-2 rounded-full bg-primary-container"></div>
+</div>
+<div class="font-headline-xl text-headline-xl text-primary font-bold tracking-tight" style="font-weight: 800;">412</div>
+<div class="flex items-center gap-1 mt-2 text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px] text-primary">arrow_upward</span>
+<span>+18 today</span>
+</div>
+</div>
+<!-- Metric 2: Reserved -->
+<div class="bg-surface-container-low rounded-xl p-space-md hover:bg-surface-container/70 transition-all flex flex-col justify-between">
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase font-semibold">Reserved</span>
+<div class="w-2 h-2 rounded-full bg-tertiary-container"></div>
+</div>
+<div class="font-headline-xl text-headline-xl text-tertiary-container font-bold tracking-tight" style="font-weight: 800;">189</div>
+<div class="flex items-center gap-1 mt-2 text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px] text-tertiary">hourglass_top</span>
+<span>Pickup window &lt; 24h</span>
+</div>
+</div>
+<!-- Metric 3: Claimed -->
+<div class="bg-surface-container-low rounded-xl p-space-md hover:bg-surface-container/70 transition-all flex flex-col justify-between">
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase font-semibold">Claimed</span>
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+</div>
+<div class="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight" style="font-weight: 800;">8,819</div>
+<div class="flex items-center gap-1 mt-2 text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px] text-secondary">verified</span>
+<span>98.4% success</span>
+</div>
+</div>
+<!-- Metric 4: Expired -->
+<div class="bg-surface-container-low rounded-xl p-space-md hover:bg-surface-container/70 transition-all flex flex-col justify-between">
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase font-semibold">Expired</span>
+<div class="w-2 h-2 rounded-full bg-error"></div>
+</div>
+<div class="font-headline-xl text-headline-xl text-error font-bold tracking-tight" style="font-weight: 800;">14</div>
+<div class="flex items-center gap-1 mt-2 text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px] text-error">restart_alt</span>
+<span>Restocked to pool</span>
+</div>
+</div>
+</div>
+<!-- Live Flow Visualizer (Inline SVG Chart) -->
+<div class="bg-surface-container-low rounded-xl p-space-md mb-space-lg flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase font-bold text-on-surface-variant">Locker Occupancy &amp; Circulation</span>
+<span class="font-label-sm text-label-sm font-semibold text-secondary">86% Efficiency</span>
+</div>
+<!-- Compact SVG Sparkline Bar Visualization -->
+<svg class="w-full h-12" fill="none" preserveaspectratio="none" viewbox="0 0 280 40">
+<!-- Baseline background track -->
+<rect fill="#e5eeff" height="6" rx="3" width="280" x="0" y="24"></rect>
+<!-- Available segment -->
+<rect fill="#065f46" height="6" rx="3" width="115" x="0" y="24"></rect>
+<!-- Reserved segment -->
+<rect fill="#804300" height="6" rx="3" width="55" x="119" y="24"></rect>
+<!-- Claimed segment -->
+<rect fill="#006a61" height="6" rx="3" width="98" x="178" y="24"></rect>
+<!-- Data trend dots -->
+<circle cx="20" cy="12" fill="#065f46" r="3"></circle>
+<circle cx="80" cy="8" fill="#065f46" r="3"></circle>
+<circle cx="140" cy="14" fill="#804300" r="3"></circle>
+<circle cx="210" cy="6" fill="#006a61" r="3"></circle>
+<circle cx="265" cy="10" fill="#006a61" r="3"></circle>
+<path d="M 20 12 Q 50 4 80 8 T 140 14 T 210 6 T 265 10" fill="none" stroke="#bec9c2" stroke-dasharray="2 2" stroke-width="1.5"></path>
+</svg>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm pt-1">
+<div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-primary-container"></span> Avail (412)</div>
+<div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-tertiary-container"></span> Res (189)</div>
+<div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-secondary"></span> Claimed</div>
+</div>
+</div>
+<!-- Wireframe Bottom Status Callout: 'Automatic: no admin action needed here' -->
+<div class="mt-auto bg-surface-container-low rounded-xl p-space-md flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center shrink-0 text-primary">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+</div>
+<div>
+<div class="font-label-lg text-label-lg font-semibold text-on-surface">Automatic: no admin action needed here</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-tight mt-0.5">Hardware lockers self-unlock upon NFC verification. All item states and reservations mutate programmatically.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Interactive JavaScript logic for filtering & search -->
+<script>
+    let activeCategory = 'all';
+
+    function filterCategory(category) {
+      activeCategory = category;
+      
+      // Update Tab Styles
+      const tabs = {
+        'all': document.getElementById('tab-all'),
+        'Available': document.getElementById('tab-available'),
+        'Reserved': document.getElementById('tab-reserved'),
+        'Claimed': document.getElementById('tab-claimed')
+      };
+
+      Object.keys(tabs).forEach(k => {
+        const tab = tabs[k];
+        if (k === category) {
+          tab.className = 'category-tab px-3 py-1 rounded font-label-md text-label-md font-semibold transition-all bg-primary-container text-on-primary shadow-sm';
+        } else {
+          tab.className = 'category-tab px-3 py-1 rounded font-label-md text-label-md font-semibold transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container';
+        }
+      });
+
+      applyFilters();
+    }
+
+    function searchListings() {
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const query = (document.getElementById('searchInput').value || '').toLowerCase();
+      const rows = document.querySelectorAll('.listing-item');
+
+      rows.forEach(row => {
+        const rowStatus = row.getAttribute('data-status');
+        const rowTitle = (row.getAttribute('data-title') || '').toLowerCase();
+
+        const matchesCategory = (activeCategory === 'all' || rowStatus === activeCategory);
+        const matchesQuery = rowTitle.includes(query);
+
+        if (matchesCategory && matchesQuery) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</div></main></div>
+</body></html>

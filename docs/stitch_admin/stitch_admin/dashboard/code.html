@@ -1,0 +1,520 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_dashboard" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "on-secondary-fixed": "#00201d",
+          "error": "#ba1a1a",
+          "on-primary-container": "#8bd6b7",
+          "primary-container": "#065f46",
+          "on-tertiary-fixed": "#2f1500",
+          "background": "#f8f9ff",
+          "on-background": "#0b1c30",
+          "on-surface": "#0b1c30",
+          "surface-tint": "#1b6b51",
+          "tertiary-container": "#804300",
+          "secondary": "#006a61",
+          "surface-bright": "#f8f9ff",
+          "primary": "#004532",
+          "surface-variant": "#d3e4fe",
+          "surface-dim": "#cbdbf5",
+          "surface-container": "#e5eeff",
+          "secondary-container": "#86f2e4",
+          "on-primary-fixed-variant": "#00513b",
+          "tertiary-fixed": "#ffdcc3",
+          "on-error": "#ffffff",
+          "on-secondary-container": "#006f66",
+          "on-secondary": "#ffffff",
+          "surface-container-highest": "#d3e4fe",
+          "surface-container-high": "#dce9ff",
+          "inverse-primary": "#8bd6b6",
+          "secondary-fixed-dim": "#6bd8cb",
+          "on-primary": "#ffffff",
+          "tertiary-fixed-dim": "#ffb77d",
+          "tertiary": "#5e3000",
+          "primary-fixed": "#a6f2d1",
+          "surface-container-lowest": "#ffffff",
+          "primary-fixed-dim": "#8bd6b6",
+          "on-surface-variant": "#3f4944",
+          "on-tertiary-container": "#ffb87e",
+          "surface": "#f8f9ff",
+          "inverse-on-surface": "#eaf1ff",
+          "on-tertiary-fixed-variant": "#6e3900",
+          "outline": "#6f7973",
+          "error-container": "#ffdad6",
+          "surface-container-low": "#eff4ff",
+          "on-error-container": "#93000a",
+          "on-primary-fixed": "#002116",
+          "inverse-surface": "#213145",
+          "on-tertiary": "#ffffff",
+          "secondary-fixed": "#89f5e7",
+          "outline-variant": "#bec9c2",
+          "on-secondary-fixed-variant": "#005049"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "gutter": "1rem",
+          "gutter-desktop": "1.5rem",
+          "margin": "1rem",
+          "margin-desktop": "2rem",
+          "space-xl": "2rem",
+          "space-xs": "0.25rem",
+          "space-md": "0.75rem",
+          "space-sm": "0.5rem",
+          "space-lg": "1.25rem"
+        },
+        "fontFamily": {
+          "headline-xl": [
+            "Inter"
+          ],
+          "label-md": [
+            "Inter"
+          ],
+          "body-md": [
+            "Inter"
+          ],
+          "label-lg": [
+            "Inter"
+          ],
+          "headline-md": [
+            "Inter"
+          ],
+          "body-lg": [
+            "Inter"
+          ],
+          "body-sm": [
+            "Inter"
+          ],
+          "headline-xl-mobile": [
+            "Inter"
+          ],
+          "label-sm": [
+            "Inter"
+          ],
+          "headline-lg-mobile": [
+            "Inter"
+          ],
+          "headline-lg": [
+            "Inter"
+          ]
+        },
+        "fontSize": {
+          "headline-xl": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "700"
+            }
+          ],
+          "label-md": [
+            "11px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.03em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-md": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-lg": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "letterSpacing": "0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-md": [
+            "18px",
+            {
+              "lineHeight": "24px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-lg": [
+            "15px",
+            {
+              "lineHeight": "22px",
+              "fontWeight": "400"
+            }
+          ],
+          "body-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "400"
+            }
+          ],
+          "headline-xl-mobile": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.015em",
+              "fontWeight": "700"
+            }
+          ],
+          "label-sm": [
+            "10px",
+            {
+              "lineHeight": "12px",
+              "letterSpacing": "0.05em",
+              "fontWeight": "700"
+            }
+          ],
+          "headline-lg-mobile": [
+            "20px",
+            {
+              "lineHeight": "28px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-lg": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.015em",
+              "fontWeight": "600"
+            }
+          ]
+        }
+      },
+    },
+  }</script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&amp;display=swap" rel="stylesheet"><style>html, body, [class*="font-"], text { font-family: 'Rethink Sans', sans-serif !important; }</style></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest border-r border-outline-variant/30 z-50 flex flex-col justify-between py-6 px-4 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col gap-6"><div class="px-3 flex items-center gap-3"><div class="w-7 h-7 rounded-lg bg-primary flex items-center justify-center" style="background: linear-gradient(135deg, rgb(34, 197, 94) 0%, rgb(22, 163, 74) 100%);"><span class="material-symbols-outlined text-on-primary text-[16px]">recycling</span></div><span class="font-headline-md text-headline-md font-bold tracking-tight text-on-surface">EcoByte Admin</span></div><nav class="flex flex-col gap-1.5" data-active-classes="bg-primary text-on-primary font-semibold shadow-sm"><a aria-current="page" class="flex items-center gap-3 px-3 py-2 rounded-full transition-colors bg-primary text-on-primary font-semibold shadow-sm" data-path="dashboard" href="#" style="background-color: rgb(22, 163, 74); color: rgb(255, 255, 255); box-shadow: rgba(22, 163, 74, 0.25) 0px 2px 8px;"><span class="material-symbols-outlined text-[18px]">grid_view</span><span>Dashboard</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="to-inspect" href="#"><span class="material-symbols-outlined text-[18px]">fact_check</span><span>To inspect</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="reuse-hub" href="#"><span class="material-symbols-outlined text-[18px]">inventory_2</span><span>Reuse Hub</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="disposal" href="#"><span class="material-symbols-outlined text-[18px]">delete_sweep</span><span>Disposal</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="access" href="#"><span class="material-symbols-outlined text-[18px]">admin_panel_settings</span><span>Access</span></a></nav></div><div class="pt-4 border-t border-outline-variant/30 px-1"><a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="login" href="#"><span class="material-symbols-outlined text-[18px]">logout</span><span>Log out</span></a></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 z-40 flex items-center justify-end px-gutter-desktop shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-3"><div class="inline-flex items-center px-3 py-1 rounded-full border border-outline-variant/60 bg-surface-container-lowest font-label-sm text-label-sm text-on-surface uppercase tracking-wider font-semibold shadow-sm">Admin</div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center" style="background: linear-gradient(135deg, rgb(22, 163, 74) 0%, rgb(34, 197, 94) 100%);"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative w-full pt-16 bg-surface min-h-screen px-gutter-desktop py-gutter-desktop max-w-[1600px] mx-auto"><div class="flex flex-col w-full gap-6">
+<!-- Top Utility & Filter Strip -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="inline-block w-2 h-2 rounded-full bg-primary animate-pulse" style="background-color: rgb(34, 197, 94);"></span>
+<span class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Operational Telemetry</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight font-bold">Dashboard</h1>
+</div>
+<!-- Date Range & Preset Filter Segment -->
+<div class="flex items-center gap-2 bg-surface-container-lowest p-1 rounded-full shadow-sm">
+<div class="inline-flex rounded-full bg-surface-container-low p-0.5" id="rangeToggleGroup">
+<button class="px-3 py-1 rounded-full text-label-sm font-label-sm bg-primary text-on-primary transition-all duration-150 filter-tab" data-range="7d" type="button" style="background-color: rgb(22, 163, 74); color: rgb(255, 255, 255); font-weight: 600;">7 Days</button>
+<button class="px-3 py-1 rounded-full text-label-sm font-label-sm text-on-surface-variant hover:text-on-surface transition-all duration-150 filter-tab" data-range="30d" type="button">30 Days</button>
+<button class="px-3 py-1 rounded-full text-label-sm font-label-sm text-on-surface-variant hover:text-on-surface transition-all duration-150 filter-tab" data-range="q3" type="button">Q3 2024</button>
+<button class="px-3 py-1 rounded-full text-label-sm font-label-sm text-on-surface-variant hover:text-on-surface transition-all duration-150 filter-tab" data-range="custom" type="button">Custom</button>
+</div>
+<div class="h-4 w-px bg-outline-variant/40 mx-0.5"></div>
+<button class="flex items-center gap-1.5 px-3 py-1 rounded-full text-label-sm font-label-sm text-on-surface-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[15px]">file_download</span>
+<span>Export Log</span>
+</button>
+</div>
+</div>
+<!-- 5-Metric Strip -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+<!-- 1: Items collected -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow duration-200">
+<div class="flex items-center justify-between text-on-surface-variant">
+<span class="font-label-md text-label-md uppercase tracking-wider text-outline font-semibold">Items collected</span>
+<div class="w-6 h-6 rounded-md bg-surface-container flex items-center justify-center text-primary" style="background-color: rgb(220, 252, 231); color: rgb(22, 163, 74);">
+<span class="material-symbols-outlined text-[16px]">inventory_2</span>
+</div>
+</div>
+<div class="mt-3 flex items-baseline gap-2">
+<span class="font-headline-xl text-headline-xl font-bold tracking-tight text-on-surface tabular-nums">1,420</span>
+<span class="font-label-sm text-label-sm text-primary flex items-center" style="color: rgb(22, 163, 74); background-color: rgb(220, 252, 231); padding: 2px 6px; border-radius: 9999px; font-weight: 600;">
+<span class="material-symbols-outlined text-[13px]">trending_up</span> +8.4%
+        </span>
+</div>
+<div class="mt-2 text-on-surface-variant text-body-sm font-body-sm flex items-center justify-between">
+<span class="text-[11px] text-outline">Intake run rate</span>
+<span class="text-[11px] font-semibold text-on-surface">47 / day</span>
+</div>
+</div>
+<!-- 2: Awaiting inspection -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow duration-200">
+<div class="flex items-center justify-between text-on-surface-variant">
+<span class="font-label-md text-label-md uppercase tracking-wider text-outline font-semibold">Awaiting inspection</span>
+<div class="w-6 h-6 rounded-md bg-tertiary-fixed/40 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[16px]">hourglass_top</span>
+</div>
+</div>
+<div class="mt-3 flex items-baseline gap-2">
+<span class="font-headline-xl text-headline-xl font-bold tracking-tight text-on-surface tabular-nums">24</span>
+<span class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold bg-tertiary-fixed text-on-tertiary-fixed">Queue Active</span>
+</div>
+<div class="mt-2 text-on-surface-variant text-body-sm font-body-sm flex items-center justify-between">
+<span class="text-[11px] text-outline">Avg. dwell</span>
+<span class="text-[11px] font-semibold text-on-surface">3.8 hrs</span>
+</div>
+</div>
+<!-- 3: Listed in Reuse Hub -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow duration-200">
+<div class="flex items-center justify-between text-on-surface-variant">
+<span class="font-label-md text-label-md uppercase tracking-wider text-outline font-semibold">Listed in Reuse Hub</span>
+<div class="w-6 h-6 rounded-md bg-primary-fixed/50 flex items-center justify-center text-primary-container" style="background-color: rgb(220, 252, 231); color: rgb(21, 128, 61);">
+<span class="material-symbols-outlined text-[16px]">published_with_changes</span>
+</div>
+</div>
+<div class="mt-3 flex items-baseline gap-2">
+<span class="font-headline-xl text-headline-xl font-bold tracking-tight text-primary tabular-nums" style="color: rgb(21, 128, 61);">850</span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold" style="color: rgb(22, 101, 52); background-color: rgb(187, 247, 208); padding: 2px 6px; border-radius: 9999px;">59.8%</span>
+</div>
+<div class="mt-2 text-on-surface-variant text-body-sm font-body-sm flex items-center justify-between">
+<span class="text-[11px] text-outline">Est. recovery</span>
+<span class="text-[11px] font-semibold text-on-surface">$42.8k</span>
+</div>
+</div>
+<!-- 4: Marked for disposal -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow duration-200">
+<div class="flex items-center justify-between text-on-surface-variant">
+<span class="font-label-md text-label-md uppercase tracking-wider text-outline font-semibold">Marked for disposal</span>
+<div class="w-6 h-6 rounded-md bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">delete_sweep</span>
+</div>
+</div>
+<div class="mt-3 flex items-baseline gap-2">
+<span class="font-headline-xl text-headline-xl font-bold tracking-tight text-on-surface tabular-nums">546</span>
+<span class="font-label-sm text-label-sm text-outline">38.4%</span>
+</div>
+<div class="mt-2 text-on-surface-variant text-body-sm font-body-sm flex items-center justify-between">
+<span class="text-[11px] text-outline">Smelt lot batch</span>
+<span class="text-[11px] font-semibold text-on-surface">Batch #18</span>
+</div>
+</div>
+<!-- 5: High health risk -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow duration-200 col-span-2 md:col-span-1">
+<div class="flex items-center justify-between text-on-surface-variant">
+<span class="font-label-md text-label-md uppercase tracking-wider text-error font-semibold">High health risk</span>
+<div class="w-6 h-6 rounded-md bg-error-container flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[16px]">warning</span>
+</div>
+</div>
+<div class="mt-3 flex items-baseline gap-2">
+<span class="font-headline-xl text-headline-xl font-bold tracking-tight text-error tabular-nums">12</span>
+<span class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold bg-error-container text-on-error-container">Hazmat ISO</span>
+</div>
+<div class="mt-2 text-on-surface-variant text-body-sm font-body-sm flex items-center justify-between">
+<span class="text-[11px] text-outline">Sealed containment</span>
+<span class="text-[11px] font-semibold text-error">100% Secure</span>
+</div>
+</div>
+</div>
+<!-- Primary Split Grid (Left: Bar chart / Right: Line chart + Banner) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+<!-- LEFT PANEL: Items by e-waste type (7 cols) -->
+<div class="lg:col-span-7 bg-surface-container-lowest rounded-xl p-5 shadow-sm flex flex-col gap-4">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-outline-variant/20">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface tracking-tight font-bold">Items by e-waste type</h2>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">Categorical distribution across active inspection streams</p>
+</div>
+<div class="flex items-center gap-1.5 bg-surface-container-low p-1 rounded-lg">
+<button class="flex items-center gap-1 px-2.5 py-1 rounded text-label-sm font-label-sm bg-surface-container-lowest text-on-surface shadow-xs transition-all" id="viewBarBtn">
+<span class="material-symbols-outlined text-[14px]">bar_chart</span>
+<span>Chart</span>
+</button>
+<button class="flex items-center gap-1 px-2.5 py-1 rounded text-label-sm font-label-sm text-on-surface-variant hover:text-on-surface transition-all" id="viewTableBtn">
+<span class="material-symbols-outlined text-[14px]">table_rows</span>
+<span>Breakdown</span>
+</button>
+</div>
+</div>
+<!-- Chart View Mode -->
+<div class="flex flex-col gap-3" id="chartContainer">
+<!-- SVG Bar Chart -->
+<div class="relative w-full h-[280px] pt-4">
+<svg class="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 540 230"><!-- Grid lines --><line opacity="0.5" stroke="#e2e8f0" stroke-dasharray="3 3" stroke-width="1" x1="45" x2="520" y1="20" y2="20"></line><line opacity="0.5" stroke="#e2e8f0" stroke-dasharray="3 3" stroke-width="1" x1="45" x2="520" y1="65" y2="65"></line><line opacity="0.5" stroke="#e2e8f0" stroke-dasharray="3 3" stroke-width="1" x1="45" x2="520" y1="110" y2="110"></line><line opacity="0.5" stroke="#e2e8f0" stroke-dasharray="3 3" stroke-width="1" x1="45" x2="520" y1="155" y2="155"></line><line stroke="#cbd5e1" stroke-width="1.2" x1="45" x2="520" y1="200" y2="200"></line><!-- Y-Axis labels --><text fill="#64748b" font-size="9" font-weight="500" text-anchor="end" x="35" y="24">500</text><text fill="#64748b" font-size="9" font-weight="500" text-anchor="end" x="35" y="69">375</text><text fill="#64748b" font-size="9" font-weight="500" text-anchor="end" x="35" y="114">250</text><text fill="#64748b" font-size="9" font-weight="500" text-anchor="end" x="35" y="159">125</text><text fill="#64748b" font-size="9" font-weight="500" text-anchor="end" x="35" y="204">0</text><!-- Bar 1: Laptops & PCs (412) --><g class="cursor-pointer group"><rect class="transition-all duration-200 group-hover:opacity-85" fill="#15803d" height="148" rx="4" width="46" x="65" y="52"></rect><rect fill="#4ade80" height="8" opacity="0.9" rx="2" width="46" x="65" y="52"></rect><text fill="#0f172a" font-size="10" font-weight="700" text-anchor="middle" x="88" y="44">412</text><text fill="#475569" font-size="9" font-weight="600" text-anchor="middle" x="88" y="217">Laptops</text></g><!-- Bar 2: Li-Ion Battery (284) --><g class="cursor-pointer group"><rect class="transition-all duration-200 group-hover:opacity-85" fill="#16a34a" height="102" rx="4" width="46" x="142" y="98"></rect><rect fill="#86efac" height="8" opacity="0.9" rx="2" width="46" x="142" y="98"></rect><text fill="#0f172a" font-size="10" font-weight="700" text-anchor="middle" x="165" y="90">284</text><text fill="#475569" font-size="9" font-weight="600" text-anchor="middle" x="165" y="217">Li-Ion</text></g><!-- Bar 3: Smart Devices (320) --><g class="cursor-pointer group"><rect class="transition-all duration-200 group-hover:opacity-85" fill="#22c55e" height="115" rx="4" width="46" x="220" y="85"></rect><rect fill="#bbf7d0" height="8" opacity="0.9" rx="2" width="46" x="220" y="85"></rect><text fill="#0f172a" font-size="10" font-weight="700" text-anchor="middle" x="243" y="77">320</text><text fill="#475569" font-size="9" font-weight="600" text-anchor="middle" x="243" y="217">Mobile/IoT</text></g><!-- Bar 4: CRT / Displays (185) --><g class="cursor-pointer group"><rect class="transition-all duration-200 group-hover:opacity-85" fill="#15803d" height="67" rx="4" width="46" x="298" y="133"></rect><rect fill="#4ade80" height="6" opacity="0.9" rx="2" width="46" x="298" y="133"></rect><text fill="#0f172a" font-size="10" font-weight="700" text-anchor="middle" x="321" y="125">185</text><text fill="#475569" font-size="9" font-weight="600" text-anchor="middle" x="321" y="217">Displays</text></g><!-- Bar 5: Small Appliances (145) --><g class="cursor-pointer group"><rect class="transition-all duration-200 group-hover:opacity-85" fill="#334155" height="52" rx="4" width="46" x="375" y="148"></rect><text fill="#0f172a" font-size="10" font-weight="700" text-anchor="middle" x="398" y="140">145</text><text fill="#475569" font-size="9" font-weight="600" text-anchor="middle" x="398" y="217">Appliances</text></g><!-- Bar 6: Telemetry/Network (74) --><g class="cursor-pointer group"><rect class="transition-all duration-200 group-hover:opacity-85" fill="#d97706" height="27" rx="4" width="46" x="452" y="173"></rect><rect fill="#fde68a" height="4" opacity="0.9" rx="1" width="46" x="452" y="173"></rect><text fill="#0f172a" font-size="10" font-weight="700" text-anchor="middle" x="475" y="165">74</text><text fill="#475569" font-size="9" font-weight="600" text-anchor="middle" x="475" y="217">Network</text></g></svg>
+</div>
+<!-- Legend / Metric summary row -->
+<div class="grid grid-cols-3 gap-2 pt-2 border-t border-outline-variant/20 text-center">
+<div class="bg-surface-container-low py-2 px-3 rounded-lg">
+<span class="block text-[10px] font-label-sm text-outline uppercase font-semibold">Primary Waste Stream</span>
+<span class="font-label-lg text-label-lg font-bold text-on-surface" style="color: rgb(21, 128, 61);">Laptops / Compute (29%)</span>
+</div>
+<div class="bg-surface-container-low py-2 px-3 rounded-lg">
+<span class="block text-[10px] font-label-sm text-outline uppercase font-semibold">Hazard Share</span>
+<span class="font-label-lg text-label-lg font-bold text-tertiary">20.0% (Li-Ion)</span>
+</div>
+<div class="bg-surface-container-low py-2 px-3 rounded-lg">
+<span class="block text-[10px] font-label-sm text-outline uppercase font-semibold">Net Intake Weight</span>
+<span class="font-label-lg text-label-lg font-bold text-primary" style="color: rgb(21, 128, 61);">3,890 kg</span>
+</div>
+</div>
+</div>
+<!-- Alternative Tabular Breakdown (Hidden by default, toggleable via Chart/Breakdown button) -->
+<div class="hidden flex-col" id="tableContainer">
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
+<th class="py-2.5 px-3 rounded-l-md font-semibold">E-Waste Stream</th>
+<th class="py-2.5 px-3 font-semibold text-right">Units</th>
+<th class="py-2.5 px-3 font-semibold text-right">Yield Weight</th>
+<th class="py-2.5 px-3 font-semibold text-right">Hazmat Index</th>
+<th class="py-2.5 px-3 rounded-r-md font-semibold text-right">Reuse Rate</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20 font-body-sm text-body-sm text-on-surface">
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-2 px-3 font-semibold flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-sm bg-primary"></span> Laptops &amp; PCs
+                </td>
+<td class="py-2 px-3 text-right tabular-nums">412</td>
+<td class="py-2 px-3 text-right tabular-nums">1,154 kg</td>
+<td class="py-2 px-3 text-right"><span class="px-1.5 py-0.5 rounded text-[10px] bg-surface-container text-on-surface-variant">Class II</span></td>
+<td class="py-2 px-3 text-right font-semibold text-primary tabular-nums">78.4%</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-2 px-3 font-semibold flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-sm bg-secondary"></span> Lithium Battery Packs
+                </td>
+<td class="py-2 px-3 text-right tabular-nums">284</td>
+<td class="py-2 px-3 text-right tabular-nums">426 kg</td>
+<td class="py-2 px-3 text-right"><span class="px-1.5 py-0.5 rounded text-[10px] bg-error-container text-on-error-container">Critical</span></td>
+<td class="py-2 px-3 text-right font-semibold text-tertiary tabular-nums">14.1%</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-2 px-3 font-semibold flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-sm bg-surface-tint"></span> Smart Devices &amp; Mobiles
+                </td>
+<td class="py-2 px-3 text-right tabular-nums">320</td>
+<td class="py-2 px-3 text-right tabular-nums">160 kg</td>
+<td class="py-2 px-3 text-right"><span class="px-1.5 py-0.5 rounded text-[10px] bg-surface-container text-on-surface-variant">Class I</span></td>
+<td class="py-2 px-3 text-right font-semibold text-primary tabular-nums">84.2%</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-2 px-3 font-semibold flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-sm bg-primary-container"></span> CRT &amp; Flat Displays
+                </td>
+<td class="py-2 px-3 text-right tabular-nums">185</td>
+<td class="py-2 px-3 text-right tabular-nums">1,380 kg</td>
+<td class="py-2 px-3 text-right"><span class="px-1.5 py-0.5 rounded text-[10px] bg-tertiary-fixed text-on-tertiary-fixed">Heavy Metal</span></td>
+<td class="py-2 px-3 text-right font-semibold text-on-surface-variant tabular-nums">42.0%</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-2 px-3 font-semibold flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-sm bg-outline"></span> Small Office Appliances
+                </td>
+<td class="py-2 px-3 text-right tabular-nums">145</td>
+<td class="py-2 px-3 text-right tabular-nums">580 kg</td>
+<td class="py-2 px-3 text-right"><span class="px-1.5 py-0.5 rounded text-[10px] bg-surface-container text-on-surface-variant">Class I</span></td>
+<td class="py-2 px-3 text-right font-semibold text-primary tabular-nums">62.8%</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-2 px-3 font-semibold flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-sm bg-tertiary-container"></span> Telemetry &amp; Routing
+                </td>
+<td class="py-2 px-3 text-right tabular-nums">74</td>
+<td class="py-2 px-3 text-right tabular-nums">190 kg</td>
+<td class="py-2 px-3 text-right"><span class="px-1.5 py-0.5 rounded text-[10px] bg-surface-container text-on-surface-variant">Class II</span></td>
+<td class="py-2 px-3 text-right font-semibold text-primary tabular-nums">91.9%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- RIGHT PANEL & SUB-BAR (5 cols) -->
+<div class="lg:col-span-5 flex flex-col gap-3">
+<!-- Predictive Generation Line Chart Card -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm flex flex-col gap-3">
+<div class="flex items-center justify-between pb-2 border-b border-outline-variant/20">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface tracking-tight font-bold">Predicted generation</h2>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">Automated ML forecast across upcoming rolling cycles</p>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-label-sm font-semibold bg-primary-fixed text-on-primary-fixed" style="background-color: rgb(220, 252, 231); color: rgb(22, 101, 52); font-weight: 700; border-radius: 9999px; padding: 2px 8px;">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping" style="background-color: rgb(34, 197, 94);"></span>
+              95% CI
+            </span>
+</div>
+</div>
+<!-- Predictive Line Chart SVG -->
+<div class="relative w-full h-[255px]">
+<svg class="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 420 220"><!-- Confidence Interval Area (Shaded corridor) --><path d="M 45 130 C 95 125, 145 110, 195 95 C 245 80, 295 65, 345 50 C 370 42, 395 38, 405 35 L 405 95 C 395 102, 370 110, 345 118 C 295 135, 245 145, 195 150 C 145 155, 95 158, 45 160 Z" fill="#86efac" opacity="0.28"></path><!-- Grid Horizontal Lines --><line opacity="0.5" stroke="#e2e8f0" stroke-dasharray="2 2" stroke-width="1" x1="40" x2="410" y1="35" y2="35"></line><line opacity="0.5" stroke="#e2e8f0" stroke-dasharray="2 2" stroke-width="1" x1="40" x2="410" y1="80" y2="80"></line><line opacity="0.5" stroke="#e2e8f0" stroke-dasharray="2 2" stroke-width="1" x1="40" x2="410" y1="125" y2="125"></line><line opacity="0.5" stroke="#e2e8f0" stroke-dasharray="2 2" stroke-width="1" x1="40" x2="410" y1="170" y2="170"></line><line stroke="#cbd5e1" stroke-width="1.2" x1="40" x2="410" y1="195" y2="195"></line><!-- Predictive Division Boundary --><line opacity="0.4" stroke="#16a34a" stroke-dasharray="3 3" stroke-width="1.5" x1="220" x2="220" y1="25" y2="195"></line><text fill="#64748b" font-size="8" font-weight="600" text-anchor="end" x="215" y="32">HISTORICAL</text><text fill="#15803d" font-size="8" font-weight="700" text-anchor="start" x="225" y="32">MODEL PROJECTION →</text><!-- Y Axis numbers --><text fill="#64748b" font-size="8.5" text-anchor="end" x="32" y="38">2.4k</text><text fill="#64748b" font-size="8.5" text-anchor="end" x="32" y="83">1.8k</text><text fill="#64748b" font-size="8.5" text-anchor="end" x="32" y="128">1.2k</text><text fill="#64748b" font-size="8.5" text-anchor="end" x="32" y="173">0.6k</text><!-- Historical Trend Solid Path --><path d="M 45 145 L 90 138 L 135 124 L 180 132 L 220 112" fill="none" stroke="#15803d" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path><!-- Predictive Trend Dashed Path --><path d="M 220 112 L 270 94 L 320 82 L 365 68 L 405 52" fill="none" stroke="#22c55e" stroke-dasharray="4 4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path><!-- Historical Data Points --><circle cx="45" cy="145" fill="#15803d" r="3.5" stroke="#ffffff" stroke-width="1.5"></circle><circle cx="90" cy="138" fill="#15803d" r="3.5" stroke="#ffffff" stroke-width="1.5"></circle><circle cx="135" cy="124" fill="#15803d" r="3.5" stroke="#ffffff" stroke-width="1.5"></circle><circle cx="180" cy="132" fill="#15803d" r="3.5" stroke="#ffffff" stroke-width="1.5"></circle><circle cx="220" cy="112" fill="#16a34a" r="4.5" stroke="#ffffff" stroke-width="2"></circle><!-- Projected Points --><circle cx="270" cy="94" fill="#bbf7d0" r="3.5" stroke="#16a34a" stroke-width="1.5"></circle><circle cx="320" cy="82" fill="#bbf7d0" r="3.5" stroke="#16a34a" stroke-width="1.5"></circle><circle cx="365" cy="68" fill="#bbf7d0" r="3.5" stroke="#16a34a" stroke-width="1.5"></circle><circle cx="405" cy="52" fill="#16a34a" r="4.5" stroke="#ffffff" stroke-width="2"></circle><!-- Callout on end node --><rect fill="#15803d" height="18" rx="4" width="65" x="345" y="24"></rect><text fill="#ffffff" font-size="9" font-weight="700" text-anchor="middle" x="377" y="36">~2,180 u</text><!-- X Axis Month labels --><text fill="#64748b" font-size="9" text-anchor="middle" x="45" y="209">May</text><text fill="#64748b" font-size="9" text-anchor="middle" x="90" y="209">Jun</text><text fill="#64748b" font-size="9" text-anchor="middle" x="135" y="209">Jul</text><text fill="#64748b" font-size="9" text-anchor="middle" x="180" y="209">Aug</text><text fill="#15803d" font-size="9" font-weight="700" text-anchor="middle" x="220" y="209">Sep</text><text fill="#16a34a" font-size="9" font-weight="600" text-anchor="middle" x="270" y="209">Oct*</text><text fill="#16a34a" font-size="9" font-weight="600" text-anchor="middle" x="320" y="209">Nov*</text><text fill="#16a34a" font-size="9" font-weight="600" text-anchor="middle" x="365" y="209">Dec*</text><text fill="#16a34a" font-size="9" font-weight="600" text-anchor="middle" x="405" y="209">Jan*</text></svg>
+</div>
+<!-- Metric micro-summary -->
+<div class="flex items-center justify-between text-body-sm font-body-sm bg-surface-container-low px-3 py-2 rounded-lg" style="background-color: rgb(240, 253, 244); border: 1px solid rgb(220, 252, 231);">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[16px]" style="color: rgb(22, 163, 74);">insights</span>
+<span class="text-on-surface-variant font-medium">Expected surge in Q4 enterprise decommissioning:</span>
+</div>
+<span class="font-bold text-primary tabular-nums" style="color: rgb(21, 128, 61);">+28.5% YoY</span>
+</div>
+</div>
+<!-- Faithful Bottom Sub-bar from Wireframe -->
+<div class="bg-surface-container-lowest rounded-xl p-3.5 shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant shrink-0" style="background-color: rgb(220, 252, 231); color: rgb(22, 163, 74);">
+<span class="material-symbols-outlined text-[15px]">check_circle</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface-variant font-medium">Automatic: no admin action needed here</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-label-sm font-semibold uppercase tracking-wider bg-surface-container text-on-surface-variant">Sync: 2m ago</span>
+<span class="material-symbols-outlined text-outline text-[16px] cursor-pointer hover:text-on-surface transition-colors" title="Sync Details">info</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Tab toggle between Chart and Breakdown Table in the Left Panel
+  const viewBarBtn = document.getElementById('viewBarBtn');
+  const viewTableBtn = document.getElementById('viewTableBtn');
+  const chartContainer = document.getElementById('chartContainer');
+  const tableContainer = document.getElementById('tableContainer');
+
+  if (viewBarBtn && viewTableBtn && chartContainer && tableContainer) {
+    viewBarBtn.addEventListener('click', () => {
+      chartContainer.classList.remove('hidden');
+      chartContainer.classList.add('flex');
+      tableContainer.classList.add('hidden');
+      tableContainer.classList.remove('flex');
+      viewBarBtn.classList.add('bg-surface-container-lowest', 'text-on-surface', 'shadow-xs');
+      viewBarBtn.classList.remove('text-on-surface-variant');
+      viewTableBtn.classList.remove('bg-surface-container-lowest', 'text-on-surface', 'shadow-xs');
+      viewTableBtn.classList.add('text-on-surface-variant');
+    });
+
+    viewTableBtn.addEventListener('click', () => {
+      chartContainer.classList.add('hidden');
+      chartContainer.classList.remove('flex');
+      tableContainer.classList.remove('hidden');
+      tableContainer.classList.add('flex');
+      viewTableBtn.classList.add('bg-surface-container-lowest', 'text-on-surface', 'shadow-xs');
+      viewTableBtn.classList.remove('text-on-surface-variant');
+      viewBarBtn.classList.remove('bg-surface-container-lowest', 'text-on-surface', 'shadow-xs');
+      viewBarBtn.classList.add('text-on-surface-variant');
+    });
+  }
+
+  // Active Date Filter Range Tabs
+  const filterTabs = document.querySelectorAll('.filter-tab');
+  filterTabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      filterTabs.forEach((t) => {
+        t.classList.remove('bg-primary', 'text-on-primary');
+        t.classList.add('text-on-surface-variant');
+      });
+      tab.classList.add('bg-primary', 'text-on-primary');
+      tab.classList.remove('text-on-surface-variant');
+    });
+  });
+</script></main></div>
+
+
+
+
+
+</body></html>

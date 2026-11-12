@@ -1,0 +1,652 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_dashboard" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "on-secondary-fixed": "#00201d",
+          "error": "#ba1a1a",
+          "on-primary-container": "#8bd6b7",
+          "primary-container": "#065f46",
+          "on-tertiary-fixed": "#2f1500",
+          "background": "#f8f9ff",
+          "on-background": "#0b1c30",
+          "on-surface": "#0b1c30",
+          "surface-tint": "#1b6b51",
+          "tertiary-container": "#804300",
+          "secondary": "#006a61",
+          "surface-bright": "#f8f9ff",
+          "primary": "#004532",
+          "surface-variant": "#d3e4fe",
+          "surface-dim": "#cbdbf5",
+          "surface-container": "#e5eeff",
+          "secondary-container": "#86f2e4",
+          "on-primary-fixed-variant": "#00513b",
+          "tertiary-fixed": "#ffdcc3",
+          "on-error": "#ffffff",
+          "on-secondary-container": "#006f66",
+          "on-secondary": "#ffffff",
+          "surface-container-highest": "#d3e4fe",
+          "surface-container-high": "#dce9ff",
+          "inverse-primary": "#8bd6b6",
+          "secondary-fixed-dim": "#6bd8cb",
+          "on-primary": "#ffffff",
+          "tertiary-fixed-dim": "#ffb77d",
+          "tertiary": "#5e3000",
+          "primary-fixed": "#a6f2d1",
+          "surface-container-lowest": "#ffffff",
+          "primary-fixed-dim": "#8bd6b6",
+          "on-surface-variant": "#3f4944",
+          "on-tertiary-container": "#ffb87e",
+          "surface": "#f8f9ff",
+          "inverse-on-surface": "#eaf1ff",
+          "on-tertiary-fixed-variant": "#6e3900",
+          "outline": "#6f7973",
+          "error-container": "#ffdad6",
+          "surface-container-low": "#eff4ff",
+          "on-error-container": "#93000a",
+          "on-primary-fixed": "#002116",
+          "inverse-surface": "#213145",
+          "on-tertiary": "#ffffff",
+          "secondary-fixed": "#89f5e7",
+          "outline-variant": "#bec9c2",
+          "on-secondary-fixed-variant": "#005049"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "gutter": "1rem",
+          "gutter-desktop": "1.5rem",
+          "margin": "1rem",
+          "margin-desktop": "2rem",
+          "space-xl": "2rem",
+          "space-xs": "0.25rem",
+          "space-md": "0.75rem",
+          "space-sm": "0.5rem",
+          "space-lg": "1.25rem"
+        },
+        "fontFamily": {
+          "headline-xl": [
+            "Inter"
+          ],
+          "label-md": [
+            "Inter"
+          ],
+          "body-md": [
+            "Inter"
+          ],
+          "label-lg": [
+            "Inter"
+          ],
+          "headline-md": [
+            "Inter"
+          ],
+          "body-lg": [
+            "Inter"
+          ],
+          "body-sm": [
+            "Inter"
+          ],
+          "headline-xl-mobile": [
+            "Inter"
+          ],
+          "label-sm": [
+            "Inter"
+          ],
+          "headline-lg-mobile": [
+            "Inter"
+          ],
+          "headline-lg": [
+            "Inter"
+          ]
+        },
+        "fontSize": {
+          "headline-xl": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "700"
+            }
+          ],
+          "label-md": [
+            "11px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.03em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-md": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-lg": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "letterSpacing": "0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-md": [
+            "18px",
+            {
+              "lineHeight": "24px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-lg": [
+            "15px",
+            {
+              "lineHeight": "22px",
+              "fontWeight": "400"
+            }
+          ],
+          "body-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "400"
+            }
+          ],
+          "headline-xl-mobile": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.015em",
+              "fontWeight": "700"
+            }
+          ],
+          "label-sm": [
+            "10px",
+            {
+              "lineHeight": "12px",
+              "letterSpacing": "0.05em",
+              "fontWeight": "700"
+            }
+          ],
+          "headline-lg-mobile": [
+            "20px",
+            {
+              "lineHeight": "28px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-lg": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.015em",
+              "fontWeight": "600"
+            }
+          ]
+        }
+      },
+    },
+  }</script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&amp;display=swap" rel="stylesheet"><style>* { font-family: 'Rethink Sans', sans-serif !important; } .material-symbols-outlined { font-family: 'Material Symbols Outlined' !important; }</style></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest border-r border-outline-variant/30 z-50 flex flex-col justify-between py-6 px-4 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col gap-6"><div class="px-3 flex items-center gap-3"><div class="w-7 h-7 rounded-lg bg-primary flex items-center justify-center" style="background: linear-gradient(135deg, rgb(21, 128, 61), rgb(34, 197, 94));"><span class="material-symbols-outlined text-on-primary text-[16px]">recycling</span></div><span class="font-headline-md text-headline-md font-bold tracking-tight text-on-surface">EcoByte Admin</span></div><nav class="flex flex-col gap-1.5" data-active-classes="bg-primary text-on-primary font-semibold shadow-sm"><a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[18px]">grid_view</span><span>Dashboard</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="to-inspect" href="#"><span class="material-symbols-outlined text-[18px]">fact_check</span><span>To inspect</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="reuse-hub" href="#"><span class="material-symbols-outlined text-[18px]">inventory_2</span><span>Reuse Hub</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="disposal" href="#"><span class="material-symbols-outlined text-[18px]">delete_sweep</span><span>Disposal</span></a><a aria-current="page" class="flex items-center gap-3 px-3 py-2 rounded-full transition-colors bg-primary text-on-primary font-semibold shadow-sm" data-path="access" href="#" style="background: linear-gradient(135deg, rgb(21, 128, 61) 0%, rgb(34, 197, 94) 100%); color: rgb(255, 255, 255); box-shadow: rgba(34, 197, 94, 0.25) 0px 4px 12px;"><span class="material-symbols-outlined text-[18px]">admin_panel_settings</span><span>Access</span></a></nav></div><div class="pt-4 border-t border-outline-variant/30 px-1"><a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant font-label-lg text-label-lg hover:bg-surface-container hover:text-on-surface transition-colors" data-path="login" href="#"><span class="material-symbols-outlined text-[18px]">logout</span><span>Log out</span></a></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 z-40 flex items-center justify-end px-gutter-desktop shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-3"><div class="inline-flex items-center px-3 py-1 rounded-full border border-outline-variant/60 bg-surface-container-lowest font-label-sm text-label-sm text-on-surface uppercase tracking-wider font-semibold shadow-sm">Admin</div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center" style="background: linear-gradient(135deg, rgb(21, 128, 61), rgb(34, 197, 94));"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative w-full pt-16 bg-surface min-h-screen px-gutter-desktop py-gutter-desktop max-w-[1600px] mx-auto"><div class="flex flex-col w-full">
+<!-- Top Context & Notification Toast Container -->
+<div class="fixed bottom-6 right-8 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 bg-inverse-surface text-inverse-on-surface px-4 py-3 rounded shadow-xl border-l-4 border-primary" id="toast-notification">
+<span class="material-symbols-outlined text-[20px] text-primary-fixed">verified_user</span>
+<span class="font-body-md text-body-md" id="toast-message">Audit entry recorded: User privileges updated.</span>
+</div>
+<!-- Page Header & Metrics Summary Bar -->
+<div class="flex flex-col gap-4 pb-6">
+<div class="flex flex-wrap items-center justify-between gap-4">
+<div class="flex flex-col">
+<div class="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm uppercase tracking-widest">
+<span>Security Infrastructure</span>
+<span>/</span>
+<span>Access Control</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight mt-1 font-bold">Access &amp; Identity Management</h1>
+</div>
+<!-- Quick Status Indicators -->
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded border border-outline-variant/40">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">RBAC Mode: Enforced</span>
+</div>
+<div class="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded border border-outline-variant/40">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">history_edu</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">Ledger #409-SEC</span>
+</div>
+</div>
+</div>
+<!-- Telemetry Strip -->
+<div class="grid grid-cols-2 gap-3 pt-2">
+<div class="bg-surface-container-lowest p-3 rounded shadow-sm flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Active Administrators</span>
+<div class="flex items-baseline justify-between mt-2">
+<span class="font-headline-lg text-headline-lg text-on-surface font-semibold">2</span>
+<span class="font-label-sm text-label-sm text-primary font-medium flex items-center gap-0.5" style="color: rgb(0, 110, 47); background-color: rgb(177, 242, 190); padding: 2px 8px; border-radius: 9999px;">
+<span class="material-symbols-outlined text-[14px]">shield</span> Tier 1
+          </span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-3 rounded shadow-sm flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Field Officials</span>
+<div class="flex items-baseline justify-between mt-2">
+<span class="font-headline-lg text-headline-lg text-on-surface font-semibold">2</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium" style="color: rgb(18, 81, 44); background-color: rgb(177, 242, 190); padding: 2px 8px; border-radius: 9999px;">Inspections Auth</span>
+</div>
+</div>
+
+<div class="bg-surface-container-lowest p-3 rounded shadow-sm flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Deactivated Accounts</span>
+<div class="flex items-baseline justify-between mt-2">
+<span class="font-headline-lg text-headline-lg text-error font-semibold">1</span>
+<span class="font-label-sm text-label-sm text-error font-medium">Revoked Key</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Primary Workspace: Two-Panel Grid as in Wireframe -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter-desktop items-start">
+<!-- LEFT PANEL: Official Directory & Inspection List (Span 7) -->
+<section class="lg:col-span-7 bg-surface-container-lowest p-5 rounded shadow-sm flex flex-col gap-4">
+<div class="flex items-center justify-between pb-1 border-b border-surface-container">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">badge</span>
+<h2 class="font-headline-md text-headline-md text-on-surface font-semibold tracking-tight">Access Directory</h2>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase font-mono">5 Identities Loaded</span>
+</div>
+<!-- Search Field (Matches wireframe placeholder: "Search officials") -->
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+<input class="w-full h-9 pl-9 pr-8 bg-surface-container-low text-on-surface text-body-md font-body-md rounded border-0 focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-outline transition-all" id="user-search-input" placeholder="Search officials by name, email, or role..." type="text">
+<button class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface" id="clear-search">
+<span class="material-symbols-outlined text-[16px]">cancel</span>
+</button>
+</div>
+<!-- Filter Quick Toggles -->
+<div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-label-sm font-label-sm">
+<button class="filter-chip px-2.5 py-1 rounded bg-surface-container-high text-on-surface font-semibold transition-colors" data-filter="all">All (5)</button>
+<button class="filter-chip px-2.5 py-1 rounded bg-surface text-on-surface-variant hover:bg-surface-container transition-colors" data-filter="admin">Admin (2)</button>
+<button class="filter-chip px-2.5 py-1 rounded bg-surface text-on-surface-variant hover:bg-surface-container transition-colors" data-filter="official">Official (2)</button>
+
+<button class="filter-chip px-2.5 py-1 rounded bg-surface text-on-surface-variant hover:bg-surface-container transition-colors" data-filter="deactivated">Deactivated (1)</button>
+</div>
+<!-- Official List Container (Wireframe container matching User stories) -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant/40 shadow-sm overflow-hidden flex flex-col min-h-[460px]" id="users-container"><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead class="bg-surface-container-low/70 border-b border-outline-variant/30 text-on-surface-variant font-label-md text-label-md font-semibold uppercase tracking-wider"><tr><th class="py-2.5 px-4 font-semibold" scope="col">User &amp; Identity</th><th class="py-2.5 px-4 font-semibold text-right" scope="col">Role</th></tr></thead><tbody class="font-body-sm text-body-sm"><tr class="user-row group cursor-pointer hover:bg-surface-container-low/50 transition-colors border-b border-outline-variant/30 border-l-4 border-primary" data-email="elena.vance@ecobyte.gov" data-id="USR-101" data-name="Elena Vance" data-role="Admin" data-self="true" data-status="Active"><td class="py-2.5 px-4"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded bg-primary text-on-primary flex items-center justify-center font-label-md font-bold flex-shrink-0" style="background: linear-gradient(135deg, rgb(21, 128, 61), rgb(34, 197, 94)); color: rgb(255, 255, 255);">EV</div><div class="flex flex-col min-w-0"><div class="flex items-center gap-2"><span class="font-semibold text-on-surface truncate">Elena Vance</span><span class="text-[10px] text-on-primary-container bg-primary-container/20 px-1.5 py-0.5 rounded font-semibold uppercase" style="background-color: rgb(177, 242, 190); color: rgb(0, 75, 30);">You</span></div><span class="text-[12px] text-on-surface-variant truncate">elena.vance@ecobyte.gov • <span class="font-mono text-[11px]">ID-0021-ADM</span></span></div></div></td><td class="py-2.5 px-4 text-right"><span class="px-2.5 py-1 rounded text-label-sm uppercase font-semibold bg-primary text-on-primary shadow-xs inline-block" style="background-color: rgb(0, 110, 47); color: rgb(255, 255, 255);">Admin</span></td></tr><tr class="user-row group cursor-pointer hover:bg-surface-container-low/50 transition-colors border-b border-outline-variant/30 border-l-4 border-secondary" data-email="s.jenkins@ecobyte.org" data-id="USR-102" data-name="Sarah Jenkins" data-role="Official" data-self="false" data-status="Active"><td class="py-2.5 px-4"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded bg-secondary text-on-secondary flex items-center justify-center font-label-md font-bold flex-shrink-0" style="background-color: rgb(46, 106, 65); color: rgb(255, 255, 255);">SJ</div><div class="flex flex-col min-w-0"><span class="font-semibold text-on-surface truncate">Sarah Jenkins</span><span class="text-[12px] text-on-surface-variant truncate">s.jenkins@ecobyte.org • <span class="font-mono text-[11px]">ID-0144-OFC</span></span></div></div></td><td class="py-2.5 px-4 text-right"><span class="px-2.5 py-1 rounded text-label-sm uppercase font-semibold bg-secondary text-on-secondary shadow-xs inline-block" style="background-color: rgb(177, 242, 190); color: rgb(18, 81, 44);">Official</span></td></tr><tr class="user-row group cursor-pointer hover:bg-surface-container-low/50 transition-colors border-b border-outline-variant/30 border-l-4 border-secondary" data-email="marcus.thorne@ecobyte.org" data-id="USR-103" data-name="Marcus Thorne" data-role="Official" data-self="false" data-status="Active"><td class="py-2.5 px-4"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded bg-secondary text-on-secondary flex items-center justify-center font-label-md font-bold flex-shrink-0" style="background-color: rgb(46, 106, 65); color: rgb(255, 255, 255);">MT</div><div class="flex flex-col min-w-0"><span class="font-semibold text-on-surface truncate">Marcus Thorne</span><span class="text-[12px] text-on-surface-variant truncate">marcus.thorne@ecobyte.org • <span class="font-mono text-[11px]">ID-0182-OFC</span></span></div></div></td><td class="py-2.5 px-4 text-right"><span class="px-2.5 py-1 rounded text-label-sm uppercase font-semibold bg-secondary text-on-secondary shadow-xs inline-block" style="background-color: rgb(177, 242, 190); color: rgb(18, 81, 44);">Official</span></td></tr><tr class="user-row group cursor-pointer hover:bg-surface-container-low/50 transition-colors border-b border-outline-variant/30 border-l-4 border-primary" data-email="tariq.s@ecobyte.gov" data-id="USR-105" data-name="Tariq Sterling" data-role="Admin" data-self="false" data-status="Active"><td class="py-2.5 px-4"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded bg-primary text-on-primary flex items-center justify-center font-label-md font-bold flex-shrink-0" style="background: linear-gradient(135deg, rgb(21, 128, 61), rgb(34, 197, 94)); color: rgb(255, 255, 255);">TS</div><div class="flex flex-col min-w-0"><span class="font-semibold text-on-surface truncate">Tariq Sterling</span><span class="text-[12px] text-on-surface-variant truncate">tariq.s@ecobyte.gov • <span class="font-mono text-[11px]">ID-0019-ADM</span></span></div></div></td><td class="py-2.5 px-4 text-right"><span class="px-2.5 py-1 rounded text-label-sm uppercase font-semibold bg-primary text-on-primary shadow-xs inline-block" style="background-color: rgb(0, 110, 47); color: rgb(255, 255, 255);">Admin</span></td></tr><tr class="user-row group cursor-pointer hover:bg-surface-container-low/50 transition-colors border-b border-outline-variant/30 border-l-4 border-error opacity-75" data-email="j.karras@former-contractor.org" data-id="USR-106" data-name="Julian Karras" data-role="Deactivated" data-self="false" data-status="Deactivated"><td class="py-2.5 px-4"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded bg-error-container text-on-error-container flex items-center justify-center font-label-md font-bold flex-shrink-0">JK</div><div class="flex flex-col min-w-0"><span class="font-semibold text-on-surface line-through decoration-error/60 truncate">Julian Karras</span><span class="text-[12px] text-on-surface-variant truncate">j.karras@former-contractor.org • <span class="font-mono text-[11px]">ID-REVOKED</span></span></div></div></td><td class="py-2.5 px-4 text-right"><span class="px-2.5 py-1 rounded text-label-sm uppercase font-semibold bg-error text-on-error shadow-xs inline-block">Deactivated</span></td></tr></tbody></table></div></div>
+<!-- Compliance Mini Footer Note inside Left Directory -->
+<div class="pt-3 border-t border-surface-container flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-primary">policy</span>
+          ISO 27001 Access Ledger Synchronized
+        </span>
+<button class="hover:text-on-surface font-semibold underline underline-offset-2 flex items-center gap-1" id="export-audit-btn">
+<span class="material-symbols-outlined text-[14px]">download</span> Export SEC Log
+        </button>
+</div>
+</section>
+<!-- RIGHT PANEL: Add Official / Manage Official Form (Span 5) -->
+<aside class="lg:col-span-5 bg-surface-container-lowest p-6 rounded shadow-sm flex flex-col justify-between min-h-[580px] relative">
+<div class="flex flex-col gap-6">
+<!-- Panel Header -->
+<div class="flex items-center justify-between border-b border-surface-container pb-3">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase text-secondary font-bold tracking-wider" id="panel-mode-label">Credential Enrollment</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight" id="panel-title">Add official</h2>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface p-1 rounded hover:bg-surface-container transition-colors" id="reset-form-btn" title="Clear / New User">
+<span class="material-symbols-outlined text-[20px]">person_add</span>
+</button>
+</div>
+<!-- Security Warning Prompt (Visible when admin is selected or safeguard triggers) -->
+<div class="hidden bg-error-container text-on-error-container p-3 rounded text-body-sm font-body-sm flex items-start gap-2.5" id="self-demotion-warning">
+<span class="material-symbols-outlined text-error text-[18px] flex-shrink-0 mt-0.5">lock</span>
+<div>
+<strong class="font-semibold block">Protected Session Constraint</strong>
+            You are currently logged in as this administrator. You cannot demote or deactivate your own account.
+          </div>
+</div>
+<!-- Input Field: Email -->
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<label class="font-label-lg text-label-lg text-on-surface font-semibold font-bold" for="official-email">Email</label>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Corporate SSO or Gov Domain</span>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">mail</span>
+<input class="w-full h-11 pl-10 pr-3 bg-surface-container-low text-on-surface font-body-md text-body-md rounded border-0 focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-outline transition-all" id="official-email" placeholder="official@ecobyte.org" type="email">
+</div>
+</div>
+<!-- Optional Name Field for Enriched Experience -->
+<div class="flex flex-col gap-2">
+<label class="font-label-lg text-label-lg text-on-surface font-semibold font-bold" for="official-name">Official Full Name</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">person</span>
+<input class="w-full h-11 pl-10 pr-3 bg-surface-container-low text-on-surface font-body-md text-body-md rounded border-0 focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-outline transition-all" id="official-name" placeholder="e.g. Kenneth Adams" type="text">
+</div>
+</div>
+<!-- Role Pill Selection Toggle (Exact match to wireframe: [Official (Selected)] [Admin] [Resident]) -->
+<div class="flex flex-col gap-2.5">
+<div class="flex justify-between items-center">
+<label class="font-label-lg text-label-lg text-on-surface font-semibold">Role</label>
+<span class="font-label-sm text-label-sm text-secondary font-medium" id="role-description">Triage, Inspect &amp; Log E-Waste</span>
+</div>
+<!-- Role Toggle Buttons Container -->
+<div class="flex flex-wrap items-center gap-2 p-1.5 bg-surface-container-low rounded" id="role-pill-group">
+<!-- Official (Default Selected in Wireframe) -->
+<button class="role-pill flex-1 min-w-[90px] py-2 px-3 rounded-full font-label-md text-label-md font-semibold transition-all duration-150 flex items-center justify-center gap-1.5 bg-on-surface text-surface shadow-sm" data-role-value="Official" type="button" style="background-color: rgb(21, 128, 61); color: rgb(255, 255, 255); box-shadow: rgba(21, 128, 61, 0.25) 0px 2px 8px;">
+<span class="material-symbols-outlined text-[15px]">fact_check</span>
+<span>Official</span>
+</button>
+<!-- Admin -->
+<button class="role-pill flex-1 min-w-[90px] py-2 px-3 rounded-full font-label-md text-label-md font-semibold text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all duration-150 flex items-center justify-center gap-1.5" data-role-value="Admin" type="button">
+<span class="material-symbols-outlined text-[15px]">shield</span>
+<span>Admin</span>
+</button>
+<!-- Resident -->
+
+</div>
+</div>
+<!-- Role Permissions Scope Info Box -->
+<div class="p-3 rounded bg-surface-container-low/70 flex flex-col gap-1.5">
+<span class="font-label-sm text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant">Granted Scope</span>
+<p class="font-body-sm text-body-sm text-on-surface" id="scope-summary">
+            Authorized to triage incoming hardware, assign condition grading, and mark units ready for Reuse Hub or Hazmat disposal.
+          </p>
+</div>
+<!-- Action Buttons Container -->
+<div class="flex flex-col gap-2 pt-2">
+<!-- Primary Save Button (Matches Wireframe dark block button) -->
+<button class="w-full h-11 bg-on-surface text-surface hover:bg-on-surface/90 font-label-lg text-label-lg font-semibold rounded flex items-center justify-center gap-2 transition-colors shadow-sm active:scale-[0.99]" id="save-official-btn" style="background: linear-gradient(135deg, rgb(22, 163, 74) 0%, rgb(34, 197, 94) 100%); color: rgb(255, 255, 255); font-weight: 700; border-radius: 0.75rem; box-shadow: rgba(34, 197, 94, 0.35) 0px 4px 14px;">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+<span id="save-btn-text">Save</span>
+</button>
+<!-- Deactivation Destructive Button (Revealed when modifying existing user) -->
+<button class="hidden w-full h-10 bg-error-container/60 hover:bg-error-container text-on-error-container font-label-md text-label-md font-semibold rounded flex items-center justify-center gap-2 transition-colors" id="deactivate-user-btn">
+<span class="material-symbols-outlined text-[16px]">person_off</span>
+<span>Deactivate Identity &amp; Revoke Keys</span>
+</button>
+</div>
+</div>
+<!-- Panel Footer Note (Verbatim from wireframe) -->
+<div class="mt-8 pt-4 border-t border-surface-container flex items-center justify-between text-on-surface-variant">
+<span class="font-body-sm text-body-sm italic tracking-tight">Set once; not part of daily work</span>
+<span class="font-mono text-[10px] uppercase text-outline">SEC-V4.2</span>
+</div>
+</aside>
+</div>
+</div>
+<script>
+  (function() {
+    // Current State
+    let selectedUser = null;
+    let currentRole = "Official";
+
+    // DOM Elements
+    const emailInput = document.getElementById('official-email');
+    const nameInput = document.getElementById('official-name');
+    const panelTitle = document.getElementById('panel-title');
+    const panelModeLabel = document.getElementById('panel-mode-label');
+    const saveBtnText = document.getElementById('save-btn-text');
+    const deactivateBtn = document.getElementById('deactivate-user-btn');
+    const saveBtn = document.getElementById('save-official-btn');
+    const rolePills = document.querySelectorAll('.role-pill');
+    const roleDesc = document.getElementById('role-description');
+    const scopeSummary = document.getElementById('scope-summary');
+    const selfWarning = document.getElementById('self-demotion-warning');
+    const resetBtn = document.getElementById('reset-form-btn');
+    const toast = document.getElementById('toast-notification');
+    const toastMsg = document.getElementById('toast-message');
+    const searchInput = document.getElementById('user-search-input');
+    const clearSearch = document.getElementById('clear-search');
+    const userRows = document.querySelectorAll('.user-row');
+    const filterChips = document.querySelectorAll('.filter-chip');
+
+    const roleDefinitions = {
+      "Official": {
+        desc: "Triage, Inspect & Log E-Waste",
+        scope: "Authorized to triage incoming hardware, assign condition grading, and mark units ready for Reuse Hub or Hazmat disposal."
+      },
+      "Admin": {
+        desc: "Root Privileges & System Oversight",
+        scope: "Full governance: user role orchestration, master ledger deletion audits, facility compliance overrides, and API keys."
+      },
+      "Resident": {
+        desc: "Item Registration & Citizen Drop-off",
+        scope: "Read-only access to residential manifests, drop-off drop locations, and individual circular recycling receipts."
+      }
+    };
+
+    function showToast(message) {
+      toastMsg.textContent = message;
+      toast.classList.remove('opacity-0', 'translate-y-24');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-24');
+        toast.classList.remove('opacity-100', 'translate-y-0');
+      }, 3500);
+    }
+
+    function setRoleUI(role) {
+      currentRole = role;
+      rolePills.forEach(pill => {
+        const val = pill.getAttribute('data-role-value');
+        if (val === role) {
+          pill.className = "role-pill flex-1 min-w-[90px] py-2 px-3 rounded-full font-label-md text-label-md font-semibold transition-all duration-150 flex items-center justify-center gap-1.5 bg-on-surface text-surface shadow-sm";
+        } else {
+          pill.className = "role-pill flex-1 min-w-[90px] py-2 px-3 rounded-full font-label-md text-label-md font-semibold text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all duration-150 flex items-center justify-center gap-1.5";
+        }
+      });
+
+      if (roleDefinitions[role]) {
+        roleDesc.textContent = roleDefinitions[role].desc;
+        scopeSummary.textContent = roleDefinitions[role].scope;
+      }
+    }
+
+    rolePills.forEach(pill => {
+      pill.addEventListener('click', (e) => {
+        e.preventDefault();
+        const requestedRole = pill.getAttribute('data-role-value');
+        
+        // Safeguard: Check if user is demoting themselves
+        if (selectedUser && selectedUser.isSelf && requestedRole !== 'Admin') {
+          selfWarning.classList.remove('hidden');
+          showToast("Security Violation: You cannot alter your own Administrator privilege.");
+          return;
+        }
+
+        selfWarning.classList.add('hidden');
+        setRoleUI(requestedRole);
+      });
+    });
+
+    function selectUserRow(row) {
+      userRows.forEach(r => r.classList.remove('ring-2', 'ring-primary', 'bg-surface-container'));
+      row.classList.add('ring-2', 'ring-primary', 'bg-surface-container');
+
+      const id = row.getAttribute('data-id');
+      const name = row.getAttribute('data-name');
+      const email = row.getAttribute('data-email');
+      const role = row.getAttribute('data-role');
+      const isSelf = row.getAttribute('data-self') === 'true';
+      const status = row.getAttribute('data-status');
+
+      selectedUser = { id, name, email, role, isSelf, status, element: row };
+
+      panelModeLabel.textContent = "Identity Configuration";
+      panelTitle.textContent = "Manage official";
+      emailInput.value = email;
+      nameInput.value = name;
+      saveBtnText.textContent = "Update Role";
+
+      if (role === "Deactivated") {
+        setRoleUI("Official");
+      } else {
+        setRoleUI(role);
+      }
+
+      if (isSelf) {
+        selfWarning.classList.remove('hidden');
+        deactivateBtn.classList.add('hidden');
+        saveBtn.disabled = false;
+      } else {
+        selfWarning.classList.add('hidden');
+        deactivateBtn.classList.remove('hidden');
+        saveBtn.disabled = false;
+      }
+    }
+
+    function resetToCreate() {
+      selectedUser = null;
+      userRows.forEach(r => r.classList.remove('ring-2', 'ring-primary', 'bg-surface-container'));
+      panelModeLabel.textContent = "Credential Enrollment";
+      panelTitle.textContent = "Add official";
+      emailInput.value = "";
+      nameInput.value = "";
+      saveBtnText.textContent = "Save";
+      deactivateBtn.classList.add('hidden');
+      selfWarning.classList.add('hidden');
+      setRoleUI("Official");
+    }
+
+    userRows.forEach(row => {
+      row.addEventListener('click', () => selectUserRow(row));
+    });
+
+    resetBtn.addEventListener('click', resetToCreate);
+
+    // Save Action
+    saveBtn.addEventListener('click', () => {
+      const email = emailInput.value.trim();
+      const name = nameInput.value.trim();
+
+      if (!email || !email.includes('@')) {
+        showToast("Please supply a valid corporate email address.");
+        emailInput.focus();
+        return;
+      }
+
+      if (selectedUser) {
+        // Enforce self-demotion block
+        if (selectedUser.isSelf && currentRole !== 'Admin') {
+          showToast("Cannot demote own account. Action rejected.");
+          return;
+        }
+
+        // Update in-memory row
+        const badge = selectedUser.element.querySelector('span.rounded.text-label-sm');
+        if (badge) {
+          badge.textContent = currentRole;
+          badge.className = currentRole === 'Admin' 
+            ? "px-2.5 py-1 rounded text-label-sm font-label-sm uppercase font-semibold bg-primary text-on-primary shadow-xs"
+            : currentRole === 'Official' 
+            ? "px-2.5 py-1 rounded text-label-sm font-label-sm uppercase font-semibold bg-secondary text-on-secondary shadow-xs"
+            : "px-2.5 py-1 rounded text-label-sm font-label-sm uppercase font-semibold bg-surface-container-highest text-on-surface";
+        }
+        selectedUser.element.setAttribute('data-role', currentRole);
+        selectedUser.element.setAttribute('data-name', name || selectedUser.name);
+        showToast(`Audit #SEC-9842: Updated role to ${currentRole} for ${email}`);
+      } else {
+        showToast(`Official registered: Invite dispatch initiated for ${email}`);
+        resetToCreate();
+      }
+    });
+
+    // Deactivate Action
+    deactivateBtn.addEventListener('click', () => {
+      if (!selectedUser) return;
+      if (selectedUser.isSelf) {
+        showToast("Access Security Error: Self-deactivation is prohibited.");
+        return;
+      }
+      if (confirm(`Revoke all platform access for ${selectedUser.name} (${selectedUser.email})?`)) {
+        selectedUser.element.setAttribute('data-role', 'Deactivated');
+        selectedUser.element.setAttribute('data-status', 'Deactivated');
+        selectedUser.element.classList.add('opacity-75');
+        const badge = selectedUser.element.querySelector('span.rounded.text-label-sm');
+        if (badge) {
+          badge.textContent = "Deactivated";
+          badge.className = "px-2.5 py-1 rounded text-label-sm font-label-sm uppercase font-semibold bg-error text-on-error shadow-xs";
+        }
+        showToast(`Access Revoked: ${selectedUser.name} tokens wiped from active sessions.`);
+        resetToCreate();
+      }
+    });
+
+    // Search & Filtering
+    function applyFilterAndSearch() {
+      const query = searchInput.value.toLowerCase().trim();
+      const activeChip = document.querySelector('.filter-chip.bg-surface-container-high');
+      const filter = activeChip ? activeChip.getAttribute('data-filter') : 'all';
+
+      userRows.forEach(row => {
+        const name = (row.getAttribute('data-name') || '').toLowerCase();
+        const email = (row.getAttribute('data-email') || '').toLowerCase();
+        const role = (row.getAttribute('data-role') || '').toLowerCase();
+
+        const matchesQuery = !query || name.includes(query) || email.includes(query) || role.includes(query);
+        const matchesFilter = filter === 'all' || role === filter;
+
+        if (matchesQuery && matchesFilter) {
+          row.classList.remove('hidden');
+        } else {
+          row.classList.add('hidden');
+        }
+      });
+
+      if (query.length > 0) {
+        clearSearch.classList.remove('hidden');
+      } else {
+        clearSearch.classList.add('hidden');
+      }
+    }
+
+    searchInput.addEventListener('input', applyFilterAndSearch);
+
+    clearSearch.addEventListener('click', () => {
+      searchInput.value = '';
+      applyFilterAndSearch();
+      searchInput.focus();
+    });
+
+    filterChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        filterChips.forEach(c => {
+          c.classList.remove('bg-surface-container-high', 'font-semibold');
+          c.classList.add('bg-surface', 'text-on-surface-variant');
+        });
+        chip.classList.add('bg-surface-container-high', 'font-semibold');
+        chip.classList.remove('bg-surface', 'text-on-surface-variant');
+        applyFilterAndSearch();
+      });
+    });
+
+    // Export log mock trigger
+    document.getElementById('export-audit-btn').addEventListener('click', () => {
+      showToast("Generating SHA-256 signed access audit snapshot (.csv)...");
+    });
+
+  })();
+</script></main></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body></html>

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-container": "#e5eeff", "on-error": "#ffffff", "surface-container-high": "#dce9ff", "primary-container": "#065f46", "tertiary-fixed": "#ffdcc3", "surface-dim": "#cbdbf5", "on-primary-container": "#8bd6b7", "secondary-container": "#86f2e4", "on-primary-fixed-variant": "#00513b", "tertiary-container": "#804300", "inverse-on-surface": "#eaf1ff", "on-surface-variant": "#3f4944", "on-background": "#0b1c30", "on-primary-fixed": "#002116", "surface": "#f8f9ff", "secondary-fixed-dim": "#6bd8cb", "on-tertiary-container": "#ffb87e", "secondary-fixed": "#89f5e7", "tertiary": "#5e3000", "on-primary": "#ffffff", "outline-variant": "#bec9c2", "error-container": "#ffdad6", "on-surface": "#0b1c30", "on-secondary": "#ffffff", "primary": "#004532", "surface-container-low": "#eff4ff", "outline": "#6f7973", "on-secondary-fixed-variant": "#005049", "surface-bright": "#f8f9ff", "surface-variant": "#d3e4fe", "on-tertiary-fixed-variant": "#6e3900", "tertiary-fixed-dim": "#ffb77d", "on-secondary-container": "#006f66", "inverse-surface": "#213145", "background": "#f8f9ff", "error": "#ba1a1a", "secondary": "#006a61", "on-tertiary": "#ffffff", "on-tertiary-fixed": "#2f1500", "on-secondary-fixed": "#00201d", "on-error-container": "#93000a", "primary-fixed": "#a6f2d1", "surface-container-highest": "#d3e4fe", "inverse-primary": "#8bd6b6", "surface-container-lowest": "#ffffff", "surface-tint": "#1b6b51", "primary-fixed-dim": "#8bd6b6" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "gutter-desktop": "1.5rem", "margin": "1rem", "space-xl": "2rem", "margin-desktop": "2rem", "space-lg": "1.25rem", "gutter": "1rem", "space-xs": "0.25rem", "space-md": "0.75rem", "space-sm": "0.5rem" }, "fontFamily": { "label-sm": ["Inter"], "headline-lg": ["Inter"], "body-sm": ["Inter"], "body-lg": ["Inter"], "headline-xl-mobile": ["Inter"], "headline-xl": ["Inter"], "headline-lg-mobile": ["Inter"], "body-md": ["Inter"], "label-md": ["Inter"], "headline-md": ["Inter"], "label-lg": ["Inter"] }, "fontSize": { "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "700" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }], "headline-xl-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-lg-mobile": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }], "label-md": ["11px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "600" }], "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "label-lg": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "600" }] } } } };</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-low z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="EcoLoop Admin Portal Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuComOooAdp2D83xFnmqmA7NySJLgRN1QNtJmFfu185Il75Gz0f1WPjBCl3XmwT6bdBdrU6UY1BOI9fR-QP-ryVvjwoHdLxTwdUTOdgToXeJ3Kvj1iU9Dcv41uYxk_MZ53-BpBpyxaOku16nH-oRmf_F9oB1zmSeQSnRCFkThVuXpQXKInoGrHQvPsMCy2CgqZF4uDPpFEao_Q5gQ9PCqvqNtxaEm6apvR038XSeV5Im"/><div class="flex flex-col"><span class="font-headline-md text-headline-md font-bold tracking-tight text-primary leading-none">EcoLoop</span><span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Lifecycle OS</span></div></div></div><div class="px-gutter py-space-sm"><div class="flex items-center gap-space-xs px-space-sm py-space-xs rounded bg-surface-container-high text-on-surface-variant"><span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span><span class="font-label-sm text-label-sm uppercase tracking-wide">Hub Node: Online</span></div></div><nav class="flex flex-col gap-space-xs px-space-sm mt-space-sm" data-active-classes="bg-primary-container text-on-primary font-bold"><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[18px]">dashboard</span><span class="font-label-lg text-label-lg">Dashboard</span></a><a aria-current="page" class="flex items-center gap-space-md px-space-md py-space-sm rounded transition-colors bg-primary-container text-on-primary font-bold" data-path="awaiting-inspection" href="#"><span class="material-symbols-outlined text-[18px]">pending_actions</span><span class="font-label-lg text-label-lg">Awaiting Inspection</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="physical-inspection" href="#"><span class="material-symbols-outlined text-[18px]">biotech</span><span class="font-label-lg text-label-lg">Physical Inspection</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="reuse-hub" href="#"><span class="material-symbols-outlined text-[18px]">inventory_2</span><span class="font-label-lg text-label-lg">Reuse Hub</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="disposal-records" href="#"><span class="material-symbols-outlined text-[18px]">delete_forever</span><span class="font-label-lg text-label-lg">Disposal Records</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="users-and-access" href="#"><span class="material-symbols-outlined text-[18px]">admin_panel_settings</span><span class="font-label-lg text-label-lg">Users & Access</span></a></nav></div><div class="p-gutter flex flex-col gap-space-sm bg-surface-container-high"><div class="flex items-center justify-between text-on-surface-variant"><span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Audit Compliance</span><span class="font-label-sm text-label-sm font-bold text-primary">ISO 14001</span></div><div class="w-full bg-surface-container-lowest h-1.5 rounded overflow-hidden"><div class="bg-primary h-full w-[94%]"></div></div><div class="flex justify-between items-center font-label-sm text-label-sm text-outline"><span>Chain-of-Custody</span><span class="font-bold text-on-surface">94.2%</span></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-gutter-desktop"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs text-on-surface-variant"><span class="material-symbols-outlined text-[18px] text-outline">hub</span><span class="font-label-md text-label-md uppercase tracking-wider text-outline">Central Sorting</span><span class="material-symbols-outlined text-[14px] text-outline-variant">chevron_right</span><span class="font-label-md text-label-md text-on-surface">Regional Intake</span></div><div class="hidden md:flex items-center bg-surface-container-lowest px-space-md py-1.5 rounded shadow-[0_1px_4px_rgba(0,0,0,0.02)] gap-space-sm ml-space-md"><span class="material-symbols-outlined text-outline text-[16px]">search</span><input class="bg-transparent font-body-sm text-body-sm text-on-surface placeholder:text-outline outline-none w-52" placeholder="Search lot ID, serial or SKU..." type="text"/><kbd class="font-label-sm text-label-sm bg-surface-container text-on-surface-variant px-1.5 py-0.5 rounded">Ctrl+K</kbd></div></div><div class="flex items-center gap-gutter"><div class="flex items-center gap-space-sm"><button aria-label="Notifications" class="relative p-space-xs rounded text-on-surface-variant hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-error"></span></button><button aria-label="System Logs" class="p-space-xs rounded text-on-surface-variant hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[20px]">sync_alt</span></button></div><div class="flex items-center gap-space-md pl-space-md"><div class="flex flex-col text-right hidden sm:flex"><span class="font-label-lg text-label-lg text-on-surface">Elena Vance</span><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-primary-container text-on-primary uppercase tracking-wider self-end mt-0.5">Super Admin</span></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACbbrVZZOiQDxKgZVAIUd3Sp8bGQVMPrfvRqL-LxBdOS7nodjK9znCMcRpmNV_mOhP_n1dKZJrhAtkQGXmlfd1Gc3uvGEzsZ-wwHURNJybQZVohgmPsKXTXW_T-21OSn-4XTwuz__x3DrQYyaH5WBrzzN18FoxA4l-HInNKYgFG-h15qnQdoTsTMuOo0Rvtaq_TnMsp8WLhI8rw2mhSYMDpNQH6XI7NLoGKLdOrYqu"/></div></div></header><main class="relative pt-16 bg-surface min-h-screen w-full px-gutter-desktop"><div class="flex flex-col w-full pb-margin-desktop">
+<!-- Top Operational Banner: Hazard & Queue Velocity Metrics -->
+<div class="relative overflow-hidden bg-surface-container-lowest rounded-xl p-space-lg shadow-sm mb-gutter-desktop">
+<div class="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-primary/5 pointer-events-none blur-2xl"></div>
+<div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-md relative z-10">
+<div class="flex items-start sm:items-center gap-space-md">
+<div class="w-12 h-12 rounded-lg bg-error-container text-on-error-container flex items-center justify-center shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[26px]">warning</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-sm flex-wrap">
+<span class="font-headline-md text-headline-md text-on-surface">36 Items Pending Physical Inspection</span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-error text-on-error uppercase tracking-wider font-bold animate-pulse">Action Required</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">
+<span class="font-label-lg text-label-lg text-error font-bold">8 items</span> require immediate hazardous handling protocol (Li-ion breach / battery distension). FIFO queue prioritization enforced.
+          </p>
+</div>
+</div>
+<div class="flex items-center gap-space-md w-full lg:w-auto justify-between lg:justify-end border-t lg:border-t-0 pt-space-sm lg:pt-0 border-outline-variant/30">
+<div class="flex items-center gap-space-lg px-space-md py-1.5 bg-surface-container-low rounded-lg">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">FIFO SLA Compliance</span>
+<span class="font-label-lg text-label-lg text-primary font-bold">98.4% (In Target)</span>
+</div>
+<div class="h-8 w-px bg-outline-variant/40"></div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Oldest In-Queue</span>
+<span class="font-label-lg text-label-lg text-error font-bold">4d 06h (Batch #892)</span>
+</div>
+</div>
+<button class="px-space-md py-2 bg-primary hover:bg-primary-container text-on-primary rounded-lg font-label-lg text-label-lg flex items-center gap-space-xs shadow-sm transition-all duration-150 active:scale-95 shrink-0" type="button">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+<span>Start Next FIFO</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Queue KPI Stats Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-gutter-desktop">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Total Intake Queue</span>
+<div class="flex items-baseline gap-space-xs mt-1">
+<span class="font-headline-xl text-headline-xl text-on-surface font-bold">48</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">devices</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold mt-1 flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">south_east</span> +14 from morning drop
+        </span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">inventory</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Awaiting Tech Inspection</span>
+<div class="flex items-baseline gap-space-xs mt-1">
+<span class="font-headline-xl text-headline-xl text-tertiary-container font-bold">36</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">active</span>
+</div>
+<span class="font-label-sm text-label-sm text-tertiary font-bold mt-1 flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">schedule</span> Avg wait: 1.8 hrs
+        </span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-tertiary-fixed flex items-center justify-center text-on-tertiary-container">
+<span class="material-symbols-outlined text-[20px]">hourglass_top</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Critical Health Hazards</span>
+<div class="flex items-baseline gap-space-xs mt-1">
+<span class="font-headline-xl text-headline-xl text-error font-bold">08</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">flammable / bio</span>
+</div>
+<span class="font-label-sm text-label-sm text-error font-bold mt-1 flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">shield_with_heart</span> Containment Bay 2
+        </span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-error-container flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[20px]">local_fire_department</span>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Shift Triage Completed</span>
+<div class="flex items-baseline gap-space-xs mt-1">
+<span class="font-headline-xl text-headline-xl text-primary font-bold">12</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">passed to hub</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold mt-1 flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> 75% Reuse yield
+        </span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-primary-fixed flex items-center justify-center text-on-primary-fixed-variant">
+<span class="material-symbols-outlined text-[20px]">task_alt</span>
+</div>
+</div>
+</div>
+<!-- Primary Interactive Table Workplace Container -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm flex flex-col overflow-hidden">
+<!-- Filter and Search Action Toolbar -->
+<div class="p-space-md bg-surface-container-lowest flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md">
+<!-- Status Tabs -->
+<div class="flex items-center gap-1 bg-surface-container-low p-1 rounded-lg">
+<button class="filter-tab px-space-md py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant transition-colors hover:text-on-surface" id="tab-all" onclick="setTab('all')" type="button">
+          All <span class="ml-1 opacity-75 font-normal">(48)</span>
+</button>
+<button class="filter-tab px-space-md py-1.5 rounded-lg font-label-md text-label-md bg-surface-container-lowest font-bold text-primary shadow-sm transition-colors" id="tab-waiting" onclick="setTab('waiting')" type="button">
+          Waiting <span class="ml-1 px-1.5 py-0.2 rounded-full bg-primary/10 text-primary font-bold">36</span>
+</button>
+<button class="filter-tab px-space-md py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant transition-colors hover:text-on-surface" id="tab-inspected" onclick="setTab('inspected')" type="button">
+          Inspected <span class="ml-1 opacity-75 font-normal">(12)</span>
+</button>
+</div>
+<!-- Search, Risk Filter & Actions -->
+<div class="flex flex-wrap items-center gap-space-sm">
+<!-- Search Input with clear icon -->
+<div class="relative flex items-center flex-1 sm:w-72">
+<span class="material-symbols-outlined absolute left-3 text-outline text-[18px]">search</span>
+<input class="w-full bg-surface-container-low text-on-surface placeholder:text-outline font-body-sm text-body-sm pl-9 pr-8 py-2 rounded-lg outline-none focus:bg-surface-container transition-all" id="searchInput" oninput="handleSearch(this.value)" placeholder="Filter by serial, model, barcode..." type="text"/>
+<button class="hidden absolute right-2.5 text-outline hover:text-on-surface" id="clearSearchBtn" onclick="clearSearch()" type="button">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+<!-- Health Risk Dropdown -->
+<div class="relative">
+<select class="bg-surface-container-low text-on-surface font-label-md text-label-md px-3 py-2 rounded-lg outline-none cursor-pointer pr-8 hover:bg-surface-container transition-colors appearance-none font-medium" id="riskFilter" onchange="handleRiskFilter(this.value)">
+<option value="ALL">All Health Risks</option>
+<option value="HIGH">High Risk Only</option>
+<option value="MODERATE">Moderate Risk</option>
+<option value="NONE">None (Safe)</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 pointer-events-none text-outline text-[16px]">arrow_drop_down</span>
+</div>
+<!-- FIFO Triage Indicator Badge -->
+<div class="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-surface-container-high rounded-lg text-on-surface font-label-sm text-label-sm uppercase tracking-wide">
+<span class="material-symbols-outlined text-[16px] text-primary">swap_vert</span>
+<span class="font-bold">FIFO Sorted</span>
+</div>
+<!-- Bulk Barcode Scan Trigger -->
+<button class="px-space-md py-2 bg-surface-container-low hover:bg-surface-container text-on-surface rounded-lg font-label-md text-label-md flex items-center gap-space-xs transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px] text-secondary">barcode_scanner</span>
+<span class="hidden md:inline">Scanner Sync</span>
+</button>
+</div>
+</div>
+<!-- Active Filter Ribbon (Dynamic) -->
+<div class="hidden px-space-md py-1.5 bg-surface-container flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm" id="filterRibbon">
+<div class="flex items-center gap-space-sm">
+<span>Active Filters:</span>
+<span class="flex items-center gap-1" id="activeFilterTags"></span>
+</div>
+<button class="text-primary hover:underline font-bold" onclick="resetAllFilters()" type="button">Reset Filters</button>
+</div>
+<!-- High Density Responsive Data Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
+<th class="py-space-sm pl-space-md pr-space-xs w-10">
+<input class="rounded w-4 h-4 text-primary accent-primary cursor-pointer" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" type="checkbox"/>
+</th>
+<th class="py-space-sm px-space-sm">Item Details & Hardware ID</th>
+<th class="py-space-sm px-space-sm">
+<div class="flex items-center gap-1 text-primary font-bold">
+<span>Drop-off Date (FIFO)</span>
+<span class="material-symbols-outlined text-[14px]">arrow_downward</span>
+</div>
+</th>
+<th class="py-space-sm px-space-sm">Health Risk Assessment</th>
+<th class="py-space-sm px-space-sm">AI Intake Suggestion</th>
+<th class="py-space-sm px-space-sm">Queue State</th>
+<th class="py-space-sm pl-space-sm pr-space-md text-right">Inspection Action</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md divide-y divide-surface-container-low" id="queueTableBody">
+<!-- Row 1: Oldest High Risk Item (FIFO Leader) -->
+<tr class="hover:bg-surface-container-low/70 transition-colors device-row" data-id="DEV-90812" data-risk="HIGH" data-status="waiting">
+<td class="py-space-sm pl-space-md pr-space-xs">
+<input class="row-checkbox rounded w-4 h-4 text-primary accent-primary cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-space-sm px-space-sm">
+<div class="flex items-center gap-space-sm">
+<img class="w-12 h-12 rounded object-cover shrink-0 bg-surface-container shadow-sm" data-alt="Technical high-angle photograph of an open chassis enterprise rack server with lithium backup modules, resting on an industrial cleanroom ESD sorting surface under cool calibrated LED work lights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAAA-B6PrIt0gfGEmxyFBX1CRD3NhxXceK2s_1e-BgSP4d9CHiVW758bqUqrfETf-Bguun0vaJNUW0BPFI-pJng4lumWmR-N4S7AZDPycS8e_lfzfT5ApLedgui5UQRqTSX8V3wF6f0ceODfOeG1OF0cmKoZz590Wcq6cGiC61QVafhmEf5YHn-t66neXrc_786F_KiJtYzuUuesnQBiI75quUd9ci2I1Hj8JsW3hm"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-bold truncate">Dell PowerEdge R740xd Server</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant font-medium">Enterprise Compute</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="font-body-sm text-body-sm font-mono text-outline">SN: DL-7729-X01</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="font-body-sm text-body-sm text-outline">Lot #2024-B88</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-sm">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-tertiary-fixed text-on-tertiary-container font-bold uppercase tracking-wider flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">priority_high</span> OLDEST IN QUEUE
+                  </span>
+</div>
+<span class="font-label-md text-label-md text-on-surface mt-1 font-semibold">4 days ago • Oct 22, 08:30 AM</span>
+<span class="font-body-sm text-body-sm text-error font-medium">Elapsed queue time: 98h 42m</span>
+</div>
+</td>
+<td class="py-space-sm px-space-sm">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-bold uppercase tracking-wide">
+<span class="material-symbols-outlined text-[14px] text-error">local_fire_department</span>
+<span>High Risk: Swollen Li-ion Backup</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Glovebox containment required before dismount.</p>
+</td>
+<td class="py-space-sm px-space-sm">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[14px]">precision_manufacturing</span>
+<span>Parts Harvesting</span>
+</span>
+<span class="block font-body-sm text-body-sm text-outline mt-0.5">Dual Xeon Gold + 128GB RAM viable</span>
+</td>
+<td class="py-space-sm px-space-sm">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm uppercase font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span>Waiting</span>
+</span>
+</td>
+<td class="py-space-sm pl-space-sm pr-space-md text-right">
+<a class="inline-flex items-center gap-1 px-3 py-1.5 bg-primary hover:bg-primary-container text-on-primary rounded font-label-md text-label-md font-bold shadow-sm transition-all hover:scale-[1.02]" data-path="physical-inspection" href="#">
+<span>Inspect Device</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</td>
+</tr>
+<!-- Row 2: High Risk Laptop -->
+<tr class="hover:bg-surface-container-low/70 transition-colors device-row" data-id="DEV-90813" data-risk="HIGH" data-status="waiting">
+<td class="py-space-sm pl-space-md pr-space-xs">
+<input class="row-checkbox rounded w-4 h-4 text-primary accent-primary cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-space-sm px-space-sm">
+<div class="flex items-center gap-space-sm">
+<img class="w-12 h-12 rounded object-cover shrink-0 bg-surface-container shadow-sm" data-alt="Macro close-up photo of a dismantled silver workstation laptop with casing separation showing battery compartment distortion on a slate rubber workbench." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCi_nvbjyMzyQwEVV5t2FBWixiw3G4lgb5Fa8ZyJme6L6WZUKLXf-yKxlSEI4rmkkMSnedpKDOCD6VpOuu87EX3b36Z-t9Y5_4HT0YqNyIUEsPpFjnpx3hk0WeXtfGxgfOjP0iFOkQr_8xxlu2bOQe7oZsNQYB0l-MRma3DkxdAEwc_iSCQWvCeAwJh3mKkL3cCMdLa1iICKK7zvDMJnVDIHN1WyPSSxRfyxahVbJFX"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-bold truncate">MacBook Pro 16" (M1 Max)</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant font-medium">Workstation</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="font-body-sm text-body-sm font-mono text-outline">SN: C02GM4X7MD6R</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="font-body-sm text-body-sm text-outline">Lot #2024-B91</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-sm">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">3 days ago • Oct 23, 11:20 AM</span>
+<span class="font-body-sm text-body-sm text-outline">Elapsed queue time: 74h 15m</span>
+</div>
+</td>
+<td class="py-space-sm px-space-sm">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-bold uppercase tracking-wide">
+<span class="material-symbols-outlined text-[14px] text-error">dangerous</span>
+<span>High Risk: Punctured Pouch Cell</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Thermal imaging flagged +4.2°C ambient shift.</p>
+</td>
+<td class="py-space-sm px-space-sm">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[14px]">recycling</span>
+<span>Reuse Hub - Refurbish</span>
+</span>
+<span class="block font-body-sm text-body-sm text-outline mt-0.5">Logic board intact • Grade A chassis</span>
+</td>
+<td class="py-space-sm px-space-sm">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm uppercase font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span>Waiting</span>
+</span>
+</td>
+<td class="py-space-sm pl-space-sm pr-space-md text-right">
+<a class="inline-flex items-center gap-1 px-3 py-1.5 bg-primary hover:bg-primary-container text-on-primary rounded font-label-md text-label-md font-bold shadow-sm transition-all hover:scale-[1.02]" data-path="physical-inspection" href="#">
+<span>Inspect Device</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</td>
+</tr>
+<!-- Row 3: Moderate Risk Network Switch -->
+<tr class="hover:bg-surface-container-low/70 transition-colors device-row" data-id="DEV-90814" data-risk="MODERATE" data-status="waiting">
+<td class="py-space-sm pl-space-md pr-space-xs">
+<input class="row-checkbox rounded w-4 h-4 text-primary accent-primary cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-space-sm px-space-sm">
+<div class="flex items-center gap-space-sm">
+<img class="w-12 h-12 rounded object-cover shrink-0 bg-surface-container shadow-sm" data-alt="Industrial equipment photo showing a Cisco Catalyst 48-port network switch with fiber optic module bays on clean anti-static workshop tray." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1uKFj2oMfKdh8OYJxNOhW_APb4CBpyBXF44OfHNs8HVQ6yyXiBt5SgdIyixH-fnar0U6CxWwjgBn81H81ino1bMxDedKXiAqUt8cEeJVCzuFAT0cMEEAKh1zX4HNUqDulI6lV9p_L-wiZcr8g240lgO8rTyUvE4IWqrVz1IjsPgCrdMLZE71Zpq8-vab-W5Sl4ADC3wQWb0fAuME8p4fiPw0Mu_g9-7zvQo38OHZ2"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-bold truncate">Cisco Catalyst 3850-48P-L</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant font-medium">Telecom / Routing</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="font-body-sm text-body-sm font-mono text-outline">SN: FOC2140V1ZZ</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="font-body-sm text-body-sm text-outline">Lot #2024-C02</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-sm">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">2 days ago • Oct 24, 09:14 AM</span>
+<span class="font-body-sm text-body-sm text-outline">Elapsed queue time: 51h 22m</span>
+</div>
+</td>
+<td class="py-space-sm px-space-sm">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-tertiary-fixed text-on-tertiary-container font-label-sm text-label-sm font-bold uppercase tracking-wide">
+<span class="material-symbols-outlined text-[14px]">report_problem</span>
+<span>Moderate: Capacitor Leak Potential</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Trace oxidation around primary PSU bay.</p>
+</td>
+<td class="py-space-sm px-space-sm">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[14px]">published_with_changes</span>
+<span>Reuse Hub - Refurbish</span>
+</span>
+<span class="block font-body-sm text-body-sm text-outline mt-0.5">High secondary resale demand</span>
+</td>
+<td class="py-space-sm px-space-sm">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm uppercase font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span>Waiting</span>
+</span>
+</td>
+<td class="py-space-sm pl-space-sm pr-space-md text-right">
+<a class="inline-flex items-center gap-1 px-3 py-1.5 bg-primary hover:bg-primary-container text-on-primary rounded font-label-md text-label-md font-bold shadow-sm transition-all hover:scale-[1.02]" data-path="physical-inspection" href="#">
+<span>Inspect Device</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</td>
+</tr>
+<!-- Row 4: Safe Industrial Sensor -->
+<tr class="hover:bg-surface-container-low/70 transition-colors device-row" data-id="DEV-90815" data-risk="NONE" data-status="waiting">
+<td class="py-space-sm pl-space-md pr-space-xs">
+<input class="row-checkbox rounded w-4 h-4 text-primary accent-primary cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-space-sm px-space-sm">
+<div class="flex items-center gap-space-sm">
+<img class="w-12 h-12 rounded object-cover shrink-0 bg-surface-container shadow-sm" data-alt="Studio technical product shot of a black rugged industrial barcode terminal scanner with laser window and hardened rubberized casing on a white neutral surface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlpn9MUusvnPhwraHDbpagM-PtvObFCak7Dpmd3k8D32yBTykjkGGXD5GxIxsOWpcXuaX2VVnT7ucSrtLSfaotP3-rdz2voj0ddobOirN0uvNqNvVToKzF6oChsjtdUxx_7zy9UJkMkxaFOu011X2fWFuURck8qEI_YFhoA1V_QFT-8c_tpDkoBEQ9YquMk2hNCMBcMwPY2g2kdKJs5nCnPI7QFpMfqftbWyPhPGUj"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-bold truncate">Zebra TC52x Rugged Scanner</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant font-medium">Logistics Tech</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="font-body-sm text-body-sm font-mono text-outline">SN: 212555205D011</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="font-body-sm text-body-sm text-outline">Lot #2024-C09</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-sm">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">1 day ago • Oct 25, 02:40 PM</span>
+<span class="font-body-sm text-body-sm text-outline">Elapsed queue time: 26h 05m</span>
+</div>
+</td>
+<td class="py-space-sm px-space-sm">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-bold uppercase tracking-wide">
+<span class="material-symbols-outlined text-[14px] text-primary">verified_user</span>
+<span>None: Safe Casing</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline mt-1">Dry pack intact. Battery dismounted at drop.</p>
+</td>
+<td class="py-space-sm px-space-sm">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[14px]">recycling</span>
+<span>Reuse Hub - Refurbish</span>
+</span>
+<span class="block font-body-sm text-body-sm text-outline mt-0.5">Firmware wipe and resell</span>
+</td>
+<td class="py-space-sm px-space-sm">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm uppercase font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span>Waiting</span>
+</span>
+</td>
+<td class="py-space-sm pl-space-sm pr-space-md text-right">
+<a class="inline-flex items-center gap-1 px-3 py-1.5 bg-primary hover:bg-primary-container text-on-primary rounded font-label-md text-label-md font-bold shadow-sm transition-all hover:scale-[1.02]" data-path="physical-inspection" href="#">
+<span>Inspect Device</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</td>
+</tr>
+<!-- Row 5: Material Disposal candidate -->
+<tr class="hover:bg-surface-container-low/70 transition-colors device-row" data-id="DEV-90816" data-risk="HIGH" data-status="waiting">
+<td class="py-space-sm pl-space-md pr-space-xs">
+<input class="row-checkbox rounded w-4 h-4 text-primary accent-primary cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-space-sm px-space-sm">
+<div class="flex items-center gap-space-sm">
+<img class="w-12 h-12 rounded object-cover shrink-0 bg-surface-container shadow-sm" data-alt="Technical photography of crushed industrial drone lithium polymer battery modules sealed inside a fire-retardant heavy-duty fiberglass transport crate." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3f47iDln6ZrJGJZxj5bOF-qhQNimBXD20HlahxVB3asMd7aFJvqVB8bgihLvOPj1tlqfmGGWmu3D75kwplxLWa5uGTk-8MJTk-OMowlNffjmqmv_hbE2iSfxlOO-0STVB3YyVn9Ger6VHNjatQYKgs-mo3vxL8DLnjYj_-kr_iy3Z1H0aRZRHAnPkM9iasRFpej9Nvxa7rGsYbrxYTYqwTkFCDyeoozBazf63HIfz"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-bold truncate">DJI Matrice 300 TB60 Pack (x2)</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant font-medium">Avionics Power</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="font-body-sm text-body-sm font-mono text-outline">SN: DJI-TB60-9941</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="font-body-sm text-body-sm text-outline">Lot #2024-C11</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-sm">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">18 hours ago • Oct 25, 08:10 PM</span>
+<span class="font-body-sm text-body-sm text-outline">Elapsed queue time: 18h 35m</span>
+</div>
+</td>
+<td class="py-space-sm px-space-sm">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-bold uppercase tracking-wide">
+<span class="material-symbols-outlined text-[14px] text-error">emergency</span>
+<span>High Risk: Severe Thermal Runaway</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Stored in Sand Vault B pending chemical escort.</p>
+</td>
+<td class="py-space-sm px-space-sm">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container-high text-error font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[14px]">delete_forever</span>
+<span>Material Disposal</span>
+</span>
+<span class="block font-body-sm text-body-sm text-outline mt-0.5">Hydrometallurgical extraction</span>
+</td>
+<td class="py-space-sm px-space-sm">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm uppercase font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span>Waiting</span>
+</span>
+</td>
+<td class="py-space-sm pl-space-sm pr-space-md text-right">
+<a class="inline-flex items-center gap-1 px-3 py-1.5 bg-primary hover:bg-primary-container text-on-primary rounded font-label-md text-label-md font-bold shadow-sm transition-all hover:scale-[1.02]" data-path="physical-inspection" href="#">
+<span>Inspect Device</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</td>
+</tr>
+<!-- Row 6: Already Inspected Item (Visible on All / Inspected tab) -->
+<tr class="hover:bg-surface-container-low/70 transition-colors device-row opacity-80" data-id="DEV-90810" data-risk="NONE" data-status="inspected">
+<td class="py-space-sm pl-space-md pr-space-xs">
+<input class="row-checkbox rounded w-4 h-4 text-primary accent-primary cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-space-sm px-space-sm">
+<div class="flex items-center gap-space-sm">
+<img class="w-12 h-12 rounded object-cover shrink-0 bg-surface-container shadow-sm" data-alt="Clean laboratory photography of an iPad Pro 12.9 with diagnostic green testing screen illuminated on cleanroom antistatic mat." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7N8dk9w-dryZkV0aUbAtwE1NIKL2nUVaZllfZX-y5bW4evFOj6WzJArwvkzvPlCjlmbSWkpcLtGUqTmjTA5-f5KSouY3xVh5b85QvXEB8JONlVYWHr7O4BcTeiobM-Yvo8jLDqy5ued-CgvuXvl97KxsiaDkLNvm78mHl-7gs7zEUP7SRV4lafOZcNn6Ax61A74GjH71cbbZZSG13ethypBkr09hOq2A_biUPOSz2"/>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-bold truncate">iPad Pro 12.9" Wi-Fi 256GB</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant font-medium">Tablet</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="font-body-sm text-body-sm font-mono text-outline">SN: DMPX8911H2</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="font-body-sm text-body-sm text-outline">Lot #2024-A98</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-space-sm px-space-sm">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">5 days ago • Oct 21, 03:15 PM</span>
+<span class="font-body-sm text-body-sm text-primary font-medium">Triage cleared</span>
+</div>
+</td>
+<td class="py-space-sm px-space-sm">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-bold uppercase tracking-wide">
+<span class="material-symbols-outlined text-[14px] text-primary">check_circle</span>
+<span>None: Safe Casing</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline mt-1">Battery cycle count: 142 (94% capacity).</p>
+</td>
+<td class="py-space-sm px-space-sm">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[14px]">recycling</span>
+<span>Reuse Hub - Refurbish</span>
+</span>
+<span class="block font-body-sm text-body-sm text-outline mt-0.5">Assigned to Resale Stage 1</span>
+</td>
+<td class="py-space-sm px-space-sm">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm uppercase font-bold">
+<span class="material-symbols-outlined text-[12px]">done_all</span>
+<span>Inspected</span>
+</span>
+</td>
+<td class="py-space-sm pl-space-sm pr-space-md text-right">
+<a class="inline-flex items-center gap-1 px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface rounded font-label-md text-label-md font-bold transition-all" data-path="reuse-hub" href="#">
+<span>View Manifest</span>
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+</a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Sticky Micro-Action & Pagination Footer -->
+<div class="p-space-md bg-surface-container-low flex flex-col sm:flex-row items-center justify-between gap-space-md">
+<!-- Batch Action Controls -->
+<div class="flex items-center gap-space-sm w-full sm:w-auto">
+<span class="font-body-sm text-body-sm text-on-surface-variant">
+          Selected: <strong class="text-on-surface" id="selectedCount">0</strong> items
+        </span>
+<div class="h-4 w-px bg-outline-variant/40"></div>
+<button class="px-2.5 py-1 bg-surface-container-lowest text-on-surface hover:bg-surface-container rounded font-label-md text-label-md transition-colors disabled:opacity-50" disabled="" id="bulkAssignBtn" type="button">
+          Reassign Lot
+        </button>
+<button class="px-2.5 py-1 bg-surface-container-lowest text-error hover:bg-error-container rounded font-label-md text-label-md transition-colors disabled:opacity-50" disabled="" id="bulkHazmatBtn" type="button">
+          Flag Hazmat Containment
+        </button>
+</div>
+<!-- Pagination & Queue Velocity -->
+<div class="flex items-center gap-space-md w-full sm:w-auto justify-between sm:justify-end">
+<span class="font-body-sm text-body-sm text-outline">
+          Showing <span class="font-bold text-on-surface">1-6</span> of <span class="font-bold text-on-surface">36</span> waiting items
+        </span>
+<div class="flex items-center gap-1">
+<button class="p-1 rounded bg-surface-container-lowest text-outline hover:text-on-surface disabled:opacity-40" disabled="" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<span class="font-label-md text-label-md px-2 py-0.5 rounded bg-primary text-on-primary font-bold">1</span>
+<button class="font-label-md text-label-md px-2 py-0.5 rounded bg-surface-container-lowest text-on-surface hover:bg-surface-container" type="button">2</button>
+<button class="font-label-md text-label-md px-2 py-0.5 rounded bg-surface-container-lowest text-on-surface hover:bg-surface-container" type="button">3</button>
+<button class="p-1 rounded bg-surface-container-lowest text-outline hover:text-on-surface" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Real-Time Automated Ingestion Activity Stream -->
+<div class="mt-gutter-desktop grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Left Column: Auto-Checkin Stream -->
+<div class="lg:col-span-2 bg-surface-container-lowest p-space-md rounded-xl shadow-sm">
+<div class="flex items-center justify-between mb-space-sm pb-space-xs border-b border-surface-container-low">
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+<span class="font-headline-md text-headline-md text-on-surface font-semibold">Live Automated Drop-off Intake Stream</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Automated via RFID / Barcode Gate</span>
+</div>
+<div class="space-y-space-xs">
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px]">add_circle</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-bold">HP ZBook Fury G8 Checked In • <span class="font-mono text-outline font-normal">SN: 5CD1432X8B</span></span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Intake Station 04 • Queued automatically via FIFO rule #3</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Just now</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-error text-[20px]">warning</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-bold">Hazard Alert: Cisco Telepresence Battery Pack</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Automated optical inspection detected physical bulge > 3.5mm</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-error font-bold">4 mins ago</span>
+</div>
+</div>
+</div>
+<!-- Right Column: Protocol SLA Checklist -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-space-sm">
+<span class="font-headline-md text-headline-md text-on-surface font-semibold">FIFO Inspection Directives</span>
+<span class="material-symbols-outlined text-outline text-[18px]">verified</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-sm">
+          Technicians must process lots strictly in received order unless overridden by a Level-1 Hazmat Flag.
+        </p>
+<ul class="space-y-2">
+<li class="flex items-center gap-2 font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-primary text-[16px]">check_circle</span>
+<span>Thermal scan every item prior to physical unboxing</span>
+</li>
+<li class="flex items-center gap-2 font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-primary text-[16px]">check_circle</span>
+<span>Verify AI suggested pathway before serial confirmation</span>
+</li>
+<li class="flex items-center gap-2 font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-primary text-[16px]">check_circle</span>
+<span>ESD wrist strap continuity test logged per shift</span>
+</li>
+</ul>
+</div>
+<div class="mt-space-md pt-space-xs border-t border-surface-container-low flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Station Tech: E. Vance</span>
+<a class="font-label-sm text-label-sm text-primary font-bold hover:underline flex items-center gap-0.5" data-path="physical-inspection" href="#">
+          Go to Inspection Deck <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // State variables
+  let currentTab = 'waiting';
+  let currentRisk = 'ALL';
+  let searchQuery = '';
+
+  function setTab(tab) {
+    currentTab = tab;
+    
+    // Update button states
+    ['all', 'waiting', 'inspected'].forEach(t => {
+      const btn = document.getElementById(`tab-${t}`);
+      if (t === tab) {
+        btn.className = 'filter-tab px-space-md py-1.5 rounded-lg font-label-md text-label-md bg-surface-container-lowest font-bold text-primary shadow-sm transition-colors';
+      } else {
+        btn.className = 'filter-tab px-space-md py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant transition-colors hover:text-on-surface';
+      }
+    });
+
+    applyFilters();
+  }
+
+  function handleRiskFilter(risk) {
+    currentRisk = risk;
+    applyFilters();
+  }
+
+  function handleSearch(val) {
+    searchQuery = val.trim().toLowerCase();
+    const clearBtn = document.getElementById('clearSearchBtn');
+    if (searchQuery.length > 0) {
+      clearBtn.classList.remove('hidden');
+    } else {
+      clearBtn.classList.add('hidden');
+    }
+    applyFilters();
+  }
+
+  function clearSearch() {
+    const input = document.getElementById('searchInput');
+    input.value = '';
+    searchQuery = '';
+    document.getElementById('clearSearchBtn').classList.add('hidden');
+    applyFilters();
+  }
+
+  function resetAllFilters() {
+    setTab('waiting');
+    document.getElementById('riskFilter').value = 'ALL';
+    currentRisk = 'ALL';
+    clearSearch();
+  }
+
+  function applyFilters() {
+    const rows = document.querySelectorAll('.device-row');
+    const ribbon = document.getElementById('filterRibbon');
+    const filterTagsContainer = document.getElementById('activeFilterTags');
+    
+    let activeTags = [];
+    if (currentTab !== 'all') activeTags.push(`Status: ${currentTab.toUpperCase()}`);
+    if (currentRisk !== 'ALL') activeTags.push(`Risk: ${currentRisk}`);
+    if (searchQuery) activeTags.push(`Query: "${searchQuery}"`);
+
+    if (activeTags.length > 0) {
+      ribbon.classList.remove('hidden');
+      filterTagsContainer.innerHTML = activeTags.map(tag => 
+        `<span class="px-2 py-0.5 rounded bg-surface-container-lowest text-on-surface font-mono text-[10px] shadow-sm">${tag}</span>`
+      ).join('');
+    } else {
+      ribbon.classList.add('hidden');
+    }
+
+    rows.forEach(row => {
+      const status = row.getAttribute('data-status');
+      const risk = row.getAttribute('data-risk');
+      const text = row.innerText.toLowerCase();
+
+      const matchesTab = (currentTab === 'all') || (status === currentTab);
+      const matchesRisk = (currentRisk === 'ALL') || (risk === currentRisk);
+      const matchesSearch = !searchQuery || text.includes(searchQuery);
+
+      if (matchesTab && matchesRisk && matchesSearch) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+
+  // Row selection handler
+  function toggleSelectAll(checked) {
+    const checkboxes = document.querySelectorAll('.row-checkbox');
+    checkboxes.forEach(cb => cb.checked = checked);
+    updateSelectedCount();
+  }
+
+  document.querySelectorAll('.row-checkbox').forEach(cb => {
+    cb.addEventListener('change', updateSelectedCount);
+  });
+
+  function updateSelectedCount() {
+    const selected = document.querySelectorAll('.row-checkbox:checked').length;
+    document.getElementById('selectedCount').innerText = selected;
+    const bulkAssign = document.getElementById('bulkAssignBtn');
+    const bulkHazmat = document.getElementById('bulkHazmatBtn');
+    
+    if (selected > 0) {
+      bulkAssign.removeAttribute('disabled');
+      bulkHazmat.removeAttribute('disabled');
+    } else {
+      bulkAssign.setAttribute('disabled', 'true');
+      bulkHazmat.setAttribute('disabled', 'true');
+      document.getElementById('selectAllCheckbox').checked = false;
+    }
+  }
+
+  // Default to waiting queue on load
+  setTab('waiting');
+</script></main></div></body></html>

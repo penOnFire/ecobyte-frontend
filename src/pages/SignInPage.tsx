@@ -34,7 +34,11 @@ export const SignInPage: FC = () => {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
-    navigate('/')
+    if (email.includes('admin') || email.includes('ecobyte.gov') || email.includes('official')) {
+      navigate('/admin')
+    } else {
+      navigate('/')
+    }
   }
 
   return (
@@ -321,8 +325,28 @@ export const SignInPage: FC = () => {
                 '&:hover': { backgroundColor: '#1e293b' },
               }}
             >
-              Sign In
+              Sign In (Resident)
               <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
+            </Button>
+
+            <Button
+              fullWidth
+              type="button"
+              onClick={() => navigate('/admin')}
+              variant="outlined"
+              size="medium"
+              sx={{
+                mt: 1.25,
+                py: 1.25,
+                fontSize: '0.875rem',
+                fontWeight: 700,
+                borderColor: '#16a34a',
+                color: '#15803d',
+                backgroundColor: '#f0fdf4',
+                '&:hover': { backgroundColor: '#dcfce7', borderColor: '#15803d' },
+              }}
+            >
+              Open Admin Console (Desktop) →
             </Button>
           </Box>
 

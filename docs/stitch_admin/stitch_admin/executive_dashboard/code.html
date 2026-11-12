@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-container": "#e5eeff", "on-error": "#ffffff", "surface-container-high": "#dce9ff", "primary-container": "#065f46", "tertiary-fixed": "#ffdcc3", "surface-dim": "#cbdbf5", "on-primary-container": "#8bd6b7", "secondary-container": "#86f2e4", "on-primary-fixed-variant": "#00513b", "tertiary-container": "#804300", "inverse-on-surface": "#eaf1ff", "on-surface-variant": "#3f4944", "on-background": "#0b1c30", "on-primary-fixed": "#002116", "surface": "#f8f9ff", "secondary-fixed-dim": "#6bd8cb", "on-tertiary-container": "#ffb87e", "secondary-fixed": "#89f5e7", "tertiary": "#5e3000", "on-primary": "#ffffff", "outline-variant": "#bec9c2", "error-container": "#ffdad6", "on-surface": "#0b1c30", "on-secondary": "#ffffff", "primary": "#004532", "surface-container-low": "#eff4ff", "outline": "#6f7973", "on-secondary-fixed-variant": "#005049", "surface-bright": "#f8f9ff", "surface-variant": "#d3e4fe", "on-tertiary-fixed-variant": "#6e3900", "tertiary-fixed-dim": "#ffb77d", "on-secondary-container": "#006f66", "inverse-surface": "#213145", "background": "#f8f9ff", "error": "#ba1a1a", "secondary": "#006a61", "on-tertiary": "#ffffff", "on-tertiary-fixed": "#2f1500", "on-secondary-fixed": "#00201d", "on-error-container": "#93000a", "primary-fixed": "#a6f2d1", "surface-container-highest": "#d3e4fe", "inverse-primary": "#8bd6b6", "surface-container-lowest": "#ffffff", "surface-tint": "#1b6b51", "primary-fixed-dim": "#8bd6b6" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "gutter-desktop": "1.5rem", "margin": "1rem", "space-xl": "2rem", "margin-desktop": "2rem", "space-lg": "1.25rem", "gutter": "1rem", "space-xs": "0.25rem", "space-md": "0.75rem", "space-sm": "0.5rem" }, "fontFamily": { "label-sm": ["Inter"], "headline-lg": ["Inter"], "body-sm": ["Inter"], "body-lg": ["Inter"], "headline-xl-mobile": ["Inter"], "headline-xl": ["Inter"], "headline-lg-mobile": ["Inter"], "body-md": ["Inter"], "label-md": ["Inter"], "headline-md": ["Inter"], "label-lg": ["Inter"] }, "fontSize": { "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "700" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }], "headline-xl-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-lg-mobile": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }], "label-md": ["11px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "600" }], "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "label-lg": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "600" }] } } } };</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-low z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="EcoLoop Admin Portal Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuComOooAdp2D83xFnmqmA7NySJLgRN1QNtJmFfu185Il75Gz0f1WPjBCl3XmwT6bdBdrU6UY1BOI9fR-QP-ryVvjwoHdLxTwdUTOdgToXeJ3Kvj1iU9Dcv41uYxk_MZ53-BpBpyxaOku16nH-oRmf_F9oB1zmSeQSnRCFkThVuXpQXKInoGrHQvPsMCy2CgqZF4uDPpFEao_Q5gQ9PCqvqNtxaEm6apvR038XSeV5Im"/><div class="flex flex-col"><span class="font-headline-md text-headline-md font-bold tracking-tight text-primary leading-none">EcoLoop</span><span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Lifecycle OS</span></div></div></div><div class="px-gutter py-space-sm"><div class="flex items-center gap-space-xs px-space-sm py-space-xs rounded bg-surface-container-high text-on-surface-variant"><span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span><span class="font-label-sm text-label-sm uppercase tracking-wide">Hub Node: Online</span></div></div><nav class="flex flex-col gap-space-xs px-space-sm mt-space-sm" data-active-classes="bg-primary-container text-on-primary font-bold"><a aria-current="page" class="flex items-center gap-space-md px-space-md py-space-sm rounded transition-colors bg-primary-container text-on-primary font-bold" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[18px]">dashboard</span><span class="font-label-lg text-label-lg">Dashboard</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="awaiting-inspection" href="#"><span class="material-symbols-outlined text-[18px]">pending_actions</span><span class="font-label-lg text-label-lg">Awaiting Inspection</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="physical-inspection" href="#"><span class="material-symbols-outlined text-[18px]">biotech</span><span class="font-label-lg text-label-lg">Physical Inspection</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="reuse-hub" href="#"><span class="material-symbols-outlined text-[18px]">inventory_2</span><span class="font-label-lg text-label-lg">Reuse Hub</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="disposal-records" href="#"><span class="material-symbols-outlined text-[18px]">delete_forever</span><span class="font-label-lg text-label-lg">Disposal Records</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="users-and-access" href="#"><span class="material-symbols-outlined text-[18px]">admin_panel_settings</span><span class="font-label-lg text-label-lg">Users & Access</span></a></nav></div><div class="p-gutter flex flex-col gap-space-sm bg-surface-container-high"><div class="flex items-center justify-between text-on-surface-variant"><span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Audit Compliance</span><span class="font-label-sm text-label-sm font-bold text-primary">ISO 14001</span></div><div class="w-full bg-surface-container-lowest h-1.5 rounded overflow-hidden"><div class="bg-primary h-full w-[94%]"></div></div><div class="flex justify-between items-center font-label-sm text-label-sm text-outline"><span>Chain-of-Custody</span><span class="font-bold text-on-surface">94.2%</span></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-gutter-desktop"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs text-on-surface-variant"><span class="material-symbols-outlined text-[18px] text-outline">hub</span><span class="font-label-md text-label-md uppercase tracking-wider text-outline">Central Sorting</span><span class="material-symbols-outlined text-[14px] text-outline-variant">chevron_right</span><span class="font-label-md text-label-md text-on-surface">Regional Intake</span></div><div class="hidden md:flex items-center bg-surface-container-lowest px-space-md py-1.5 rounded shadow-[0_1px_4px_rgba(0,0,0,0.02)] gap-space-sm ml-space-md"><span class="material-symbols-outlined text-outline text-[16px]">search</span><input class="bg-transparent font-body-sm text-body-sm text-on-surface placeholder:text-outline outline-none w-52" placeholder="Search lot ID, serial or SKU..." type="text"/><kbd class="font-label-sm text-label-sm bg-surface-container text-on-surface-variant px-1.5 py-0.5 rounded">Ctrl+K</kbd></div></div><div class="flex items-center gap-gutter"><div class="flex items-center gap-space-sm"><button aria-label="Notifications" class="relative p-space-xs rounded text-on-surface-variant hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-error"></span></button><button aria-label="System Logs" class="p-space-xs rounded text-on-surface-variant hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[20px]">sync_alt</span></button></div><div class="flex items-center gap-space-md pl-space-md"><div class="flex flex-col text-right hidden sm:flex"><span class="font-label-lg text-label-lg text-on-surface">Elena Vance</span><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-primary-container text-on-primary uppercase tracking-wider self-end mt-0.5">Super Admin</span></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACbbrVZZOiQDxKgZVAIUd3Sp8bGQVMPrfvRqL-LxBdOS7nodjK9znCMcRpmNV_mOhP_n1dKZJrhAtkQGXmlfd1Gc3uvGEzsZ-wwHURNJybQZVohgmPsKXTXW_T-21OSn-4XTwuz__x3DrQYyaH5WBrzzN18FoxA4l-HInNKYgFG-h15qnQdoTsTMuOo0Rvtaq_TnMsp8WLhI8rw2mhSYMDpNQH6XI7NLoGKLdOrYqu"/></div></div></header><main class="relative pt-16 bg-surface min-h-screen w-full px-gutter-desktop"><div class="flex flex-col w-full pb-16">
+<!-- Top Operational Banner & Access Clearance -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md py-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center gap-1.5 px-space-sm py-1 bg-surface-container rounded font-label-sm text-label-sm text-primary uppercase">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">shield</span>
+<span>RBAC: Tier-1 Admin / Compliance Official</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">•</span>
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-outline">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
+<span class="text-on-surface-variant font-label-md text-label-md">Live Stream Synced: 32s ago</span>
+</div>
+</div>
+<!-- Date Range & Action Strip -->
+<div class="flex flex-wrap items-center gap-space-sm">
+<div class="flex items-center p-1 bg-surface-container-high rounded" id="dateFilterGroup">
+<button class="px-space-md py-1 rounded font-label-md text-label-md transition-colors bg-primary-container text-on-primary shadow-sm" data-range="7d">Last 7 Days</button>
+<button class="px-space-md py-1 rounded font-label-md text-label-md transition-colors text-on-surface-variant hover:text-on-surface" data-range="30d">Last 30 Days</button>
+<button class="px-space-md py-1 rounded font-label-md text-label-md transition-colors text-on-surface-variant hover:text-on-surface" data-range="q3">Q3 2024</button>
+<button class="px-space-md py-1 rounded font-label-md text-label-md transition-colors text-on-surface-variant hover:text-on-surface flex items-center gap-1" data-range="custom">
+<span>Custom</span>
+<span class="material-symbols-outlined text-[14px]">calendar_today</span>
+</button>
+</div>
+<button class="flex items-center gap-1.5 px-space-md py-1.5 bg-surface-container-lowest text-on-surface font-label-md text-label-md rounded shadow-sm hover:bg-surface-container transition-colors" onclick="simulateExport()">
+<span class="material-symbols-outlined text-[16px] text-primary">download</span>
+<span>Export Report</span>
+</button>
+<button class="p-1.5 bg-surface-container-lowest text-on-surface-variant rounded shadow-sm hover:text-on-surface transition-colors" title="Force Telemetry Sync">
+<span class="material-symbols-outlined text-[18px]">cached</span>
+</button>
+</div>
+</div>
+<!-- KPI Bento Row (5 Cards) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-space-md mt-space-sm">
+<!-- Card 1: Items Collected -->
+<div class="bg-surface-container-lowest p-space-md rounded shadow-sm relative overflow-hidden flex flex-col justify-between group hover:shadow-md transition-all">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Intake Ledger</span>
+<span class="font-headline-md text-headline-md text-on-surface mt-1">14,892</span>
+</div>
+<div class="p-2 bg-surface-container rounded text-primary">
+<span class="material-symbols-outlined text-[20px]">input</span>
+</div>
+</div>
+<div class="mt-space-md flex items-center justify-between">
+<div class="flex items-center gap-1 text-primary font-label-md text-label-md">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+<span>+12.4%</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">vs past mo</span>
+</div>
+<div class="absolute -bottom-1 left-0 right-0 h-1 bg-primary"></div>
+</div>
+<!-- Card 2: Awaiting Inspection -->
+<div class="bg-surface-container-lowest p-space-md rounded shadow-sm relative overflow-hidden flex flex-col justify-between group hover:shadow-md transition-all">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Triage Holding</span>
+<span class="font-headline-md text-headline-md text-on-surface mt-1">48</span>
+</div>
+<div class="p-2 bg-tertiary-fixed rounded text-tertiary-container">
+<span class="material-symbols-outlined text-[20px]">biotech</span>
+</div>
+</div>
+<div class="mt-space-md flex items-center justify-between">
+<span class="px-1.5 py-0.5 rounded bg-tertiary-fixed text-tertiary font-label-sm text-label-sm font-bold">8 Urgency P1</span>
+<span class="font-label-sm text-label-sm text-outline">Physical queue</span>
+</div>
+<div class="absolute -bottom-1 left-0 right-0 h-1 bg-tertiary-fixed-dim"></div>
+</div>
+<!-- Card 3: Reuse Hub Diverted -->
+<div class="bg-surface-container-lowest p-space-md rounded shadow-sm relative overflow-hidden flex flex-col justify-between group hover:shadow-md transition-all">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Reuse Hub Diversion</span>
+<span class="font-headline-md text-headline-md text-on-surface mt-1">9,420</span>
+</div>
+<div class="p-2 bg-secondary-fixed rounded text-on-secondary-container">
+<span class="material-symbols-outlined text-[20px]">cyclone</span>
+</div>
+</div>
+<div class="mt-space-md flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-secondary">63.2% Circular Yield</span>
+<span class="font-label-sm text-label-sm text-outline">Passed bench</span>
+</div>
+<div class="absolute -bottom-1 left-0 right-0 h-1 bg-secondary"></div>
+</div>
+<!-- Card 4: Marked for Disposal -->
+<div class="bg-surface-container-lowest p-space-md rounded shadow-sm relative overflow-hidden flex flex-col justify-between group hover:shadow-md transition-all">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Certified Smelt/Shred</span>
+<span class="font-headline-md text-headline-md text-on-surface mt-1">4,810</span>
+</div>
+<div class="p-2 bg-surface-container-high rounded text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">recycling</span>
+</div>
+</div>
+<div class="mt-space-md flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant">32.3% of Total Intake</span>
+<span class="font-label-sm text-label-sm text-outline">ISO 14001</span>
+</div>
+<div class="absolute -bottom-1 left-0 right-0 h-1 bg-outline"></div>
+</div>
+<!-- Card 5: High Health Risk Items -->
+<div class="bg-surface-container-lowest p-space-md rounded shadow-sm relative overflow-hidden flex flex-col justify-between group hover:shadow-md transition-all">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Critical Health Risk</span>
+<span class="font-headline-md text-headline-md text-error mt-1 flex items-center gap-1">
+<span>64</span>
+<span class="material-symbols-outlined text-[16px] animate-pulse">warning</span>
+</span>
+</div>
+<div class="p-2 bg-error-container rounded text-error">
+<span class="material-symbols-outlined text-[20px]">dangerous</span>
+</div>
+</div>
+<div class="mt-space-md flex items-center justify-between">
+<span class="px-1.5 py-0.5 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">Hazmat AI Alert</span>
+<span class="font-label-sm text-label-sm text-outline">Hg/Li Cells</span>
+</div>
+<div class="absolute -bottom-1 left-0 right-0 h-1 bg-error"></div>
+</div>
+</div>
+<!-- Primary Analytics Section: Asymmetric Split Grid -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-md mt-space-lg">
+<!-- Descriptive Analytics: Items by E-Waste Type (7 cols) -->
+<div class="xl:col-span-7 bg-surface-container-lowest p-space-md rounded shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pb-space-sm">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md text-on-surface">E-Waste Composition Breakdown</span>
+<span class="px-1.5 py-0.5 bg-surface-container text-on-surface-variant font-label-sm text-label-sm rounded uppercase">Descriptive Model</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">Serialized hardware distribution categorized by material matrix and sub-assembly complexity.</p>
+</div>
+<!-- Chart / Accessible Table Switcher -->
+<div class="flex items-center bg-surface-container rounded p-0.5 self-start sm:self-auto">
+<button class="px-space-sm py-1 bg-surface-container-lowest text-primary rounded font-label-sm text-label-sm font-bold shadow-sm flex items-center gap-1" id="viewChartBtn" onclick="toggleDescriptiveView('chart')">
+<span class="material-symbols-outlined text-[14px]">pie_chart</span> Visual
+            </button>
+<button class="px-space-sm py-1 text-on-surface-variant rounded font-label-sm text-label-sm font-bold flex items-center gap-1 hover:text-on-surface" id="viewTableBtn" onclick="toggleDescriptiveView('table')">
+<span class="material-symbols-outlined text-[14px]">table_rows</span> Table Ledger
+            </button>
+</div>
+</div>
+<!-- View 1: Rich Visual Bar & Donut representation -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-space-md items-center py-space-md" id="descriptiveChartContainer">
+<!-- Inline SVG Donut Chart (Sub-2KB, currentColor friendly) -->
+<div class="md:col-span-5 flex flex-col items-center justify-center relative">
+<svg class="w-48 h-48 -rotate-90" viewbox="0 0 160 160">
+<!-- Total Circumference = 2 * PI * 65 ≈ 408.4 -->
+<!-- Laptops (34% = 138.8) -->
+<circle cx="80" cy="80" fill="none" r="65" stroke="#065f46" stroke-dasharray="138.8 408.4" stroke-dashoffset="0" stroke-width="20"></circle>
+<!-- Smartphones (26% = 106.1) -->
+<circle cx="80" cy="80" fill="none" r="65" stroke="#006a61" stroke-dasharray="106.1 408.4" stroke-dashoffset="-138.8" stroke-width="20"></circle>
+<!-- Lithium Batteries (15% = 61.2) -->
+<circle cx="80" cy="80" fill="none" r="65" stroke="#ffdcc3" stroke-dasharray="61.2 408.4" stroke-dashoffset="-244.9" stroke-width="20"></circle>
+<!-- CRT / Display Monitors (11% = 44.9) -->
+<circle cx="80" cy="80" fill="none" r="65" stroke="#ba1a1a" stroke-dasharray="44.9 408.4" stroke-dashoffset="-306.1" stroke-width="20"></circle>
+<!-- PCB Boards (8% = 32.6) -->
+<circle cx="80" cy="80" fill="none" r="65" stroke="#6f7973" stroke-dasharray="32.6 408.4" stroke-dashoffset="-351" stroke-width="20"></circle>
+<!-- Small Appliances (6% = 24.5) -->
+<circle cx="80" cy="80" fill="none" r="65" stroke="#cbdbf5" stroke-dasharray="24.5 408.4" stroke-dashoffset="-383.6" stroke-width="20"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+<span class="font-headline-md text-headline-md text-on-surface font-bold leading-tight">14,892</span>
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-outline">Total Items</span>
+</div>
+</div>
+<!-- Interactive Breakdown Bars -->
+<div class="md:col-span-7 flex flex-col gap-space-sm">
+<!-- Laptop Bar -->
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between font-label-md text-label-md">
+<span class="flex items-center gap-1.5 text-on-surface">
+<span class="w-2.5 h-2.5 rounded-sm bg-primary-container"></span>
+                  Laptops & Mobile Workstations
+                </span>
+<span class="font-bold text-on-surface">5,063 items (34%)</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded overflow-hidden">
+<div class="bg-primary-container h-full rounded transition-all duration-500" style="width: 34%"></div>
+</div>
+</div>
+<!-- Smartphones Bar -->
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between font-label-md text-label-md">
+<span class="flex items-center gap-1.5 text-on-surface">
+<span class="w-2.5 h-2.5 rounded-sm bg-secondary"></span>
+                  Smartphones & Tablet Units
+                </span>
+<span class="font-bold text-on-surface">3,871 items (26%)</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded overflow-hidden">
+<div class="bg-secondary h-full rounded transition-all duration-500" style="width: 26%"></div>
+</div>
+</div>
+<!-- Lithium Batteries Bar -->
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between font-label-md text-label-md">
+<span class="flex items-center gap-1.5 text-on-surface">
+<span class="w-2.5 h-2.5 rounded-sm bg-tertiary-fixed"></span>
+                  Li-Ion / Polymer Battery Packs
+                </span>
+<span class="font-bold text-on-surface">2,234 items (15%)</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded overflow-hidden">
+<div class="bg-tertiary-fixed h-full rounded transition-all duration-500" style="width: 15%"></div>
+</div>
+</div>
+<!-- CRT / Monitors Bar -->
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between font-label-md text-label-md">
+<span class="flex items-center gap-1.5 text-on-surface">
+<span class="w-2.5 h-2.5 rounded-sm bg-error"></span>
+                  CRT & Mercury-Backlit Displays
+                </span>
+<span class="font-bold text-on-surface">1,638 items (11%)</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded overflow-hidden">
+<div class="bg-error h-full rounded transition-all duration-500" style="width: 11%"></div>
+</div>
+</div>
+<!-- PCB Boards Bar -->
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between font-label-md text-label-md">
+<span class="flex items-center gap-1.5 text-on-surface">
+<span class="w-2.5 h-2.5 rounded-sm bg-outline"></span>
+                  Raw Motherboards & Telemetry PCBs
+                </span>
+<span class="font-bold text-on-surface">1,191 items (8%)</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded overflow-hidden">
+<div class="bg-outline h-full rounded transition-all duration-500" style="width: 8%"></div>
+</div>
+</div>
+<!-- Small Appliances Bar -->
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between font-label-md text-label-md">
+<span class="flex items-center gap-1.5 text-on-surface">
+<span class="w-2.5 h-2.5 rounded-sm bg-surface-dim"></span>
+                  Small Smart Appliances & IoT Hubs
+                </span>
+<span class="font-bold text-on-surface">895 items (6%)</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded overflow-hidden">
+<div class="bg-surface-dim h-full rounded transition-all duration-500" style="width: 6%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- View 2: Accessible Alternative Table (hidden by default) -->
+<div class="hidden py-space-sm overflow-x-auto" id="descriptiveTableContainer">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead class="bg-surface-container text-on-surface-variant font-label-md text-label-md">
+<tr>
+<th class="py-2 px-space-md">Waste Subcategory</th>
+<th class="py-2 px-space-md">Total Count</th>
+<th class="py-2 px-space-md">Weight Mass</th>
+<th class="py-2 px-space-md">Hazmat Class</th>
+<th class="py-2 px-space-md">Reuse Yield</th>
+<th class="py-2 px-space-md">Target Disposal</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container">
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-2 px-space-md font-bold text-on-surface">Laptops & Workstations</td>
+<td class="py-2 px-space-md">5,063</td>
+<td class="py-2 px-space-md">11,138 kg</td>
+<td class="py-2 px-space-md"><span class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">Standard</span></td>
+<td class="py-2 px-space-md text-primary font-bold">78.4%</td>
+<td class="py-2 px-space-md text-on-surface-variant">Hub Refurb Tier 1</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-2 px-space-md font-bold text-on-surface">Smartphones & Tablets</td>
+<td class="py-2 px-space-md">3,871</td>
+<td class="py-2 px-space-md">735 kg</td>
+<td class="py-2 px-space-md"><span class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">Class 9 (Li-Ion)</span></td>
+<td class="py-2 px-space-md text-primary font-bold">69.1%</td>
+<td class="py-2 px-space-md text-on-surface-variant">OEM Certified Secondary</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-2 px-space-md font-bold text-on-surface">Lithium Batteries</td>
+<td class="py-2 px-space-md">2,234</td>
+<td class="py-2 px-space-md">1,898 kg</td>
+<td class="py-2 px-space-md"><span class="px-1.5 py-0.5 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">Hazmat P2</span></td>
+<td class="py-2 px-space-md text-error font-bold">12.0%</td>
+<td class="py-2 px-space-md text-on-surface-variant">Hydrometallurgical Extraction</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-2 px-space-md font-bold text-on-surface">CRT & Mercury Monitors</td>
+<td class="py-2 px-space-md">1,638</td>
+<td class="py-2 px-space-md">14,742 kg</td>
+<td class="py-2 px-space-md"><span class="px-1.5 py-0.5 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">Hazmat P1</span></td>
+<td class="py-2 px-space-md text-error font-bold">3.2%</td>
+<td class="py-2 px-space-md text-on-surface-variant">Lead Leaching Stabilization</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-2 px-space-md font-bold text-on-surface">PCB Boards & Bare Logic</td>
+<td class="py-2 px-space-md">1,191</td>
+<td class="py-2 px-space-md">416 kg</td>
+<td class="py-2 px-space-md"><span class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">Class 8 Micro</span></td>
+<td class="py-2 px-space-md text-on-surface-variant">41.8%</td>
+<td class="py-2 px-space-md text-on-surface-variant">Precious Metal Pyrolysis</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-2 px-space-md font-bold text-on-surface">Small IoT Appliances</td>
+<td class="py-2 px-space-md">895</td>
+<td class="py-2 px-space-md">1,163 kg</td>
+<td class="py-2 px-space-md"><span class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">Standard</span></td>
+<td class="py-2 px-space-md text-primary font-bold">54.0%</td>
+<td class="py-2 px-space-md text-on-surface-variant">Mechanical Shred & Sort</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Quick footnote tag -->
+<div class="pt-space-sm flex items-center justify-between font-label-sm text-label-sm text-outline">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">info</span>
+          Data synced via automated optical barcode scales across Intake Docks A1–C4
+        </span>
+<span class="font-bold text-on-surface-variant">99.8% Classification Accuracy</span>
+</div>
+</div>
+<!-- Predictive Analytics: Forecast Trend Chart (5 cols) -->
+<div class="xl:col-span-5 bg-surface-container-lowest p-space-md rounded shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-space-xs">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md text-on-surface">Generation Trend Forecast</span>
+<span class="px-1.5 py-0.5 bg-secondary-fixed text-on-secondary-container font-label-sm text-label-sm rounded uppercase">ML ARIMA-9</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">Historical volume intake vs projected Q4 2024 - Q2 2025 trajectory.</p>
+</div>
+<span class="p-1 bg-surface-container rounded text-secondary material-symbols-outlined text-[18px]">query_stats</span>
+</div>
+<!-- Predictive Metric Callout -->
+<div class="grid grid-cols-2 gap-space-sm py-space-sm">
+<div class="p-space-sm bg-surface-container-low rounded">
+<span class="font-label-sm text-label-sm uppercase tracking-wide text-outline">Q4 Projected Inflow</span>
+<div class="font-headline-md text-headline-md text-on-surface mt-0.5">17,450 <span class="text-body-sm font-normal text-outline">units</span></div>
+<span class="font-label-sm text-label-sm text-primary">+17.1% expected spike</span>
+</div>
+<div class="p-space-sm bg-surface-container-low rounded">
+<span class="font-label-sm text-label-sm uppercase tracking-wide text-outline">Forecast Confidence</span>
+<div class="font-headline-md text-headline-md text-on-surface mt-0.5">92.4% <span class="text-body-sm font-normal text-outline">(p<0.01)</span></div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">±340 deviation band</span>
+</div>
+</div>
+<!-- Inline SVG Area Forecast Graph with Confidence Band -->
+<div class="w-full pt-space-xs">
+<svg class="w-full h-44 overflow-visible" viewbox="0 0 420 180">
+<defs>
+<lineargradient id="forecastBandGrad" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#006a61" stop-opacity="0.22"></stop>
+<stop offset="100%" stop-color="#006a61" stop-opacity="0.02"></stop>
+</lineargradient>
+<lineargradient id="actualLineGrad" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#065f46" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#065f46" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<!-- Grid horizontal guidelines -->
+<line stroke="#d3e4fe" stroke-dasharray="3 3" stroke-width="1" x1="20" x2="400" y1="30" y2="30"></line>
+<line stroke="#d3e4fe" stroke-dasharray="3 3" stroke-width="1" x1="20" x2="400" y1="75" y2="75"></line>
+<line stroke="#d3e4fe" stroke-dasharray="3 3" stroke-width="1" x1="20" x2="400" y1="120" y2="120"></line>
+<line stroke="#bec9c2" stroke-width="1" x1="20" x2="400" y1="160" y2="160"></line>
+<!-- Historical Actual Fill -->
+<path d="M 20 145 L 80 135 L 140 120 L 200 105 L 200 160 L 20 160 Z" fill="url(#actualLineGrad)"></path>
+<!-- Predictive Confidence Band (Q4 '24 to Q2 '25) -->
+<path d="M 200 105 L 260 85 L 330 65 L 400 40 L 400 95 L 330 115 L 260 130 L 200 105 Z" fill="url(#forecastBandGrad)"></path>
+<!-- Historical Actual Solid Line -->
+<polyline fill="none" points="20,145 80,135 140,120 200,105" stroke="#004532" stroke-linecap="round" stroke-width="2.5"></polyline>
+<!-- Forecast Center Line (Dashed) -->
+<polyline fill="none" points="200,105 260,108 330,90 400,68" stroke="#006a61" stroke-dasharray="5 4" stroke-linecap="round" stroke-width="2.5"></polyline>
+<!-- Transition dividing vertical line -->
+<line stroke="#6f7973" stroke-dasharray="2 2" stroke-width="1" x1="200" x2="200" y1="20" y2="160"></line>
+<text fill="#6f7973" font-family="Inter" font-size="9" font-weight="700" x="204" y="28">NOW</text>
+<!-- Plot Points -->
+<circle cx="20" cy="145" fill="#004532" r="3.5"></circle>
+<circle cx="80" cy="135" fill="#004532" r="3.5"></circle>
+<circle cx="140" cy="120" fill="#004532" r="3.5"></circle>
+<circle cx="200" cy="105" fill="#004532" r="4.5"></circle>
+<circle cx="260" cy="108" fill="#006a61" r="3.5"></circle>
+<circle cx="330" cy="90" fill="#006a61" r="3.5"></circle>
+<circle cx="400" cy="68" fill="#006a61" r="4"></circle>
+<!-- Quarter X-Labels -->
+<text fill="#6f7973" font-family="Inter" font-size="10" x="20" y="174">Q4 '23</text>
+<text fill="#6f7973" font-family="Inter" font-size="10" x="80" y="174">Q1 '24</text>
+<text fill="#6f7973" font-family="Inter" font-size="10" x="140" y="174">Q2 '24</text>
+<text fill="#004532" font-family="Inter" font-size="10" font-weight="700" x="195" y="174">Q3 '24</text>
+<text fill="#006a61" font-family="Inter" font-size="10" x="255" y="174">Q4 '24*</text>
+<text fill="#006a61" font-family="Inter" font-size="10" x="325" y="174">Q1 '25*</text>
+<text fill="#006a61" font-family="Inter" font-size="10" x="385" y="174">Q2 '25*</text>
+</svg>
+</div>
+</div>
+<!-- Legend & Insights -->
+<div class="flex items-center justify-between pt-space-sm font-label-sm text-label-sm text-outline">
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-0.5 bg-primary"></span>
+<span class="text-on-surface">Verified Actual</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-0.5 bg-secondary border-b border-dashed border-secondary"></span>
+<span class="text-on-surface">Model Median</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-2 bg-secondary-container/40 rounded-sm"></span>
+<span class="text-on-surface">95% CI</span>
+</div>
+</div>
+<span class="text-secondary font-bold">Driver: Enterprise Refresh Cycle</span>
+</div>
+</div>
+</div>
+<!-- Operational Activity Stream & Hazard Triage Feed (Bento bottom split) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md mt-space-lg">
+<!-- Live Activity Stream (7 cols) -->
+<div class="lg:col-span-7 bg-surface-container-lowest p-space-md rounded shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md text-on-surface">Automated Intake & Disposal Feed</span>
+<span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Continuous IoT Ingest</span>
+</div>
+<div class="space-y-space-sm pt-space-xs">
+<!-- Item 1: Auto Sync Batch -->
+<div class="p-space-sm bg-surface-container-low rounded flex items-center justify-between gap-space-md hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded bg-primary-container text-on-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg text-on-surface truncate">Batch #DS-8841 auto-dispatched to Umicore Smelter</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">Cert 14001</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline">320 units high-gold PCB substrate • Manifest signed via SHA-256</span>
+</div>
+</div>
+<div class="text-right shrink-0">
+<span class="font-label-sm text-label-sm text-outline">2m ago</span>
+</div>
+</div>
+<!-- Item 2: Optical Sensor Inflow -->
+<div class="p-space-sm bg-surface-container-low rounded flex items-center justify-between gap-space-md hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded bg-secondary-fixed text-on-secondary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">sensors</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg text-on-surface truncate">Automated Optical Dock B3 Intake: 142 Corporate Laptops</span>
+<span class="px-1.5 py-0.2 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">Dell XPS 15</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline">RFID scanned, barcoded and routed directly to Refurb Diagnostics</span>
+</div>
+</div>
+<div class="text-right shrink-0">
+<span class="font-label-sm text-label-sm text-outline">8m ago</span>
+</div>
+</div>
+<!-- Item 3: Circular Reuse Route -->
+<div class="p-space-sm bg-surface-container-low rounded flex items-center justify-between gap-space-md hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded bg-surface-container text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">storefront</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg text-on-surface truncate">Grade-A Assets Listed in Reuse Hub (Inventory Ref: RH-902)</span>
+<span class="px-1.5 py-0.2 rounded bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-bold">+86 Units</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline">Sanitized, wiped NIST SP 800-88 rev1 certified, ready for resale</span>
+</div>
+</div>
+<div class="text-right shrink-0">
+<span class="font-label-sm text-label-sm text-outline">19m ago</span>
+</div>
+</div>
+<!-- Item 4: Hazard Auto Quarantine -->
+<div class="p-space-sm bg-surface-container-low rounded flex items-center justify-between gap-space-md hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded bg-error-container text-on-error-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">report</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-lg text-label-lg text-error font-bold truncate">Computer Vision Alert: Swollen Lithium Battery Envelope</span>
+<span class="px-1.5 py-0.2 rounded bg-error-container text-error font-label-sm text-label-sm font-bold">Bay 04 Lock</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline">Lot #LK-991 redirected to fire-retardant sand drum holding</span>
+</div>
+</div>
+<div class="text-right shrink-0">
+<span class="font-label-sm text-label-sm text-error font-bold">34m ago</span>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-space-md flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline">Showing 4 of 429 daily transactions</span>
+<a class="font-label-md text-label-md text-primary font-bold hover:underline flex items-center gap-1" href="#">
+<span>View Audit Chain Log</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- Certified Facility Status & Real-Time Photo Rich Audit Cards (5 cols) -->
+<div class="lg:col-span-5 bg-surface-container-lowest p-space-md rounded shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-space-sm">
+<div>
+<span class="font-headline-md text-headline-md text-on-surface">Station Telemetry & Docks</span>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">Physical sorter lines operating at regional processing node.</p>
+</div>
+<span class="px-2 py-0.5 bg-surface-container text-primary font-label-sm text-label-sm font-bold rounded">All Docks Operational</span>
+</div>
+<div class="grid grid-cols-2 gap-space-sm pt-space-xs">
+<!-- Dock 1 Photo Asset -->
+<div class="relative rounded overflow-hidden shadow-sm group">
+<img class="w-full h-28 object-cover group-hover:scale-105 transition-transform duration-300" data-alt="High angle industrial automated conveyor sorting electronics and motherboards in modern e-waste recycling plant, cool slate and emerald technical lighting, ISO certified warehouse interior." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2ldbyu7de5ZevCTddgoh3EyC1DW9o0XVNVH6tq9C0uHlBfMEqcw53YQwHJhqixcD-jXRQVAgn50DoAylOcjYrtQc5SD2QEymN4ajQCFUgzU_7b8lPHPVWLteLM6lbgXvJ6fYThBCY_cD9tpBqg0xm7Os05IovWQUcIlrkqaFTLx649aofbnhivZ70o2jzBPnI3W-km0ZzKfWQWC5J4EGdFx0x4OrDuJP_IP-A4ZRz"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/90 via-transparent to-transparent flex flex-col justify-end p-space-sm text-inverse-on-surface">
+<span class="font-label-sm text-label-sm font-bold uppercase tracking-wide">Intake Bay A (Bulk Pallets)</span>
+<span class="font-body-sm text-body-sm text-surface-container">98.2% Throughput • 4.2 t/h</span>
+</div>
+</div>
+<!-- Dock 2 Photo Asset -->
+<div class="relative rounded overflow-hidden shadow-sm group">
+<img class="w-full h-28 object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Refurbishment diagnostic laboratory with electronics technician testing cleaned high end server blades and laptops under cleanroom illumination, precision tech workbench." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7IkDdqd2WDM5UGjygK0__W1T9QUU6ymFlun44mXWriZeYxs79nRBrpf1FotdUurR0rjBOvck8Qoxy1mhuL_HP2SnUBlVscrPkCRVjEZageBAZvJ58m6nf22LEJFBn2sIfi48cGRWn8Ab68XuDCyu6-_UZCbpje22WCBjCfSPMtrO0h2bOfTOQyfEWOtfKM72B8TZcy_HHXxz-EWi-ku5BX2TyTuEfvk0ra8D6jiyX"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/90 via-transparent to-transparent flex flex-col justify-end p-space-sm text-inverse-on-surface">
+<span class="font-label-sm text-label-sm font-bold uppercase tracking-wide">Lab 3 Triage Bench</span>
+<span class="font-body-sm text-body-sm text-surface-container">48 Units Pending • 6 Active Benches</span>
+</div>
+</div>
+</div>
+<!-- Quick Facility Indicators -->
+<div class="mt-space-md space-y-space-xs">
+<div class="flex items-center justify-between p-space-sm bg-surface-container-low rounded">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary">eco</span>
+<span class="font-label-md text-label-md text-on-surface">R2v3 Circular Compliance</span>
+</div>
+<span class="font-label-sm text-label-sm font-bold text-primary px-1.5 py-0.5 rounded bg-surface-container">VERIFIED</span>
+</div>
+<div class="flex items-center justify-between p-space-sm bg-surface-container-low rounded">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-tertiary">battery_charging_full</span>
+<span class="font-label-md text-label-md text-on-surface">Battery Pyro Extraction Queue</span>
+</div>
+<span class="font-label-sm text-label-sm font-bold text-tertiary px-1.5 py-0.5 rounded bg-tertiary-fixed">CAPACITY: 84%</span>
+</div>
+</div>
+</div>
+<!-- Quick Export Simulation Feedback -->
+<div class="hidden mt-space-sm p-space-sm bg-surface-container text-primary rounded font-label-sm text-label-sm flex items-center justify-between" id="exportAlert">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+          Audit manifest compilation initiated. Downloading PDF/CSV package...
+        </span>
+<button class="text-outline hover:text-on-surface" onclick="document.getElementById('exportAlert').classList.add('hidden')">✕</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  function toggleDescriptiveView(viewType) {
+    const chartDiv = document.getElementById('descriptiveChartContainer');
+    const tableDiv = document.getElementById('descriptiveTableContainer');
+    const chartBtn = document.getElementById('viewChartBtn');
+    const tableBtn = document.getElementById('viewTableBtn');
+
+    if (viewType === 'chart') {
+      chartDiv.classList.remove('hidden');
+      tableDiv.classList.add('hidden');
+      chartBtn.className = "px-space-sm py-1 bg-surface-container-lowest text-primary rounded font-label-sm text-label-sm font-bold shadow-sm flex items-center gap-1";
+      tableBtn.className = "px-space-sm py-1 text-on-surface-variant rounded font-label-sm text-label-sm font-bold flex items-center gap-1 hover:text-on-surface";
+    } else {
+      chartDiv.classList.add('hidden');
+      tableDiv.classList.remove('hidden');
+      tableBtn.className = "px-space-sm py-1 bg-surface-container-lowest text-primary rounded font-label-sm text-label-sm font-bold shadow-sm flex items-center gap-1";
+      chartBtn.className = "px-space-sm py-1 text-on-surface-variant rounded font-label-sm text-label-sm font-bold flex items-center gap-1 hover:text-on-surface";
+    }
+  }
+
+  function simulateExport() {
+    const alertBox = document.getElementById('exportAlert');
+    alertBox.classList.remove('hidden');
+    setTimeout(() => {
+      alertBox.classList.add('hidden');
+    }, 4500);
+  }
+
+  // Interactive Date Filter Bar switching
+  const filterGroup = document.getElementById('dateFilterGroup');
+  if (filterGroup) {
+    const buttons = filterGroup.querySelectorAll('button');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => {
+          b.className = "px-space-md py-1 rounded font-label-md text-label-md transition-colors text-on-surface-variant hover:text-on-surface";
+        });
+        btn.className = "px-space-md py-1 rounded font-label-md text-label-md transition-colors bg-primary-container text-on-primary shadow-sm";
+      });
+    });
+  }
+</script></main></div></body></html>

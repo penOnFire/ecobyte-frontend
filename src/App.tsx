@@ -16,6 +16,13 @@ import { ProofOfClaimPage } from '@/pages/ProofOfClaimPage'
 import { DropOffFinderPage } from '@/pages/DropOffFinderPage'
 import { DropoffSchedulerPage } from '@/pages/DropoffSchedulerPage'
 import { MyRequestsPage } from '@/pages/MyRequestsPage'
+import { AdminShell } from '@/components/layout/AdminShell'
+import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage'
+import { AdminToInspectPage } from '@/pages/admin/AdminToInspectPage'
+import { AdminPhysicalInspectionPage } from '@/pages/admin/AdminPhysicalInspectionPage'
+import { AdminReuseHubPage } from '@/pages/admin/AdminReuseHubPage'
+import { AdminDisposalPage } from '@/pages/admin/AdminDisposalPage'
+import { AdminAccessPage } from '@/pages/admin/AdminAccessPage'
 
 export const App: FC = () => {
   return (
@@ -128,6 +135,72 @@ export const App: FC = () => {
             <AppShell>
               <MyRequestsPage />
             </AppShell>
+          }
+        />
+
+        {/* Desktop Admin Portal Routes (Wrapped in AdminShell) */}
+        <Route
+          path="/admin"
+          element={
+            <AdminShell>
+              <AdminDashboardPage />
+            </AdminShell>
+          }
+        />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <AdminShell>
+              <AdminDashboardPage />
+            </AdminShell>
+          }
+        />
+        <Route
+          path="/admin/to-inspect"
+          element={
+            <AdminShell>
+              <AdminToInspectPage />
+            </AdminShell>
+          }
+        />
+        <Route
+          path="/admin/inspect"
+          element={
+            <AdminShell>
+              <AdminPhysicalInspectionPage />
+            </AdminShell>
+          }
+        />
+        <Route
+          path="/admin/inspect/:id"
+          element={
+            <AdminShell>
+              <AdminPhysicalInspectionPage />
+            </AdminShell>
+          }
+        />
+        <Route
+          path="/admin/reuse-hub"
+          element={
+            <AdminShell>
+              <AdminReuseHubPage />
+            </AdminShell>
+          }
+        />
+        <Route
+          path="/admin/disposal"
+          element={
+            <AdminShell>
+              <AdminDisposalPage />
+            </AdminShell>
+          }
+        />
+        <Route
+          path="/admin/access"
+          element={
+            <AdminShell>
+              <AdminAccessPage />
+            </AdminShell>
           }
         />
 
