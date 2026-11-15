@@ -124,6 +124,9 @@ export const App: FC = () => {
             </AppShell>
           }
         />
+        <Route path="/dropoffs" element={<Navigate to="/drop-offs" replace />} />
+        <Route path="/drop-off" element={<Navigate to="/drop-offs" replace />} />
+        <Route path="/dropoff-finder" element={<Navigate to="/drop-offs" replace />} />
         <Route
           path="/dropoff-schedule"
           element={
@@ -132,6 +135,9 @@ export const App: FC = () => {
             </AppShell>
           }
         />
+        <Route path="/schedule-dropoff" element={<Navigate to="/dropoff-schedule" replace />} />
+        <Route path="/schedule-drop-off" element={<Navigate to="/dropoff-schedule" replace />} />
+        <Route path="/schedule" element={<Navigate to="/dropoff-schedule" replace />} />
         <Route
           path="/requests"
           element={

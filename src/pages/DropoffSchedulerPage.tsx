@@ -56,7 +56,6 @@ export const DropoffSchedulerPage: FC = () => {
 
   useEffect(() => {
     let isMounted = true
-    setIsLoadingSites(true)
     dropoffsApi
       .getSites()
       .then((data) => {

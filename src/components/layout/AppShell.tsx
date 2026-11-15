@@ -1,5 +1,18 @@
-import type { FC, ReactNode } from 'react'
-import { Avatar, Badge, Box, Container, IconButton, Typography } from '@mui/material'
+import { useState, type FC, type ReactNode } from 'react'
+import {
+  Avatar,
+  Badge,
+  Box,
+  Container,
+  IconButton,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Drawer,
+  Button,
+} from '@mui/material'
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded'
 import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded'
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded'
@@ -8,16 +21,73 @@ import RecyclingRoundedIcon from '@mui/icons-material/RecyclingRounded'
 import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded'
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
 import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded'
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded'
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
+import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined'
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded'
+import StarRoundedIcon from '@mui/icons-material/StarRounded'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 interface AppShellProps {
   children: ReactNode
 }
 
+interface NotificationItem {
+  id: string
+  title: string
+  desc: string
+  time: string
+  read: boolean
+  type: 'points' | 'alert' | 'community'
+}
+
+const INITIAL_NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: '1',
+    title: 'Drop-off Verified • +150 Points',
+    desc: 'Your ThinkPad laptop drop-off at MRF Central was confirmed by facility operator.',
+    time: '15m ago',
+    read: false,
+    type: 'points',
+  },
+  {
+    id: '2',
+    title: 'Locker Pass Active',
+    desc: 'Locker pass #ECO-4821 is reserved and awaiting pickup at Commonwealth Market Hub.',
+    time: '2h ago',
+    read: false,
+    type: 'alert',
+  },
+  {
+    id: '3',
+    title: 'Community Clean-Up Drive',
+    desc: 'Barangay Commonwealth annual electronic collection drive this Saturday at 8:00 AM.',
+    time: '1d ago',
+    read: true,
+    type: 'community',
+  },
+]
+
 export const AppShell: FC<AppShellProps> = ({ children }) => {
   const navigate = useNavigate()
   const location = useLocation()
   const path = location.pathname
+
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [logoutOpen, setLogoutOpen] = useState(false)
+  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS)
+
+  const unreadCount = notifications.filter((n) => !n.read).length
+
+  const handleMarkAllRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+  }
+
+  const handleClearNotifications = () => {
+    setNotifications([])
+  }
 
   const isActive = (p: string) => (p === '/' ? path === '/' : path.startsWith(p))
 
@@ -90,6 +160,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             <IconButton
               size="small"
               aria-label="notifications"
+              onClick={() => setNotificationsOpen(true)}
               sx={{
                 width: 36,
                 height: 36,
@@ -99,7 +170,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               }}
             >
               <Badge
-                variant="dot"
+                variant={unreadCount > 0 ? 'dot' : undefined}
                 sx={{
                   '& .MuiBadge-badge': {
                     backgroundColor: '#dc2626',
@@ -115,7 +186,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             </IconButton>
 
             <Avatar
-              onClick={() => navigate('/signin')}
+              onClick={() => setProfileOpen(true)}
               sx={{
                 width: 34,
                 height: 34,
@@ -126,6 +197,8 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                 fontSize: '0.875rem',
                 cursor: 'pointer',
                 border: '2px solid #abf06b',
+                transition: 'transform 0.15s ease',
+                '&:hover': { transform: 'scale(1.05)' },
               }}
             >
               A
@@ -236,11 +309,381 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             <NavItem
               icon={<PersonOutlineRoundedIcon sx={{ fontSize: 24 }} />}
               label="Account"
-              active={isActive('/signin')}
-              onClick={() => navigate('/signin')}
+              active={profileOpen}
+              onClick={() => setProfileOpen(true)}
             />
           </Box>
         </Box>
+
+        {/* ── Resident Profile Drawer ── */}
+        <Drawer
+          anchor="bottom"
+          open={profileOpen}
+          onClose={() => setProfileOpen(false)}
+          slotProps={{
+            paper: {
+              sx: {
+                borderTopLeftRadius: '20px',
+                borderTopRightRadius: '20px',
+                maxWidth: 444,
+                mx: 'auto',
+                p: 2.5,
+                pb: 4,
+                backgroundColor: '#ffffff',
+                fontFamily: "'Quicksand', sans-serif",
+              },
+            },
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Typography sx={{ fontWeight: 800, fontSize: '1.125rem', color: '#0f172a' }}>
+              Resident Account
+            </Typography>
+            <IconButton size="small" onClick={() => setProfileOpen(false)}>
+              <CloseRoundedIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Box>
+
+          {/* Profile Card */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              p: 2,
+              borderRadius: '16px',
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              mb: 2,
+            }}
+          >
+            <Avatar
+              sx={{
+                width: 52,
+                height: 52,
+                backgroundColor: '#0f172a',
+                color: '#abf06b',
+                fontWeight: 800,
+                fontSize: '1.25rem',
+                border: '2px solid #abf06b',
+              }}
+            >
+              A
+            </Avatar>
+            <Box sx={{ flex: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>
+                  Alex Rivera
+                </Typography>
+                <Box
+                  sx={{
+                    px: 1,
+                    py: 0.2,
+                    borderRadius: '9999px',
+                    backgroundColor: '#e0f2fe',
+                    color: '#0284c7',
+                    fontSize: '0.625rem',
+                    fontWeight: 700,
+                  }}
+                >
+                  Silver Tier
+                </Box>
+              </Box>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
+                alex.rivera@gmail.com • Brgy. Commonwealth, QC
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Points & Stats Banner */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 1.5,
+              mb: 2.5,
+            }}
+          >
+            <Box
+              sx={{
+                p: 1.5,
+                borderRadius: '12px',
+                backgroundColor: '#f0fdf4',
+                border: '1px solid #bbf7d0',
+                textAlign: 'center',
+              }}
+            >
+              <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase' }}>
+                Eco-Points
+              </Typography>
+              <Typography sx={{ fontSize: '1.5rem', fontWeight: 800, color: '#15803d', mt: 0.25 }}>
+                480 pts
+              </Typography>
+            </Box>
+            <Box
+              sx={{
+                p: 1.5,
+                borderRadius: '12px',
+                backgroundColor: '#faf5ff',
+                border: '1px solid #e9d5ff',
+                textAlign: 'center',
+              }}
+            >
+              <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, color: '#9333ea', textTransform: 'uppercase' }}>
+                E-Waste Diverted
+              </Typography>
+              <Typography sx={{ fontSize: '1.5rem', fontWeight: 800, color: '#7e22ce', mt: 0.25 }}>
+                18.4 kg
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Quick Actions */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Button
+              onClick={() => {
+                setProfileOpen(false)
+                navigate('/admin')
+              }}
+              variant="outlined"
+              startIcon={<AdminPanelSettingsOutlinedIcon />}
+              sx={{
+                justifyContent: 'flex-start',
+                py: 1.25,
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 700,
+                color: '#334155',
+                borderColor: '#cbd5e1',
+                '&:hover': { borderColor: '#94a3b8', backgroundColor: '#f8fafc' },
+              }}
+            >
+              Switch to Administrator View (Desktop)
+            </Button>
+
+            <Button
+              onClick={() => {
+                setProfileOpen(false)
+                setLogoutOpen(true)
+              }}
+              variant="contained"
+              color="error"
+              startIcon={<LogoutRoundedIcon />}
+              sx={{
+                justifyContent: 'flex-start',
+                py: 1.25,
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 700,
+                backgroundColor: '#dc2626',
+                boxShadow: 'none',
+                '&:hover': { backgroundColor: '#b91c1c' },
+              }}
+            >
+              Log Out
+            </Button>
+          </Box>
+        </Drawer>
+
+        {/* ── Resident Notifications Drawer ── */}
+        <Drawer
+          anchor="bottom"
+          open={notificationsOpen}
+          onClose={() => setNotificationsOpen(false)}
+          slotProps={{
+            paper: {
+              sx: {
+                borderTopLeftRadius: '20px',
+                borderTopRightRadius: '20px',
+                maxWidth: 444,
+                mx: 'auto',
+                p: 2.5,
+                pb: 4,
+                backgroundColor: '#ffffff',
+                fontFamily: "'Quicksand', sans-serif",
+              },
+            },
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography sx={{ fontWeight: 800, fontSize: '1.125rem', color: '#0f172a' }}>
+                Notifications
+              </Typography>
+              {unreadCount > 0 && (
+                <Box
+                  sx={{
+                    px: 1,
+                    py: 0.15,
+                    borderRadius: '9999px',
+                    backgroundColor: '#fee2e2',
+                    color: '#dc2626',
+                    fontSize: '0.6875rem',
+                    fontWeight: 800,
+                  }}
+                >
+                  {unreadCount} new
+                </Box>
+              )}
+            </Box>
+            <IconButton size="small" onClick={() => setNotificationsOpen(false)}>
+              <CloseRoundedIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Box>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Button
+              onClick={handleMarkAllRead}
+              size="small"
+              sx={{ textTransform: 'none', fontSize: '0.75rem', fontWeight: 700, color: '#16a34a' }}
+            >
+              Mark all as read
+            </Button>
+            <Button
+              onClick={handleClearNotifications}
+              size="small"
+              startIcon={<DeleteOutlineRoundedIcon sx={{ fontSize: 15 }} />}
+              sx={{ textTransform: 'none', fontSize: '0.75rem', fontWeight: 600, color: '#64748b' }}
+            >
+              Clear
+            </Button>
+          </Box>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+            {notifications.length > 0 ? (
+              notifications.map((n) => (
+                <Box
+                  key={n.id}
+                  sx={{
+                    p: 1.5,
+                    borderRadius: '12px',
+                    backgroundColor: n.read ? '#ffffff' : '#f0fdf4',
+                    border: '1px solid',
+                    borderColor: n.read ? '#e2e8f0' : '#bbf7d0',
+                    display: 'flex',
+                    gap: 1.5,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: '8px',
+                      backgroundColor: n.type === 'points' ? '#dcfce7' : n.type === 'alert' ? '#fef3c7' : '#e0f2fe',
+                      color: n.type === 'points' ? '#15803d' : n.type === 'alert' ? '#d97706' : '#0284c7',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {n.type === 'points' ? (
+                      <StarRoundedIcon sx={{ fontSize: 18 }} />
+                    ) : (
+                      <CheckCircleRoundedIcon sx={{ fontSize: 18 }} />
+                    )}
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>
+                        {n.title}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.6875rem', color: '#94a3b8' }}>{n.time}</Typography>
+                    </Box>
+                    <Typography sx={{ fontSize: '0.75rem', color: '#475569', mt: 0.25, lineHeight: 1.4 }}>
+                      {n.desc}
+                    </Typography>
+                  </Box>
+                </Box>
+              ))
+            ) : (
+              <Box sx={{ py: 4, textAlign: 'center', color: '#64748b' }}>
+                <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>No notifications right now</Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8', mt: 0.5 }}>
+                  Drop-off confirmations and pickup vouchers will appear here.
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        </Drawer>
+
+        {/* ── Resident Logout Confirmation Dialog ── */}
+        <Dialog
+          open={logoutOpen}
+          onClose={() => setLogoutOpen(false)}
+          maxWidth="xs"
+          fullWidth
+          slotProps={{
+            paper: {
+              sx: {
+                borderRadius: '16px',
+                p: 1,
+                boxShadow: '0 20px 40px rgba(15, 23, 42, 0.16)',
+                fontFamily: "'Quicksand', sans-serif",
+              },
+            },
+          }}
+        >
+          <DialogTitle sx={{ m: 0, p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: '10px',
+                backgroundColor: '#fee2e2',
+                color: '#dc2626',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <LogoutRoundedIcon sx={{ fontSize: 20 }} />
+            </Box>
+            <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', color: '#0f172a' }}>
+              Confirm Logout
+            </Typography>
+          </DialogTitle>
+
+          <DialogContent sx={{ px: 2.5, py: 1.5 }}>
+            <Typography sx={{ fontSize: '0.875rem', color: '#475569', lineHeight: 1.5 }}>
+              Are you sure you want to log out of your resident account? You will need to sign in again to access your passes and eco-points.
+            </Typography>
+          </DialogContent>
+
+          <DialogActions sx={{ p: 2, gap: 1 }}>
+            <Button
+              onClick={() => setLogoutOpen(false)}
+              variant="outlined"
+              size="small"
+              sx={{
+                borderColor: '#cbd5e1',
+                color: '#475569',
+                fontWeight: 700,
+                textTransform: 'none',
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                setLogoutOpen(false)
+                navigate('/signin')
+              }}
+              variant="contained"
+              color="error"
+              size="small"
+              sx={{
+                fontWeight: 700,
+                textTransform: 'none',
+                boxShadow: 'none',
+                backgroundColor: '#dc2626',
+                '&:hover': { backgroundColor: '#b91c1c' },
+              }}
+            >
+              Confirm Logout
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </Box>
   )

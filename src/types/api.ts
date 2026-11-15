@@ -94,7 +94,7 @@ export interface DiagnosticResult {
 }
 
 // ── Drop-Off Hubs & Scheduling ──
-export type HubFacilityType = 'Staffed & Smart Bin' | '24/7 Smart Bin' | 'Kiosk'
+export type HubFacilityType = 'Staffed & Smart Bin' | '24/7 Smart Bin' | 'Kiosk' | 'Staffed Only'
 
 export interface DropOffSite {
   id: string
@@ -102,14 +102,15 @@ export interface DropOffSite {
   address: string
   distanceKm: number
   distance?: string
+  status?: string
   hours: string
   type: HubFacilityType
   isOpen: boolean
-  coordinates: {
+  coordinates?: {
     lat: number
     lng: number
   }
-  hazmatAccredited: boolean
+  hazmatAccredited?: boolean
 }
 
 export interface ScheduleBookingPayload {
