@@ -11,6 +11,7 @@ import MyLocationRoundedIcon from '@mui/icons-material/MyLocationRounded'
 import NavigationRoundedIcon from '@mui/icons-material/NavigationRounded'
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded'
 import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined'
+import AltRouteRoundedIcon from '@mui/icons-material/AltRouteRounded'
 import { useNavigate } from 'react-router-dom'
 import type { DropOffSite } from '@/types'
 
@@ -176,11 +177,12 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
   onGetDirections,
   userLocation,
   onLocateUser,
-  height = 360,
+  height = 380,
 }) => {
   const navigate = useNavigate()
   const [hoveredSectorId, setHoveredSectorId] = useState<string | null>(null)
   const [showNumbers, setShowNumbers] = useState(true)
+  const [showRoads, setShowRoads] = useState(true)
 
   // Find currently active site and sector
   const activeSector =
@@ -267,6 +269,23 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
               </IconButton>
             </Tooltip>
           )}
+
+          <Tooltip title={showRoads ? 'Hide Roads & Transit' : 'Show Roads & MRT-7'} placement="top">
+            <IconButton
+              size="small"
+              onClick={() => setShowRoads((prev) => !prev)}
+              sx={{
+                color: showRoads ? '#0284c7' : '#64748b',
+                backgroundColor: '#ffffff',
+                border: '1px solid #e2e8f0',
+                width: 30,
+                height: 30,
+                '&:hover': { backgroundColor: '#f1f5f9' },
+              }}
+            >
+              <AltRouteRoundedIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Tooltip>
 
           <Tooltip title={showNumbers ? 'Hide Sector Codes' : 'Show Sector Codes'} placement="top">
             <IconButton
@@ -404,6 +423,178 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
               </g>
             )
           })}
+
+          {/* ══════════════════════════════════════════════════════════════════
+              DETAILED INFRASTRUCTURE OVERLAY (Highways, MRT-7, Streets, River)
+             ══════════════════════════════════════════════════════════════════ */}
+          {showRoads && (
+            <g pointerEvents="none" style={{ transition: 'opacity 0.25s ease' }}>
+              {/* 1. Waterway: Marikina River / Payatas Border Creek */}
+              <path
+                d="M 505,140 Q 545,180 535,220 T 500,320 T 460,400 T 400,470"
+                fill="none"
+                stroke="#38bdf8"
+                strokeWidth="4"
+                strokeLinecap="round"
+                opacity={0.7}
+              />
+              <path
+                d="M 505,140 Q 545,180 535,220 T 500,320 T 460,400 T 400,470"
+                fill="none"
+                stroke="#bae6fd"
+                strokeWidth="1.5"
+                strokeDasharray="6, 6"
+                strokeLinecap="round"
+                opacity={0.85}
+              />
+
+              {/* 2. Secondary Local Street Grid & Connectors */}
+              <g stroke="rgba(255, 255, 255, 0.45)" strokeWidth="1.25" strokeLinecap="round">
+                {/* Litex Road to Payatas Connector */}
+                <path d="M 310,35 Q 360,65 440,150" />
+                {/* Katuparan Street corridor to MRF Area 1 */}
+                <path d="M 215,260 Q 280,265 370,260" />
+                {/* Don Fabian Street */}
+                <path d="M 170,360 Q 240,360 310,320" />
+                {/* Riverside Drive (Lupang Pangako) */}
+                <path d="M 250,110 Q 280,160 320,220" />
+                {/* Pilot Area Main Drive */}
+                <path d="M 370,260 Q 390,320 435,345" />
+                {/* Batasan-San Mateo East connector */}
+                <path d="M 320,260 Q 380,310 440,350 T 470,410" />
+                {/* Sandiganbayan / Veterans Road */}
+                <path d="M 160,450 Q 220,490 275,515 T 350,560" />
+                {/* Kasunduan Street network */}
+                <path d="M 370,410 L 400,470" />
+                <path d="M 435,345 L 460,400" />
+                <path d="M 350,170 L 370,260" />
+              </g>
+
+              {/* 3. Batasan-San Mateo Road (Major Arterial) */}
+              <path
+                d="M 310,320 Q 370,360 435,345 T 460,400 T 400,470"
+                fill="none"
+                stroke="#0f172a"
+                strokeWidth="4"
+                strokeLinecap="round"
+                opacity={0.75}
+              />
+              <path
+                d="M 310,320 Q 370,360 435,345 T 460,400 T 400,470"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+
+              {/* 4. Commonwealth Avenue (Main Highway Arterial) */}
+              {/* Highway Outer Casing */}
+              <path
+                d="M 160,520 Q 165,400 175,320 T 225,215 T 255,110 T 310,35"
+                fill="none"
+                stroke="#0f172a"
+                strokeWidth="7"
+                strokeLinecap="round"
+                opacity={0.8}
+              />
+              {/* Highway Pavement */}
+              <path
+                d="M 160,520 Q 165,400 175,320 T 225,215 T 255,110 T 310,35"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="4.5"
+                strokeLinecap="round"
+              />
+              {/* Highway Yellow Center Divider */}
+              <path
+                d="M 160,520 Q 165,400 175,320 T 225,215 T 255,110 T 310,35"
+                fill="none"
+                stroke="#fbbf24"
+                strokeWidth="1.2"
+                strokeDasharray="4, 3"
+                strokeLinecap="round"
+              />
+
+              {/* 5. MRT-7 Railway Transit Line (Parallel along Commonwealth Ave) */}
+              {/* Rail Bed */}
+              <path
+                d="M 148,530 Q 153,405 163,325 T 213,220 T 243,115 T 298,40"
+                fill="none"
+                stroke="#0f172a"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                opacity={0.75}
+              />
+              {/* Railway Ties / Cross-sleepers hatch */}
+              <path
+                d="M 148,530 Q 153,405 163,325 T 213,220 T 243,115 T 298,40"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="5"
+                strokeDasharray="2, 5"
+                strokeLinecap="butt"
+              />
+
+              {/* Transit & Infrastructure Labels */}
+              {/* Commonwealth Ave Label */}
+              <text
+                x="205"
+                y="160"
+                transform="rotate(62, 205, 160)"
+                fill="#0f172a"
+                fontSize="8"
+                fontWeight="800"
+                fontFamily="'Quicksand', sans-serif"
+                letterSpacing="0.08em"
+              >
+                COMMONWEALTH AVE
+              </text>
+
+              {/* MRT-7 Line Station Badge */}
+              <g transform="translate(150, 310)">
+                <rect x="-4" y="-8" width="56" height="15" rx="4" fill="#0f172a" opacity="0.9" />
+                <text x="24" y="2" fill="#38bdf8" fontSize="7" fontWeight="800" textAnchor="middle" fontFamily="'Quicksand', sans-serif">
+                  MRT-7 STN
+                </text>
+              </g>
+
+              {/* Doña Carmen / Litex MRT-7 Station Badge */}
+              <g transform="translate(235, 100)">
+                <rect x="-4" y="-8" width="48" height="15" rx="4" fill="#0f172a" opacity="0.9" />
+                <text x="20" y="2" fill="#38bdf8" fontSize="7" fontWeight="800" textAnchor="middle" fontFamily="'Quicksand', sans-serif">
+                  MRT-7 LITEX
+                </text>
+              </g>
+
+              {/* Batasan-San Mateo Road Label */}
+              <text
+                x="420"
+                y="390"
+                transform="rotate(-48, 420, 390)"
+                fill="#ffffff"
+                fontSize="7"
+                fontWeight="800"
+                fontFamily="'Quicksand', sans-serif"
+                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.6)' }}
+              >
+                BATASAN-SAN MATEO RD
+              </text>
+
+              {/* River label */}
+              <text
+                x="530"
+                y="270"
+                transform="rotate(78, 530, 270)"
+                fill="#0284c7"
+                fontSize="7"
+                fontWeight="800"
+                fontFamily="'Quicksand', sans-serif"
+                opacity="0.8"
+              >
+                PAYATAS CREEK / RIVER
+              </text>
+            </g>
+          )}
         </Box>
 
         {/* ── Top-Right: Video Game North Arrow (▲ N) ── */}
@@ -475,6 +666,47 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
             <Box sx={{ flex: 1, backgroundColor: '#0f172a' }} />
           </Box>
         </Box>
+
+        {/* ── Infrastructure Legend Indicator ── */}
+        {showRoads && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 14,
+              left: 14,
+              backgroundColor: 'rgba(255, 255, 255, 0.92)',
+              backdropFilter: 'blur(4px)',
+              px: 1,
+              py: 0.5,
+              borderRadius: 1.5,
+              border: '1px solid #e2e8f0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 0.35,
+              boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+              pointerEvents: 'none',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              <Box sx={{ width: 14, height: 3, backgroundColor: '#ffffff', border: '1px solid #0f172a' }} />
+              <Typography sx={{ fontSize: '0.5625rem', fontWeight: 700, color: '#334155' }}>
+                Commonwealth Ave.
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              <Box sx={{ width: 14, height: 3, borderTop: '2px dashed #0f172a' }} />
+              <Typography sx={{ fontSize: '0.5625rem', fontWeight: 700, color: '#334155' }}>
+                MRT-7 Railway
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              <Box sx={{ width: 14, height: 2, backgroundColor: '#38bdf8' }} />
+              <Typography sx={{ fontSize: '0.5625rem', fontWeight: 700, color: '#0284c7' }}>
+                Payatas Waterway
+              </Typography>
+            </Box>
+          </Box>
+        )}
       </Box>
 
       {/* ── Active Hub Quick HUD Card ── */}
