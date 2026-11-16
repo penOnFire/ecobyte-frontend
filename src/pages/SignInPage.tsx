@@ -26,7 +26,7 @@ import AppleIcon from '@mui/icons-material/Apple'
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined'
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom'
 import ecobyteLogo from '@/assets/ui/ecobyte_logo.svg'
-import { authApi } from '@/lib/api'
+import { authApi, setCachedUser } from '@/lib/api'
 
 export const SignInPage: FC = () => {
   const navigate = useNavigate()
@@ -65,14 +65,20 @@ export const SignInPage: FC = () => {
       if (res?.accessToken) {
         localStorage.setItem('ecobyte_token', res.accessToken)
       }
+      if (res?.user) {
+        setCachedUser(res.user)
+      }
 
+      const roleUpper = res?.user?.role?.toUpperCase()
       const isAdmin =
-        res?.user?.role === 'ADMIN' ||
+        res?.redirectTo === '/admin' ||
+        roleUpper === 'ADMIN' ||
+        roleUpper === 'BARANGAY_OFFICIAL' ||
         email.toLowerCase().includes('admin') ||
         email.toLowerCase().includes('ecobyte.gov') ||
         email.toLowerCase().includes('official')
 
-      localStorage.setItem('ecobyte_user_role', isAdmin ? 'ADMIN' : 'RESIDENT')
+      localStorage.setItem('ecobyte_user_role', roleUpper || (isAdmin ? 'ADMIN' : 'RESIDENT'))
 
       if (safeRedirect && (isAdmin || !safeRedirect.startsWith('/admin'))) {
         navigate(safeRedirect, { replace: true })

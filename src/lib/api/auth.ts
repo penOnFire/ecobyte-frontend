@@ -2,9 +2,55 @@ import { apiFetch } from './client'
 import type { AuthSession, Barangay, LoginPayload, RegisterPayload, User } from '@/types'
 
 const DEFAULT_BARANGAY: Barangay = {
-  id: 'brgy-cmw-01',
-  name: 'Commonwealth',
+  id: '1',
+  name: 'Base 1 - Brgy. Hall Complex (Barangay Commonwealth)',
   city: 'Quezon City',
+}
+
+export const COMMONWEALTH_BASES_FALLBACK: Barangay[] = [
+  { id: '1', name: 'Base 1 - Brgy. Hall Complex (Barangay Commonwealth)', city: 'Quezon City' },
+  { id: '2', name: 'Base 2 - Martan St. (Barangay Commonwealth)', city: 'Quezon City' },
+  { id: '3', name: 'Base 3 - Don Fabian (Barangay Commonwealth)', city: 'Quezon City' },
+  { id: '4', name: 'Base 4 - Katuparan (Barangay Commonwealth)', city: 'Quezon City' },
+  { id: '5', name: 'Base 5 - Riverside (Barangay Commonwealth)', city: 'Quezon City' },
+  { id: '6', name: 'Base 6 - Kristong Hari (Barangay Commonwealth)', city: 'Quezon City' },
+  { id: '7', name: 'Base 7 - Upper Kamias (Barangay Commonwealth)', city: 'Quezon City' },
+  { id: '8', name: 'Base 8 - Pilot Area (Barangay Commonwealth)', city: 'Quezon City' },
+  { id: '9', name: 'Base 9 - Lupang Pangako (Barangay Commonwealth)', city: 'Quezon City' },
+]
+
+const USER_CACHE_KEY = 'ecobyte_user'
+
+export function setCachedUser(user: User | null): void {
+  if (typeof window === 'undefined') return
+  if (!user) {
+    localStorage.removeItem(USER_CACHE_KEY)
+    localStorage.removeItem('ecobyte_user_name')
+    return
+  }
+  localStorage.setItem(USER_CACHE_KEY, JSON.stringify(user))
+  localStorage.setItem('ecobyte_user_name', user.fullName)
+}
+
+export function getCachedUser(): User | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem(USER_CACHE_KEY)
+    if (!raw) return null
+    return JSON.parse(raw) as User
+  } catch {
+    return null
+  }
+}
+
+export function extractFirstName(user: Partial<User> | null | undefined): string {
+  if (user?.firstName?.trim()) return user.firstName.trim()
+  if (user?.fullName?.trim()) return user.fullName.trim().split(/\s+/)[0]
+  if (typeof window !== 'undefined') {
+    const cachedName = localStorage.getItem('ecobyte_user_name')?.trim()
+    if (cachedName) return cachedName.split(/\s+/)[0]
+  }
+  return 'Resident'
 }
 
 export const authApi = {
@@ -91,18 +137,23 @@ export const authApi = {
 
   getProfile: async (): Promise<User> => {
     try {
-      return await apiFetch<User>('/auth/me')
+      const profile = await apiFetch<User>('/auth/me')
+      if (profile) setCachedUser(profile)
+      return profile
     } catch (err: any) {
       const isNetworkError =
         err?.message?.includes('fetch') ||
         err?.message?.includes('NetworkError') ||
         !err?.status
       if (isNetworkError) {
+        const cached = getCachedUser()
+        if (cached) return cached
         const role = localStorage.getItem('ecobyte_user_role') || 'RESIDENT'
         const isAdmin = role === 'ADMIN'
         return {
           id: isAdmin ? 'usr-admin-01' : 'usr-resident-01',
           fullName: isAdmin ? 'Elena Vance' : 'Alex Rivera',
+          firstName: isAdmin ? 'Elena' : 'Alex',
           email: isAdmin ? 'admin@ecobyte.gov' : 'resident@ecobyte.ph',
           phone: '+63 917 123 4567',
           role: isAdmin ? 'ADMIN' : 'RESIDENT',
@@ -113,8 +164,18 @@ export const authApi = {
     }
   },
 
+  getBarangays: async (): Promise<Barangay[]> => {
+    try {
+      const list = await apiFetch<Barangay[]>('/barangays')
+      return Array.isArray(list) && list.length > 0 ? list : COMMONWEALTH_BASES_FALLBACK
+    } catch {
+      return COMMONWEALTH_BASES_FALLBACK
+    }
+  },
+
   logout: () => {
     localStorage.removeItem('ecobyte_token')
     localStorage.removeItem('ecobyte_user_role')
+    setCachedUser(null)
   },
 }

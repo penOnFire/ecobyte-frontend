@@ -10,6 +10,7 @@ import {
   COMMONWEALTH_FACILITIES,
   INITIAL_USERS,
   generateBadgeId,
+  mapBackendUserToOfficial,
   mergeBackendUsersWithInitial,
   parseNameParts,
   toBackendRole,
@@ -178,20 +179,6 @@ export const AdminAccessPage: FC = () => {
     return Object.keys(errors).length === 0
   }
 
-  const syncRoleIfBackendUser = async (
-    user: OfficialUser,
-    backendRole: 'RESIDENT' | 'OFFICIAL' | 'ADMIN',
-  ): Promise<boolean> => {
-    if (!user.isBackendUser) return false
-    try {
-      await adminApi.updateUserRole(user.id, backendRole)
-      return true
-    } catch (err) {
-      console.warn('Role update failed against backend API:', err)
-      return false
-    }
-  }
-
   const handleSave = async () => {
     if (!validate()) {
       setFeedbackBanner({
@@ -216,69 +203,93 @@ export const AdminAccessPage: FC = () => {
     setIsSaving(true)
     try {
       if (selectedUser) {
-        const targetBackendRole =
-          formStatus === 'Deactivated' ? 'RESIDENT' : toBackendRole(formRole)
-        const synced = await syncRoleIfBackendUser(selectedUser, targetBackendRole)
-
-        setUsers((prev) =>
-          prev.map((u) =>
-            u.id === selectedUser.id
-              ? {
-                  ...u,
-                  name: constructedFullName,
-                  firstName: formFirstName.trim(),
-                  middleName: formMiddleName.trim(),
-                  lastName: formLastName.trim(),
-                  suffix: formSuffix.trim(),
-                  email: formEmail.trim(),
-                  phone: formPhone.trim(),
-                  idCode: formIdCode.trim(),
-                  role: formStatus === 'Deactivated' ? 'Deactivated' : formRole,
-                  department: formDepartment,
-                  status: formStatus,
-                  twoFactorEnabled: formTwoFactor,
-                  mustChangePassword: formMustChangePassword,
-                  notes: formNotes.trim(),
-                  initials: calculatedInitials,
-                  lastActive: synced ? 'Synced just now' : 'Updated locally',
-                }
-              : u,
-          ),
-        )
-        setFeedbackBanner({
-          type: 'success',
-          message: synced
-            ? `Saved role & profile for ${constructedFullName} (${formIdCode}) to the server.`
-            : `Updated profile & credentials for ${constructedFullName} (${formIdCode}) in this session.`,
-        })
+        if (selectedUser.isBackendUser) {
+          const updatedRecord = await adminApi.updateUser(selectedUser.id, {
+            fullName: constructedFullName,
+            firstName: formFirstName.trim(),
+            middleName: formMiddleName.trim() || undefined,
+            lastName: formLastName.trim(),
+            suffix: formSuffix.trim() || undefined,
+            email: formEmail.trim(),
+            phone: formPhone.trim(),
+            idCode: formIdCode.trim(),
+            role: toBackendRole(formRole),
+            department: formDepartment,
+            status: formStatus,
+            twoFactorEnabled: formTwoFactor,
+            mustChangePassword: formMustChangePassword,
+            notes: formNotes.trim() || undefined,
+            password: formPassword || undefined,
+          })
+          const mapped = mapBackendUserToOfficial(updatedRecord)
+          setUsers((prev) => prev.map((u) => (u.id === selectedUser.id ? mapped : u)))
+          setFeedbackBanner({
+            type: 'success',
+            message: `Saved profile & credentials for ${mapped.name} (${mapped.idCode}) to PostgreSQL.`,
+          })
+        } else {
+          setUsers((prev) =>
+            prev.map((u) =>
+              u.id === selectedUser.id
+                ? {
+                    ...u,
+                    name: constructedFullName,
+                    firstName: formFirstName.trim(),
+                    middleName: formMiddleName.trim(),
+                    lastName: formLastName.trim(),
+                    suffix: formSuffix.trim(),
+                    email: formEmail.trim(),
+                    phone: formPhone.trim(),
+                    idCode: formIdCode.trim(),
+                    role: formStatus === 'Deactivated' ? 'Deactivated' : formRole,
+                    department: formDepartment,
+                    status: formStatus,
+                    twoFactorEnabled: formTwoFactor,
+                    mustChangePassword: formMustChangePassword,
+                    notes: formNotes.trim(),
+                    initials: calculatedInitials,
+                    lastActive: 'Updated locally',
+                  }
+                : u,
+            ),
+          )
+          setFeedbackBanner({
+            type: 'success',
+            message: `Updated demo profile for ${constructedFullName} (${formIdCode}) in this session.`,
+          })
+        }
       } else {
-        const newUser: OfficialUser = {
-          id: `USR-${Date.now().toString().slice(-4)}`,
-          name: constructedFullName,
+        const createdRecord = await adminApi.createUser({
+          fullName: constructedFullName,
           firstName: formFirstName.trim(),
-          middleName: formMiddleName.trim(),
+          middleName: formMiddleName.trim() || undefined,
           lastName: formLastName.trim(),
-          suffix: formSuffix.trim(),
+          suffix: formSuffix.trim() || undefined,
           email: formEmail.trim(),
           phone: formPhone.trim(),
           idCode: formIdCode.trim(),
-          role: formStatus === 'Deactivated' ? 'Deactivated' : formRole,
+          role: toBackendRole(formRole),
           department: formDepartment,
           status: formStatus,
           twoFactorEnabled: formTwoFactor,
           mustChangePassword: formMustChangePassword,
-          notes: formNotes.trim(),
-          initials: calculatedInitials,
-          lastActive: 'Enrolled locally',
-        }
-        setUsers((prev) => [newUser, ...prev])
+          notes: formNotes.trim() || undefined,
+          password: formPassword,
+        })
+        const mapped = mapBackendUserToOfficial(createdRecord)
+        setUsers((prev) => [mapped, ...prev])
         setFeedbackBanner({
           type: 'success',
-          message: `Official identity ${newUser.name} enrolled locally with badge ${newUser.idCode}.`,
+          message: `Official identity ${mapped.name} enrolled in PostgreSQL with badge ${mapped.idCode}.`,
         })
       }
 
       resetFormFields(false)
+    } catch (err: any) {
+      setFeedbackBanner({
+        type: 'error',
+        message: err?.message || 'Failed to save official credentials to the server.',
+      })
     } finally {
       setIsSaving(false)
     }
@@ -288,25 +299,34 @@ export const AdminAccessPage: FC = () => {
     if (!selectedUser || selectedUser.isSelf) return
     setIsSaving(true)
     try {
-      const synced = await syncRoleIfBackendUser(selectedUser, 'RESIDENT')
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === selectedUser.id
-            ? {
-                ...u,
-                role: 'Deactivated' as const,
-                status: 'Deactivated' as const,
-                idCode: 'ID-REVOKED',
-                lastActive: synced ? 'Revoked on server' : u.lastActive,
-              }
-            : u,
-        ),
-      )
+      if (selectedUser.isBackendUser) {
+        const updatedRecord = await adminApi.updateUserStatus(selectedUser.id, 'inactive')
+        const mapped = mapBackendUserToOfficial(updatedRecord)
+        setUsers((prev) => prev.map((u) => (u.id === selectedUser.id ? mapped : u)))
+      } else {
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === selectedUser.id
+              ? {
+                  ...u,
+                  role: 'Deactivated' as const,
+                  status: 'Deactivated' as const,
+                  idCode: 'ID-REVOKED',
+                }
+              : u,
+          ),
+        )
+      }
       setFeedbackBanner({
         type: 'success',
-        message: `Account for ${selectedUser.name} has been deactivated and official access revoked.`,
+        message: `Account for ${selectedUser.name} has been deactivated and access tokens revoked.`,
       })
       resetFormFields(false)
+    } catch (err: any) {
+      setFeedbackBanner({
+        type: 'error',
+        message: err?.message || 'Failed to deactivate account on the server.',
+      })
     } finally {
       setIsSaving(false)
     }
@@ -317,25 +337,39 @@ export const AdminAccessPage: FC = () => {
     setIsSaving(true)
     try {
       const restoredCode = generateBadgeId(formRole)
-      const synced = await syncRoleIfBackendUser(selectedUser, toBackendRole(formRole))
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === selectedUser.id
-            ? {
-                ...u,
-                role: formRole,
-                status: 'Active' as const,
-                idCode: restoredCode,
-                lastActive: synced ? 'Synced just now' : 'Reactivated locally',
-              }
-            : u,
-        ),
-      )
+      if (selectedUser.isBackendUser) {
+        const updatedRecord = await adminApi.updateUser(selectedUser.id, {
+          status: 'Active',
+          role: toBackendRole(formRole),
+          idCode: restoredCode,
+        })
+        const mapped = mapBackendUserToOfficial(updatedRecord)
+        setUsers((prev) => prev.map((u) => (u.id === selectedUser.id ? mapped : u)))
+      } else {
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === selectedUser.id
+              ? {
+                  ...u,
+                  role: formRole,
+                  status: 'Active' as const,
+                  idCode: restoredCode,
+                  lastActive: 'Reactivated locally',
+                }
+              : u,
+          ),
+        )
+      }
       setFeedbackBanner({
         type: 'success',
         message: `Account for ${selectedUser.name} reactivated with fresh badge ID ${restoredCode}.`,
       })
       resetFormFields(false)
+    } catch (err: any) {
+      setFeedbackBanner({
+        type: 'error',
+        message: err?.message || 'Failed to reactivate account on the server.',
+      })
     } finally {
       setIsSaving(false)
     }

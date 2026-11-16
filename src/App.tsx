@@ -36,7 +36,11 @@ const RequireAuth: FC<{ children: ReactNode; requireAdmin?: boolean }> = ({
     const target = `${location.pathname}${location.search}`
     return <Navigate to={`/signin?redirect=${encodeURIComponent(target)}`} replace />
   }
-  if (requireAdmin && window.localStorage.getItem('ecobyte_user_role') !== 'ADMIN') {
+  const role =
+    typeof window !== 'undefined' ? window.localStorage.getItem('ecobyte_user_role') : null
+  const isStaff =
+    role === 'ADMIN' || role === 'BARANGAY_OFFICIAL' || role === 'OFFICIAL'
+  if (requireAdmin && !isStaff) {
     return <Navigate to="/dashboard" replace />
   }
   return <>{children}</>
