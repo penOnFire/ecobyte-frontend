@@ -20,6 +20,7 @@ import type { DropOffSite } from '@/types'
 import {
   COMMONWEALTH_BOUNDARY,
   COMMONWEALTH_PARTITIONS,
+  WORLD_MASK_RING,
   type CommonwealthPartition,
 } from './commonwealthData'
 
@@ -46,7 +47,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
   onGetDirections,
   userLocation,
   onLocateUser,
-  height = 380,
+  height = 360,
 }) => {
   const navigate = useNavigate()
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
@@ -79,39 +80,24 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
     map.fitBounds(bounds, { padding: [16, 16], maxZoom: 16 })
   }
 
-  // Update dynamic CSS clip-path so everything outside Barangay Commonwealth is 100% transparent
-  const updateClipPath = () => {
-    const map = mapInstanceRef.current
-    const container = mapContainerRef.current
-    if (!map || !container) return
-
-    // Convert each boundary coordinate to container pixel space
-    const pixelPoints = COMMONWEALTH_BOUNDARY.map(([lat, lng]) => {
-      const pt = map.latLngToContainerPoint([lat, lng])
-      return `${pt.x.toFixed(1)}px ${pt.y.toFixed(1)}px`
-    })
-
-    const clipString = `polygon(${pixelPoints.join(', ')})`
-    container.style.clipPath = clipString
-    container.style.setProperty('-webkit-clip-path', clipString)
-  }
-
-  // Initialize Map with Transparent PNG-Like Isolation
+  // Initialize Map: Lightweight, 60fps Mobile-Optimized, Zero CPU overhead on drag
   useEffect(() => {
     if (!mapContainerRef.current) return
     if (mapInstanceRef.current) return
 
     const bounds = L.latLngBounds(COMMONWEALTH_BOUNDARY)
+    // Wide SVG renderer (10x viewport coverage) ensures the solid mask never clips when dragging
+    const wideMaskRenderer = L.svg({ padding: 10.0 })
 
     const map = L.map(mapContainerRef.current, {
       center: bounds.getCenter(),
       zoom: 15,
       minZoom: 14,
       maxZoom: 18,
-      maxBounds: bounds.pad(0.04), // Lock strictly to Commonwealth
-      maxBoundsViscosity: 1.0,     // Solid barrier to prevent dragging away
+      maxBounds: bounds.pad(0.02), // Strictly contained to Commonwealth territory
+      maxBoundsViscosity: 1.0,     // Prevents dragging outside
       inertia: true,
-      inertiaDeceleration: 3000,
+      inertiaDeceleration: 3500,
       zoomControl: false,
       attributionControl: false,
     })
@@ -124,16 +110,28 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
 
     tileLayerRef.current = tileLayer
 
-    // Render the 9 Base Partitions (Clean Interior Lines ONLY — Zero Green Highlight / Fill)
+    // Solid Inverted World Mask (100% Opaque matching page background #faf8f5)
+    // Rendered via GPU-synchronized SVG overlay inside mapPane.
+    // Zero outside tiles visible, zero edge leakage, zero main-thread JS calculations on drag.
+    L.polygon([WORLD_MASK_RING, COMMONWEALTH_BOUNDARY], {
+      fillColor: '#faf8f5',
+      fillOpacity: 1.0,
+      stroke: false,
+      interactive: false,
+      renderer: wideMaskRenderer,
+    }).addTo(map)
+
+    // Render the 9 Base Partitions (Clean lines strictly within boundary — Zero green highlight)
     COMMONWEALTH_PARTITIONS.forEach((partition: CommonwealthPartition) => {
       const isSelected = partition.id === selectedSiteIdRef.current
 
       const poly = L.polygon(partition.polygon, {
-        fill: false, // NO green or colored highlight over the street map
+        fill: false, // NO green or colored wash over the map
         color: isSelected ? '#0f172a' : '#475569',
         weight: isSelected ? 2.5 : 1.5,
         dashArray: isSelected ? undefined : '5, 5',
         interactive: true,
+        renderer: wideMaskRenderer,
       }).addTo(map)
 
       // Hover behavior
@@ -162,7 +160,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
         onSelectSiteRef.current(partition.id)
       })
 
-      // Tooltip
+      // Clean Tooltip
       poly.bindTooltip(
         `<div style="font-family:'Quicksand',sans-serif;font-weight:700;font-size:12px;padding:2px 4px;">
            <span style="color:#0f172a;">Base ${partition.num} Partition</span>
@@ -208,38 +206,27 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
       labelMarkersRef.current[partition.id] = labelMarker
     })
 
-    // Clean, Crisp & Neat Outer Outline of Barangay Commonwealth
+    // Accurate, Clean & Bold Outer Outline of Barangay Commonwealth
     L.polygon(COMMONWEALTH_BOUNDARY, {
       color: '#0f172a',
       weight: 3.5,
       opacity: 1.0,
       fill: false,
       interactive: false,
+      renderer: wideMaskRenderer,
     }).addTo(map)
 
     mapInstanceRef.current = map
 
-    // Fit Commonwealth boundary
+    // Fit Commonwealth boundary cleanly
     map.fitBounds(bounds, { padding: [16, 16] })
 
-    // Wire up dynamic clipping listeners on every frame
-    map.on('move', updateClipPath)
-    map.on('zoom', updateClipPath)
-    map.on('viewreset', updateClipPath)
-    map.on('resize', updateClipPath)
-
-    // Initial clip-path calculation once layout is rendered
     const timer = setTimeout(() => {
       map.invalidateSize()
-      updateClipPath()
     }, 200)
 
     return () => {
       clearTimeout(timer)
-      map.off('move', updateClipPath)
-      map.off('zoom', updateClipPath)
-      map.off('viewreset', updateClipPath)
-      map.off('resize', updateClipPath)
       map.remove()
       mapInstanceRef.current = null
       markersRef.current = {}
@@ -566,18 +553,17 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
         </Box>
       </Box>
 
-      {/* ── 2. The Map Frame: Completely Transparent PNG Cut-Out of Barangay Commonwealth ── */}
+      {/* ── 2. The Map Frame: 60fps Native Leaflet, Zero Outside Leak, Perfectly Framed ── */}
       <Box
         sx={{
           position: 'relative',
           width: '100%',
           height,
-          backgroundColor: 'transparent', // 100% transparent outside the cutout
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          // Floating silhouette shadow matching the exact PNG cutout shape of Barangay Commonwealth
-          filter: 'drop-shadow(0 8px 24px rgba(15,23,42,0.14))',
+          borderRadius: 3,
+          overflow: 'hidden',
+          border: '2px solid #0f172a',
+          backgroundColor: '#faf8f5',
+          boxShadow: '0 4px 16px rgba(15,23,42,0.08)',
         }}
       >
         <Box
@@ -585,8 +571,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
           sx={{
             width: '100%',
             height: '100%',
-            backgroundColor: 'transparent',
-            // Will receive dynamic hardware-accelerated clipPath: polygon(...)
+            backgroundColor: '#faf8f5',
           }}
         />
       </Box>

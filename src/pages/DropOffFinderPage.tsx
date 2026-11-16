@@ -241,10 +241,6 @@ export const DropOffFinderPage: FC = () => {
 
   const handlePinClick = (siteId: string) => {
     setSelectedSiteId(siteId)
-    const element = document.getElementById(`site-card-${siteId}`)
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }
   }
 
   const handleLocateUser = () => {
