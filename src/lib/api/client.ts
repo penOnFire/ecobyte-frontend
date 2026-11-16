@@ -37,10 +37,14 @@ export async function apiFetch<T>(
   }
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('ecobyte_token') : null
+  const isFormData = typeof FormData !== 'undefined' && customConfig.body instanceof FormData
 
   const defaultHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
     Accept: 'application/json',
+  }
+
+  if (!isFormData) {
+    defaultHeaders['Content-Type'] = 'application/json'
   }
 
   if (token) {
