@@ -1,20 +1,30 @@
 import { useEffect, useRef, useState, type FC } from 'react'
 import L from 'leaflet'
-import { Box, IconButton, Tooltip, Typography } from '@mui/material'
+import {
+  Box,
+  Button,
+  Chip,
+  IconButton,
+  Tooltip,
+  Typography,
+} from '@mui/material'
 import MyLocationRoundedIcon from '@mui/icons-material/MyLocationRounded'
 import ZoomInRoundedIcon from '@mui/icons-material/ZoomInRounded'
 import ZoomOutRoundedIcon from '@mui/icons-material/ZoomOutRounded'
 import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined'
+import CropFreeRoundedIcon from '@mui/icons-material/CropFreeRounded'
+import NavigationRoundedIcon from '@mui/icons-material/NavigationRounded'
+import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded'
+import { useNavigate } from 'react-router-dom'
 import type { DropOffSite } from '@/types'
+import {
+  COMMONWEALTH_BOUNDARY,
+  COMMONWEALTH_PARTITIONS,
+  WORLD_MASK_RING,
+  type CommonwealthPartition,
+} from './commonwealthData'
 
-// Barangay Commonwealth Center & Geofencing Bounds
-const COMMONWEALTH_CENTER: [number, number] = [14.7042, 121.0963]
-const COMMONWEALTH_BOUNDS: [[number, number], [number, number]] = [
-  [14.685, 121.075], // South-West
-  [14.725, 121.12], // North-East
-]
-
-// 100% Free, Public Tile Servers (ZERO API Key Required)
+// 100% Free Public Tile Servers (Zero API Key Required)
 const TILE_URLS = {
   streets: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
   topo: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
@@ -37,43 +47,179 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
   onGetDirections,
   userLocation,
   onLocateUser,
-  height = 250,
+  height = 360,
 }) => {
+  const navigate = useNavigate()
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
   const markersRef = useRef<Record<string, L.Marker>>({})
+  const polygonsRef = useRef<Record<string, L.Polygon>>({})
+  const labelMarkersRef = useRef<Record<string, L.Marker>>({})
   const userMarkerRef = useRef<L.Marker | null>(null)
-  const [mapStyle, setMapStyle] = useState<'streets' | 'topo'>('streets')
   const tileLayerRef = useRef<L.TileLayer | null>(null)
+
+  const [mapStyle, setMapStyle] = useState<'streets' | 'topo'>('streets')
+  const [hoveredPartitionId, setHoveredPartitionId] = useState<string | null>(null)
+
+  const onSelectSiteRef = useRef(onSelectSite)
+  const selectedSiteIdRef = useRef(selectedSiteId)
+
+  useEffect(() => {
+    onSelectSiteRef.current = onSelectSite
+    selectedSiteIdRef.current = selectedSiteId
+  }, [onSelectSite, selectedSiteId])
+
+  const selectedSite = sites.find((s) => s.id === selectedSiteId)
+  const selectedPartition = COMMONWEALTH_PARTITIONS.find((p) => p.id === selectedSiteId)
+
+  // Reset to full Barangay Commonwealth view
+  const fitCommonwealthBounds = () => {
+    const map = mapInstanceRef.current
+    if (!map) return
+    const bounds = L.latLngBounds(COMMONWEALTH_BOUNDARY)
+    map.fitBounds(bounds, { padding: [20, 20], maxZoom: 16 })
+  }
 
   // Initialize Map
   useEffect(() => {
     if (!mapContainerRef.current) return
-
-    // Prevent re-initialization if map already exists
     if (mapInstanceRef.current) return
 
+    const bounds = L.latLngBounds(COMMONWEALTH_BOUNDARY)
+    const wideMaskRenderer = L.svg({ padding: 10.0 })
+
     const map = L.map(mapContainerRef.current, {
-      center: COMMONWEALTH_CENTER,
-      zoom: 14,
-      minZoom: 13,
+      center: bounds.getCenter(),
+      zoom: 15,
+      minZoom: 13.5,
       maxZoom: 18,
-      maxBounds: COMMONWEALTH_BOUNDS,
-      maxBoundsViscosity: 1.0,
+      maxBounds: bounds.pad(0.04), // Lock strictly to Commonwealth
+      maxBoundsViscosity: 1.0,     // Solid barrier to prevent dragging away
+      inertia: true,
+      inertiaDeceleration: 3000,
       zoomControl: false,
       attributionControl: false,
     })
 
-    // Official OpenStreetMap Tile Layer (No API Key Required)
+    // Base Street Layer (OpenStreetMap)
     const tileLayer = L.tileLayer(TILE_URLS.streets, {
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap contributors',
     }).addTo(map)
 
     tileLayerRef.current = tileLayer
+
+    // Solid Inverted World Mask (100% Opacity)
+    // Completely REMOVES and blocks out everything outside Barangay Commonwealth
+    L.polygon([WORLD_MASK_RING, COMMONWEALTH_BOUNDARY], {
+      fillColor: '#faf8f5',
+      fillOpacity: 1.0, // 100% OPAQUE: zero outside tiles visible
+      stroke: false,
+      interactive: false,
+      renderer: wideMaskRenderer,
+    }).addTo(map)
+
+    // Accurate, Clean & Neat Outline of Barangay Commonwealth
+    L.polygon(COMMONWEALTH_BOUNDARY, {
+      color: '#0f172a',
+      weight: 3.5,
+      opacity: 1.0,
+      fill: false,
+      interactive: false,
+      renderer: wideMaskRenderer,
+    }).addTo(map)
+
+    // Render the 9 Base Partitions
+    COMMONWEALTH_PARTITIONS.forEach((partition: CommonwealthPartition) => {
+      const isSelected = partition.id === selectedSiteIdRef.current
+
+      const poly = L.polygon(partition.polygon, {
+        fillColor: partition.color,
+        fillOpacity: isSelected ? 0.45 : 0.22,
+        color: isSelected ? '#0f172a' : partition.borderColor,
+        weight: isSelected ? 3.5 : 1.5,
+        dashArray: isSelected ? undefined : '4, 4',
+        interactive: true,
+        renderer: wideMaskRenderer,
+      }).addTo(map)
+
+      // Hover behavior
+      poly.on('mouseover', () => {
+        setHoveredPartitionId(partition.id)
+        if (partition.id !== selectedSiteIdRef.current) {
+          poly.setStyle({
+            fillOpacity: 0.38,
+            weight: 2.5,
+          })
+        }
+      })
+
+      poly.on('mouseout', () => {
+        setHoveredPartitionId(null)
+        if (partition.id !== selectedSiteIdRef.current) {
+          poly.setStyle({
+            fillOpacity: 0.22,
+            weight: 1.5,
+          })
+        }
+      })
+
+      // Click partition to select base
+      poly.on('click', () => {
+        onSelectSiteRef.current(partition.id)
+      })
+
+      // Tooltip
+      poly.bindTooltip(
+        `<div style="font-family:'Quicksand',sans-serif;font-weight:700;font-size:12px;padding:2px 4px;">
+           <span style="color:#0f172a;">Base ${partition.num} Partition</span>
+           <div style="font-size:10px;font-weight:600;color:#475569;">${partition.name}</div>
+         </div>`,
+        { direction: 'center', sticky: true, className: 'partition-popup-tooltip' }
+      )
+
+      polygonsRef.current[partition.id] = poly
+
+      // Partition number badge at centroid
+      const labelIcon = L.divIcon({
+        className: 'partition-number-badge',
+        html: `
+          <div style="
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            background: #ffffff;
+            color: #0f172a;
+            border: 1.5px solid ${partition.borderColor};
+            border-radius: 6px;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 11px;
+            font-weight: 800;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.18);
+            pointer-events: none;
+          ">
+            ${partition.num}
+          </div>
+        `,
+        iconSize: [22, 22],
+        iconAnchor: [11, 11],
+      })
+
+      const labelMarker = L.marker(partition.center, {
+        icon: labelIcon,
+        interactive: false,
+      }).addTo(map)
+
+      labelMarkersRef.current[partition.id] = labelMarker
+    })
+
     mapInstanceRef.current = map
 
-    // Invalidate size once rendered inside flex layout
+    // Fit Commonwealth on mount
+    map.fitBounds(bounds, { padding: [20, 20] })
+
     const timer = setTimeout(() => {
       map.invalidateSize()
     }, 250)
@@ -82,135 +228,96 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
       clearTimeout(timer)
       map.remove()
       mapInstanceRef.current = null
+      markersRef.current = {}
+      polygonsRef.current = {}
+      labelMarkersRef.current = {}
     }
   }, [])
 
-  // Toggle map tile style
+  // Sync Partition Styling when Selection Changes
   useEffect(() => {
-    if (!mapInstanceRef.current || !tileLayerRef.current) return
-    tileLayerRef.current.setUrl(TILE_URLS[mapStyle])
-  }, [mapStyle])
+    COMMONWEALTH_PARTITIONS.forEach((partition: CommonwealthPartition) => {
+      const poly = polygonsRef.current[partition.id]
+      if (!poly) return
 
-  // Sync Markers for Sites
+      const isSelected = partition.id === selectedSiteId
+      poly.setStyle({
+        fillColor: partition.color,
+        fillOpacity: isSelected ? 0.45 : 0.22,
+        color: isSelected ? '#0f172a' : partition.borderColor,
+        weight: isSelected ? 3.5 : 1.5,
+        dashArray: isSelected ? undefined : '4, 4',
+      })
+
+      if (isSelected) {
+        poly.bringToFront()
+      }
+    })
+  }, [selectedSiteId])
+
+  // Sync Base Markers for Sites
   useEffect(() => {
     const map = mapInstanceRef.current
     if (!map) return
 
-    // Clear existing markers
-    Object.values(markersRef.current).forEach((marker) => marker.remove())
+    Object.values(markersRef.current).forEach((m) => m.remove())
     markersRef.current = {}
 
     sites.forEach((site) => {
-      const lat = site.coordinates?.lat || COMMONWEALTH_CENTER[0]
-      const lng = site.coordinates?.lng || COMMONWEALTH_CENTER[1]
-      const isSelected = site.id === selectedSiteId
+      if (!site.coordinates) return
 
-      // Custom HTML Marker using DivIcon
-      const iconHtml = `
-        <div style="
-          position: relative;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          cursor: pointer;
-        ">
-          <div style="
-            width: ${isSelected ? '32px' : '26px'};
-            height: ${isSelected ? '32px' : '26px'};
-            border-radius: 50%;
-            background-color: ${isSelected ? '#abf06b' : '#0f172a'};
-            border: ${isSelected ? '3px solid #0f172a' : '2px solid #abf06b'};
-            box-shadow: ${isSelected ? '0 0 0 5px rgba(171, 240, 107, 0.4), 0 4px 12px rgba(0,0,0,0.5)' : '0 2px 6px rgba(0,0,0,0.3)'};
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: ${isSelected ? '#0f172a' : '#abf06b'};
-            transition: all 0.25s ease;
-          ">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-            </svg>
-          </div>
+      const isSelected = site.id === selectedSiteId
+      const partition = COMMONWEALTH_PARTITIONS.find((p) => p.id === site.id)
+      const baseNum = partition?.num ?? 1
+      const pinColor = partition?.color ?? '#16a34a'
+
+      const markerHtml = `
+        <div style="position: relative; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
           ${
             isSelected
               ? `<div style="
-                  background: #0f172a;
-                  color: #abf06b;
-                  font-family: 'Quicksand', sans-serif;
-                  font-size: 10px;
-                  font-weight: 800;
-                  padding: 2px 8px;
-                  border-radius: 9999px;
-                  margin-top: 3px;
-                  white-space: nowrap;
-                  border: 1px solid #334155;
-                  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-                ">${site.name.split(' ')[0]} ${site.name.split(' ')[1] || ''}</div>`
+                  position: absolute;
+                  width: 44px;
+                  height: 44px;
+                  border-radius: 50%;
+                  background: rgba(15, 23, 42, 0.25);
+                  animation: pulseBaseRing 1.8s infinite;
+                "></div>`
               : ''
           }
+          <div style="
+            width: ${isSelected ? '36px' : '30px'};
+            height: ${isSelected ? '36px' : '30px'};
+            border-radius: 50%;
+            background-color: ${isSelected ? '#0f172a' : '#ffffff'};
+            border: 3px solid ${isSelected ? '#abf06b' : pinColor};
+            color: ${isSelected ? '#abf06b' : '#0f172a'};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.22);
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 800;
+            font-size: ${isSelected ? '14px' : '12px'};
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: ${isSelected ? 'scale(1.1)' : 'scale(1)'};
+          ">
+            ${baseNum}
+          </div>
         </div>
       `
 
       const customIcon = L.divIcon({
-        html: iconHtml,
-        className: 'ecobyte-leaflet-marker',
-        iconSize: [32, 44],
-        iconAnchor: [16, isSelected ? 40 : 26],
+        html: markerHtml,
+        className: 'custom-base-pin',
+        iconSize: [44, 44],
+        iconAnchor: [22, 22],
       })
 
-      const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map)
-
-      // Popup Content
-      const popupHtml = `
-        <div style="font-family: 'Quicksand', sans-serif; padding: 2px; min-width: 170px;">
-          <div style="font-weight: 800; font-size: 13px; color: #0f172a; margin-bottom: 2px;">
-            ${site.name}
-          </div>
-          <div style="font-size: 11px; color: #64748b; margin-bottom: 6px;">
-            ${site.address}
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span style="font-size: 11px; font-weight: 700; color: ${site.isOpen ? '#16a34a' : '#64748b'};">
-              ${site.isOpen ? '● Open Now' : '○ Closed'}
-            </span>
-            <span style="font-size: 11px; font-weight: 800; color: #0f172a;">
-              ${site.distance || `${site.distanceKm || 0.8} km`}
-            </span>
-          </div>
-          <div style="font-size: 10px; color: #475569; background: #f1f5f9; padding: 4px 6px; border-radius: 4px; margin-bottom: 8px;">
-            🕒 ${site.hours}
-          </div>
-          <button id="leaflet-btn-dir-${site.id}" style="
-            width: 100%;
-            background: #0f172a;
-            color: #ffffff;
-            border: none;
-            border-radius: 6px;
-            padding: 6px 10px;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: 'Quicksand', sans-serif;
-          ">
-            Get Directions ↗
-          </button>
-        </div>
-      `
-
-      marker.bindPopup(popupHtml, {
-        closeButton: true,
-        className: 'ecobyte-map-popup',
-      })
-
-      marker.on('popupopen', () => {
-        const btn = document.getElementById(`leaflet-btn-dir-${site.id}`)
-        if (btn) {
-          btn.onclick = (e) => {
-            e.stopPropagation()
-            onGetDirections(site)
-          }
-        }
-      })
+      const marker = L.marker([site.coordinates.lat, site.coordinates.lng], {
+        icon: customIcon,
+        zIndexOffset: isSelected ? 1500 : 200,
+      }).addTo(map)
 
       marker.on('click', () => {
         onSelectSite(site.id)
@@ -218,130 +325,147 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
 
       markersRef.current[site.id] = marker
     })
-  }, [sites, selectedSiteId, onSelectSite, onGetDirections])
+  }, [sites, selectedSiteId, onSelectSite])
 
-  // Fly to selected site when selectedSiteId changes
+  // Center & Fly to Selected Site
   useEffect(() => {
     const map = mapInstanceRef.current
-    if (!map) return
+    if (!map || !selectedSiteId) return
 
-    const targetSite = sites.find((s) => s.id === selectedSiteId)
-    if (targetSite?.coordinates) {
-      map.flyTo([targetSite.coordinates.lat, targetSite.coordinates.lng], 15.5, {
-        duration: 0.9,
+    const site = sites.find((s) => s.id === selectedSiteId)
+    if (site?.coordinates) {
+      map.flyTo([site.coordinates.lat, site.coordinates.lng], 16, {
+        duration: 0.8,
+        easeLinearity: 0.25,
       })
-
-      const marker = markersRef.current[targetSite.id]
-      if (marker && !marker.isPopupOpen()) {
-        marker.openPopup()
-      }
     }
   }, [selectedSiteId, sites])
 
-  // User GPS Location Marker
+  // Sync User GPS Pin
   useEffect(() => {
     const map = mapInstanceRef.current
     if (!map) return
 
-    if (userLocation) {
-      if (!userMarkerRef.current) {
-        const userIcon = L.divIcon({
-          html: `
-            <div style="position: relative; width: 22px; height: 22px;">
-              <div style="
-                position: absolute;
-                inset: -6px;
-                border-radius: 50%;
-                background-color: rgba(56, 189, 248, 0.35);
-                animation: pulse-ring 1.8s infinite;
-              "></div>
-              <div style="
-                width: 22px;
-                height: 22px;
-                border-radius: 50%;
-                background-color: #0284c7;
-                border: 3px solid #ffffff;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-              "></div>
-            </div>
-          `,
-          className: 'ecobyte-user-location-pin',
-          iconSize: [22, 22],
-          iconAnchor: [11, 11],
-        })
-
-        userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], {
-          icon: userIcon,
-        }).addTo(map)
-      } else {
-        userMarkerRef.current.setLatLng([userLocation.lat, userLocation.lng])
-      }
-    } else if (userMarkerRef.current) {
+    if (userMarkerRef.current) {
       userMarkerRef.current.remove()
       userMarkerRef.current = null
     }
+
+    if (userLocation) {
+      const userHtml = `
+        <div style="position: relative; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
+          <div style="position: absolute; width: 28px; height: 28px; border-radius: 50%; background: rgba(2, 132, 199, 0.35); animation: pulseBaseRing 2s infinite;"></div>
+          <div style="width: 14px; height: 14px; border-radius: 50%; background: #0284c7; border: 2.5px solid #ffffff; box-shadow: 0 0 6px rgba(0,0,0,0.3);"></div>
+        </div>
+      `
+      const icon = L.divIcon({
+        html: userHtml,
+        className: 'user-location-marker',
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      })
+      userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], {
+        icon,
+        zIndexOffset: 3000,
+      }).addTo(map)
+    }
   }, [userLocation])
+
+  // Toggle Map Style
+  useEffect(() => {
+    if (!tileLayerRef.current || !mapInstanceRef.current) return
+    tileLayerRef.current.setUrl(TILE_URLS[mapStyle])
+  }, [mapStyle])
 
   return (
     <Box
       sx={{
         position: 'relative',
+        width: '100%',
         height,
-        borderRadius: 2,
+        borderRadius: 3,
         overflow: 'hidden',
-        border: '1px solid #1e293b',
-        boxShadow: '0 2px 8px rgba(15,23,42,0.15)',
-        backgroundColor: '#0f172a',
+        border: '2px solid #0f172a',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+        backgroundColor: '#faf8f5',
       }}
     >
-      {/* Map Container */}
+      <style>{`
+        @keyframes pulseBaseRing {
+          0% { transform: scale(0.7); opacity: 0.8; }
+          70% { transform: scale(1.35); opacity: 0; }
+          100% { transform: scale(1.35); opacity: 0; }
+        }
+        .partition-popup-tooltip {
+          background-color: rgba(255, 255, 255, 0.98) !important;
+          border: 1.5px solid #0f172a !important;
+          border-radius: 8px !important;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+          color: #0f172a !important;
+        }
+      `}</style>
+
+      {/* Map DOM Container */}
       <Box
         ref={mapContainerRef}
         sx={{
           width: '100%',
           height: '100%',
-          '& .leaflet-popup-content-wrapper': {
-            borderRadius: '12px',
-            boxShadow: '0 8px 24px rgba(15,23,42,0.2)',
-            padding: '2px',
-          },
-          '& .leaflet-popup-tip': {
-            backgroundColor: '#ffffff',
-          },
         }}
       />
 
-      {/* Top Banner Tag */}
+      {/* Floating Header: Clean Commonwealth Territory Tag */}
       <Box
         sx={{
           position: 'absolute',
           top: 10,
           left: 10,
           zIndex: 1000,
-          backgroundColor: 'rgba(15, 23, 42, 0.9)',
-          backdropFilter: 'blur(6px)',
-          color: '#abf06b',
-          px: 1.25,
-          py: 0.4,
-          borderRadius: 9999,
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          backgroundColor: '#ffffff',
+          color: '#0f172a',
+          px: 1.5,
+          py: 0.5,
+          borderRadius: 2,
+          border: '1.5px solid #0f172a',
           display: 'flex',
           alignItems: 'center',
-          gap: 0.6,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+          gap: 1,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         }}
       >
-        <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#abf06b' }} />
+        <Box
+          sx={{
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            backgroundColor: '#16a34a',
+            boxShadow: '0 0 6px rgba(22,163,74,0.6)',
+          }}
+        />
         <Typography
           sx={{
             fontFamily: "'Quicksand', sans-serif",
             fontWeight: 800,
-            fontSize: '0.6875rem',
-            color: '#abf06b',
+            fontSize: '0.75rem',
+            color: '#0f172a',
           }}
         >
-          Barangay Commonwealth Geofence (9 Hubs)
+          Barangay Commonwealth • 9 Base Partitions
         </Typography>
+        {selectedPartition && (
+          <Chip
+            size="small"
+            label={`Base ${selectedPartition.num}`}
+            sx={{
+              height: 20,
+              fontSize: '0.625rem',
+              fontWeight: 800,
+              backgroundColor: '#0f172a',
+              color: '#abf06b',
+              fontFamily: "'Quicksand', sans-serif",
+            }}
+          />
+        )}
       </Box>
 
       {/* Floating Controls (Top Right) */}
@@ -356,6 +480,25 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
           gap: 0.75,
         }}
       >
+        <Tooltip title="Recenter to Commonwealth Boundary" placement="left">
+          <IconButton
+            size="small"
+            onClick={fitCommonwealthBounds}
+            aria-label="Fit Commonwealth boundary"
+            sx={{
+              width: 34,
+              height: 34,
+              backgroundColor: '#ffffff',
+              color: '#0f172a',
+              border: '1.5px solid #0f172a',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+              '&:hover': { backgroundColor: '#f8fafc' },
+            }}
+          >
+            <CropFreeRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        </Tooltip>
+
         {onLocateUser && (
           <Tooltip title="Locate Me in Commonwealth" placement="left">
             <IconButton
@@ -363,38 +506,36 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
               onClick={onLocateUser}
               aria-label="Locate me"
               sx={{
-                width: 32,
-                height: 32,
-                backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                backdropFilter: 'blur(4px)',
-                color: userLocation ? '#38bdf8' : '#ffffff',
-                border: '1px solid rgba(255,255,255,0.15)',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
-                '&:hover': { backgroundColor: '#0f172a' },
+                width: 34,
+                height: 34,
+                backgroundColor: '#ffffff',
+                color: userLocation ? '#0284c7' : '#0f172a',
+                border: '1.5px solid #0f172a',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                '&:hover': { backgroundColor: '#f8fafc' },
               }}
             >
-              <MyLocationRoundedIcon sx={{ fontSize: 16 }} />
+              <MyLocationRoundedIcon sx={{ fontSize: 18 }} />
             </IconButton>
           </Tooltip>
         )}
 
-        <Tooltip title={mapStyle === 'streets' ? 'Switch to Topo Map' : 'Switch to Street Map'} placement="left">
+        <Tooltip title={mapStyle === 'streets' ? 'Switch to Topographic' : 'Switch to Street Map'} placement="left">
           <IconButton
             size="small"
             onClick={() => setMapStyle((prev) => (prev === 'streets' ? 'topo' : 'streets'))}
             aria-label="Toggle map view"
             sx={{
-              width: 32,
-              height: 32,
-              backgroundColor: 'rgba(15, 23, 42, 0.9)',
-              backdropFilter: 'blur(4px)',
-              color: '#ffffff',
-              border: '1px solid rgba(255,255,255,0.15)',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
-              '&:hover': { backgroundColor: '#0f172a' },
+              width: 34,
+              height: 34,
+              backgroundColor: '#ffffff',
+              color: '#0f172a',
+              border: '1.5px solid #0f172a',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+              '&:hover': { backgroundColor: '#f8fafc' },
             }}
           >
-            <LayersOutlinedIcon sx={{ fontSize: 16 }} />
+            <LayersOutlinedIcon sx={{ fontSize: 18 }} />
           </IconButton>
         </Tooltip>
 
@@ -403,17 +544,16 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
           onClick={() => mapInstanceRef.current?.zoomIn()}
           aria-label="Zoom in"
           sx={{
-            width: 32,
-            height: 32,
-            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-            backdropFilter: 'blur(4px)',
-            color: '#ffffff',
-            border: '1px solid rgba(255,255,255,0.15)',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
-            '&:hover': { backgroundColor: '#0f172a' },
+            width: 34,
+            height: 34,
+            backgroundColor: '#ffffff',
+            color: '#0f172a',
+            border: '1.5px solid #0f172a',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+            '&:hover': { backgroundColor: '#f8fafc' },
           }}
         >
-          <ZoomInRoundedIcon sx={{ fontSize: 16 }} />
+          <ZoomInRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
 
         <IconButton
@@ -421,45 +561,213 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
           onClick={() => mapInstanceRef.current?.zoomOut()}
           aria-label="Zoom out"
           sx={{
-            width: 32,
-            height: 32,
-            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-            backdropFilter: 'blur(4px)',
-            color: '#ffffff',
-            border: '1px solid rgba(255,255,255,0.15)',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
-            '&:hover': { backgroundColor: '#0f172a' },
+            width: 34,
+            height: 34,
+            backgroundColor: '#ffffff',
+            color: '#0f172a',
+            border: '1.5px solid #0f172a',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+            '&:hover': { backgroundColor: '#f8fafc' },
           }}
         >
-          <ZoomOutRoundedIcon sx={{ fontSize: 16 }} />
+          <ZoomOutRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
       </Box>
 
-      {/* Bottom Hint */}
+      {/* Floating Bottom HUD & Partition Legend */}
       <Box
         sx={{
           position: 'absolute',
-          bottom: 8,
+          bottom: 10,
           left: 10,
+          right: 10,
           zIndex: 1000,
-          backgroundColor: 'rgba(15, 23, 42, 0.85)',
-          backdropFilter: 'blur(4px)',
-          px: 1,
-          py: 0.3,
-          borderRadius: 1.5,
-          border: '1px solid rgba(255,255,255,0.1)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 0.75,
+          pointerEvents: 'none',
         }}
       >
-        <Typography
+        {/* Selected Base HUD Card */}
+        {selectedSite && (
+          <Box
+            sx={{
+              pointerEvents: 'auto',
+              backgroundColor: '#ffffff',
+              border: '1.5px solid #0f172a',
+              borderRadius: 2,
+              p: 1.25,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+              gap: 1.5,
+            }}
+          >
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.25 }}>
+                <Chip
+                  size="small"
+                  label={`Base ${selectedPartition?.num ?? 1}`}
+                  sx={{
+                    height: 18,
+                    fontSize: '0.625rem',
+                    fontWeight: 800,
+                    backgroundColor: '#0f172a',
+                    color: '#abf06b',
+                    fontFamily: "'Quicksand', sans-serif",
+                  }}
+                />
+                <Typography
+                  noWrap
+                  sx={{
+                    fontFamily: "'Quicksand', sans-serif",
+                    fontWeight: 800,
+                    fontSize: '0.8125rem',
+                    color: '#0f172a',
+                  }}
+                >
+                  {selectedSite.name}
+                </Typography>
+              </Box>
+              <Typography
+                noWrap
+                sx={{
+                  fontFamily: "'Quicksand', sans-serif",
+                  fontSize: '0.6875rem',
+                  color: '#64748b',
+                  fontWeight: 600,
+                }}
+              >
+                {selectedSite.address} • {selectedSite.hours}
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', gap: 0.75, flexShrink: 0 }}>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<NavigationRoundedIcon sx={{ fontSize: 14 }} />}
+                onClick={() => onGetDirections(selectedSite)}
+                sx={{
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  py: 0.4,
+                  px: 1,
+                  borderRadius: 1.75,
+                  textTransform: 'none',
+                  borderColor: '#0f172a',
+                  color: '#0f172a',
+                  '&:hover': { backgroundColor: '#f8fafc', borderColor: '#0f172a' },
+                }}
+              >
+                Directions
+              </Button>
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={<CalendarMonthRoundedIcon sx={{ fontSize: 14 }} />}
+                onClick={() => navigate(`/schedule-dropoff?siteId=${selectedSite.id}`)}
+                sx={{
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  py: 0.4,
+                  px: 1,
+                  borderRadius: 1.75,
+                  textTransform: 'none',
+                  backgroundColor: '#0f172a',
+                  color: '#abf06b',
+                  '&:hover': { backgroundColor: '#1e293b' },
+                }}
+              >
+                Schedule
+              </Button>
+            </Box>
+          </Box>
+        )}
+
+        {/* Partition Legend Strip (Base 1 to 9) */}
+        <Box
           sx={{
-            fontFamily: "'Quicksand', sans-serif",
-            fontSize: '0.6875rem',
-            color: '#ffffff',
-            fontWeight: 700,
+            pointerEvents: 'auto',
+            backgroundColor: '#ffffff',
+            borderRadius: 1.75,
+            border: '1.5px solid #0f172a',
+            py: 0.5,
+            px: 0.75,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 0.5,
+            overflowX: 'auto',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
           }}
         >
-          Tap any hub pin for hours &amp; directions
-        </Typography>
+          <Typography
+            sx={{
+              fontFamily: "'Quicksand', sans-serif",
+              fontSize: '0.625rem',
+              fontWeight: 800,
+              color: '#0f172a',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              whiteSpace: 'nowrap',
+              mr: 0.5,
+            }}
+          >
+            Partitions:
+          </Typography>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            {COMMONWEALTH_PARTITIONS.map((partition) => {
+              const isSelected = partition.id === selectedSiteId
+              const isHovered = partition.id === hoveredPartitionId
+              return (
+                <Tooltip key={partition.id} title={`Base ${partition.num}: ${partition.name}`} arrow>
+                  <Box
+                    onClick={() => onSelectSite(partition.id)}
+                    onMouseEnter={() => setHoveredPartitionId(partition.id)}
+                    onMouseLeave={() => setHoveredPartitionId(null)}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.35,
+                      px: 0.6,
+                      py: 0.2,
+                      borderRadius: 1,
+                      cursor: 'pointer',
+                      border: isSelected ? '1.5px solid #0f172a' : '1px solid #e2e8f0',
+                      backgroundColor: isSelected ? '#f1f5f9' : isHovered ? '#f8fafc' : '#ffffff',
+                      transition: 'all 0.15s ease',
+                      '&:hover': { transform: 'translateY(-1px)' },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '2px',
+                        backgroundColor: partition.color,
+                        border: '1px solid #0f172a',
+                      }}
+                    />
+                    <Typography
+                      sx={{
+                        fontFamily: "'Quicksand', sans-serif",
+                        fontSize: '0.625rem',
+                        fontWeight: isSelected ? 800 : 700,
+                        color: '#0f172a',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {partition.num}
+                    </Typography>
+                  </Box>
+                </Tooltip>
+              )
+            })}
+          </Box>
+        </Box>
       </Box>
     </Box>
   )

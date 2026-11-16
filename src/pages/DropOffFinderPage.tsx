@@ -55,7 +55,7 @@ const COMMONWEALTH_FALLBACK_SITES: DropOffSite[] = [
     distanceKm: 0.8,
     hours: '8:00 AM - 5:00 PM',
     type: 'Staffed & Smart Bin',
-    coordinates: { lat: 14.7044, lng: 121.0965 },
+    coordinates: { lat: 14.697, lng: 121.0882 },
     hazmatAccredited: true,
   },
   {
@@ -68,7 +68,7 @@ const COMMONWEALTH_FALLBACK_SITES: DropOffSite[] = [
     distanceKm: 1.1,
     hours: '24/7 Smart Bin Access',
     type: '24/7 Smart Bin',
-    coordinates: { lat: 14.7085, lng: 121.091 },
+    coordinates: { lat: 14.6955, lng: 121.0825 },
     hazmatAccredited: false,
   },
   {
@@ -81,7 +81,7 @@ const COMMONWEALTH_FALLBACK_SITES: DropOffSite[] = [
     distanceKm: 1.4,
     hours: '8:00 AM - 5:00 PM',
     type: 'Staffed & Smart Bin',
-    coordinates: { lat: 14.712, lng: 121.108 },
+    coordinates: { lat: 14.7085, lng: 121.0895 },
     hazmatAccredited: true,
   },
   {
@@ -94,7 +94,7 @@ const COMMONWEALTH_FALLBACK_SITES: DropOffSite[] = [
     distanceKm: 1.6,
     hours: '24/7 Smart Bin Access',
     type: '24/7 Smart Bin',
-    coordinates: { lat: 14.7152, lng: 121.103 },
+    coordinates: { lat: 14.7005, lng: 121.0875 },
     hazmatAccredited: true,
   },
   {
@@ -107,7 +107,7 @@ const COMMONWEALTH_FALLBACK_SITES: DropOffSite[] = [
     distanceKm: 1.8,
     hours: '6:00 AM - 8:00 PM',
     type: 'Staffed & Smart Bin',
-    coordinates: { lat: 14.701, lng: 121.089 },
+    coordinates: { lat: 14.694, lng: 121.0868 },
     hazmatAccredited: false,
   },
   {
@@ -120,7 +120,7 @@ const COMMONWEALTH_FALLBACK_SITES: DropOffSite[] = [
     distanceKm: 2.0,
     hours: '8:00 AM - 5:00 PM',
     type: 'Staffed Only',
-    coordinates: { lat: 14.706, lng: 121.098 },
+    coordinates: { lat: 14.698, lng: 121.0775 },
     hazmatAccredited: true,
   },
   {
@@ -133,7 +133,7 @@ const COMMONWEALTH_FALLBACK_SITES: DropOffSite[] = [
     distanceKm: 2.4,
     hours: '24/7 Smart Bin Access',
     type: '24/7 Smart Bin',
-    coordinates: { lat: 14.6975, lng: 121.1042 },
+    coordinates: { lat: 14.696, lng: 121.091 },
     hazmatAccredited: true,
   },
   {
@@ -146,7 +146,7 @@ const COMMONWEALTH_FALLBACK_SITES: DropOffSite[] = [
     distanceKm: 2.7,
     hours: '24/7 Smart Bin Access',
     type: '24/7 Smart Bin',
-    coordinates: { lat: 14.695, lng: 121.086 },
+    coordinates: { lat: 14.7015, lng: 121.0835 },
     hazmatAccredited: false,
   },
   {
@@ -159,7 +159,7 @@ const COMMONWEALTH_FALLBACK_SITES: DropOffSite[] = [
     distanceKm: 3.1,
     hours: '8:00 AM - 5:00 PM',
     type: 'Staffed & Smart Bin',
-    coordinates: { lat: 14.694, lng: 121.092 },
+    coordinates: { lat: 14.6965, lng: 121.085 },
     hazmatAccredited: false,
   },
 ]
@@ -403,7 +403,7 @@ export const DropOffFinderPage: FC = () => {
         onGetDirections={handleGetDirections}
         userLocation={userLocation}
         onLocateUser={handleLocateUser}
-        height={245}
+        height={360}
       />
 
       {/* ── Filter Chips ── */}
