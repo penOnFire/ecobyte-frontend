@@ -121,6 +121,7 @@ export const ReuseHubPage: FC = () => {
 
   useEffect(() => {
     let isMounted = true
+    setIsLoading(true)
 
     const params: { category?: string; query?: string } = {}
     if (selectedCategory !== 'All') params.category = selectedCategory
