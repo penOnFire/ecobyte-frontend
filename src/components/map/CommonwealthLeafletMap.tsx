@@ -20,7 +20,6 @@ import type { DropOffSite } from '@/types'
 import {
   COMMONWEALTH_BOUNDARY,
   COMMONWEALTH_PARTITIONS,
-  WORLD_MASK_RING,
   type CommonwealthPartition,
 } from './commonwealthData'
 
@@ -47,7 +46,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
   onGetDirections,
   userLocation,
   onLocateUser,
-  height = 360,
+  height = 380,
 }) => {
   const navigate = useNavigate()
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
@@ -72,7 +71,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
   const selectedSite = sites.find((s) => s.id === selectedSiteId)
   const selectedPartition = COMMONWEALTH_PARTITIONS.find((p) => p.id === selectedSiteId)
 
-  // Reset to full Barangay Commonwealth view
+  // Reset strictly to Barangay Commonwealth boundary bounds
   const fitCommonwealthBounds = () => {
     const map = mapInstanceRef.current
     if (!map) return
@@ -80,18 +79,34 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
     map.fitBounds(bounds, { padding: [16, 16], maxZoom: 16 })
   }
 
-  // Initialize Map
+  // Update dynamic CSS clip-path so everything outside Barangay Commonwealth is 100% transparent
+  const updateClipPath = () => {
+    const map = mapInstanceRef.current
+    const container = mapContainerRef.current
+    if (!map || !container) return
+
+    // Convert each boundary coordinate to container pixel space
+    const pixelPoints = COMMONWEALTH_BOUNDARY.map(([lat, lng]) => {
+      const pt = map.latLngToContainerPoint([lat, lng])
+      return `${pt.x.toFixed(1)}px ${pt.y.toFixed(1)}px`
+    })
+
+    const clipString = `polygon(${pixelPoints.join(', ')})`
+    container.style.clipPath = clipString
+    container.style.setProperty('-webkit-clip-path', clipString)
+  }
+
+  // Initialize Map with Transparent PNG-Like Isolation
   useEffect(() => {
     if (!mapContainerRef.current) return
     if (mapInstanceRef.current) return
 
     const bounds = L.latLngBounds(COMMONWEALTH_BOUNDARY)
-    const wideMaskRenderer = L.svg({ padding: 10.0 })
 
     const map = L.map(mapContainerRef.current, {
       center: bounds.getCenter(),
       zoom: 15,
-      minZoom: 13.5,
+      minZoom: 14,
       maxZoom: 18,
       maxBounds: bounds.pad(0.04), // Lock strictly to Commonwealth
       maxBoundsViscosity: 1.0,     // Solid barrier to prevent dragging away
@@ -109,38 +124,16 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
 
     tileLayerRef.current = tileLayer
 
-    // Solid Inverted World Mask (100% Opacity)
-    // Completely REMOVES everything outside Barangay Commonwealth
-    L.polygon([WORLD_MASK_RING, COMMONWEALTH_BOUNDARY], {
-      fillColor: '#faf8f5',
-      fillOpacity: 1.0, // 100% OPAQUE: zero outside tiles visible
-      stroke: false,
-      interactive: false,
-      renderer: wideMaskRenderer,
-    }).addTo(map)
-
-    // Accurate, Clean & Neat Outline of Barangay Commonwealth
-    L.polygon(COMMONWEALTH_BOUNDARY, {
-      color: '#0f172a',
-      weight: 3.5,
-      opacity: 1.0,
-      fill: false,
-      interactive: false,
-      renderer: wideMaskRenderer,
-    }).addTo(map)
-
-    // Render the 9 Base Partitions
+    // Render the 9 Base Partitions (Clean Interior Lines ONLY — Zero Green Highlight / Fill)
     COMMONWEALTH_PARTITIONS.forEach((partition: CommonwealthPartition) => {
       const isSelected = partition.id === selectedSiteIdRef.current
 
       const poly = L.polygon(partition.polygon, {
-        fillColor: partition.color,
-        fillOpacity: isSelected ? 0.45 : 0.22,
-        color: isSelected ? '#0f172a' : partition.borderColor,
-        weight: isSelected ? 3.5 : 1.5,
-        dashArray: isSelected ? undefined : '4, 4',
+        fill: false, // NO green or colored highlight over the street map
+        color: isSelected ? '#0f172a' : '#475569',
+        weight: isSelected ? 2.5 : 1.5,
+        dashArray: isSelected ? undefined : '5, 5',
         interactive: true,
-        renderer: wideMaskRenderer,
       }).addTo(map)
 
       // Hover behavior
@@ -148,8 +141,8 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
         setHoveredPartitionId(partition.id)
         if (partition.id !== selectedSiteIdRef.current) {
           poly.setStyle({
-            fillOpacity: 0.38,
-            weight: 2.5,
+            color: '#0f172a',
+            weight: 2.25,
           })
         }
       })
@@ -158,7 +151,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
         setHoveredPartitionId(null)
         if (partition.id !== selectedSiteIdRef.current) {
           poly.setStyle({
-            fillOpacity: 0.22,
+            color: '#475569',
             weight: 1.5,
           })
         }
@@ -175,7 +168,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
            <span style="color:#0f172a;">Base ${partition.num} Partition</span>
            <div style="font-size:10px;font-weight:600;color:#475569;">${partition.name}</div>
          </div>`,
-        { direction: 'center', sticky: true, className: 'partition-popup-tooltip' }
+        { direction: 'center', sticky: true, className: 'partition-clean-tooltip' }
       )
 
       polygonsRef.current[partition.id] = poly
@@ -190,14 +183,14 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
             justify-content: center;
             width: 22px;
             height: 22px;
-            background: #ffffff;
-            color: #0f172a;
-            border: 1.5px solid ${partition.borderColor};
+            background: #0f172a;
+            color: #ffffff;
+            border: 2px solid #ffffff;
             border-radius: 6px;
             font-family: 'Quicksand', sans-serif;
             font-size: 11px;
             font-weight: 800;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.18);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.25);
             pointer-events: none;
           ">
             ${partition.num}
@@ -215,17 +208,38 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
       labelMarkersRef.current[partition.id] = labelMarker
     })
 
+    // Clean, Crisp & Neat Outer Outline of Barangay Commonwealth
+    L.polygon(COMMONWEALTH_BOUNDARY, {
+      color: '#0f172a',
+      weight: 3.5,
+      opacity: 1.0,
+      fill: false,
+      interactive: false,
+    }).addTo(map)
+
     mapInstanceRef.current = map
 
-    // Fit Commonwealth on mount
+    // Fit Commonwealth boundary
     map.fitBounds(bounds, { padding: [16, 16] })
 
+    // Wire up dynamic clipping listeners on every frame
+    map.on('move', updateClipPath)
+    map.on('zoom', updateClipPath)
+    map.on('viewreset', updateClipPath)
+    map.on('resize', updateClipPath)
+
+    // Initial clip-path calculation once layout is rendered
     const timer = setTimeout(() => {
       map.invalidateSize()
-    }, 250)
+      updateClipPath()
+    }, 200)
 
     return () => {
       clearTimeout(timer)
+      map.off('move', updateClipPath)
+      map.off('zoom', updateClipPath)
+      map.off('viewreset', updateClipPath)
+      map.off('resize', updateClipPath)
       map.remove()
       mapInstanceRef.current = null
       markersRef.current = {}
@@ -234,7 +248,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
     }
   }, [])
 
-  // Sync Partition Styling when Selection Changes
+  // Sync Partition Styling when Selection Changes (Lines Only — No Green Fill)
   useEffect(() => {
     COMMONWEALTH_PARTITIONS.forEach((partition: CommonwealthPartition) => {
       const poly = polygonsRef.current[partition.id]
@@ -242,11 +256,10 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
 
       const isSelected = partition.id === selectedSiteId
       poly.setStyle({
-        fillColor: partition.color,
-        fillOpacity: isSelected ? 0.45 : 0.22,
-        color: isSelected ? '#0f172a' : partition.borderColor,
-        weight: isSelected ? 3.5 : 1.5,
-        dashArray: isSelected ? undefined : '4, 4',
+        fill: false, // Never apply green highlight
+        color: isSelected ? '#0f172a' : '#475569',
+        weight: isSelected ? 2.5 : 1.5,
+        dashArray: isSelected ? undefined : '5, 5',
       })
 
       if (isSelected) {
@@ -269,7 +282,6 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
       const isSelected = site.id === selectedSiteId
       const partition = COMMONWEALTH_PARTITIONS.find((p) => p.id === site.id)
       const baseNum = partition?.num ?? 1
-      const pinColor = partition?.color ?? '#16a34a'
 
       const markerHtml = `
         <div style="position: relative; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
@@ -290,12 +302,12 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
             height: ${isSelected ? '36px' : '30px'};
             border-radius: 50%;
             background-color: ${isSelected ? '#0f172a' : '#ffffff'};
-            border: 3px solid ${isSelected ? '#abf06b' : pinColor};
+            border: 2.5px solid #0f172a;
             color: ${isSelected ? '#abf06b' : '#0f172a'};
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.22);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.25);
             font-family: 'Quicksand', sans-serif;
             font-weight: 800;
             font-size: ${isSelected ? '14px' : '12px'};
@@ -385,7 +397,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
           70% { transform: scale(1.35); opacity: 0; }
           100% { transform: scale(1.35); opacity: 0; }
         }
-        .partition-popup-tooltip {
+        .partition-clean-tooltip {
           background-color: rgba(255, 255, 255, 0.98) !important;
           border: 1.5px solid #0f172a !important;
           border-radius: 8px !important;
@@ -394,7 +406,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
         }
       `}</style>
 
-      {/* ── 1. Top Control Bar (OUTSIDE the map, above it) ── */}
+      {/* ── 1. Top Control Bar (OUTSIDE the map) ── */}
       <Box
         sx={{
           display: 'flex',
@@ -405,7 +417,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
           px: 0.5,
         }}
       >
-        {/* Left: Territory Title & Active Base Chip */}
+        {/* Left: Title & Active Base Badge */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Box
             sx={{
@@ -554,17 +566,18 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
         </Box>
       </Box>
 
-      {/* ── 2. The Map (100% UNCOVERED & UNCLUTTERED) ── */}
+      {/* ── 2. The Map Frame: Completely Transparent PNG Cut-Out of Barangay Commonwealth ── */}
       <Box
         sx={{
           position: 'relative',
           width: '100%',
           height,
-          borderRadius: 3,
-          overflow: 'hidden',
-          border: '2px solid #0f172a',
-          boxShadow: '0 3px 12px rgba(15,23,42,0.08)',
-          backgroundColor: '#faf8f5',
+          backgroundColor: 'transparent', // 100% transparent outside the cutout
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          // Floating silhouette shadow matching the exact PNG cutout shape of Barangay Commonwealth
+          filter: 'drop-shadow(0 8px 24px rgba(15,23,42,0.14))',
         }}
       >
         <Box
@@ -572,11 +585,13 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
           sx={{
             width: '100%',
             height: '100%',
+            backgroundColor: 'transparent',
+            // Will receive dynamic hardware-accelerated clipPath: polygon(...)
           }}
         />
       </Box>
 
-      {/* ── 3. Bottom Partition Selector Bar (OUTSIDE the map, below it) ── */}
+      {/* ── 3. Bottom Partition Selector Bar (OUTSIDE the map) ── */}
       <Box
         sx={{
           backgroundColor: '#ffffff',
@@ -626,30 +641,21 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
                     borderRadius: 1.25,
                     cursor: 'pointer',
                     border: isSelected ? '1.5px solid #0f172a' : '1px solid #e2e8f0',
-                    backgroundColor: isSelected ? '#f1f5f9' : isHovered ? '#f8fafc' : '#ffffff',
+                    backgroundColor: isSelected ? '#0f172a' : isHovered ? '#f1f5f9' : '#ffffff',
                     transition: 'all 0.15s ease',
                     '&:hover': { transform: 'translateY(-1px)' },
                   }}
                 >
-                  <Box
-                    sx={{
-                      width: 9,
-                      height: 9,
-                      borderRadius: '2px',
-                      backgroundColor: partition.color,
-                      border: '1px solid #0f172a',
-                    }}
-                  />
                   <Typography
                     sx={{
                       fontFamily: "'Quicksand', sans-serif",
                       fontSize: '0.6875rem',
-                      fontWeight: isSelected ? 800 : 700,
-                      color: '#0f172a',
+                      fontWeight: 800,
+                      color: isSelected ? '#abf06b' : '#0f172a',
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {partition.num}
+                    Base {partition.num}
                   </Typography>
                 </Box>
               </Tooltip>
@@ -658,7 +664,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
         </Box>
       </Box>
 
-      {/* ── 4. Selected Base HUD Card (OUTSIDE the map, below partition bar) ── */}
+      {/* ── 4. Selected Base HUD Card (OUTSIDE the map) ── */}
       {selectedSite && (
         <Box
           sx={{
