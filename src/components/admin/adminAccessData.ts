@@ -211,41 +211,68 @@ function getInitials(fullName: string): string {
 }
 
 export function mapBackendUserToOfficial(record: BackendUserRecord): OfficialUser {
-  const mappedRole: UserRole =
-    record.role === 'ADMIN'
+  const displayName = (record.fullName ?? record.name ?? record.email).trim()
+  const normalizedRole = String(record.role ?? '').toUpperCase()
+  const normalizedStatus = String(record.accountStatus ?? record.status ?? 'active').toLowerCase()
+
+  const isDeactivated =
+    normalizedRole === 'DEACTIVATED' ||
+    normalizedStatus === 'inactive' ||
+    normalizedStatus === 'deactivated' ||
+    normalizedStatus === 'suspended'
+
+  const mappedRole: UserRole = isDeactivated
+    ? 'Deactivated'
+    : normalizedRole === 'ADMIN'
       ? 'Admin'
-      : record.role === 'OFFICIAL'
+      : normalizedRole === 'OFFICIAL' || normalizedRole === 'BARANGAY_OFFICIAL'
         ? 'Official'
         : 'Deactivated'
-  const mappedStatus: UserStatus = mappedRole === 'Deactivated' ? 'Deactivated' : 'Active'
-  const suffix = record.id.replace(/-/g, '').slice(0, 4).toUpperCase()
+
+  const mappedStatus: UserStatus =
+    normalizedStatus === 'suspended'
+      ? 'Suspended'
+      : isDeactivated
+        ? 'Deactivated'
+        : 'Active'
+
+  const suffixCode = record.id.replace(/-/g, '').slice(0, 4).toUpperCase()
   const idCode =
-    mappedRole === 'Admin'
-      ? `ID-${suffix}-ADM`
+    record.idCode ||
+    (mappedRole === 'Admin'
+      ? `ID-${suffixCode}-ADM`
       : mappedRole === 'Official'
-        ? `ID-${suffix}-OFC`
-        : 'ID-RESIDENT'
+        ? `ID-${suffixCode}-OFC`
+        : 'ID-RESIDENT')
 
   return {
     id: record.id,
-    name: record.fullName,
+    name: displayName,
+    firstName: record.firstName,
+    middleName: record.middleName,
+    lastName: record.lastName,
+    suffix: record.suffix,
     email: record.email,
     phone: record.phone || '+63 917 000 0000',
     idCode,
     role: mappedRole,
-    department: record.barangay?.name
-      ? `${record.barangay.name} (${COMMONWEALTH_FACILITIES[0]})`
-      : COMMONWEALTH_FACILITIES[0],
+    department:
+      record.department ||
+      (record.barangay?.name
+        ? `${record.barangay.name} (${COMMONWEALTH_FACILITIES[0]})`
+        : COMMONWEALTH_FACILITIES[0]),
     status: mappedStatus,
-    twoFactorEnabled: mappedRole === 'Admin',
-    initials: getInitials(record.fullName),
-    lastActive: 'Synced from API',
-    isSelf: record.email.toLowerCase() === 'admin@ecobyte.gov',
+    twoFactorEnabled: record.twoFactorEnabled ?? mappedRole === 'Admin',
+    mustChangePassword: record.mustChangePassword,
+    initials: record.initials || getInitials(displayName),
+    lastActive: record.lastActive || 'Synced from API',
+    isSelf: record.isSelf ?? record.email.toLowerCase() === 'admin@ecobyte.gov',
     isBackendUser: true,
     notes:
-      mappedRole === 'Deactivated'
-        ? 'Resident account — promote to Official or Admin to grant MRF portal access'
-        : 'Verified account synced from EcoByte directory',
+      record.notes ??
+      (mappedRole === 'Deactivated'
+        ? 'Inactive or non-staff account'
+        : 'Verified account synced from EcoByte directory'),
   }
 }
 

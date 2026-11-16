@@ -71,7 +71,7 @@ export const ProofOfClaimPage: FC = () => {
     // Fallback: clipboard
     try {
       await navigator.clipboard.writeText(
-        `EcoByte Claim Voucher: Keychron K2 V2 reserved at Pasig Green Hub / Commonwealth. Link: ${window.location.href}`
+        `EcoByte Claim Voucher: Keychron K2 V2 reserved at Commonwealth Area 1 Eco-Hub. Link: ${window.location.href}`
       )
       setShareToast(true)
     } catch {
@@ -83,7 +83,7 @@ export const ProofOfClaimPage: FC = () => {
     const newClaim: EwasteRequestItem = {
       requestId: `CLM-${Date.now().toString().slice(-4)}`,
       deviceTitle: 'Keychron K2 V2 (Wireless Mechanical Keyboard)',
-      siteName: 'Pasig Green Hub / Commonwealth Area 1',
+      siteName: 'Commonwealth Area 1 Eco-Hub',
       status: 'Turned over',
       statusStage: 'Claimed & Verified',
       progressStep: '3/3',
@@ -422,7 +422,7 @@ export const ProofOfClaimPage: FC = () => {
                   Station
                 </Typography>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem', color: '#0f172a' }}>
-                  Pasig Green Hub
+                  Commonwealth Area 1 Eco-Hub
                 </Typography>
               </Box>
             </Box>
@@ -554,7 +554,7 @@ export const ProofOfClaimPage: FC = () => {
                   Meet the Hub Volunteer
                 </Typography>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
-                  Show your 6-digit pickup voucher code (ECO-4821) at Pasig Green Hub or Commonwealth Area 1 desk.
+                  Show your 6-digit pickup voucher code (ECO-4821) at Commonwealth Area 1 Eco-Hub desk.
                 </Typography>
               </Box>
             </Box>

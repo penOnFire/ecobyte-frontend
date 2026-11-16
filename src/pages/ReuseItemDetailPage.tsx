@@ -190,7 +190,7 @@ export const ReuseItemDetailPage: FC = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, mt: 0.5 }}>
           <LocationOnOutlinedIcon sx={{ fontSize: 16, color: '#0f172a' }} />
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.8125rem', color: '#0f172a' }}>
-            Pasig Green Hub - Barangay San Antonio
+            Commonwealth Area 1 Eco-Hub - Barangay Commonwealth
           </Typography>
         </Box>
         <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', ml: 2.75 }}>
@@ -359,7 +359,7 @@ export const ReuseItemDetailPage: FC = () => {
         >
           <LocationOnOutlinedIcon sx={{ fontSize: 18, color: '#0f172a', mt: 0.2 }} />
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', lineHeight: 1.5 }}>
-            Please show your digital reservation QR pass at Pasig Green Hub locker reception. Bring a valid ID for pickup verification.
+            Please show your digital reservation QR pass at Commonwealth Area 1 Eco-Hub locker reception. Bring a valid ID for pickup verification.
           </Typography>
         </Box>
 

@@ -25,6 +25,10 @@ export interface Barangay {
 export interface User {
   id: string
   fullName: string
+  firstName?: string
+  middleName?: string | null
+  lastName?: string
+  suffix?: string | null
   email: string
   phone: string
   role?: string
@@ -34,6 +38,7 @@ export interface User {
 export interface AuthSession {
   accessToken: string
   refreshToken: string
+  redirectTo?: '/admin' | '/dashboard'
   user: User
 }
 
@@ -45,9 +50,16 @@ export interface LoginPayload {
 
 export interface RegisterPayload {
   fullName: string
+  firstName?: string
+  middleName?: string
+  lastName?: string
+  suffix?: string
   email: string
   phone: string
   barangayId: string
+  streetAddress?: string
+  validIdType?: string
+  idNumber?: string
   password: string
 }
 

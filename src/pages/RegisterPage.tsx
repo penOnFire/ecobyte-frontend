@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FC, FormEvent } from 'react'
 import {
   Box,
@@ -35,7 +35,8 @@ import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined'
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
 import { useNavigate } from 'react-router-dom'
 import ecobyteLogo from '@/assets/ui/ecobyte_logo.svg'
-import { authApi } from '@/lib/api'
+import { authApi, COMMONWEALTH_BASES_FALLBACK, setCachedUser } from '@/lib/api'
+import type { Barangay } from '@/types'
 
 export const RegisterPage: FC = () => {
   const navigate = useNavigate()
@@ -44,8 +45,8 @@ export const RegisterPage: FC = () => {
   const [lastName, setLastName] = useState('')
   const [suffix, setSuffix] = useState('')
   const [email, setEmail] = useState('')
-  const [baseNumber, setBaseNumber] = useState('brgy_commonwealth')
-  const [purokSitio, setPurokSitio] = useState('Purok 4')
+  const [barangayBases, setBarangayBases] = useState<Barangay[]>(COMMONWEALTH_BASES_FALLBACK)
+  const [baseNumber, setBaseNumber] = useState('1')
   const [streetAddress, setStreetAddress] = useState('')
   const [validIdType, setValidIdType] = useState('Barangay ID')
   const [idNumber, setIdNumber] = useState('')
@@ -58,6 +59,21 @@ export const RegisterPage: FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successModalOpen, setSuccessModalOpen] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    authApi.getBarangays().then((list) => {
+      if (active && list.length > 0) {
+        setBarangayBases(list)
+        setBaseNumber((prev) => (list.some((b) => b.id === prev) ? prev : list[0].id))
+      }
+    })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const selectedBase = barangayBases.find((b) => b.id === baseNumber) ?? barangayBases[0]
 
   const constructedFullName = [
     firstName.trim(),
@@ -107,16 +123,27 @@ export const RegisterPage: FC = () => {
     try {
       const res = await authApi.register({
         fullName: constructedFullName,
+        firstName: firstName.trim(),
+        middleName: middleName.trim() || undefined,
+        lastName: lastName.trim(),
+        suffix: suffix.trim() || undefined,
         email: email.trim(),
         phone: phone.trim() || '+63 900 000 0000',
         barangayId: baseNumber,
+        streetAddress: streetAddress.trim() || undefined,
+        validIdType,
+        idNumber: idNumber.trim() || undefined,
         password: password.trim(),
       })
 
       if (res?.accessToken) {
         localStorage.setItem('ecobyte_token', res.accessToken)
       }
-      localStorage.setItem('ecobyte_user_name', constructedFullName)
+      if (res?.user) {
+        setCachedUser(res.user)
+      } else {
+        localStorage.setItem('ecobyte_user_name', constructedFullName)
+      }
 
       // Show registration success confirmation modal
       setSuccessModalOpen(true)
@@ -440,7 +467,7 @@ export const RegisterPage: FC = () => {
               />
             </Box>
 
-            {/* Base Number / Barangay */}
+            {/* Base Number / Barangay Commonwealth Area */}
             <Box>
               <Typography
                 sx={{
@@ -453,7 +480,7 @@ export const RegisterPage: FC = () => {
                   mb: 0.75,
                 }}
               >
-                Barangay Location
+                Barangay Commonwealth — Base / Area
               </Typography>
               <FormControl fullWidth>
                 <Select
@@ -466,41 +493,11 @@ export const RegisterPage: FC = () => {
                   }
                   sx={{ borderRadius: 1.5 }}
                 >
-                  <MenuItem value="brgy_commonwealth">Barangay Commonwealth (Quezon City)</MenuItem>
-                  <MenuItem value="brgy_san_antonio">Barangay San Antonio (Pasig City)</MenuItem>
-                  <MenuItem value="brgy_batasan_hills">Barangay Batasan Hills (Quezon City)</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-
-            {/* Purok / Sitio */}
-            <Box>
-              <Typography
-                sx={{
-                  fontFamily: "'Quicksand', sans-serif",
-                  fontWeight: 700,
-                  fontSize: '0.75rem',
-                  letterSpacing: '0.06em',
-                  color: '#64748b',
-                  textTransform: 'uppercase',
-                  mb: 0.75,
-                }}
-              >
-                Purok / Sitio
-              </Typography>
-              <FormControl fullWidth>
-                <Select
-                  value={purokSitio}
-                  onChange={(e) => setPurokSitio(e.target.value)}
-                  sx={{ borderRadius: 1.5 }}
-                >
-                  <MenuItem value="Purok 1">Purok 1 (Commonwealth)</MenuItem>
-                  <MenuItem value="Purok 2">Purok 2 (Commonwealth)</MenuItem>
-                  <MenuItem value="Purok 3">Purok 3 (Commonwealth)</MenuItem>
-                  <MenuItem value="Purok 4">Purok 4 (Commonwealth)</MenuItem>
-                  <MenuItem value="Purok 5">Purok 5 (Commonwealth)</MenuItem>
-                  <MenuItem value="Area B">Area B (Litex)</MenuItem>
-                  <MenuItem value="Riverside">Riverside Drive</MenuItem>
+                  {barangayBases.map((base) => (
+                    <MenuItem key={base.id} value={base.id}>
+                      {base.name}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Box>
@@ -882,7 +879,8 @@ export const RegisterPage: FC = () => {
 
               <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>Resident Address</Typography>
               <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: '#0f172a' }}>
-                {purokSitio}, Barangay Commonwealth, Quezon City
+                {streetAddress.trim() ? `${streetAddress.trim()}, ` : ''}
+                {selectedBase?.name || 'Base 1 - Brgy. Hall Complex (Barangay Commonwealth)'}, Quezon City
               </Typography>
             </Box>
 

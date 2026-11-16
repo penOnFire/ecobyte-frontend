@@ -1,4 +1,4 @@
-import { useState, type FC, type ReactNode } from 'react'
+import { useEffect, useState, type FC, type ReactNode } from 'react'
 import {
   Avatar,
   Badge,
@@ -28,6 +28,14 @@ import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettin
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded'
 import StarRoundedIcon from '@mui/icons-material/StarRounded'
 import { useLocation, useNavigate } from 'react-router-dom'
+import {
+  authApi,
+  dropoffsApi,
+  extractFirstName,
+  getCachedUser,
+  type DashboardSummary,
+} from '@/lib/api'
+import type { User } from '@/types'
 
 interface AppShellProps {
   children: ReactNode
@@ -44,26 +52,10 @@ interface NotificationItem {
 
 const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
-    id: '1',
-    title: 'Drop-off Verified • +150 Points',
-    desc: 'Your ThinkPad laptop drop-off at MRF Central was confirmed by facility operator.',
-    time: '15m ago',
-    read: false,
-    type: 'points',
-  },
-  {
-    id: '2',
-    title: 'Locker Pass Active',
-    desc: 'Locker pass #ECO-4821 is reserved and awaiting pickup at Commonwealth Market Hub.',
-    time: '2h ago',
-    read: false,
-    type: 'alert',
-  },
-  {
-    id: '3',
+    id: 'community-drive',
     title: 'Community Clean-Up Drive',
     desc: 'Barangay Commonwealth annual electronic collection drive this Saturday at 8:00 AM.',
-    time: '1d ago',
+    time: 'Today',
     read: true,
     type: 'community',
   },
@@ -78,6 +70,75 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [logoutOpen, setLogoutOpen] = useState(false)
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS)
+  const [currentUser, setCurrentUser] = useState<User | null>(() => getCachedUser())
+  const [summary, setSummary] = useState<DashboardSummary>({
+    activeRequestsCount: 0,
+    assessedCount: 0,
+    reservedCount: 0,
+    ecoPoints: 0,
+    ecoTier: 'Starter Tier',
+    divertedKg: 0,
+    activeRequest: null,
+  })
+
+  useEffect(() => {
+    let active = true
+    authApi
+      .getProfile()
+      .then((profile) => {
+        if (active && profile) {
+          setCurrentUser(profile)
+        }
+      })
+      .catch(() => {
+        // Keep cached user when offline or unauthenticated
+      })
+
+    dropoffsApi
+      .getDashboardSummary()
+      .then((data) => {
+        if (!active || !data) return
+        setSummary(data)
+        const dynamicNotifications: NotificationItem[] = []
+        if (data.ecoPoints > 0) {
+          dynamicNotifications.push({
+            id: 'eco-points-earned',
+            title: `Eco-Points Earned • ${data.ecoPoints} pts`,
+            desc: `You have diverted ${data.divertedKg} kg of e-waste and reached ${data.ecoTier}.`,
+            time: 'Updated',
+            read: false,
+            type: 'points',
+          })
+        }
+        if (data.activeRequest) {
+          dynamicNotifications.push({
+            id: `req-${data.activeRequest.requestId}`,
+            title: `Active Request #${data.activeRequest.requestId}`,
+            desc: `${data.activeRequest.deviceTitle} • ${data.activeRequest.statusStage}`,
+            time: 'Active',
+            read: false,
+            type: 'alert',
+          })
+        }
+        dynamicNotifications.push(...INITIAL_NOTIFICATIONS)
+        setNotifications(dynamicNotifications)
+      })
+      .catch(() => {
+        // Keep default summary when offline or unauthenticated
+      })
+
+    return () => {
+      active = false
+    }
+  }, [path])
+
+  const firstName = extractFirstName(currentUser)
+  const fullName = currentUser?.fullName?.trim() || firstName
+  const userEmail = currentUser?.email || 'resident@ecobyte.ph'
+  const avatarInitial = firstName.charAt(0).toUpperCase() || 'R'
+  const areaLabel = currentUser?.barangay?.name || 'Barangay Commonwealth, QC'
+  const isStaff =
+    currentUser?.role === 'ADMIN' || currentUser?.role === 'BARANGAY_OFFICIAL'
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
@@ -149,7 +210,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                     lineHeight: 1,
                   }}
                 >
-                  Barangay Commonwealth, QC
+                  {areaLabel}
                 </Typography>
                 <KeyboardArrowDownRoundedIcon sx={{ fontSize: 15, color: '#64748b' }} />
               </Box>
@@ -201,7 +262,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                 '&:hover': { transform: 'scale(1.05)' },
               }}
             >
-              A
+              {avatarInitial}
             </Avatar>
           </Box>
         </Box>
@@ -368,12 +429,12 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                 border: '2px solid #abf06b',
               }}
             >
-              A
+              {avatarInitial}
             </Avatar>
             <Box sx={{ flex: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>
-                  Alex Rivera
+                  {fullName}
                 </Typography>
                 <Box
                   sx={{
@@ -386,11 +447,11 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                     fontWeight: 700,
                   }}
                 >
-                  Silver Tier
+                  {summary.ecoTier}
                 </Box>
               </Box>
               <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
-                alex.rivera@gmail.com • Brgy. Commonwealth, QC
+                {userEmail} • {areaLabel}
               </Typography>
             </Box>
           </Box>
@@ -417,7 +478,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                 Eco-Points
               </Typography>
               <Typography sx={{ fontSize: '1.5rem', fontWeight: 800, color: '#15803d', mt: 0.25 }}>
-                480 pts
+                {summary.ecoPoints} pts
               </Typography>
             </Box>
             <Box
@@ -433,33 +494,35 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                 E-Waste Diverted
               </Typography>
               <Typography sx={{ fontSize: '1.5rem', fontWeight: 800, color: '#7e22ce', mt: 0.25 }}>
-                18.4 kg
+                {summary.divertedKg} kg
               </Typography>
             </Box>
           </Box>
 
           {/* Quick Actions */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Button
-              onClick={() => {
-                setProfileOpen(false)
-                navigate('/admin')
-              }}
-              variant="outlined"
-              startIcon={<AdminPanelSettingsOutlinedIcon />}
-              sx={{
-                justifyContent: 'flex-start',
-                py: 1.25,
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 700,
-                color: '#334155',
-                borderColor: '#cbd5e1',
-                '&:hover': { borderColor: '#94a3b8', backgroundColor: '#f8fafc' },
-              }}
-            >
-              Switch to Administrator View (Desktop)
-            </Button>
+            {isStaff && (
+              <Button
+                onClick={() => {
+                  setProfileOpen(false)
+                  navigate('/admin')
+                }}
+                variant="outlined"
+                startIcon={<AdminPanelSettingsOutlinedIcon />}
+                sx={{
+                  justifyContent: 'flex-start',
+                  py: 1.25,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  color: '#334155',
+                  borderColor: '#cbd5e1',
+                  '&:hover': { borderColor: '#94a3b8', backgroundColor: '#f8fafc' },
+                }}
+              >
+                Switch to Administrator View (Desktop)
+              </Button>
+            )}
 
             <Button
               onClick={() => {
@@ -666,6 +729,8 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             </Button>
             <Button
               onClick={() => {
+                authApi.logout()
+                setCurrentUser(null)
                 setLogoutOpen(false)
                 navigate('/signin')
               }}

@@ -1,4 +1,4 @@
-import type { FC } from 'react'
+import { useEffect, useState, type FC } from 'react'
 import {
   Box,
   Button,
@@ -10,11 +10,24 @@ import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded'
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
+import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded'
 import { useNavigate } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { StepperTracker } from '@/components/ui/StepperTracker'
+import {
+  authApi,
+  dropoffsApi,
+  extractFirstName,
+  getCachedUser,
+  reuseApi,
+  type DashboardSummary,
+} from '@/lib/api'
+import type { ReuseItem, User } from '@/types'
 import ipadImg from '@/assets/ui/ipad.jpeg'
 import keychronImg from '@/assets/ui/keychron.jpeg'
+import thinkpadImg from '@/assets/ui/thinkpad.jpeg'
+import galaxyImg from '@/assets/ui/galaxy_s10.jpeg'
+import chargerImg from '@/assets/ui/charger.jpeg'
 
 const TRACKER_STEPS = [
   { id: 1, label: 'Submitted' },
@@ -24,8 +37,81 @@ const TRACKER_STEPS = [
   { id: 5, label: 'Turned over' },
 ]
 
+function resolveStepperStep(status?: string): number {
+  const normalized = (status ?? '').toLowerCase()
+  if (normalized === 'turned over') return 5
+  if (normalized === 'collected') return 4
+  if (normalized === 'scheduled') return 3
+  if (normalized === 'under review') return 2
+  return 1
+}
+
+function resolveReuseThumbnail(item: ReuseItem): string {
+  const lower = `${item.title} ${item.category}`.toLowerCase()
+  if (lower.includes('ipad') || lower.includes('tablet')) return ipadImg
+  if (lower.includes('keychron') || lower.includes('keyboard')) return keychronImg
+  if (lower.includes('thinkpad') || lower.includes('laptop')) return thinkpadImg
+  if (lower.includes('galaxy') || lower.includes('phone')) return galaxyImg
+  if (lower.includes('charger') || lower.includes('usb')) return chargerImg
+  return item.imageUrl || ipadImg
+}
+
 export const DashboardPage: FC = () => {
   const navigate = useNavigate()
+  const [currentUser, setCurrentUser] = useState<User | null>(() => getCachedUser())
+  const [summary, setSummary] = useState<DashboardSummary>({
+    activeRequestsCount: 0,
+    assessedCount: 0,
+    reservedCount: 0,
+    ecoPoints: 0,
+    ecoTier: 'Starter Tier',
+    divertedKg: 0,
+    activeRequest: null,
+  })
+  const [reuseItems, setReuseItems] = useState<ReuseItem[]>([])
+
+  useEffect(() => {
+    let active = true
+    authApi
+      .getProfile()
+      .then((profile) => {
+        if (active && profile) {
+          setCurrentUser(profile)
+        }
+      })
+      .catch(() => {
+        // Keep cached user if token is missing or offline
+      })
+
+    dropoffsApi
+      .getDashboardSummary()
+      .then((data) => {
+        if (active && data) {
+          setSummary(data)
+        }
+      })
+      .catch(() => {
+        // Keep zeroed defaults when unauthenticated or offline
+      })
+
+    reuseApi
+      .getItems()
+      .then((res) => {
+        if (active && Array.isArray(res?.items)) {
+          setReuseItems(res.items.slice(0, 2))
+        }
+      })
+      .catch(() => {
+        // Keep empty list if unavailable
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const firstName = extractFirstName(currentUser)
+  const activeReq = summary.activeRequest
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 1, pb: 4 }}>
@@ -58,7 +144,7 @@ export const DashboardPage: FC = () => {
             letterSpacing: '-0.02em',
           }}
         >
-          Hello, Alex
+          Hello, {firstName}
         </Typography>
       </Box>
 
@@ -71,9 +157,13 @@ export const DashboardPage: FC = () => {
               Requests
             </Typography>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1.75rem', color: '#0f172a', my: 0.25, lineHeight: 1 }}>
-              3
+              {summary.activeRequestsCount}
             </Typography>
-            <StatusBadge label="Active" variant="active" size="sm" />
+            <StatusBadge
+              label={summary.activeRequestsCount > 0 ? 'Active' : 'None'}
+              variant={summary.activeRequestsCount > 0 ? 'active' : 'pending'}
+              size="sm"
+            />
           </Box>
 
           {/* Assessed */}
@@ -82,7 +172,7 @@ export const DashboardPage: FC = () => {
               Assessed
             </Typography>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1.75rem', color: '#0f172a', my: 0.25, lineHeight: 1 }}>
-              12
+              {summary.assessedCount}
             </Typography>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.625rem', color: '#64748b', fontWeight: 700 }}>
               Total items
@@ -95,25 +185,111 @@ export const DashboardPage: FC = () => {
               Reserved
             </Typography>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1.75rem', color: '#0f172a', my: 0.25, lineHeight: 1 }}>
-              1
+              {summary.reservedCount}
             </Typography>
-            <StatusBadge label="Pending" variant="pending" size="sm" />
+            <StatusBadge
+              label={summary.reservedCount > 0 ? 'Pending' : 'None'}
+              variant="pending"
+              size="sm"
+            />
           </Box>
         </Box>
       </Card>
 
       {/* ── Active Request Tracker Card ── */}
-      <Card sx={{ p: 2.25, borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-        <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+      {activeReq ? (
+        <Card sx={{ p: 2.25, borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                <Box
+                  sx={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 1.5,
+                    backgroundColor: '#0f172a',
+                    color: '#abf06b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <LocalShippingOutlinedIcon sx={{ fontSize: 20 }} />
+                </Box>
+                <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
+                      Active Request
+                    </Typography>
+                    <StatusBadge label={activeReq.status} variant="in-transit" size="sm" />
+                  </Box>
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', fontWeight: 500, mt: 0.2 }}>
+                    Req #{activeReq.requestId} • {activeReq.deviceTitle}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box
+                onClick={() => navigate('/requests')}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: '#0f172a',
+                  cursor: 'pointer',
+                  '&:hover': { color: '#4f5f4b' },
+                }}
+              >
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem' }}>
+                  Details
+                </Typography>
+                <ChevronRightRoundedIcon sx={{ fontSize: 16 }} />
+              </Box>
+            </Box>
+
+            {/* Stepper */}
+            <Box sx={{ my: 1.5 }}>
+              <StepperTracker steps={TRACKER_STEPS} currentStep={resolveStepperStep(activeReq.status)} />
+            </Box>
+
+            {/* Slot pill */}
+            <Box
+              sx={{
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: 1.5,
+                px: 1.5,
+                py: 0.85,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                <AccessTimeRoundedIcon sx={{ fontSize: 15, color: '#64748b' }} />
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#0f172a', fontWeight: 600 }}>
+                  {activeReq.scheduledSlot}
+                </Typography>
+              </Box>
+              <Box sx={{ backgroundColor: '#e8ffbf', px: 1, py: 0.25, borderRadius: 9999 }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.625rem', color: '#1a3311', fontWeight: 700 }}>
+                  {activeReq.statusStage}
+                </Typography>
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card sx={{ p: 2.25, borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
               <Box
                 sx={{
                   width: 38,
                   height: 38,
                   borderRadius: 1.5,
-                  backgroundColor: '#0f172a',
-                  color: '#abf06b',
+                  backgroundColor: '#f1f5f9',
+                  color: '#475569',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -123,67 +299,37 @@ export const DashboardPage: FC = () => {
                 <LocalShippingOutlinedIcon sx={{ fontSize: 20 }} />
               </Box>
               <Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
-                    Active Request
-                  </Typography>
-                  <StatusBadge label="In Transit" variant="in-transit" size="sm" />
-                </Box>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', fontWeight: 500, mt: 0.2 }}>
-                  Req #2041 • MacBook Pro 13″ &amp; 2 Li-ion
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
+                  No Active Requests
+                </Typography>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.2 }}>
+                  Scan an e-waste device or schedule a drop-off to start tracking.
                 </Typography>
               </Box>
             </Box>
-
-            <Box
-              onClick={() => navigate('/requests')}
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => navigate('/scan')}
+              startIcon={<CameraAltRoundedIcon sx={{ fontSize: 15 }} />}
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                color: '#0f172a',
-                cursor: 'pointer',
-                '&:hover': { color: '#4f5f4b' },
+                borderRadius: 9999,
+                px: 1.75,
+                py: 0.65,
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                backgroundColor: '#0f172a',
+                color: '#ffffff',
+                textTransform: 'none',
+                flexShrink: 0,
+                '&:hover': { backgroundColor: '#1e293b' },
               }}
             >
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem' }}>
-                Details
-              </Typography>
-              <ChevronRightRoundedIcon sx={{ fontSize: 16 }} />
-            </Box>
+              Scan
+            </Button>
           </Box>
-
-          {/* Stepper */}
-          <Box sx={{ my: 1.5 }}>
-            <StepperTracker steps={TRACKER_STEPS} currentStep={3} />
-          </Box>
-
-          {/* Driver pill */}
-          <Box
-            sx={{
-              backgroundColor: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderRadius: 1.5,
-              px: 1.5,
-              py: 0.85,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-              <AccessTimeRoundedIcon sx={{ fontSize: 15, color: '#64748b' }} />
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#0f172a', fontWeight: 600 }}>
-                Today, 3:30 PM • Certified Logistics
-              </Typography>
-            </Box>
-            <Box sx={{ backgroundColor: '#e8ffbf', px: 1, py: 0.25, borderRadius: 9999 }}>
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.625rem', color: '#1a3311', fontWeight: 700 }}>
-                Driver assigned
-              </Typography>
-            </Box>
-          </Box>
-        </CardContent>
-      </Card>
+        </Card>
+      )}
 
       {/* ── Latest in Reuse Hub ── */}
       <Box>
@@ -218,163 +364,107 @@ export const DashboardPage: FC = () => {
           </Typography>
         </Box>
 
-        {/* Item 1: iPad 9th Gen */}
-        <Card sx={{ p: 2, borderRadius: 2, mb: 1.5, border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Box
+        {reuseItems.length > 0 ? (
+          reuseItems.map((item, idx) => (
+            <Card
+              key={item.id}
               sx={{
-                width: 82,
-                height: 82,
-                borderRadius: 1.5,
-                backgroundColor: '#f1f5f9',
-                overflow: 'hidden',
-                position: 'relative',
-                flexShrink: 0,
+                p: 2,
+                borderRadius: 2,
+                mb: idx === 0 ? 1.5 : 0,
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
               }}
             >
-              <Box
-                component="img"
-                src={ipadImg}
-                alt="iPad 9th Gen"
-                sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 6,
-                  left: 6,
-                  backgroundColor: 'rgba(255,255,255,0.92)',
-                  borderRadius: 1,
-                  px: 0.6,
-                  py: 0.15,
-                }}
-              >
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.5625rem', color: '#0f172a' }}>
-                  Grade A
-                </Typography>
-              </Box>
-            </Box>
-
-            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
-                    iPad 9th Gen 64GB
-                  </Typography>
-                  <StatusBadge label="Available" variant="available" size="sm" />
-                </Box>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.2 }}>
-                  Battery: 94% • Screen: Flawless
-                </Typography>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
-                  📍 Commonwealth Area 1 Hub • 0.8 km
-                </Typography>
-              </Box>
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
-                  Free Claim
-                </Typography>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={() => navigate('/confirm-reservation')}
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Box
                   sx={{
-                    borderRadius: 9999,
-                    py: 0.4,
-                    px: 1.75,
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    borderColor: '#e2e8f0',
-                    color: '#0f172a',
-                    '&:hover': { backgroundColor: '#f8fafc', borderColor: '#cbd5e1' },
+                    width: 82,
+                    height: 82,
+                    borderRadius: 1.5,
+                    backgroundColor: '#f1f5f9',
+                    overflow: 'hidden',
+                    position: 'relative',
+                    flexShrink: 0,
                   }}
                 >
-                  Reserve
-                </Button>
-              </Box>
-            </Box>
-          </Box>
-        </Card>
-
-        {/* Item 2: Keychron K2 */}
-        <Card sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Box
-              sx={{
-                width: 82,
-                height: 82,
-                borderRadius: 1.5,
-                backgroundColor: '#f1f5f9',
-                overflow: 'hidden',
-                position: 'relative',
-                flexShrink: 0,
-              }}
-            >
-              <Box
-                component="img"
-                src={keychronImg}
-                alt="Keychron K2"
-                sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 6,
-                  left: 6,
-                  backgroundColor: 'rgba(255,255,255,0.92)',
-                  borderRadius: 1,
-                  px: 0.6,
-                  py: 0.15,
-                }}
-              >
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.5625rem', color: '#0f172a' }}>
-                  Restored
-                </Typography>
-              </Box>
-            </Box>
-
-            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
-                    Keychron K2 V2 Wireless
-                  </Typography>
-                  <StatusBadge label="Available" variant="available" size="sm" />
+                  <Box
+                    component="img"
+                    src={resolveReuseThumbnail(item)}
+                    alt={item.title}
+                    sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 6,
+                      left: 6,
+                      backgroundColor: 'rgba(255,255,255,0.92)',
+                      borderRadius: 1,
+                      px: 0.6,
+                      py: 0.15,
+                    }}
+                  >
+                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.5625rem', color: '#0f172a' }}>
+                      {item.category}
+                    </Typography>
+                  </Box>
                 </Box>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.2 }}>
-                  Gateron Brown • New Li-ion Cell
-                </Typography>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
-                  📍 Commonwealth Area 2 Hub • 1.4 km
-                </Typography>
-              </Box>
 
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
-                  Free Claim
-                </Typography>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={() => navigate('/confirm-reservation')}
-                  sx={{
-                    borderRadius: 9999,
-                    py: 0.4,
-                    px: 1.75,
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    borderColor: '#e2e8f0',
-                    color: '#0f172a',
-                    '&:hover': { backgroundColor: '#f8fafc', borderColor: '#cbd5e1' },
-                  }}
-                >
-                  Reserve
-                </Button>
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
+                  <Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
+                        {item.title}
+                      </Typography>
+                      <StatusBadge
+                        label={item.status}
+                        variant={item.status === 'Available' ? 'available' : 'pending'}
+                        size="sm"
+                      />
+                    </Box>
+                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.2 }}>
+                      {item.condition} • {item.subcondition}
+                    </Typography>
+                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
+                      📍 {item.location} • {item.distance}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
+                      {item.price === 'Free' ? 'Free Claim' : item.price}
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      disabled={item.status !== 'Available'}
+                      onClick={() => navigate(`/reuse/${item.id}`)}
+                      sx={{
+                        borderRadius: 9999,
+                        py: 0.4,
+                        px: 1.75,
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        borderColor: '#e2e8f0',
+                        color: '#0f172a',
+                        '&:hover': { backgroundColor: '#f8fafc', borderColor: '#cbd5e1' },
+                      }}
+                    >
+                      {item.status === 'Available' ? 'Reserve' : item.status}
+                    </Button>
+                  </Box>
+                </Box>
               </Box>
-            </Box>
-          </Box>
-        </Card>
+            </Card>
+          ))
+        ) : (
+          <Card sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#64748b', textAlign: 'center' }}>
+              No refurbished items available in the Reuse Hub right now.
+            </Typography>
+          </Card>
+        )}
       </Box>
 
       {/* ── Lithium-ion Protocol Warning Callout ── */}
