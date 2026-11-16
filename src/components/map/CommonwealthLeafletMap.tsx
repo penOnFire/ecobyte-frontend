@@ -1,4 +1,5 @@
-import { useState, type FC } from 'react'
+import { useEffect, useRef, useState, type FC } from 'react'
+import L from 'leaflet'
 import {
   Box,
   Button,
@@ -8,155 +9,228 @@ import {
   Typography,
 } from '@mui/material'
 import MyLocationRoundedIcon from '@mui/icons-material/MyLocationRounded'
+import ZoomInRoundedIcon from '@mui/icons-material/ZoomInRounded'
+import ZoomOutRoundedIcon from '@mui/icons-material/ZoomOutRounded'
+import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined'
+import CropFreeRoundedIcon from '@mui/icons-material/CropFreeRounded'
 import NavigationRoundedIcon from '@mui/icons-material/NavigationRounded'
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded'
-import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined'
-import AltRouteRoundedIcon from '@mui/icons-material/AltRouteRounded'
+import LayersClearRoundedIcon from '@mui/icons-material/LayersClearRounded'
 import { useNavigate } from 'react-router-dom'
 import type { DropOffSite } from '@/types'
 
-interface TerritorySector {
+// Complete boundary perimeter for Barangay Commonwealth, Quezon City
+const COMMONWEALTH_POLYGON: [number, number][] = [
+  [14.719, 121.104], // Litex Junction / North Apex
+  [14.7175, 121.1085], // Payatas North Boundary
+  [14.7145, 121.1115], // Payatas Road East
+  [14.71, 121.113], // Area 3 Green Station Border
+  [14.705, 121.112], // Kasunduan East
+  [14.6995, 121.108], // Batasan-San Mateo Road
+  [14.6965, 121.105], // Area 7 Depot Border
+  [14.6935, 121.0995], // Batasan Hills Boundary
+  [14.6925, 121.0945], // Area 9 Veterans Village (South)
+  [14.6918, 121.0875], // Area 8 Holy Spirit (SW)
+  [14.6945, 121.0845], // Don Fabian / Commonwealth Ave
+  [14.699, 121.0865], // Commonwealth Ave
+  [14.704, 121.0895], // Area 5 Market / MRT-7 Base
+  [14.709, 121.0935], // Area 2 Lupang Pangako Entrance
+  [14.7145, 121.0985], // Commonwealth Ave Upper
+  [14.718, 121.102], // Litex Road Approach
+  [14.719, 121.104], // Loop closure
+]
+
+// Web Mercator full world boundary ring for inverted masking
+const WORLD_MASK_RING: [number, number][] = [
+  [-85.0511, -180],
+  [-85.0511, 180],
+  [85.0511, 180],
+  [85.0511, -180],
+]
+
+// 100% Free, Public Tile Servers (ZERO API Key Required)
+const TILE_URLS = {
+  streets: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  topo: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+}
+
+interface BasePartition {
   id: string
   siteId: string
   sectorNum: number
   name: string
   shortLabel: string
-  points: string
-  pinX: number
-  pinY: number
-  labelX: number
-  labelY: number
+  polygon: [number, number][]
+  center: [number, number]
   color: string
-  hoverColor: string
+  borderColor: string
 }
 
-// 9 Tactical Interlocking Sectors forming the complete territory of Barangay Commonwealth
-const COMMONWEALTH_SECTORS: TerritorySector[] = [
+// 9 Base Catchment Partitions within Barangay Commonwealth
+const BASE_PARTITIONS: BasePartition[] = [
   {
-    id: 'sector-4',
+    id: 'partition-4',
     siteId: 'litex-commercial-hub',
     sectorNum: 4,
     name: 'Litex Market Green Exchange',
-    shortLabel: 'Litex / Don Fabian',
-    points: '310,35 420,80 440,150 350,170 280,140 250,110',
-    pinX: 340,
-    pinY: 105,
-    labelX: 375,
-    labelY: 135,
-    color: '#1b4332',
-    hoverColor: '#2d6a4f',
+    shortLabel: 'Base 4: Litex',
+    polygon: [
+      [14.719, 121.104],
+      [14.7175, 121.1085],
+      [14.714, 121.1055],
+      [14.7135, 121.1005],
+      [14.7145, 121.0985],
+      [14.718, 121.102],
+    ],
+    center: [14.7152, 121.103],
+    color: '#15803d',
+    borderColor: '#14532d',
   },
   {
-    id: 'sector-3',
+    id: 'partition-3',
     siteId: 'area3-payatas-border',
     sectorNum: 3,
     name: 'Area 3 Payatas Border Green Station',
-    shortLabel: 'Payatas Border',
-    points: '420,80 505,140 535,220 440,240 350,170 440,150',
-    pinX: 450,
-    pinY: 180,
-    labelX: 485,
-    labelY: 160,
-    color: '#245740',
-    hoverColor: '#367b5c',
+    shortLabel: 'Base 3: Payatas',
+    polygon: [
+      [14.7175, 121.1085],
+      [14.7145, 121.1115],
+      [14.71, 121.113],
+      [14.708, 121.107],
+      [14.711, 121.103],
+      [14.714, 121.1055],
+    ],
+    center: [14.712, 121.108],
+    color: '#16a34a',
+    borderColor: '#166534',
   },
   {
-    id: 'sector-2',
+    id: 'partition-2',
     siteId: 'area2-lupang-pangako',
     sectorNum: 2,
     name: 'Area 2 Lupang Pangako E-Collection',
-    shortLabel: 'Lupang Pangako',
-    points: '250,110 280,140 350,170 320,260 220,220 220,170',
-    pinX: 285,
-    pinY: 190,
-    labelX: 260,
-    labelY: 155,
-    color: '#2d6a4f',
-    hoverColor: '#40916c',
+    shortLabel: 'Base 2: Pangako',
+    polygon: [
+      [14.7145, 121.0985],
+      [14.7135, 121.1005],
+      [14.7075, 121.096],
+      [14.7055, 121.093],
+      [14.709, 121.0935],
+    ],
+    center: [14.7085, 121.091],
+    color: '#4ade80',
+    borderColor: '#15803d',
   },
   {
-    id: 'sector-1',
+    id: 'partition-6',
+    siteId: 'area6-pilot-depot',
+    sectorNum: 6,
+    name: 'Area 6 Pilot Area Community E-Depot',
+    shortLabel: 'Base 6: Pilot Area',
+    polygon: [
+      [14.711, 121.103],
+      [14.708, 121.107],
+      [14.705, 121.112],
+      [14.702, 121.108],
+      [14.703, 121.102],
+      [14.708, 121.1015],
+    ],
+    center: [14.706, 121.098],
+    color: '#059669',
+    borderColor: '#065f46',
+  },
+  {
+    id: 'partition-1',
     siteId: 'commonwealth-mrf-area1',
     sectorNum: 1,
     name: 'Area 1 Eco-Hub (Brgy Hall Complex)',
-    shortLabel: 'Brgy Hall / Katuparan',
-    points: '350,170 440,240 420,320 310,320 320,260',
-    pinX: 370,
-    pinY: 260,
-    labelX: 370,
-    labelY: 215,
-    color: '#40916c',
-    hoverColor: '#52b788',
+    shortLabel: 'Base 1: Brgy Hall',
+    polygon: [
+      [14.7075, 121.096],
+      [14.708, 121.1015],
+      [14.703, 121.102],
+      [14.7015, 121.096],
+      [14.7055, 121.093],
+    ],
+    center: [14.7044, 121.0965],
+    color: '#22c55e',
+    borderColor: '#15803d',
   },
   {
-    id: 'sector-5',
+    id: 'partition-5',
     siteId: 'area5-market-mrt7',
     sectorNum: 5,
-    name: 'Area 5 Commonwealth Market Base',
-    shortLabel: 'Market / MRT-7',
-    points: '220,220 320,260 310,320 240,360 170,320 180,250',
-    pinX: 235,
-    pinY: 285,
-    labelX: 200,
-    labelY: 300,
-    color: '#52b788',
-    hoverColor: '#74c69d',
+    name: 'Area 5 Commonwealth Market / MRT-7',
+    shortLabel: 'Base 5: Market / MRT-7',
+    polygon: [
+      [14.7055, 121.093],
+      [14.7015, 121.096],
+      [14.6985, 121.092],
+      [14.6975, 121.088],
+      [14.699, 121.0865],
+      [14.704, 121.0895],
+      [14.709, 121.0935],
+    ],
+    center: [14.701, 121.089],
+    color: '#10b981',
+    borderColor: '#047857',
   },
   {
-    id: 'sector-6',
-    siteId: 'area6-pilot-depot',
-    sectorNum: 6,
-    name: 'Area 6 Pilot Area E-Depot',
-    shortLabel: 'Pilot Area',
-    points: '440,240 535,220 500,320 460,400 370,410 310,320 420,320',
-    pinX: 435,
-    pinY: 345,
-    labelX: 465,
-    labelY: 315,
-    color: '#74c69d',
-    hoverColor: '#95d5b2',
-  },
-  {
-    id: 'sector-8',
-    siteId: 'area8-holy-spirit',
-    sectorNum: 8,
-    name: 'Area 8 Holy Spirit Junction Bin',
-    shortLabel: 'Holy Spirit / Comm. Ave',
-    points: '170,320 240,360 310,320 370,410 300,470 160,410 150,350',
-    pinX: 230,
-    pinY: 395,
-    labelX: 195,
-    labelY: 380,
-    color: '#95d5b2',
-    hoverColor: '#b7e4c7',
-  },
-  {
-    id: 'sector-7',
+    id: 'partition-7',
     siteId: 'batasan-border-depot',
     sectorNum: 7,
     name: 'Area 7 Batasan Border E-Depot',
-    shortLabel: 'Batasan Road',
-    points: '460,400 400,470 350,480 370,410',
-    pinX: 410,
-    pinY: 440,
-    labelX: 420,
-    labelY: 430,
-    color: '#b7e4c7',
-    hoverColor: '#d8f3dc',
+    shortLabel: 'Base 7: Batasan',
+    polygon: [
+      [14.702, 121.108],
+      [14.6995, 121.108],
+      [14.6965, 121.105],
+      [14.6955, 121.1005],
+      [14.6985, 121.098],
+      [14.7015, 121.0995],
+      [14.703, 121.102],
+    ],
+    center: [14.6975, 121.1042],
+    color: '#166534',
+    borderColor: '#052e16',
   },
   {
-    id: 'sector-9',
+    id: 'partition-9',
     siteId: 'area9-veterans-village',
     sectorNum: 9,
     name: 'Area 9 Veterans Village Hub',
-    shortLabel: 'Veterans / Sandigan',
-    points: '160,410 300,470 350,480 400,470 350,560 260,580 200,550 150,480',
-    pinX: 275,
-    pinY: 515,
-    labelX: 310,
-    labelY: 535,
-    color: '#d8f3dc',
-    hoverColor: '#e9fbe9',
+    shortLabel: 'Base 9: Veterans',
+    polygon: [
+      [14.7015, 121.096],
+      [14.6985, 121.098],
+      [14.6955, 121.1005],
+      [14.6935, 121.0995],
+      [14.6925, 121.0945],
+      [14.6925, 121.0895],
+      [14.695, 121.09],
+      [14.6985, 121.092],
+    ],
+    center: [14.694, 121.092],
+    color: '#14532d',
+    borderColor: '#052e16',
+  },
+  {
+    id: 'partition-8',
+    siteId: 'area8-holy-spirit',
+    sectorNum: 8,
+    name: 'Area 8 Holy Spirit Junction Bin',
+    shortLabel: 'Base 8: Holy Spirit',
+    polygon: [
+      [14.699, 121.0865],
+      [14.6975, 121.088],
+      [14.695, 121.09],
+      [14.6925, 121.0895],
+      [14.6918, 121.0875],
+      [14.6945, 121.0845],
+    ],
+    center: [14.695, 121.086],
+    color: '#86efac',
+    borderColor: '#22c55e',
   },
 ]
 
@@ -177,718 +251,770 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
   onGetDirections,
   userLocation,
   onLocateUser,
-  height = 380,
+  height = 420,
 }) => {
   const navigate = useNavigate()
-  const [hoveredSectorId, setHoveredSectorId] = useState<string | null>(null)
-  const [showNumbers, setShowNumbers] = useState(true)
-  const [showRoads, setShowRoads] = useState(true)
+  const mapContainerRef = useRef<HTMLDivElement | null>(null)
+  const mapInstanceRef = useRef<L.Map | null>(null)
+  const markersRef = useRef<Record<string, L.Marker>>({})
+  const polygonsRef = useRef<Record<string, L.Polygon>>({})
+  const labelMarkersRef = useRef<Record<string, L.Marker>>({})
+  const userMarkerRef = useRef<L.Marker | null>(null)
+  const tileLayerRef = useRef<L.TileLayer | null>(null)
 
-  // Find currently active site and sector
-  const activeSector =
-    COMMONWEALTH_SECTORS.find((s) => s.siteId === selectedSiteId) || COMMONWEALTH_SECTORS[3]
-  const activeSite =
-    sites.find((s) => s.id === selectedSiteId) ||
-    sites.find((s) => s.id === activeSector.siteId) ||
-    sites[0]
+  const [mapStyle, setMapStyle] = useState<'streets' | 'topo'>('streets')
+  const [showPartitions, setShowPartitions] = useState(true)
+  const [hoveredPartitionId, setHoveredPartitionId] = useState<string | null>(null)
+
+  const selectedSite = sites.find((s) => s.id === selectedSiteId)
+  const selectedPartition = BASE_PARTITIONS.find((p) => p.siteId === selectedSiteId)
+
+  const onSelectSiteRef = useRef(onSelectSite)
+  const selectedSiteIdRef = useRef(selectedSiteId)
+
+  useEffect(() => {
+    onSelectSiteRef.current = onSelectSite
+    selectedSiteIdRef.current = selectedSiteId
+  }, [onSelectSite, selectedSiteId])
+
+  // Reset to full Barangay Commonwealth view
+  const fitCommonwealthBounds = () => {
+    const map = mapInstanceRef.current
+    if (!map) return
+    const bounds = L.latLngBounds(COMMONWEALTH_POLYGON)
+    map.fitBounds(bounds, { padding: [24, 24], maxZoom: 15.5 })
+  }
+
+  // Initialize Map
+  useEffect(() => {
+    if (!mapContainerRef.current) return
+    if (mapInstanceRef.current) return
+
+    const bounds = L.latLngBounds(COMMONWEALTH_POLYGON)
+    const wideMaskRenderer = L.svg({ padding: 3.0 })
+
+    const map = L.map(mapContainerRef.current, {
+      center: bounds.getCenter(),
+      zoom: 14.5,
+      minZoom: 13,
+      maxZoom: 18,
+      maxBounds: bounds.pad(0.08),
+      maxBoundsViscosity: 0.85,
+      inertia: true,
+      inertiaDeceleration: 3000,
+      zoomControl: false,
+      attributionControl: false,
+    })
+
+    // Standard Street Tile Layer (100% Free OpenStreetMap)
+    const tileLayer = L.tileLayer(TILE_URLS.streets, {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors',
+    }).addTo(map)
+
+    tileLayerRef.current = tileLayer
+
+    // Light airy mask outside Barangay Commonwealth
+    L.polygon([WORLD_MASK_RING, COMMONWEALTH_POLYGON], {
+      fillColor: '#f8fafc',
+      fillOpacity: 0.88,
+      stroke: false,
+      interactive: false,
+      renderer: wideMaskRenderer,
+    }).addTo(map)
+
+    // Outer perimeter boundary of Barangay Commonwealth
+    L.polygon(COMMONWEALTH_POLYGON, {
+      color: '#0f172a',
+      weight: 2.5,
+      opacity: 0.9,
+      fill: false,
+      dashArray: '5, 5',
+      interactive: false,
+      renderer: wideMaskRenderer,
+    }).addTo(map)
+
+    // Render 9 Base Catchment Partitions
+    BASE_PARTITIONS.forEach((partition) => {
+      const isSelected = partition.siteId === selectedSiteIdRef.current
+
+      const poly = L.polygon(partition.polygon, {
+        fillColor: partition.color,
+        fillOpacity: isSelected ? 0.48 : 0.28,
+        color: isSelected ? '#0f172a' : partition.borderColor,
+        weight: isSelected ? 3.5 : 1.75,
+        interactive: true,
+        renderer: wideMaskRenderer,
+      }).addTo(map)
+
+      // Hover / Click behavior
+      poly.on('mouseover', () => {
+        setHoveredPartitionId(partition.id)
+        if (partition.siteId !== selectedSiteIdRef.current) {
+          poly.setStyle({
+            fillOpacity: 0.42,
+            weight: 2.75,
+          })
+        }
+      })
+
+      poly.on('mouseout', () => {
+        setHoveredPartitionId(null)
+        if (partition.siteId !== selectedSiteIdRef.current) {
+          poly.setStyle({
+            fillOpacity: 0.28,
+            weight: 1.75,
+          })
+        }
+      })
+
+      poly.on('click', () => {
+        onSelectSiteRef.current(partition.siteId)
+      })
+
+      // Informative Tooltip
+      poly.bindTooltip(
+        `<div style="font-family:'Quicksand',sans-serif;font-weight:700;font-size:12px;padding:2px 4px;">
+           <span style="color:#0f172a;">${partition.shortLabel}</span>
+           <div style="font-size:10px;font-weight:600;color:#475569;">${partition.name}</div>
+         </div>`,
+        { direction: 'center', sticky: true, className: 'partition-popup-tooltip' }
+      )
+
+      polygonsRef.current[partition.id] = poly
+
+      // Partition Sector Badge Label at centroid (matches reference image numbering)
+      const labelIcon = L.divIcon({
+        className: 'partition-label-icon',
+        html: `
+          <div style="
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            background: #ffffff;
+            color: #0f172a;
+            border: 1.5px solid ${partition.borderColor};
+            border-radius: 6px;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 11px;
+            font-weight: 800;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.18);
+            pointer-events: none;
+          ">
+            ${partition.sectorNum}
+          </div>
+        `,
+        iconSize: [22, 22],
+        iconAnchor: [11, 11],
+      })
+
+      const labelMarker = L.marker(partition.center, {
+        icon: labelIcon,
+        interactive: false,
+      }).addTo(map)
+
+      labelMarkersRef.current[partition.id] = labelMarker
+    })
+
+    mapInstanceRef.current = map
+
+    // Fit on mount
+    map.fitBounds(bounds, { padding: [24, 24] })
+
+    const timer = setTimeout(() => {
+      map.invalidateSize()
+    }, 250)
+
+    return () => {
+      clearTimeout(timer)
+      map.remove()
+      mapInstanceRef.current = null
+      markersRef.current = {}
+      polygonsRef.current = {}
+      labelMarkersRef.current = {}
+    }
+  }, [])
+
+  // Sync Partition Styling when Selection Changes
+  useEffect(() => {
+    BASE_PARTITIONS.forEach((partition) => {
+      const poly = polygonsRef.current[partition.id]
+      if (!poly) return
+
+      const isSelected = partition.siteId === selectedSiteId
+      poly.setStyle({
+        fillColor: partition.color,
+        fillOpacity: isSelected ? 0.48 : 0.28,
+        color: isSelected ? '#0f172a' : partition.borderColor,
+        weight: isSelected ? 3.5 : 1.75,
+      })
+
+      if (isSelected) {
+        poly.bringToFront()
+      }
+    })
+  }, [selectedSiteId])
+
+  // Sync Base Markers for Sites
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map) return
+
+    // Clean up old markers
+    Object.values(markersRef.current).forEach((m) => m.remove())
+    markersRef.current = {}
+
+    sites.forEach((site) => {
+      if (!site.coordinates) return
+
+      const isSelected = site.id === selectedSiteId
+      const partition = BASE_PARTITIONS.find((p) => p.siteId === site.id)
+      const sectorNum = partition?.sectorNum ?? 1
+      const pinColor = partition?.color ?? '#16a34a'
+
+      const markerHtml = `
+        <div style="position: relative; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+          ${
+            isSelected
+              ? `<div style="
+                  position: absolute;
+                  width: 44px;
+                  height: 44px;
+                  border-radius: 50%;
+                  background: rgba(22, 163, 74, 0.35);
+                  animation: pulseRing 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
+                "></div>`
+              : ''
+          }
+          <div style="
+            width: ${isSelected ? '34px' : '28px'};
+            height: ${isSelected ? '34px' : '28px'};
+            border-radius: 50%;
+            background: ${isSelected ? '#0f172a' : '#ffffff'};
+            border: 2.5px solid ${isSelected ? '#22c55e' : pinColor};
+            color: ${isSelected ? '#ffffff' : '#0f172a'};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.22);
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: ${isSelected ? 'scale(1.12)' : 'scale(1)'};
+          ">
+            <span style="font-family: 'Quicksand', sans-serif; font-weight: 800; font-size: ${isSelected ? '12px' : '11px'};">
+              ${sectorNum}
+            </span>
+          </div>
+        </div>
+      `
+
+      const customIcon = L.divIcon({
+        html: markerHtml,
+        className: 'custom-leaflet-marker',
+        iconSize: [42, 42],
+        iconAnchor: [21, 21],
+      })
+
+      const marker = L.marker([site.coordinates.lat, site.coordinates.lng], {
+        icon: customIcon,
+        zIndexOffset: isSelected ? 1000 : 100,
+      }).addTo(map)
+
+      marker.on('click', () => {
+        onSelectSite(site.id)
+      })
+
+      markersRef.current[site.id] = marker
+    })
+  }, [sites, selectedSiteId, onSelectSite])
+
+  // Center/Fly to Selected Site
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map || !selectedSiteId) return
+
+    const site = sites.find((s) => s.id === selectedSiteId)
+    if (site?.coordinates) {
+      map.flyTo([site.coordinates.lat, site.coordinates.lng], 15.5, {
+        duration: 0.8,
+        easeLinearity: 0.25,
+      })
+    }
+  }, [selectedSiteId, sites])
+
+  // Sync User GPS Marker
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map) return
+
+    if (userMarkerRef.current) {
+      userMarkerRef.current.remove()
+      userMarkerRef.current = null
+    }
+
+    if (userLocation) {
+      const userHtml = `
+        <div style="position: relative; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
+          <div style="position: absolute; width: 28px; height: 28px; border-radius: 50%; background: rgba(2, 132, 199, 0.35); animation: pulseRing 2s infinite;"></div>
+          <div style="width: 14px; height: 14px; border-radius: 50%; background: #0284c7; border: 2.5px solid #ffffff; box-shadow: 0 0 6px rgba(0,0,0,0.3);"></div>
+        </div>
+      `
+      const icon = L.divIcon({
+        html: userHtml,
+        className: 'user-location-marker',
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      })
+      userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], {
+        icon,
+        zIndexOffset: 2000,
+      }).addTo(map)
+    }
+  }, [userLocation])
+
+  // Toggle Map Style
+  useEffect(() => {
+    if (!tileLayerRef.current || !mapInstanceRef.current) return
+    tileLayerRef.current.setUrl(TILE_URLS[mapStyle])
+  }, [mapStyle])
+
+  // Toggle Partitions Visibility
+  useEffect(() => {
+    Object.values(polygonsRef.current).forEach((poly) => {
+      poly.setStyle({ opacity: showPartitions ? 1 : 0, fillOpacity: showPartitions ? undefined : 0 })
+    })
+    Object.values(labelMarkersRef.current).forEach((marker) => {
+      if (mapInstanceRef.current) {
+        if (showPartitions) {
+          marker.addTo(mapInstanceRef.current)
+        } else {
+          marker.remove()
+        }
+      }
+    })
+  }, [showPartitions])
 
   return (
     <Box
       sx={{
-        borderRadius: 2.5,
-        backgroundColor: '#ffffff',
-        border: '1.5px solid #e2e8f0',
-        boxShadow: '0 4px 16px rgba(15,23,42,0.06)',
+        position: 'relative',
+        width: '100%',
+        height,
+        borderRadius: 3.5,
         overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
+        border: '1.5px solid #e2e8f0',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+        backgroundColor: '#f8fafc',
       }}
     >
-      {/* ── Tactical Header Bar ── */}
+      <style>{`
+        @keyframes pulseRing {
+          0% { transform: scale(0.7); opacity: 0.8; }
+          70% { transform: scale(1.35); opacity: 0; }
+          100% { transform: scale(1.35); opacity: 0; }
+        }
+        .partition-popup-tooltip {
+          background-color: rgba(255, 255, 255, 0.96) !important;
+          border: 1px solid #cbd5e1 !important;
+          border-radius: 8px !important;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important;
+          color: #0f172a !important;
+        }
+        .partition-popup-tooltip::before {
+          border-top-color: rgba(255, 255, 255, 0.96) !important;
+        }
+      `}</style>
+
+      {/* ── Leaflet DOM Container ── */}
       <Box
+        ref={mapContainerRef}
         sx={{
-          px: 2,
-          py: 1.25,
-          backgroundColor: '#fafbfc',
-          borderBottom: '1px solid #eef2f6',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          width: '100%',
+          height: '100%',
+          '& .leaflet-tile': {
+            filter: 'contrast(1.03) saturate(1.08)',
+          },
         }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box
-            sx={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              backgroundColor: '#16a34a',
-              boxShadow: '0 0 8px rgba(22,163,74,0.6)',
-            }}
-          />
-          <Typography
-            sx={{
-              fontFamily: "'Quicksand', sans-serif",
-              fontWeight: 800,
-              fontSize: '0.8125rem',
-              color: '#0f172a',
-              letterSpacing: '0.02em',
-            }}
-          >
-            Barangay Commonwealth Territory
-          </Typography>
-          <Chip
-            size="small"
-            label="9 Regional Bases"
-            sx={{
-              height: 20,
-              fontSize: '0.625rem',
-              fontWeight: 800,
-              backgroundColor: '#e2e8f0',
-              color: '#334155',
-            }}
-          />
-        </Box>
+      />
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          {onLocateUser && (
-            <Tooltip title="Locate Me (GPS Beacon)" placement="top">
-              <IconButton
-                size="small"
-                onClick={onLocateUser}
-                sx={{
-                  color: userLocation ? '#0284c7' : '#64748b',
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #e2e8f0',
-                  width: 30,
-                  height: 30,
-                  '&:hover': { backgroundColor: '#f1f5f9' },
-                }}
-              >
-                <MyLocationRoundedIcon sx={{ fontSize: 16 }} />
-              </IconButton>
-            </Tooltip>
-          )}
-
-          <Tooltip title={showRoads ? 'Hide Roads & Transit' : 'Show Roads & MRT-7'} placement="top">
-            <IconButton
-              size="small"
-              onClick={() => setShowRoads((prev) => !prev)}
-              sx={{
-                color: showRoads ? '#0284c7' : '#64748b',
-                backgroundColor: '#ffffff',
-                border: '1px solid #e2e8f0',
-                width: 30,
-                height: 30,
-                '&:hover': { backgroundColor: '#f1f5f9' },
-              }}
-            >
-              <AltRouteRoundedIcon sx={{ fontSize: 16 }} />
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip title={showNumbers ? 'Hide Sector Codes' : 'Show Sector Codes'} placement="top">
-            <IconButton
-              size="small"
-              onClick={() => setShowNumbers((prev) => !prev)}
-              sx={{
-                color: showNumbers ? '#16a34a' : '#64748b',
-                backgroundColor: '#ffffff',
-                border: '1px solid #e2e8f0',
-                width: 30,
-                height: 30,
-                '&:hover': { backgroundColor: '#f1f5f9' },
-              }}
-            >
-              <LayersOutlinedIcon sx={{ fontSize: 16 }} />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      </Box>
-
-      {/* ── Main Interactive Territory Map Canvas ── */}
+      {/* ── Floating Header: Territory & Sector Badge ── */}
       <Box
         sx={{
-          position: 'relative',
-          height,
-          backgroundColor: '#faf8f5',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          backgroundImage:
-            'radial-gradient(#cbd5e1 0.75px, transparent 0.75px), radial-gradient(#cbd5e1 0.75px, #faf8f5 0.75px)',
-          backgroundSize: '24px 24px',
-          backgroundPosition: '0 0, 12px 12px',
-        }}
-      >
-        {/* SVG Video-Game Territory Map */}
-        <Box
-          component="svg"
-          viewBox="120 20 440 580"
-          sx={{
-            width: '100%',
-            height: '100%',
-            maxHeight: height,
-            filter: 'drop-shadow(0 6px 14px rgba(15,23,42,0.12))',
-          }}
-        >
-          {/* Territory Outer Shadow Layer */}
-          <path
-            d="M 310,35 L 420,80 L 505,140 L 535,220 L 500,320 L 460,400 L 400,470 L 350,560 L 260,580 L 200,550 L 150,480 L 150,350 L 170,320 L 180,250 L 220,170 L 250,110 Z"
-            fill="#0f172a"
-            opacity={0.06}
-            transform="translate(4, 6)"
-          />
-
-          {/* Render All 9 Contiguous Sectors */}
-          {COMMONWEALTH_SECTORS.map((sector) => {
-            const isSelected = sector.siteId === selectedSiteId
-            const isHovered = sector.id === hoveredSectorId
-
-            return (
-              <g
-                key={sector.id}
-                onClick={() => onSelectSite(sector.siteId)}
-                onMouseEnter={() => setHoveredSectorId(sector.id)}
-                onMouseLeave={() => setHoveredSectorId(null)}
-                style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
-              >
-                {/* Sector Polygon Surface */}
-                <polygon
-                  points={sector.points}
-                  fill={isHovered ? sector.hoverColor : sector.color}
-                  stroke={isSelected ? '#0f172a' : '#ffffff'}
-                  strokeWidth={isSelected ? 3.5 : 1.75}
-                  strokeLinejoin="round"
-                  style={{
-                    transition: 'fill 0.2s ease, stroke 0.2s ease, filter 0.2s ease',
-                    filter: isSelected
-                      ? 'drop-shadow(0 0 8px rgba(15,23,42,0.35))'
-                      : isHovered
-                        ? 'brightness(1.08)'
-                        : 'none',
-                  }}
-                />
-
-                {/* Sector Code Number (Video Game Style) */}
-                {showNumbers && (
-                  <text
-                    x={sector.labelX}
-                    y={sector.labelY}
-                    fill={sector.sectorNum <= 4 ? '#ffffff' : '#0f172a'}
-                    fontSize="13"
-                    fontWeight="800"
-                    fontFamily="'Quicksand', sans-serif"
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    pointerEvents="none"
-                    style={{
-                      opacity: isSelected ? 1 : 0.85,
-                      textShadow: sector.sectorNum <= 4 ? '0 1px 2px rgba(0,0,0,0.5)' : 'none',
-                    }}
-                  >
-                    {sector.sectorNum}
-                  </text>
-                )}
-
-                {/* Drop-off Base Beacon Pin */}
-                <g transform={`translate(${sector.pinX}, ${sector.pinY})`}>
-                  {isSelected && (
-                    <circle
-                      r="16"
-                      fill="none"
-                      stroke="#abf06b"
-                      strokeWidth="3"
-                      opacity="0.8"
-                      className="radar-pulse-ring"
-                    />
-                  )}
-
-                  {/* Outer Pin Body */}
-                  <circle
-                    r={isSelected ? '11' : '8.5'}
-                    fill={isSelected ? '#0f172a' : '#ffffff'}
-                    stroke={isSelected ? '#abf06b' : '#0f172a'}
-                    strokeWidth={isSelected ? '2.5' : '2'}
-                    filter="drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
-                  />
-
-                  {/* Inner Pin Dot */}
-                  <circle
-                    r={isSelected ? '4.5' : '3'}
-                    fill={isSelected ? '#abf06b' : '#0f172a'}
-                  />
-                </g>
-              </g>
-            )
-          })}
-
-          {/* ══════════════════════════════════════════════════════════════════
-              DETAILED INFRASTRUCTURE OVERLAY (Highways, MRT-7, Streets, River)
-             ══════════════════════════════════════════════════════════════════ */}
-          {showRoads && (
-            <g pointerEvents="none" style={{ transition: 'opacity 0.25s ease' }}>
-              {/* 1. Waterway: Marikina River / Payatas Border Creek */}
-              <path
-                d="M 505,140 Q 545,180 535,220 T 500,320 T 460,400 T 400,470"
-                fill="none"
-                stroke="#38bdf8"
-                strokeWidth="4"
-                strokeLinecap="round"
-                opacity={0.7}
-              />
-              <path
-                d="M 505,140 Q 545,180 535,220 T 500,320 T 460,400 T 400,470"
-                fill="none"
-                stroke="#bae6fd"
-                strokeWidth="1.5"
-                strokeDasharray="6, 6"
-                strokeLinecap="round"
-                opacity={0.85}
-              />
-
-              {/* 2. Secondary Local Street Grid & Connectors */}
-              <g stroke="rgba(255, 255, 255, 0.45)" strokeWidth="1.25" strokeLinecap="round">
-                {/* Litex Road to Payatas Connector */}
-                <path d="M 310,35 Q 360,65 440,150" />
-                {/* Katuparan Street corridor to MRF Area 1 */}
-                <path d="M 215,260 Q 280,265 370,260" />
-                {/* Don Fabian Street */}
-                <path d="M 170,360 Q 240,360 310,320" />
-                {/* Riverside Drive (Lupang Pangako) */}
-                <path d="M 250,110 Q 280,160 320,220" />
-                {/* Pilot Area Main Drive */}
-                <path d="M 370,260 Q 390,320 435,345" />
-                {/* Batasan-San Mateo East connector */}
-                <path d="M 320,260 Q 380,310 440,350 T 470,410" />
-                {/* Sandiganbayan / Veterans Road */}
-                <path d="M 160,450 Q 220,490 275,515 T 350,560" />
-                {/* Kasunduan Street network */}
-                <path d="M 370,410 L 400,470" />
-                <path d="M 435,345 L 460,400" />
-                <path d="M 350,170 L 370,260" />
-              </g>
-
-              {/* 3. Batasan-San Mateo Road (Major Arterial) */}
-              <path
-                d="M 310,320 Q 370,360 435,345 T 460,400 T 400,470"
-                fill="none"
-                stroke="#0f172a"
-                strokeWidth="4"
-                strokeLinecap="round"
-                opacity={0.75}
-              />
-              <path
-                d="M 310,320 Q 370,360 435,345 T 460,400 T 400,470"
-                fill="none"
-                stroke="#ffffff"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-
-              {/* 4. Commonwealth Avenue (Main Highway Arterial) */}
-              {/* Highway Outer Casing */}
-              <path
-                d="M 160,520 Q 165,400 175,320 T 225,215 T 255,110 T 310,35"
-                fill="none"
-                stroke="#0f172a"
-                strokeWidth="7"
-                strokeLinecap="round"
-                opacity={0.8}
-              />
-              {/* Highway Pavement */}
-              <path
-                d="M 160,520 Q 165,400 175,320 T 225,215 T 255,110 T 310,35"
-                fill="none"
-                stroke="#ffffff"
-                strokeWidth="4.5"
-                strokeLinecap="round"
-              />
-              {/* Highway Yellow Center Divider */}
-              <path
-                d="M 160,520 Q 165,400 175,320 T 225,215 T 255,110 T 310,35"
-                fill="none"
-                stroke="#fbbf24"
-                strokeWidth="1.2"
-                strokeDasharray="4, 3"
-                strokeLinecap="round"
-              />
-
-              {/* 5. MRT-7 Railway Transit Line (Parallel along Commonwealth Ave) */}
-              {/* Rail Bed */}
-              <path
-                d="M 148,530 Q 153,405 163,325 T 213,220 T 243,115 T 298,40"
-                fill="none"
-                stroke="#0f172a"
-                strokeWidth="3.5"
-                strokeLinecap="round"
-                opacity={0.75}
-              />
-              {/* Railway Ties / Cross-sleepers hatch */}
-              <path
-                d="M 148,530 Q 153,405 163,325 T 213,220 T 243,115 T 298,40"
-                fill="none"
-                stroke="#ffffff"
-                strokeWidth="5"
-                strokeDasharray="2, 5"
-                strokeLinecap="butt"
-              />
-
-              {/* Transit & Infrastructure Labels */}
-              {/* Commonwealth Ave Label */}
-              <text
-                x="205"
-                y="160"
-                transform="rotate(62, 205, 160)"
-                fill="#0f172a"
-                fontSize="8"
-                fontWeight="800"
-                fontFamily="'Quicksand', sans-serif"
-                letterSpacing="0.08em"
-              >
-                COMMONWEALTH AVE
-              </text>
-
-              {/* MRT-7 Line Station Badge */}
-              <g transform="translate(150, 310)">
-                <rect x="-4" y="-8" width="56" height="15" rx="4" fill="#0f172a" opacity="0.9" />
-                <text x="24" y="2" fill="#38bdf8" fontSize="7" fontWeight="800" textAnchor="middle" fontFamily="'Quicksand', sans-serif">
-                  MRT-7 STN
-                </text>
-              </g>
-
-              {/* Doña Carmen / Litex MRT-7 Station Badge */}
-              <g transform="translate(235, 100)">
-                <rect x="-4" y="-8" width="48" height="15" rx="4" fill="#0f172a" opacity="0.9" />
-                <text x="20" y="2" fill="#38bdf8" fontSize="7" fontWeight="800" textAnchor="middle" fontFamily="'Quicksand', sans-serif">
-                  MRT-7 LITEX
-                </text>
-              </g>
-
-              {/* Batasan-San Mateo Road Label */}
-              <text
-                x="420"
-                y="390"
-                transform="rotate(-48, 420, 390)"
-                fill="#ffffff"
-                fontSize="7"
-                fontWeight="800"
-                fontFamily="'Quicksand', sans-serif"
-                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.6)' }}
-              >
-                BATASAN-SAN MATEO RD
-              </text>
-
-              {/* River label */}
-              <text
-                x="530"
-                y="270"
-                transform="rotate(78, 530, 270)"
-                fill="#0284c7"
-                fontSize="7"
-                fontWeight="800"
-                fontFamily="'Quicksand', sans-serif"
-                opacity="0.8"
-              >
-                PAYATAS CREEK / RIVER
-              </text>
-            </g>
-          )}
-        </Box>
-
-        {/* ── Top-Right: Video Game North Arrow (▲ N) ── */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 14,
-            right: 14,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            backgroundColor: 'rgba(255, 255, 255, 0.94)',
-            px: 0.9,
-            py: 0.75,
-            borderRadius: 1.5,
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
-            pointerEvents: 'none',
-          }}
-        >
-          <Box
-            component="svg"
-            width="18"
-            height="22"
-            viewBox="0 0 24 30"
-            fill="none"
-          >
-            {/* Compass North Arrow Needle */}
-            <path d="M12 2 L20 24 L12 18 L4 24 Z" fill="#0f172a" />
-            <path d="M12 2 L12 18 L4 24 Z" fill="#334155" />
-          </Box>
-          <Typography
-            sx={{
-              fontFamily: "'Quicksand', sans-serif",
-              fontWeight: 800,
-              fontSize: '0.625rem',
-              color: '#0f172a',
-              mt: 0.2,
-            }}
-          >
-            N
-          </Typography>
-        </Box>
-
-        {/* ── Bottom-Left: Tactical Game Scale Bar ── */}
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: 12,
-            left: 14,
-            backgroundColor: 'rgba(255, 255, 255, 0.94)',
-            px: 1.25,
-            py: 0.6,
-            borderRadius: 1.5,
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
-            pointerEvents: 'none',
-          }}
-        >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', width: 80, mb: 0.25 }}>
-            <Typography sx={{ fontSize: '0.5625rem', fontWeight: 700, color: '#64748b' }}>0</Typography>
-            <Typography sx={{ fontSize: '0.5625rem', fontWeight: 700, color: '#64748b' }}>0.5</Typography>
-            <Typography sx={{ fontSize: '0.5625rem', fontWeight: 700, color: '#64748b' }}>1 km</Typography>
-          </Box>
-          {/* Segmented bar */}
-          <Box sx={{ display: 'flex', width: 80, height: 4, border: '1px solid #0f172a' }}>
-            <Box sx={{ flex: 1, backgroundColor: '#0f172a' }} />
-            <Box sx={{ flex: 1, backgroundColor: '#ffffff' }} />
-            <Box sx={{ flex: 1, backgroundColor: '#0f172a' }} />
-          </Box>
-        </Box>
-
-        {/* ── Infrastructure Legend Indicator ── */}
-        {showRoads && (
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 14,
-              left: 14,
-              backgroundColor: 'rgba(255, 255, 255, 0.92)',
-              backdropFilter: 'blur(4px)',
-              px: 1,
-              py: 0.5,
-              borderRadius: 1.5,
-              border: '1px solid #e2e8f0',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 0.35,
-              boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-              pointerEvents: 'none',
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-              <Box sx={{ width: 14, height: 3, backgroundColor: '#ffffff', border: '1px solid #0f172a' }} />
-              <Typography sx={{ fontSize: '0.5625rem', fontWeight: 700, color: '#334155' }}>
-                Commonwealth Ave.
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-              <Box sx={{ width: 14, height: 3, borderTop: '2px dashed #0f172a' }} />
-              <Typography sx={{ fontSize: '0.5625rem', fontWeight: 700, color: '#334155' }}>
-                MRT-7 Railway
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-              <Box sx={{ width: 14, height: 2, backgroundColor: '#38bdf8' }} />
-              <Typography sx={{ fontSize: '0.5625rem', fontWeight: 700, color: '#0284c7' }}>
-                Payatas Waterway
-              </Typography>
-            </Box>
-          </Box>
-        )}
-      </Box>
-
-      {/* ── Active Hub Quick HUD Card ── */}
-      <Box
-        sx={{
-          p: 1.5,
-          backgroundColor: '#ffffff',
-          borderTop: '1px solid #eef2f6',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
-          <Box
-            sx={{
-              width: 38,
-              height: 38,
-              borderRadius: 1.5,
-              backgroundColor: activeSector.color,
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 800,
-              fontSize: '1rem',
-              flexShrink: 0,
-              boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-            }}
-          >
-            {activeSector.sectorNum}
-          </Box>
-          <Box sx={{ minWidth: 0 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-              <Typography
-                sx={{
-                  fontFamily: "'Quicksand', sans-serif",
-                  fontWeight: 800,
-                  fontSize: '0.875rem',
-                  color: '#0f172a',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {activeSite?.name || activeSector.name}
-              </Typography>
-              <Chip
-                size="small"
-                label={activeSite?.isOpen ? 'Open Now' : 'Closed'}
-                sx={{
-                  height: 18,
-                  fontSize: '0.5625rem',
-                  fontWeight: 800,
-                  backgroundColor: activeSite?.isOpen ? '#dcfce7' : '#f1f5f9',
-                  color: activeSite?.isOpen ? '#15803d' : '#64748b',
-                }}
-              />
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25 }}>
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b' }}>
-                {activeSite?.address || 'Barangay Commonwealth'}
-              </Typography>
-              <Typography sx={{ fontSize: '0.6875rem', fontWeight: 800, color: '#0f172a' }}>
-                • {activeSite?.distance || `${activeSite?.distanceKm || 0.8} km`}
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-
-        <Box sx={{ display: 'flex', gap: 0.75, flexShrink: 0 }}>
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={() => navigate('/schedule-dropoff')}
-            startIcon={<CalendarMonthRoundedIcon sx={{ fontSize: 14 }} />}
-            sx={{
-              borderColor: '#e2e8f0',
-              color: '#0f172a',
-              fontSize: '0.6875rem',
-              fontWeight: 700,
-              textTransform: 'none',
-              py: 0.4,
-              px: 1,
-              '&:hover': { backgroundColor: '#f8fafc' },
-            }}
-          >
-            Schedule
-          </Button>
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => activeSite && onGetDirections(activeSite)}
-            startIcon={<NavigationRoundedIcon sx={{ fontSize: 14 }} />}
-            sx={{
-              backgroundColor: '#0f172a',
-              color: '#ffffff',
-              fontSize: '0.6875rem',
-              fontWeight: 700,
-              textTransform: 'none',
-              py: 0.4,
-              px: 1.25,
-              '&:hover': { backgroundColor: '#1e293b' },
-            }}
-          >
-            Directions
-          </Button>
-        </Box>
-      </Box>
-
-      {/* ── Sector Legend Strip (Reference Image Style) ── */}
-      <Box
-        sx={{
+          position: 'absolute',
+          top: 10,
+          left: 10,
+          zIndex: 1000,
+          backgroundColor: 'rgba(255, 255, 255, 0.94)',
+          backdropFilter: 'blur(8px)',
+          color: '#0f172a',
           px: 1.5,
-          py: 0.85,
-          backgroundColor: '#fafbfc',
-          borderTop: '1px solid #eef2f6',
+          py: 0.6,
+          borderRadius: 2.5,
+          border: '1px solid #e2e8f0',
           display: 'flex',
           alignItems: 'center',
-          gap: 1.25,
-          overflowX: 'auto',
-          scrollbarWidth: 'none',
-          '&::-webkit-scrollbar': { display: 'none' },
+          gap: 1,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
         }}
       >
+        <Box
+          sx={{
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            backgroundColor: '#16a34a',
+            boxShadow: '0 0 8px rgba(22,163,74,0.7)',
+          }}
+        />
         <Typography
           sx={{
             fontFamily: "'Quicksand', sans-serif",
             fontWeight: 800,
-            fontSize: '0.625rem',
-            color: '#64748b',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            whiteSpace: 'nowrap',
+            fontSize: '0.75rem',
+            color: '#0f172a',
+            letterSpacing: '0.01em',
           }}
         >
-          Sectors:
+          Barangay Commonwealth • 9 Base Partitions
         </Typography>
-        {COMMONWEALTH_SECTORS.map((sector) => {
-          const isSelected = sector.siteId === selectedSiteId
-          return (
-            <Box
-              key={sector.id}
-              onClick={() => onSelectSite(sector.siteId)}
+        {selectedPartition && (
+          <Chip
+            size="small"
+            label={`Sector ${selectedPartition.sectorNum}`}
+            sx={{
+              height: 20,
+              fontSize: '0.625rem',
+              fontWeight: 800,
+              backgroundColor: '#dcfce7',
+              color: '#166534',
+              fontFamily: "'Quicksand', sans-serif",
+            }}
+          />
+        )}
+      </Box>
+
+      {/* ── Floating Controls (Top Right) ── */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 10,
+          right: 10,
+          zIndex: 1000,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 0.75,
+        }}
+      >
+        <Tooltip title="Reset to Commonwealth Overview" placement="left">
+          <IconButton
+            size="small"
+            onClick={fitCommonwealthBounds}
+            aria-label="Fit Commonwealth boundary"
+            sx={{
+              width: 32,
+              height: 32,
+              backgroundColor: '#ffffff',
+              color: '#0f172a',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+              '&:hover': { backgroundColor: '#f8fafc' },
+            }}
+          >
+            <CropFreeRoundedIcon sx={{ fontSize: 16 }} />
+          </IconButton>
+        </Tooltip>
+
+        {onLocateUser && (
+          <Tooltip title="Locate Me in Commonwealth" placement="left">
+            <IconButton
+              size="small"
+              onClick={onLocateUser}
+              aria-label="Locate me"
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.5,
-                cursor: 'pointer',
-                px: 0.75,
-                py: 0.3,
-                borderRadius: 1,
-                backgroundColor: isSelected ? '#ffffff' : 'transparent',
-                border: isSelected ? '1px solid #0f172a' : '1px solid transparent',
-                boxShadow: isSelected ? '0 1px 4px rgba(0,0,0,0.06)' : 'none',
-                transition: 'all 0.15s ease',
-                flexShrink: 0,
+                width: 32,
+                height: 32,
+                backgroundColor: '#ffffff',
+                color: userLocation ? '#0284c7' : '#0f172a',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                '&:hover': { backgroundColor: '#f8fafc' },
               }}
             >
-              <Box
-                sx={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: 0.5,
-                  backgroundColor: sector.color,
-                  border: '1px solid rgba(0,0,0,0.1)',
-                }}
-              />
+              <MyLocationRoundedIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Tooltip>
+        )}
+
+        <Tooltip title={showPartitions ? 'Hide Partition Boundaries' : 'Show Partition Boundaries'} placement="left">
+          <IconButton
+            size="small"
+            onClick={() => setShowPartitions((prev) => !prev)}
+            aria-label="Toggle partitions"
+            sx={{
+              width: 32,
+              height: 32,
+              backgroundColor: showPartitions ? '#dcfce7' : '#ffffff',
+              color: showPartitions ? '#166534' : '#0f172a',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+              '&:hover': { backgroundColor: '#f0fdf4' },
+            }}
+          >
+            {showPartitions ? <LayersOutlinedIcon sx={{ fontSize: 16 }} /> : <LayersClearRoundedIcon sx={{ fontSize: 16 }} />}
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title={mapStyle === 'streets' ? 'Switch to Topographic' : 'Switch to Street Map'} placement="left">
+          <IconButton
+            size="small"
+            onClick={() => setMapStyle((prev) => (prev === 'streets' ? 'topo' : 'streets'))}
+            aria-label="Toggle map view"
+            sx={{
+              width: 32,
+              height: 32,
+              backgroundColor: '#ffffff',
+              color: '#0f172a',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+              '&:hover': { backgroundColor: '#f8fafc' },
+            }}
+          >
+            <LayersOutlinedIcon sx={{ fontSize: 16 }} />
+          </IconButton>
+        </Tooltip>
+
+        <IconButton
+          size="small"
+          onClick={() => mapInstanceRef.current?.zoomIn()}
+          aria-label="Zoom in"
+          sx={{
+            width: 32,
+            height: 32,
+            backgroundColor: '#ffffff',
+            color: '#0f172a',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+            '&:hover': { backgroundColor: '#f8fafc' },
+          }}
+        >
+          <ZoomInRoundedIcon sx={{ fontSize: 16 }} />
+        </IconButton>
+
+        <IconButton
+          size="small"
+          onClick={() => mapInstanceRef.current?.zoomOut()}
+          aria-label="Zoom out"
+          sx={{
+            width: 32,
+            height: 32,
+            backgroundColor: '#ffffff',
+            color: '#0f172a',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+            '&:hover': { backgroundColor: '#f8fafc' },
+          }}
+        >
+          <ZoomOutRoundedIcon sx={{ fontSize: 16 }} />
+        </IconButton>
+      </Box>
+
+      {/* ── Bottom Partition Legend (Choropleth Bar, Reference Style) ── */}
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: 10,
+          left: 10,
+          right: 10,
+          zIndex: 1000,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 0.75,
+          pointerEvents: 'none',
+        }}
+      >
+        {/* Selected Base HUD Card */}
+        {selectedSite && (
+          <Box
+            sx={{
+              pointerEvents: 'auto',
+              backgroundColor: 'rgba(255, 255, 255, 0.97)',
+              backdropFilter: 'blur(8px)',
+              border: '1.5px solid #e2e8f0',
+              borderRadius: 2.5,
+              p: 1.25,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+              gap: 1.5,
+            }}
+          >
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.25 }}>
+                <Chip
+                  size="small"
+                  label={`Base ${selectedPartition?.sectorNum ?? 1}`}
+                  sx={{
+                    height: 18,
+                    fontSize: '0.625rem',
+                    fontWeight: 800,
+                    backgroundColor: selectedPartition?.color ?? '#16a34a',
+                    color: '#ffffff',
+                    fontFamily: "'Quicksand', sans-serif",
+                  }}
+                />
+                <Typography
+                  noWrap
+                  sx={{
+                    fontFamily: "'Quicksand', sans-serif",
+                    fontWeight: 800,
+                    fontSize: '0.8125rem',
+                    color: '#0f172a',
+                  }}
+                >
+                  {selectedSite.name}
+                </Typography>
+              </Box>
               <Typography
+                noWrap
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
                   fontSize: '0.6875rem',
-                  fontWeight: isSelected ? 800 : 600,
-                  color: isSelected ? '#0f172a' : '#64748b',
-                  whiteSpace: 'nowrap',
+                  color: '#64748b',
+                  fontWeight: 600,
                 }}
               >
-                {sector.sectorNum}: {sector.shortLabel}
+                {selectedSite.address} • {selectedSite.hours}
               </Typography>
             </Box>
-          )
-        })}
+
+            <Box sx={{ display: 'flex', gap: 0.75, flexShrink: 0 }}>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<NavigationRoundedIcon sx={{ fontSize: 14 }} />}
+                onClick={() => onGetDirections(selectedSite)}
+                sx={{
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  py: 0.4,
+                  px: 1,
+                  borderRadius: 1.75,
+                  textTransform: 'none',
+                  borderColor: '#cbd5e1',
+                  color: '#0f172a',
+                  '&:hover': { borderColor: '#94a3b8', backgroundColor: '#f8fafc' },
+                }}
+              >
+                Directions
+              </Button>
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={<CalendarMonthRoundedIcon sx={{ fontSize: 14 }} />}
+                onClick={() => navigate(`/book-dropoff?siteId=${selectedSite.id}`)}
+                sx={{
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  py: 0.4,
+                  px: 1,
+                  borderRadius: 1.75,
+                  textTransform: 'none',
+                  backgroundColor: '#0f172a',
+                  color: '#abf06b',
+                  '&:hover': { backgroundColor: '#1e293b' },
+                }}
+              >
+                Book
+              </Button>
+            </Box>
+          </Box>
+        )}
+
+        {/* Choropleth Partition Strip */}
+        <Box
+          sx={{
+            pointerEvents: 'auto',
+            backgroundColor: 'rgba(255, 255, 255, 0.94)',
+            backdropFilter: 'blur(8px)',
+            borderRadius: 2,
+            border: '1px solid #e2e8f0',
+            py: 0.6,
+            px: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 0.5,
+            overflowX: 'auto',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: "'Quicksand', sans-serif",
+              fontSize: '0.625rem',
+              fontWeight: 800,
+              color: '#64748b',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              whiteSpace: 'nowrap',
+              mr: 0.5,
+            }}
+          >
+            Base Partitions:
+          </Typography>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            {BASE_PARTITIONS.map((partition) => {
+              const isSelected = partition.siteId === selectedSiteId
+              const isHovered = partition.id === hoveredPartitionId
+              return (
+                <Tooltip key={partition.id} title={`${partition.shortLabel} — ${partition.name}`} arrow>
+                  <Box
+                    onClick={() => onSelectSite(partition.siteId)}
+                    onMouseEnter={() => setHoveredPartitionId(partition.id)}
+                    onMouseLeave={() => setHoveredPartitionId(null)}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.4,
+                      px: 0.75,
+                      py: 0.25,
+                      borderRadius: 1.25,
+                      cursor: 'pointer',
+                      border: isSelected ? '1.5px solid #0f172a' : '1px solid #e2e8f0',
+                      backgroundColor: isSelected ? '#f1f5f9' : isHovered ? '#f8fafc' : '#ffffff',
+                      transition: 'all 0.15s ease',
+                      '&:hover': { transform: 'translateY(-1px)' },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 9,
+                        height: 9,
+                        borderRadius: '2px',
+                        backgroundColor: partition.color,
+                        border: `1px solid ${partition.borderColor}`,
+                      }}
+                    />
+                    <Typography
+                      sx={{
+                        fontFamily: "'Quicksand', sans-serif",
+                        fontSize: '0.625rem',
+                        fontWeight: isSelected ? 800 : 700,
+                        color: isSelected ? '#0f172a' : '#475569',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {partition.sectorNum}
+                    </Typography>
+                  </Box>
+                </Tooltip>
+              )
+            })}
+          </Box>
+        </Box>
       </Box>
     </Box>
   )

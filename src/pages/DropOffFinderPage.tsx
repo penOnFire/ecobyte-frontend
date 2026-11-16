@@ -403,7 +403,7 @@ export const DropOffFinderPage: FC = () => {
         onGetDirections={handleGetDirections}
         userLocation={userLocation}
         onLocateUser={handleLocateUser}
-        height={245}
+        height={320}
       />
 
       {/* ── Filter Chips ── */}
