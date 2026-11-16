@@ -30,18 +30,6 @@ const TILE_URLS = {
   topo: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
 }
 
-const BASE_SHORT_NAMES: Record<number, string> = {
-  1: 'Brgy Hall',
-  2: 'Pangako',
-  3: 'Payatas',
-  4: 'Litex',
-  5: 'Market',
-  6: 'Pilot',
-  7: 'Batasan',
-  8: 'Don Fabian',
-  9: 'Veterans',
-}
-
 interface CommonwealthLeafletMapProps {
   sites: DropOffSite[]
   selectedSiteId: string
@@ -588,60 +576,57 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
         />
       </Box>
 
-      {/* ── 3. Bottom Partition Selector (Non-scrollable, all 9 choices visible at once) ── */}
+      {/* ── 3. Bottom Partition Selector (Spacious, uncrowded, all 9 choices visible) ── */}
       <Box
         sx={{
           backgroundColor: '#ffffff',
           borderRadius: 2.5,
           border: '1.5px solid #0f172a',
-          p: { xs: 1, sm: 1.25 },
-          boxShadow: '0 2px 6px rgba(15,23,42,0.06)',
+          p: { xs: 1.25, sm: 1.5 },
+          boxShadow: '0 2px 8px rgba(15,23,42,0.06)',
           display: 'flex',
           flexDirection: 'column',
-          gap: 0.75,
+          gap: 1,
         }}
       >
-        {/* Header row: title and selected partition name */}
+        {/* Header Row */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 0.25 }}>
           <Typography
             sx={{
               fontFamily: "'Quicksand', sans-serif",
-              fontSize: '0.6875rem',
+              fontSize: '0.75rem',
               fontWeight: 800,
               color: '#0f172a',
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
             }}
           >
-            Base Partitions (All 9 Areas):
+            Base Partitions
           </Typography>
           <Typography
-            noWrap
             sx={{
               fontFamily: "'Quicksand', sans-serif",
               fontSize: '0.6875rem',
               fontWeight: 700,
-              color: selectedPartition ? '#166534' : '#64748b',
-              maxWidth: { xs: '55%', sm: '70%' },
+              color: '#64748b',
             }}
           >
-            {selectedPartition ? `Active: Base ${selectedPartition.num} • ${selectedPartition.name}` : 'Tap a base to inspect'}
+            Bases 1 to 9
           </Typography>
         </Box>
 
-        {/* 9-Column Choice Grid: All 9 choices fit simultaneously with ZERO horizontal scroll */}
+        {/* 9 Numbered Buttons: Spacious, uncluttered, easy to tap */}
         <Box
           sx={{
             display: 'grid',
             gridTemplateColumns: 'repeat(9, 1fr)',
-            gap: { xs: 0.5, sm: 0.75 },
+            gap: { xs: 0.6, sm: 0.85 },
             width: '100%',
           }}
         >
           {COMMONWEALTH_PARTITIONS.map((partition) => {
             const isSelected = partition.id === selectedSiteId
             const isHovered = partition.id === hoveredPartitionId
-            const shortName = BASE_SHORT_NAMES[partition.num] || `Base ${partition.num}`
 
             return (
               <Tooltip
@@ -655,19 +640,17 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
                   onMouseEnter={() => setHoveredPartitionId(partition.id)}
                   onMouseLeave={() => setHoveredPartitionId(null)}
                   sx={{
+                    height: { xs: 38, sm: 42 },
+                    borderRadius: 2,
+                    cursor: 'pointer',
                     display: 'flex',
-                    flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    py: { xs: 0.65, sm: 0.85 },
-                    px: 0.25,
-                    borderRadius: 1.5,
-                    cursor: 'pointer',
-                    border: isSelected ? '2px solid #0f172a' : '1px solid #cbd5e1',
+                    border: isSelected ? '2px solid #0f172a' : '1.5px solid #e2e8f0',
                     backgroundColor: isSelected ? '#0f172a' : isHovered ? '#f1f5f9' : '#ffffff',
                     color: isSelected ? '#abf06b' : '#0f172a',
                     transition: 'all 0.15s ease',
-                    boxShadow: isSelected ? '0 2px 6px rgba(15,23,42,0.2)' : 'none',
+                    boxShadow: isSelected ? '0 2px 8px rgba(15,23,42,0.2)' : 'none',
                     '&:hover': {
                       borderColor: '#0f172a',
                       transform: 'translateY(-1px)',
@@ -677,47 +660,55 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
                   <Typography
                     sx={{
                       fontFamily: "'Quicksand', sans-serif",
-                      fontSize: { xs: '0.5625rem', sm: '0.625rem' },
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.02em',
-                      lineHeight: 1,
-                      opacity: isSelected ? 0.9 : 0.6,
-                      mb: 0.25,
-                    }}
-                  >
-                    Base
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontFamily: "'Quicksand', sans-serif",
-                      fontSize: { xs: '0.875rem', sm: '1rem' },
+                      fontSize: { xs: '0.9375rem', sm: '1.0625rem' },
                       fontWeight: 800,
-                      lineHeight: 1.1,
                       color: isSelected ? '#abf06b' : '#0f172a',
+                      lineHeight: 1,
                     }}
                   >
                     {partition.num}
-                  </Typography>
-                  <Typography
-                    noWrap
-                    sx={{
-                      fontFamily: "'Quicksand', sans-serif",
-                      fontSize: '0.5625rem',
-                      fontWeight: 600,
-                      lineHeight: 1,
-                      mt: 0.35,
-                      color: isSelected ? '#ffffff' : '#64748b',
-                      maxWidth: '100%',
-                      display: { xs: 'none', sm: 'block' },
-                    }}
-                  >
-                    {shortName}
                   </Typography>
                 </Box>
               </Tooltip>
             )
           })}
+        </Box>
+
+        {/* Active Base Status Subtitle with Breathing Room */}
+        <Box
+          sx={{
+            backgroundColor: '#f8fafc',
+            borderRadius: 1.5,
+            py: 0.6,
+            px: 1,
+            border: '1px solid #e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.75,
+          }}
+        >
+          <Box
+            sx={{
+              width: 7,
+              height: 7,
+              borderRadius: '50%',
+              backgroundColor: selectedPartition ? '#16a34a' : '#94a3b8',
+              flexShrink: 0,
+            }}
+          />
+          <Typography
+            noWrap
+            sx={{
+              fontFamily: "'Quicksand', sans-serif",
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              color: selectedPartition ? '#0f172a' : '#64748b',
+            }}
+          >
+            {selectedPartition
+              ? `Base ${selectedPartition.num}: ${selectedPartition.name}`
+              : 'Tap any base number above to view its partition on the map'}
+          </Typography>
         </Box>
       </Box>
 
