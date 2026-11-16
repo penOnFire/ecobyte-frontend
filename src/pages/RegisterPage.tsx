@@ -35,7 +35,7 @@ import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined'
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
 import { useNavigate } from 'react-router-dom'
 import ecobyteLogo from '@/assets/ui/ecobyte_logo.svg'
-import { authApi, COMMONWEALTH_BASES_FALLBACK, setCachedUser } from '@/lib/api'
+import { authApi, clearStaleLocalRequests, COMMONWEALTH_BASES_FALLBACK, setCachedUser } from '@/lib/api'
 import type { Barangay } from '@/types'
 
 export const RegisterPage: FC = () => {
@@ -136,6 +136,7 @@ export const RegisterPage: FC = () => {
         password: password.trim(),
       })
 
+      clearStaleLocalRequests()
       if (res?.accessToken) {
         localStorage.setItem('ecobyte_token', res.accessToken)
       }

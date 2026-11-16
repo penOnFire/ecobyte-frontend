@@ -3,6 +3,7 @@ import type {
   DropOffSite,
   EwasteRequestItem,
   ScheduleBookingPayload,
+  UserReservationItem,
 } from '@/types'
 
 export interface DashboardSummary {
@@ -32,6 +33,7 @@ export const dropoffsApi = {
     apiFetch<{
       ongoing: EwasteRequestItem[]
       completed: EwasteRequestItem[]
+      reservations?: UserReservationItem[]
     }>('/requests/my-requests'),
 
   getDashboardSummary: () =>
