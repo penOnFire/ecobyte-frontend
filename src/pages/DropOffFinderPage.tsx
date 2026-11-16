@@ -146,7 +146,7 @@ const COMMONWEALTH_FALLBACK_SITES: DropOffSite[] = [
     distanceKm: 2.7,
     hours: '24/7 Smart Bin Access',
     type: '24/7 Smart Bin',
-    coordinates: { lat: 14.692, lng: 121.082 },
+    coordinates: { lat: 14.695, lng: 121.086 },
     hazmatAccredited: false,
   },
   {
@@ -159,7 +159,7 @@ const COMMONWEALTH_FALLBACK_SITES: DropOffSite[] = [
     distanceKm: 3.1,
     hours: '8:00 AM - 5:00 PM',
     type: 'Staffed & Smart Bin',
-    coordinates: { lat: 14.694, lng: 121.09 },
+    coordinates: { lat: 14.694, lng: 121.092 },
     hazmatAccredited: false,
   },
 ]
