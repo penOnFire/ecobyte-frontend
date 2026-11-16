@@ -14,9 +14,10 @@ const COMMONWEALTH_BOUNDS: [[number, number], [number, number]] = [
   [14.725, 121.12], // North-East
 ]
 
+// 100% Free, Public Tile Servers (ZERO API Key Required)
 const TILE_URLS = {
-  dark: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-  voyager: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  streets: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  topo: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
 }
 
 interface CommonwealthLeafletMapProps {
@@ -42,7 +43,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
   const mapInstanceRef = useRef<L.Map | null>(null)
   const markersRef = useRef<Record<string, L.Marker>>({})
   const userMarkerRef = useRef<L.Marker | null>(null)
-  const [mapStyle, setMapStyle] = useState<'voyager' | 'dark'>('dark')
+  const [mapStyle, setMapStyle] = useState<'streets' | 'topo'>('streets')
   const tileLayerRef = useRef<L.TileLayer | null>(null)
 
   // Initialize Map
@@ -63,10 +64,10 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
       attributionControl: false,
     })
 
-    // CartoDB Tile Layer (Voyager or Dark Matter)
-    const tileLayer = L.tileLayer(TILE_URLS.dark, {
-      subdomains: 'abcd',
+    // Official OpenStreetMap Tile Layer (No API Key Required)
+    const tileLayer = L.tileLayer(TILE_URLS.streets, {
       maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors',
     }).addTo(map)
 
     tileLayerRef.current = tileLayer
@@ -376,10 +377,10 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
           </Tooltip>
         )}
 
-        <Tooltip title={mapStyle === 'dark' ? 'Street View' : 'Voyager View'} placement="left">
+        <Tooltip title={mapStyle === 'streets' ? 'Switch to Topo Map' : 'Switch to Street Map'} placement="left">
           <IconButton
             size="small"
-            onClick={() => setMapStyle((prev) => (prev === 'dark' ? 'voyager' : 'dark'))}
+            onClick={() => setMapStyle((prev) => (prev === 'streets' ? 'topo' : 'streets'))}
             aria-label="Toggle map view"
             sx={{
               width: 32,
