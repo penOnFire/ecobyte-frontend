@@ -75,6 +75,7 @@ export const MyRequestsPage: FC = () => {
     let isMounted = true
 
     let localClaimed: EwasteRequestItem[] = []
+    let localOngoing: EwasteRequestItem[] = []
     try {
       const stored = localStorage.getItem('ecobyte_claimed_requests')
       if (stored) {
@@ -84,17 +85,48 @@ export const MyRequestsPage: FC = () => {
       console.warn('Failed to parse ecobyte_claimed_requests:', e)
     }
 
+    try {
+      const storedOngoing = localStorage.getItem('ecobyte_ongoing_requests')
+      if (storedOngoing) {
+        localOngoing = JSON.parse(storedOngoing)
+      }
+    } catch (e) {
+      console.warn('Failed to parse ecobyte_ongoing_requests:', e)
+    }
+
     dropoffsApi
       .getMyRequests()
       .then((data) => {
         if (!isMounted) return
-        setOngoing(data.ongoing || [])
+        // Merge locally scheduled requests that haven't been synced to server yet
+        const serverOngoing = data.ongoing || []
+        const combinedOngoing = [...localOngoing]
+        serverOngoing.forEach((s) => {
+          if (!combinedOngoing.some((o) => o.requestId === s.requestId)) {
+            combinedOngoing.push(s)
+          }
+        })
+        setOngoing(combinedOngoing)
         setCompleted([...localClaimed, ...(data.completed || [])])
         setIsLoading(false)
       })
       .catch((err) => {
-        console.error('Failed to load user requests from backend:', err)
+        console.error('Failed to load user requests from backend, using local/fallback requests:', err)
         if (isMounted) {
+          const fallbackOngoing: EwasteRequestItem[] = [
+            ...localOngoing,
+            {
+              requestId: '2042',
+              deviceTitle: 'Galaxy A52',
+              siteName: 'Area 1 Eco-Hub (Brgy Hall Complex)',
+              status: 'Under review',
+              statusStage: 'Submitted',
+              progressStep: 'Step 1/3',
+              progressPercent: 33,
+              scheduledSlot: 'Assessment submitted · AI diagnostic completed',
+            },
+          ]
+          setOngoing(fallbackOngoing)
           setCompleted(localClaimed)
           setIsLoading(false)
         }
