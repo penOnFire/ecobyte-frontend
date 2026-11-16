@@ -1,5 +1,5 @@
 import { useState, type FC } from 'react'
-import { Box, ButtonBase, Typography } from '@mui/material'
+import { Box, ButtonBase, Typography, Snackbar, Alert } from '@mui/material'
 import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded'
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
 import HourglassTopRoundedIcon from '@mui/icons-material/HourglassTopRounded'
@@ -13,9 +13,215 @@ import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded'
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 
+interface DateRangeData {
+  totalProcessed: number
+  totalWeight: string
+  trendPct: string
+  runRate: string
+  awaitingInspection: number
+  avgDwell: string
+  listedReuse: number
+  reuseRate: string
+  reuseAvgDays: string
+  disposalCount: number
+  disposalPct: string
+  batchNo: string
+  highRiskCount: number
+  primaryStream: string
+  hazardShare: string
+  netIntakeWeight: string
+  forecastCallout: string
+  predictedDelta: string
+  bars: Array<{ name: string; count: number; y: number; height: number; fill: string; capFill?: string }>
+  tableRows: Array<{
+    name: string
+    units: string
+    weight: string
+    hazmat: string
+    hazmatBg: string
+    hazmatColor: string
+    rate: string
+    rateColor: string
+    dot: string
+  }>
+}
+
+const DASHBOARD_DATA_BY_RANGE: Record<'7d' | '30d' | 'q3' | 'custom', DateRangeData> = {
+  '7d': {
+    totalProcessed: 329,
+    totalWeight: '890 kg',
+    trendPct: '+6.2%',
+    runRate: '47 / day',
+    awaitingInspection: 14,
+    avgDwell: '2.1 hrs',
+    listedReuse: 196,
+    reuseRate: '59.5%',
+    reuseAvgDays: '1.2 days',
+    disposalCount: 119,
+    disposalPct: '36.1%',
+    batchNo: 'Batch #19',
+    highRiskCount: 4,
+    primaryStream: 'Laptops / Compute (31%)',
+    hazardShare: '20.6% (Li-Ion)',
+    netIntakeWeight: '890 kg',
+    forecastCallout: '~490 u',
+    predictedDelta: '+8.4%',
+    bars: [
+      { name: 'Laptops', count: 102, y: 76, height: 124, fill: '#15803d', capFill: '#4ade80' },
+      { name: 'Li-Ion', count: 68, y: 118, height: 82, fill: '#16a34a', capFill: '#86efac' },
+      { name: 'Mobile/IoT', count: 84, y: 98, height: 102, fill: '#22c55e', capFill: '#bbf7d0' },
+      { name: 'Displays', count: 42, y: 149, height: 51, fill: '#15803d', capFill: '#4ade80' },
+      { name: 'Appliances', count: 21, y: 174, height: 26, fill: '#334155' },
+      { name: 'Network', count: 12, y: 185, height: 15, fill: '#d97706', capFill: '#fde68a' },
+    ],
+    tableRows: [
+      { name: 'Laptops & PCs', units: '102', weight: '280 kg', hazmat: 'Class II', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '81.4%', rateColor: '#15803d', dot: '#15803d' },
+      { name: 'Lithium Battery Packs', units: '68', weight: '102 kg', hazmat: 'Critical', hazmatBg: '#fee2e2', hazmatColor: '#991b1b', rate: '14.7%', rateColor: '#d97706', dot: '#16a34a' },
+      { name: 'Smart Devices & Mobiles', units: '84', weight: '42 kg', hazmat: 'Class I', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '85.7%', rateColor: '#15803d', dot: '#22c55e' },
+      { name: 'CRT & Flat Displays', units: '42', weight: '315 kg', hazmat: 'Heavy Metal', hazmatBg: '#ffdcc3', hazmatColor: '#804300', rate: '45.2%', rateColor: '#475569', dot: '#15803d' },
+      { name: 'Small Office Appliances', units: '21', weight: '84 kg', hazmat: 'Class I', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '66.7%', rateColor: '#15803d', dot: '#334155' },
+      { name: 'Telemetry & Routing', units: '12', weight: '32 kg', hazmat: 'Class II', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '91.7%', rateColor: '#15803d', dot: '#d97706' },
+    ],
+  },
+  '30d': {
+    totalProcessed: 1420,
+    totalWeight: '3,890 kg',
+    trendPct: '+12.4%',
+    runRate: '47 / day',
+    awaitingInspection: 24,
+    avgDwell: '3.8 hrs',
+    listedReuse: 850,
+    reuseRate: '59.8%',
+    reuseAvgDays: '1.8 days',
+    disposalCount: 546,
+    disposalPct: '38.4%',
+    batchNo: 'Batch #18',
+    highRiskCount: 12,
+    primaryStream: 'Laptops / Compute (29%)',
+    hazardShare: '20.0% (Li-Ion)',
+    netIntakeWeight: '3,890 kg',
+    forecastCallout: '~2,180 u',
+    predictedDelta: '+14.2%',
+    bars: [
+      { name: 'Laptops', count: 412, y: 52, height: 148, fill: '#15803d', capFill: '#4ade80' },
+      { name: 'Li-Ion', count: 284, y: 98, height: 102, fill: '#16a34a', capFill: '#86efac' },
+      { name: 'Mobile/IoT', count: 320, y: 85, height: 115, fill: '#22c55e', capFill: '#bbf7d0' },
+      { name: 'Displays', count: 185, y: 133, height: 67, fill: '#15803d', capFill: '#4ade80' },
+      { name: 'Appliances', count: 145, y: 148, height: 52, fill: '#334155' },
+      { name: 'Network', count: 74, y: 173, height: 27, fill: '#d97706', capFill: '#fde68a' },
+    ],
+    tableRows: [
+      { name: 'Laptops & PCs', units: '412', weight: '1,154 kg', hazmat: 'Class II', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '78.4%', rateColor: '#15803d', dot: '#15803d' },
+      { name: 'Lithium Battery Packs', units: '284', weight: '426 kg', hazmat: 'Critical', hazmatBg: '#fee2e2', hazmatColor: '#991b1b', rate: '14.1%', rateColor: '#d97706', dot: '#16a34a' },
+      { name: 'Smart Devices & Mobiles', units: '320', weight: '160 kg', hazmat: 'Class I', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '84.2%', rateColor: '#15803d', dot: '#22c55e' },
+      { name: 'CRT & Flat Displays', units: '185', weight: '1,380 kg', hazmat: 'Heavy Metal', hazmatBg: '#ffdcc3', hazmatColor: '#804300', rate: '42.0%', rateColor: '#475569', dot: '#15803d' },
+      { name: 'Small Office Appliances', units: '145', weight: '580 kg', hazmat: 'Class I', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '62.8%', rateColor: '#15803d', dot: '#334155' },
+      { name: 'Telemetry & Routing', units: '74', weight: '190 kg', hazmat: 'Class II', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '91.9%', rateColor: '#15803d', dot: '#d97706' },
+    ],
+  },
+  'q3': {
+    totalProcessed: 4280,
+    totalWeight: '11,480 kg',
+    trendPct: '+18.6%',
+    runRate: '46 / day',
+    awaitingInspection: 38,
+    avgDwell: '4.2 hrs',
+    listedReuse: 2610,
+    reuseRate: '61.0%',
+    reuseAvgDays: '2.1 days',
+    disposalCount: 1618,
+    disposalPct: '37.8%',
+    batchNo: 'Batch #17-18',
+    highRiskCount: 32,
+    primaryStream: 'Laptops / Compute (29%)',
+    hazardShare: '19.6% (Li-Ion)',
+    netIntakeWeight: '11,480 kg',
+    forecastCallout: '~6,450 u',
+    predictedDelta: '+19.8%',
+    bars: [
+      { name: 'Laptops', count: 1240, y: 46, height: 154, fill: '#15803d', capFill: '#4ade80' },
+      { name: 'Li-Ion', count: 840, y: 92, height: 108, fill: '#16a34a', capFill: '#86efac' },
+      { name: 'Mobile/IoT', count: 980, y: 78, height: 122, fill: '#22c55e', capFill: '#bbf7d0' },
+      { name: 'Displays', count: 590, y: 124, height: 76, fill: '#15803d', capFill: '#4ade80' },
+      { name: 'Appliances', count: 410, y: 142, height: 58, fill: '#334155' },
+      { name: 'Network', count: 220, y: 168, height: 32, fill: '#d97706', capFill: '#fde68a' },
+    ],
+    tableRows: [
+      { name: 'Laptops & PCs', units: '1,240', weight: '3,472 kg', hazmat: 'Class II', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '79.1%', rateColor: '#15803d', dot: '#15803d' },
+      { name: 'Lithium Battery Packs', units: '840', weight: '1,260 kg', hazmat: 'Critical', hazmatBg: '#fee2e2', hazmatColor: '#991b1b', rate: '13.8%', rateColor: '#d97706', dot: '#16a34a' },
+      { name: 'Smart Devices & Mobiles', units: '980', weight: '490 kg', hazmat: 'Class I', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '83.9%', rateColor: '#15803d', dot: '#22c55e' },
+      { name: 'CRT & Flat Displays', units: '590', weight: '4,410 kg', hazmat: 'Heavy Metal', hazmatBg: '#ffdcc3', hazmatColor: '#804300', rate: '41.5%', rateColor: '#475569', dot: '#15803d' },
+      { name: 'Small Office Appliances', units: '410', weight: '1,640 kg', hazmat: 'Class I', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '63.2%', rateColor: '#15803d', dot: '#334155' },
+      { name: 'Telemetry & Routing', units: '220', weight: '568 kg', hazmat: 'Class II', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '92.3%', rateColor: '#15803d', dot: '#d97706' },
+    ],
+  },
+  'custom': {
+    totalProcessed: 2150,
+    totalWeight: '5,820 kg',
+    trendPct: '+15.1%',
+    runRate: '48 / day',
+    awaitingInspection: 28,
+    avgDwell: '3.4 hrs',
+    listedReuse: 1290,
+    reuseRate: '60.0%',
+    reuseAvgDays: '1.6 days',
+    disposalCount: 825,
+    disposalPct: '38.3%',
+    batchNo: 'Batch #18b',
+    highRiskCount: 18,
+    primaryStream: 'Laptops / Compute (30%)',
+    hazardShare: '19.8% (Li-Ion)',
+    netIntakeWeight: '5,820 kg',
+    forecastCallout: '~3,420 u',
+    predictedDelta: '+16.5%',
+    bars: [
+      { name: 'Laptops', count: 645, y: 56, height: 144, fill: '#15803d', capFill: '#4ade80' },
+      { name: 'Li-Ion', count: 425, y: 102, height: 98, fill: '#16a34a', capFill: '#86efac' },
+      { name: 'Mobile/IoT', count: 490, y: 88, height: 112, fill: '#22c55e', capFill: '#bbf7d0' },
+      { name: 'Displays', count: 290, y: 130, height: 70, fill: '#15803d', capFill: '#4ade80' },
+      { name: 'Appliances', count: 200, y: 150, height: 50, fill: '#334155' },
+      { name: 'Network', count: 100, y: 172, height: 28, fill: '#d97706', capFill: '#fde68a' },
+    ],
+    tableRows: [
+      { name: 'Laptops & PCs', units: '645', weight: '1,806 kg', hazmat: 'Class II', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '78.8%', rateColor: '#15803d', dot: '#15803d' },
+      { name: 'Lithium Battery Packs', units: '425', weight: '638 kg', hazmat: 'Critical', hazmatBg: '#fee2e2', hazmatColor: '#991b1b', rate: '14.2%', rateColor: '#d97706', dot: '#16a34a' },
+      { name: 'Smart Devices & Mobiles', units: '490', weight: '245 kg', hazmat: 'Class I', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '84.5%', rateColor: '#15803d', dot: '#22c55e' },
+      { name: 'CRT & Flat Displays', units: '290', weight: '2,175 kg', hazmat: 'Heavy Metal', hazmatBg: '#ffdcc3', hazmatColor: '#804300', rate: '42.1%', rateColor: '#475569', dot: '#15803d' },
+      { name: 'Small Office Appliances', units: '200', weight: '800 kg', hazmat: 'Class I', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '63.0%', rateColor: '#15803d', dot: '#334155' },
+      { name: 'Telemetry & Routing', units: '100', weight: '256 kg', hazmat: 'Class II', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '92.0%', rateColor: '#15803d', dot: '#d97706' },
+    ],
+  },
+}
+
 export const AdminDashboardPage: FC = () => {
-  const [dateRange, setDateRange] = useState<'7d' | '30d' | 'q3' | 'custom'>('7d')
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | 'q3' | 'custom'>('30d')
   const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart')
+  const [exportSnackbar, setExportSnackbar] = useState(false)
+
+  const currentData = DASHBOARD_DATA_BY_RANGE[dateRange]
+
+  const handleExportLog = () => {
+    const csvContent =
+      'data:text/csv;charset=utf-8,' +
+      [
+        'Log_ID,Timestamp,Stream,Weight_kg,Disposition,Hazmat_Class,Operator,Status',
+        'LOG-8921,2024-10-24 14:32:01,Laptops & Compute,2.45,Reuse Hub,Class II,E. Vance,Completed',
+        'LOG-8922,2024-10-24 14:45:12,Lithium Battery Pack,0.85,Certified Smelter,Critical Hazard,E. Vance,Verified',
+        'LOG-8923,2024-10-24 15:10:45,Smart Devices,0.32,Reuse Hub,Class I,M. Santos,Completed',
+        'LOG-8924,2024-10-24 15:35:22,CRT Display Monitor,12.40,Safe Neutralization,Heavy Metal,J. Cruz,Processing',
+        'LOG-8925,2024-10-24 16:02:18,Small Appliances,3.10,Polymer Shredding,Class I,E. Vance,Completed',
+        'LOG-8926,2024-10-24 16:20:00,Network Equipment,1.80,Reuse Hub,Class II,M. Santos,Completed',
+      ].join('\n')
+
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement('a')
+    link.setAttribute('href', encodedUri)
+    link.setAttribute('download', `ecobyte-telemetry-log-${dateRange}-${new Date().toISOString().slice(0, 10)}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    setExportSnackbar(true)
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5, pb: 4 }}>
@@ -125,6 +331,7 @@ export const AdminDashboardPage: FC = () => {
           <Box sx={{ width: 1, height: 18, backgroundColor: '#cbd5e1', mx: 0.5 }} />
 
           <ButtonBase
+            onClick={handleExportLog}
             sx={{
               display: 'flex',
               alignItems: 'center',
@@ -136,6 +343,7 @@ export const AdminDashboardPage: FC = () => {
               fontWeight: 700,
               fontFamily: "'Rethink Sans', 'Inter', sans-serif",
               color: '#334155',
+              cursor: 'pointer',
               '&:hover': {
                 backgroundColor: '#eff4ff',
                 color: '#0b1c30',
@@ -210,7 +418,7 @@ export const AdminDashboardPage: FC = () => {
                 fontVariantNumeric: 'tabular-nums',
               }}
             >
-              1,420
+              {currentData.totalProcessed.toLocaleString()}
             </Typography>
             <Box
               sx={{
@@ -226,7 +434,7 @@ export const AdminDashboardPage: FC = () => {
                 fontWeight: 700,
               }}
             >
-              <TrendingUpRoundedIcon sx={{ fontSize: 14 }} /> +8.4%
+              <TrendingUpRoundedIcon sx={{ fontSize: 14 }} /> {currentData.trendPct}
             </Box>
           </Box>
           <Box
@@ -240,7 +448,7 @@ export const AdminDashboardPage: FC = () => {
             }}
           >
             <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>Intake run rate</Typography>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>47 / day</Typography>
+            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>{currentData.runRate}</Typography>
           </Box>
         </Box>
 
@@ -294,7 +502,7 @@ export const AdminDashboardPage: FC = () => {
                 fontVariantNumeric: 'tabular-nums',
               }}
             >
-              24
+              {currentData.awaitingInspection}
             </Typography>
             <Box
               sx={{
@@ -323,7 +531,7 @@ export const AdminDashboardPage: FC = () => {
             }}
           >
             <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>Avg. dwell</Typography>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>3.8 hrs</Typography>
+            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>{currentData.avgDwell}</Typography>
           </Box>
         </Box>
 
@@ -377,7 +585,7 @@ export const AdminDashboardPage: FC = () => {
                 fontVariantNumeric: 'tabular-nums',
               }}
             >
-              850
+              {currentData.listedReuse.toLocaleString()}
             </Typography>
             <Box
               sx={{
@@ -392,7 +600,7 @@ export const AdminDashboardPage: FC = () => {
                 fontWeight: 700,
               }}
             >
-              59.8%
+              {currentData.reuseRate}
             </Box>
           </Box>
           <Box
@@ -405,8 +613,8 @@ export const AdminDashboardPage: FC = () => {
               alignItems: 'center',
             }}
           >
-            <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>Est. recovery</Typography>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>$42.8k</Typography>
+            <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>Turnaround</Typography>
+            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>{currentData.reuseAvgDays}</Typography>
           </Box>
         </Box>
 
@@ -460,7 +668,7 @@ export const AdminDashboardPage: FC = () => {
                 fontVariantNumeric: 'tabular-nums',
               }}
             >
-              546
+              {currentData.disposalCount.toLocaleString()}
             </Typography>
             <Box
               sx={{
@@ -475,7 +683,7 @@ export const AdminDashboardPage: FC = () => {
                 fontWeight: 700,
               }}
             >
-              38.4%
+              {currentData.disposalPct}
             </Box>
           </Box>
           <Box
@@ -489,7 +697,7 @@ export const AdminDashboardPage: FC = () => {
             }}
           >
             <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>Smelt lot batch</Typography>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>Batch #18</Typography>
+            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>{currentData.batchNo}</Typography>
           </Box>
         </Box>
 
@@ -544,7 +752,7 @@ export const AdminDashboardPage: FC = () => {
                 fontVariantNumeric: 'tabular-nums',
               }}
             >
-              12
+              {currentData.highRiskCount}
             </Typography>
             <Box
               sx={{
@@ -706,52 +914,24 @@ export const AdminDashboardPage: FC = () => {
                   <text x="35" y="159" textAnchor="end" fontSize="9" fill="#64748b" fontWeight="600">125</text>
                   <text x="35" y="204" textAnchor="end" fontSize="9" fill="#64748b" fontWeight="600">0</text>
 
-                  {/* Bar 1: Laptops (412) */}
-                  <g style={{ cursor: 'pointer' }}>
-                    <rect x="65" y="52" width="46" height="148" rx="4" fill="#15803d" />
-                    <rect x="65" y="52" width="46" height="8" rx="2" fill="#4ade80" opacity="0.9" />
-                    <text x="88" y="44" textAnchor="middle" fontSize="10" fill="#0f172a" fontWeight="700">412</text>
-                    <text x="88" y="217" textAnchor="middle" fontSize="9" fill="#475569" fontWeight="600">Laptops</text>
-                  </g>
-
-                  {/* Bar 2: Li-Ion (284) */}
-                  <g style={{ cursor: 'pointer' }}>
-                    <rect x="142" y="98" width="46" height="102" rx="4" fill="#16a34a" />
-                    <rect x="142" y="98" width="46" height="8" rx="2" fill="#86efac" opacity="0.9" />
-                    <text x="165" y="90" textAnchor="middle" fontSize="10" fill="#0f172a" fontWeight="700">284</text>
-                    <text x="165" y="217" textAnchor="middle" fontSize="9" fill="#475569" fontWeight="600">Li-Ion</text>
-                  </g>
-
-                  {/* Bar 3: Mobile/IoT (320) */}
-                  <g style={{ cursor: 'pointer' }}>
-                    <rect x="220" y="85" width="46" height="115" rx="4" fill="#22c55e" />
-                    <rect x="220" y="85" width="46" height="8" rx="2" fill="#bbf7d0" opacity="0.9" />
-                    <text x="243" y="77" textAnchor="middle" fontSize="10" fill="#0f172a" fontWeight="700">320</text>
-                    <text x="243" y="217" textAnchor="middle" fontSize="9" fill="#475569" fontWeight="600">Mobile/IoT</text>
-                  </g>
-
-                  {/* Bar 4: Displays (185) */}
-                  <g style={{ cursor: 'pointer' }}>
-                    <rect x="298" y="133" width="46" height="67" rx="4" fill="#15803d" />
-                    <rect x="298" y="133" width="46" height="6" rx="2" fill="#4ade80" opacity="0.9" />
-                    <text x="321" y="125" textAnchor="middle" fontSize="10" fill="#0f172a" fontWeight="700">185</text>
-                    <text x="321" y="217" textAnchor="middle" fontSize="9" fill="#475569" fontWeight="600">Displays</text>
-                  </g>
-
-                  {/* Bar 5: Small Appliances (145) */}
-                  <g style={{ cursor: 'pointer' }}>
-                    <rect x="375" y="148" width="46" height="52" rx="4" fill="#334155" />
-                    <text x="398" y="140" textAnchor="middle" fontSize="10" fill="#0f172a" fontWeight="700">145</text>
-                    <text x="398" y="217" textAnchor="middle" fontSize="9" fill="#475569" fontWeight="600">Appliances</text>
-                  </g>
-
-                  {/* Bar 6: Telemetry/Network (74) */}
-                  <g style={{ cursor: 'pointer' }}>
-                    <rect x="452" y="173" width="46" height="27" rx="4" fill="#d97706" />
-                    <rect x="452" y="173" width="46" height="4" rx="1" fill="#fde68a" opacity="0.9" />
-                    <text x="475" y="165" textAnchor="middle" fontSize="10" fill="#0f172a" fontWeight="700">74</text>
-                    <text x="475" y="217" textAnchor="middle" fontSize="9" fill="#475569" fontWeight="600">Network</text>
-                  </g>
+                  {/* Bars Rendered Dynamically from currentData */}
+                  {currentData.bars.map((bar, i) => {
+                    const xCoord = 65 + i * 77
+                    return (
+                      <g key={bar.name} style={{ cursor: 'pointer' }}>
+                        <rect x={xCoord} y={bar.y} width="46" height={bar.height} rx="4" fill={bar.fill} />
+                        {bar.capFill && (
+                          <rect x={xCoord} y={bar.y} width="46" height={Math.min(8, bar.height)} rx="2" fill={bar.capFill} opacity="0.9" />
+                        )}
+                        <text x={xCoord + 23} y={bar.y - 8} textAnchor="middle" fontSize="10" fill="#0f172a" fontWeight="700">
+                          {bar.count}
+                        </text>
+                        <text x={xCoord + 23} y="217" textAnchor="middle" fontSize="9" fill="#475569" fontWeight="600">
+                          {bar.name}
+                        </text>
+                      </g>
+                    )
+                  })}
                 </svg>
               </Box>
 
@@ -771,7 +951,7 @@ export const AdminDashboardPage: FC = () => {
                     Primary Waste Stream
                   </Typography>
                   <Typography sx={{ fontSize: '0.8125rem', fontWeight: 800, color: '#15803d', mt: 0.25 }}>
-                    Laptops / Compute (29%)
+                    {currentData.primaryStream}
                   </Typography>
                 </Box>
                 <Box sx={{ backgroundColor: '#eff4ff', py: 1.25, px: 1.5, borderRadius: '8px' }}>
@@ -779,7 +959,7 @@ export const AdminDashboardPage: FC = () => {
                     Hazard Share
                   </Typography>
                   <Typography sx={{ fontSize: '0.8125rem', fontWeight: 800, color: '#d97706', mt: 0.25 }}>
-                    20.0% (Li-Ion)
+                    {currentData.hazardShare}
                   </Typography>
                 </Box>
                 <Box sx={{ backgroundColor: '#eff4ff', py: 1.25, px: 1.5, borderRadius: '8px' }}>
@@ -787,7 +967,7 @@ export const AdminDashboardPage: FC = () => {
                     Net Intake Weight
                   </Typography>
                   <Typography sx={{ fontSize: '0.8125rem', fontWeight: 800, color: '#15803d', mt: 0.25 }}>
-                    3,890 kg
+                    {currentData.netIntakeWeight}
                   </Typography>
                 </Box>
               </Box>
@@ -806,14 +986,7 @@ export const AdminDashboardPage: FC = () => {
                   </tr>
                 </thead>
                 <tbody style={{ fontSize: '0.8125rem', color: '#0f172a' }}>
-                  {[
-                    { name: 'Laptops & PCs', units: '412', weight: '1,154 kg', hazmat: 'Class II', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '78.4%', rateColor: '#15803d', dot: '#15803d' },
-                    { name: 'Lithium Battery Packs', units: '284', weight: '426 kg', hazmat: 'Critical', hazmatBg: '#fee2e2', hazmatColor: '#991b1b', rate: '14.1%', rateColor: '#d97706', dot: '#16a34a' },
-                    { name: 'Smart Devices & Mobiles', units: '320', weight: '160 kg', hazmat: 'Class I', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '84.2%', rateColor: '#15803d', dot: '#22c55e' },
-                    { name: 'CRT & Flat Displays', units: '185', weight: '1,380 kg', hazmat: 'Heavy Metal', hazmatBg: '#ffdcc3', hazmatColor: '#804300', rate: '42.0%', rateColor: '#475569', dot: '#15803d' },
-                    { name: 'Small Office Appliances', units: '145', weight: '580 kg', hazmat: 'Class I', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '62.8%', rateColor: '#15803d', dot: '#334155' },
-                    { name: 'Telemetry & Routing', units: '74', weight: '190 kg', hazmat: 'Class II', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '91.9%', rateColor: '#15803d', dot: '#d97706' },
-                  ].map((row) => (
+                  {currentData.tableRows.map((row) => (
                     <tr key={row.name} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: '10px 12px', fontWeight: 600 }}>
                         <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, backgroundColor: row.dot, marginRight: 8 }} />
@@ -970,7 +1143,7 @@ export const AdminDashboardPage: FC = () => {
 
                 {/* Callout box at end */}
                 <rect x="345" y="24" width="65" height="18" rx="4" fill="#15803d" />
-                <text x="377" y="36" textAnchor="middle" fontSize="9" fill="#ffffff" fontWeight="700">~2,180 u</text>
+                <text x="377" y="36" textAnchor="middle" fontSize="9" fill="#ffffff" fontWeight="700">{currentData.forecastCallout}</text>
 
                 {/* X Axis Months */}
                 <text x="45" y="209" textAnchor="middle" fontSize="9" fill="#64748b">May</text>
@@ -1062,6 +1235,29 @@ export const AdminDashboardPage: FC = () => {
           </Box>
         </Box>
       </Box>
+
+      {/* ── Export Logs Feedback ── */}
+      <Snackbar
+        open={exportSnackbar}
+        autoHideDuration={3500}
+        onClose={() => setExportSnackbar(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setExportSnackbar(false)}
+          severity="success"
+          variant="filled"
+          sx={{
+            width: '100%',
+            fontWeight: 700,
+            fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+            backgroundColor: '#15803d',
+            color: '#ffffff',
+          }}
+        >
+          Operational telemetry log exported successfully (.csv)
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import type { FC } from 'react'
+import { useEffect, useState, type FC } from 'react'
 import {
   Box,
   Button,
@@ -7,81 +6,219 @@ import {
   Chip,
   CircularProgress,
   Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  Snackbar,
+  Alert,
 } from '@mui/material'
-import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
 import NavigationRoundedIcon from '@mui/icons-material/NavigationRounded'
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 import MyLocationRoundedIcon from '@mui/icons-material/MyLocationRounded'
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded'
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import { useNavigate } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import dropoffMapSvg from '@/assets/ui/dropoff_map.svg'
 import { dropoffsApi } from '@/lib/api'
 import type { DropOffSite } from '@/types'
+import { CommonwealthLeafletMap } from '@/components/map/CommonwealthLeafletMap'
 
 const FILTERS = ['All Sites (9)', 'Open Now', 'Staffed', '24/7 Smart Bin']
 
-/*
- * ==============================================================================
- * STATIC MOCK DATA (COMMENTED FOR BACKEND TESTING)
- * ==============================================================================
- * Original static mockup data for drop-off sites has been replaced with live
- * data fetched from GET /api/v1/dropoffs/sites (Barangay Commonwealth, 9 Areas).
- *
-const DROP_SITES = [
+const COMMONWEALTH_AREAS = [
+  'Commonwealth, Quezon City (9 Areas)',
+  'Area 1 (Brgy Hall Complex / Katuparan)',
+  'Area 2 (Lupang Pangako / Riverside)',
+  'Area 3 (Payatas Border / Market)',
+  'Area 4 (Don Fabian / Litex)',
+  'Area 5 (Commonwealth Market / MRT-7)',
+  'Area 6 (Pilot Area / Eco-Depot)',
+  'Area 7 (Kasunduan / Batasan Road)',
+  'Area 8 (Holy Spirit / Commonwealth Ave)',
+  'Area 9 (Veterans Village / Sandigan)',
+]
+
+// Real coordinates for the 9 accredited drop-off bases within Barangay Commonwealth, QC
+const COMMONWEALTH_FALLBACK_SITES: DropOffSite[] = [
   {
-    id: 'san-antonio-hub',
-    name: 'San Antonio Eco-Hub',
+    id: 'commonwealth-mrf-area1',
+    name: 'Area 1 Eco-Hub (Brgy Hall Complex)',
     status: 'Open Now',
-    address: 'Bgy. San Antonio, Pasig City',
+    isOpen: true,
+    address: 'Commonwealth Ave. cor. Katuparan St.',
     distance: '0.8 km',
+    distanceKm: 0.8,
     hours: '8:00 AM - 5:00 PM',
     type: 'Staffed & Smart Bin',
+    coordinates: { lat: 14.697, lng: 121.0882 },
+    hazmatAccredited: true,
   },
   {
-    id: 'ortigas-exchange',
-    name: 'Ortigas Green Exchange',
+    id: 'area2-lupang-pangako',
+    name: 'Area 2 Lupang Pangako E-Collection Base',
     status: 'Open Now',
-    address: 'Emerald Ave, Ortigas Center',
-    distance: '1.6 km',
+    isOpen: true,
+    address: 'Riverside St., Lupang Pangako, Commonwealth',
+    distance: '1.1 km',
+    distanceKm: 1.1,
     hours: '24/7 Smart Bin Access',
     type: '24/7 Smart Bin',
+    coordinates: { lat: 14.6955, lng: 121.0825 },
+    hazmatAccredited: false,
   },
   {
-    id: 'uptown-eco',
-    name: 'Uptown Eco Station',
+    id: 'area3-payatas-border',
+    name: 'Area 3 Payatas Border Green Station',
     status: 'Open Now',
-    address: 'Uptown Bonifacio, Taguig City',
+    isOpen: true,
+    address: 'Payatas Rd. cor. Commonwealth Border',
+    distance: '1.4 km',
+    distanceKm: 1.4,
+    hours: '8:00 AM - 5:00 PM',
+    type: 'Staffed & Smart Bin',
+    coordinates: { lat: 14.7085, lng: 121.0895 },
+    hazmatAccredited: true,
+  },
+  {
+    id: 'litex-commercial-hub',
+    name: 'Area 4 Litex Market Green Exchange',
+    status: 'Open Now',
+    isOpen: true,
+    address: 'Litex Road cor. Commonwealth Ave.',
+    distance: '1.6 km',
+    distanceKm: 1.6,
+    hours: '24/7 Smart Bin Access',
+    type: '24/7 Smart Bin',
+    coordinates: { lat: 14.7005, lng: 121.0875 },
+    hazmatAccredited: true,
+  },
+  {
+    id: 'area5-market-mrt7',
+    name: 'Area 5 Commonwealth Market / MRT-7 Base',
+    status: 'Open Now',
+    isOpen: true,
+    address: 'Commonwealth Market Complex, MRT-7 Terminal',
+    distance: '1.8 km',
+    distanceKm: 1.8,
+    hours: '6:00 AM - 8:00 PM',
+    type: 'Staffed & Smart Bin',
+    coordinates: { lat: 14.694, lng: 121.0868 },
+    hazmatAccredited: false,
+  },
+  {
+    id: 'area6-pilot-depot',
+    name: 'Area 6 Pilot Area Community E-Depot',
+    status: 'Open Now',
+    isOpen: true,
+    address: 'Pilot Area Main Drive, Commonwealth',
+    distance: '2.0 km',
+    distanceKm: 2.0,
+    hours: '8:00 AM - 5:00 PM',
+    type: 'Staffed Only',
+    coordinates: { lat: 14.698, lng: 121.0775 },
+    hazmatAccredited: true,
+  },
+  {
+    id: 'batasan-border-depot',
+    name: 'Area 7 Batasan Border E-Depot',
+    status: 'Open Now',
+    isOpen: true,
+    address: 'Batasan-San Mateo Road, Commonwealth',
     distance: '2.4 km',
-    hours: '9:00 AM - 8:00 PM',
-    type: 'Staffed Collection Hub',
+    distanceKm: 2.4,
+    hours: '24/7 Smart Bin Access',
+    type: '24/7 Smart Bin',
+    coordinates: { lat: 14.696, lng: 121.091 },
+    hazmatAccredited: true,
+  },
+  {
+    id: 'area8-holy-spirit',
+    name: 'Area 8 Holy Spirit Junction Bin',
+    status: 'Open Now',
+    isOpen: true,
+    address: 'Don Fabian St. cor. Commonwealth Ave.',
+    distance: '2.7 km',
+    distanceKm: 2.7,
+    hours: '24/7 Smart Bin Access',
+    type: '24/7 Smart Bin',
+    coordinates: { lat: 14.7015, lng: 121.0835 },
+    hazmatAccredited: false,
+  },
+  {
+    id: 'area9-veterans-village',
+    name: 'Area 9 Veterans Village E-Waste Hub',
+    status: 'Open Now',
+    isOpen: true,
+    address: 'Sandiganbayan Access Rd., Veterans Village',
+    distance: '3.1 km',
+    distanceKm: 3.1,
+    hours: '8:00 AM - 5:00 PM',
+    type: 'Staffed & Smart Bin',
+    coordinates: { lat: 14.6965, lng: 121.085 },
+    hazmatAccredited: false,
   },
 ]
- * ==============================================================================
- */
+
+// Haversine distance in km
+function calculateHaversineDistanceKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const R = 6371 // Earth radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLon = ((lon2 - lon1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return Number((R * c).toFixed(1))
+}
 
 export const DropOffFinderPage: FC = () => {
   const navigate = useNavigate()
   const [activeFilter, setActiveFilter] = useState('All Sites (9)')
-  const [sites, setSites] = useState<DropOffSite[]>([])
+  const [sites, setSites] = useState<DropOffSite[]>(COMMONWEALTH_FALLBACK_SITES)
   const [isLoading, setIsLoading] = useState(true)
-  const [fetchError, setFetchError] = useState<string | null>(null)
+  const [selectedSiteId, setSelectedSiteId] = useState<string>('commonwealth-mrf-area1')
+  const [selectedArea, setSelectedArea] = useState('Commonwealth, Quezon City (9 Areas)')
+  const [areaDialogOpen, setAreaDialogOpen] = useState(false)
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [isLocating, setIsLocating] = useState(false)
+  const [locationToast, setLocationToast] = useState<string | null>(null)
 
   useEffect(() => {
     let isMounted = true
-    setIsLoading(true)
     dropoffsApi
       .getSites()
       .then((data) => {
-        if (isMounted) {
-          setSites(data || [])
-          setIsLoading(false)
+        if (isMounted && data && data.length > 0) {
+          // Merge coordinates if backend doesn't provide them yet
+          const enriched = data.map((d, i) => {
+            const fallback = COMMONWEALTH_FALLBACK_SITES[i % COMMONWEALTH_FALLBACK_SITES.length]
+            return {
+              ...d,
+              coordinates: d.coordinates || fallback.coordinates,
+            }
+          })
+          setSites(enriched)
+          setSelectedSiteId(enriched[0].id)
         }
       })
       .catch((err) => {
-        console.error('Failed to load drop-off sites from backend:', err)
+        console.warn('Backend drop-off API unreachable, using Commonwealth cluster sites:', err)
+      })
+      .finally(() => {
         if (isMounted) {
-          setFetchError('Backend not reachable or still initializing database.')
           setIsLoading(false)
         }
       })
@@ -90,6 +227,89 @@ export const DropOffFinderPage: FC = () => {
       isMounted = false
     }
   }, [])
+
+  const handleGetDirections = (site: DropOffSite) => {
+    let destinationQuery = encodeURIComponent(
+      `${site.name}, ${site.address}, Barangay Commonwealth, Quezon City`
+    )
+    if (site.coordinates) {
+      destinationQuery = `${site.coordinates.lat},${site.coordinates.lng}`
+    }
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destinationQuery}`
+    window.open(mapsUrl, '_blank', 'noopener,noreferrer')
+  }
+
+  const handlePinClick = (siteId: string) => {
+    setSelectedSiteId(siteId)
+  }
+
+  const handleLocateUser = () => {
+    if (!navigator.geolocation) {
+      setLocationToast('Geolocation is not supported by your browser')
+      return
+    }
+    setIsLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords
+        setUserLocation({ lat: latitude, lng: longitude })
+        setIsLocating(false)
+        setLocationToast('GPS synced! Commonwealth drop-off bases sorted by proximity.')
+
+        // Re-calculate distances based on user's real GPS
+        setSites((prevSites) => {
+          const updated = prevSites.map((s) => {
+            if (s.coordinates) {
+              const dist = calculateHaversineDistanceKm(
+                latitude,
+                longitude,
+                s.coordinates.lat,
+                s.coordinates.lng
+              )
+              return {
+                ...s,
+                distanceKm: dist,
+                distance: `${dist} km`,
+              }
+            }
+            return s
+          })
+          return updated.sort((a, b) => (a.distanceKm || 0) - (b.distanceKm || 0))
+        })
+      },
+      (err) => {
+        console.warn('Geolocation error:', err)
+        setIsLocating(false)
+        // Default to Commonwealth Barangay Hall coordinates if user denies permission
+        setUserLocation({ lat: 14.7044, lng: 121.0965 })
+        setLocationToast('Centered on Commonwealth Barangay Hall Complex')
+      },
+      { timeout: 8000, enableHighAccuracy: true }
+    )
+  }
+
+  const handleAreaChange = (newArea: string) => {
+    setSelectedArea(newArea)
+    setAreaDialogOpen(false)
+
+    // Map area name to corresponding Commonwealth site
+    const areaMap: Record<string, string> = {
+      'Area 1 (Brgy Hall Complex / Katuparan)': 'commonwealth-mrf-area1',
+      'Area 2 (Lupang Pangako / Riverside)': 'area2-lupang-pangako',
+      'Area 3 (Payatas Border / Market)': 'area3-payatas-border',
+      'Area 4 (Don Fabian / Litex)': 'litex-commercial-hub',
+      'Area 5 (Commonwealth Market / MRT-7)': 'area5-market-mrt7',
+      'Area 6 (Pilot Area / Eco-Depot)': 'area6-pilot-depot',
+      'Area 7 (Kasunduan / Batasan Road)': 'batasan-border-depot',
+      'Area 8 (Holy Spirit / Commonwealth Ave)': 'area8-holy-spirit',
+      'Area 9 (Veterans Village / Sandigan)': 'area9-veterans-village',
+    }
+
+    const matchedSiteId = areaMap[newArea]
+    if (matchedSiteId) {
+      handlePinClick(matchedSiteId)
+    }
+  }
 
   const filteredSites = sites.filter((site) => {
     const isStaffed = site.type?.toLowerCase().includes('staffed')
@@ -109,10 +329,16 @@ export const DropOffFinderPage: FC = () => {
             Drop-off Finder
           </Typography>
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.8125rem', color: '#64748b', mt: 0.25 }}>
-            Find accredited e-waste sites (Barangay Commonwealth)
+            Accredited e-waste sites (Barangay Commonwealth)
           </Typography>
         </Box>
-        <StatusBadge label="GPS Active" variant="electric" size="sm" />
+        <Box onClick={handleLocateUser} sx={{ cursor: 'pointer' }}>
+          <StatusBadge
+            label={userLocation ? 'GPS Synced' : isLocating ? 'Locating...' : 'Sync GPS'}
+            variant={userLocation ? 'electric' : 'muted'}
+            size="sm"
+          />
+        </Box>
       </Box>
 
       {/* ── Location Bar ── */}
@@ -130,15 +356,19 @@ export const DropOffFinderPage: FC = () => {
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
           <Box
+            onClick={handleLocateUser}
             sx={{
               width: 34,
               height: 34,
               borderRadius: '50%',
               backgroundColor: '#0f172a',
-              color: '#abf06b',
+              color: userLocation ? '#38bdf8' : '#abf06b',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'transform 0.15s ease',
+              '&:hover': { transform: 'scale(1.05)' },
             }}
           >
             <MyLocationRoundedIcon sx={{ fontSize: 18 }} />
@@ -148,124 +378,29 @@ export const DropOffFinderPage: FC = () => {
               Searching near:
             </Typography>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
-              Commonwealth, Quezon City (9 Areas)
+              {selectedArea}
             </Typography>
           </Box>
         </Box>
-        <Button size="small" sx={{ color: '#0f172a', fontWeight: 700, fontSize: '0.75rem' }}>
-          Change
+        <Button
+          size="small"
+          onClick={() => setAreaDialogOpen(true)}
+          sx={{ color: '#0f172a', fontWeight: 700, fontSize: '0.75rem', textTransform: 'none' }}
+        >
+          Change Area
         </Button>
       </Box>
 
-      {/* ── Vector Map Card ── */}
-      <Card
-        sx={{
-          height: 200,
-          borderRadius: 2,
-          backgroundColor: '#0f172a',
-          border: '1px solid #1e293b',
-          position: 'relative',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          p: 1.75,
-          overflow: 'hidden',
-          boxShadow: '0 2px 8px rgba(15,23,42,0.15)',
-        }}
-      >
-        <Box
-          component="img"
-          src={dropoffMapSvg}
-          alt="Drop-off Map"
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            opacity: 0.85,
-          }}
-        />
-
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', zIndex: 1, position: 'relative' }}>
-          <Chip
-            size="small"
-            label={`${sites.length || 9} Active Hubs in Commonwealth`}
-            sx={{
-              backgroundColor: 'rgba(15, 23, 42, 0.9)',
-              color: '#abf06b',
-              fontWeight: 700,
-              fontSize: '0.6875rem',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-            }}
-          />
-        </Box>
-
-        {/* Center pin indicator */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1,
-            position: 'relative',
-          }}
-        >
-          <Box
-            sx={{
-              backgroundColor: '#0f172a',
-              color: '#abf06b',
-              border: '1px solid #334155',
-              px: 1.75,
-              py: 0.6,
-              borderRadius: 9999,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.75,
-              boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
-            }}
-          >
-            <LocationOnOutlinedIcon sx={{ fontSize: 16 }} />
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem' }}>
-              {sites[0]?.name || 'Area 1 Eco-Hub (Brgy Hall Complex)'} (0.8 km)
-            </Typography>
-          </Box>
-        </Box>
-
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1, position: 'relative' }}>
-          <Typography
-            sx={{
-              fontFamily: "'Quicksand', sans-serif",
-              fontSize: '0.6875rem',
-              color: '#ffffff',
-              fontWeight: 700,
-              backgroundColor: 'rgba(15, 23, 42, 0.85)',
-              px: 1,
-              py: 0.35,
-              borderRadius: 1.5,
-              backdropFilter: 'blur(4px)',
-            }}
-          >
-            Tap pin to view intake hours
-          </Typography>
-          <Button
-            size="small"
-            onClick={() => navigate('/schedule-dropoff')}
-            sx={{
-              backgroundColor: '#abf06b',
-              color: '#0f172a',
-              fontSize: '0.6875rem',
-              fontWeight: 800,
-              borderRadius: 9999,
-              px: 1.5,
-              py: 0.5,
-              '&:hover': { backgroundColor: '#bef264' },
-            }}
-          >
-            Schedule Intake
-          </Button>
-        </Box>
-      </Card>
+      {/* ── Live Interactive Leaflet Map for Commonwealth ── */}
+      <CommonwealthLeafletMap
+        sites={filteredSites}
+        selectedSiteId={selectedSiteId}
+        onSelectSite={handlePinClick}
+        onGetDirections={handleGetDirections}
+        userLocation={userLocation}
+        onLocateUser={handleLocateUser}
+        height={360}
+      />
 
       {/* ── Filter Chips ── */}
       <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', py: 0.25 }}>
@@ -308,23 +443,42 @@ export const DropOffFinderPage: FC = () => {
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress size={28} sx={{ color: '#0f172a' }} />
           </Box>
-        ) : fetchError && sites.length === 0 ? (
-          <Card sx={{ p: 2.5, textAlign: 'center', borderRadius: 2, border: '1px dashed #cbd5e1' }}>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#b91c1c' }}>
-              {fetchError}
-            </Typography>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.5 }}>
-              Make sure the backend is running on http://localhost:3000
-            </Typography>
-          </Card>
         ) : (
-          filteredSites.map((site) => (
-            <Card key={site.id} sx={{ p: 2, borderRadius: 2, border: '1px solid #e2e8f0', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          filteredSites.map((site, index) => (
+            <Card
+              key={site.id}
+              id={`site-card-${site.id}`}
+              onClick={() => setSelectedSiteId(site.id)}
+              sx={{
+                p: 2,
+                borderRadius: 2,
+                border: selectedSiteId === site.id ? '2px solid #0f172a' : '1px solid #e2e8f0',
+                backgroundColor: selectedSiteId === site.id ? '#f8fafc' : '#ffffff',
+                boxShadow: selectedSiteId === site.id ? '0 4px 12px rgba(15,23,42,0.1)' : '0 1px 3px rgba(0,0,0,0.05)',
+                transition: 'all 0.2s ease',
+                cursor: 'pointer',
+              }}
+            >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
-                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#0f172a' }}>
-                    {site.name}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#0f172a' }}>
+                      {site.name}
+                    </Typography>
+                    {userLocation && index === 0 && (
+                      <Chip
+                        size="small"
+                        label="Nearest"
+                        sx={{
+                          height: 18,
+                          fontSize: '0.625rem',
+                          fontWeight: 800,
+                          backgroundColor: '#dcfce7',
+                          color: '#15803d',
+                        }}
+                      />
+                    )}
+                  </Box>
                   <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
                     {site.address}
                   </Typography>
@@ -351,7 +505,10 @@ export const DropOffFinderPage: FC = () => {
                   <Button
                     variant="outlined"
                     size="small"
-                    onClick={() => navigate('/schedule-dropoff')}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      navigate('/schedule-dropoff')
+                    }}
                     startIcon={<CalendarMonthRoundedIcon sx={{ fontSize: 16 }} />}
                     sx={{
                       borderColor: '#e2e8f0',
@@ -360,6 +517,8 @@ export const DropOffFinderPage: FC = () => {
                       fontSize: '0.75rem',
                       py: 0.5,
                       px: 1.5,
+                      textTransform: 'none',
+                      fontWeight: 700,
                       '&:hover': {
                         backgroundColor: '#f8fafc',
                         borderColor: '#cbd5e1',
@@ -371,6 +530,10 @@ export const DropOffFinderPage: FC = () => {
                   <Button
                     variant="contained"
                     size="small"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleGetDirections(site)
+                    }}
                     startIcon={<NavigationRoundedIcon sx={{ fontSize: 16 }} />}
                     sx={{
                       backgroundColor: '#0f172a',
@@ -378,6 +541,8 @@ export const DropOffFinderPage: FC = () => {
                       fontSize: '0.75rem',
                       py: 0.5,
                       px: 1.5,
+                      textTransform: 'none',
+                      fontWeight: 700,
                       boxShadow: '0 1px 3px rgba(15,23,42,0.15)',
                       '&:hover': { backgroundColor: '#1e293b' },
                     }}
@@ -390,6 +555,82 @@ export const DropOffFinderPage: FC = () => {
           ))
         )}
       </Box>
+
+      {/* ── Area Selection Dialog ── */}
+      <Dialog
+        open={areaDialogOpen}
+        onClose={() => setAreaDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 2.5,
+              p: 1,
+              fontFamily: "'Quicksand', sans-serif",
+            },
+          },
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1.125rem' }}>
+            Select Commonwealth Area
+          </Typography>
+          <IconButton size="small" onClick={() => setAreaDialogOpen(false)}>
+            <CloseRoundedIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ py: 1 }}>
+          <RadioGroup
+            value={selectedArea}
+            onChange={(e) => handleAreaChange(e.target.value)}
+          >
+            {COMMONWEALTH_AREAS.map((area) => (
+              <FormControlLabel
+                key={area}
+                value={area}
+                control={<Radio sx={{ color: '#0f172a', '&.Mui-checked': { color: '#0f172a' } }} />}
+                label={
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: selectedArea === area ? 700 : 500, fontSize: '0.875rem' }}>
+                    {area}
+                  </Typography>
+                }
+                sx={{ py: 0.5 }}
+              />
+            ))}
+          </RadioGroup>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 1.5 }}>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={() => setAreaDialogOpen(false)}
+            sx={{
+              backgroundColor: '#0f172a',
+              color: '#ffffff',
+              fontFamily: "'Quicksand', sans-serif",
+              fontWeight: 700,
+              borderRadius: 1.5,
+              textTransform: 'none',
+              '&:hover': { backgroundColor: '#1e293b' },
+            }}
+          >
+            Done
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── GPS Toast ── */}
+      <Snackbar
+        open={Boolean(locationToast)}
+        autoHideDuration={3500}
+        onClose={() => setLocationToast(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="success" sx={{ width: '100%', fontWeight: 600, borderRadius: 2 }}>
+          {locationToast}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import type { FC } from 'react'
+import { useState, useRef, type FC, type ChangeEvent } from 'react'
 import {
   Box,
   Button,
@@ -9,6 +8,7 @@ import {
 } from '@mui/material'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import FlashOnRoundedIcon from '@mui/icons-material/FlashOnRounded'
+import FlashOffRoundedIcon from '@mui/icons-material/FlashOffRounded'
 import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded'
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded'
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
@@ -16,6 +16,7 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
 import CropFreeRoundedIcon from '@mui/icons-material/CropFreeRounded'
 import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded'
+import PhotoLibraryRoundedIcon from '@mui/icons-material/PhotoLibraryRounded'
 import { useNavigate } from 'react-router-dom'
 import angleFrontImg from '@/assets/ui/angle_front.jpeg'
 
@@ -25,7 +26,7 @@ interface AngleItem {
   status: 'completed' | 'active' | 'pending'
 }
 
-const ANGLES: AngleItem[] = [
+const DEFAULT_ANGLES: AngleItem[] = [
   { id: 'front', label: 'Front', status: 'completed' },
   { id: 'back', label: 'Back', status: 'active' },
   { id: 'left', label: 'Left', status: 'pending' },
@@ -36,10 +37,69 @@ const ANGLES: AngleItem[] = [
 
 export const ScanDevicePage: FC = () => {
   const navigate = useNavigate()
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
+
   const [currentAngle, setCurrentAngle] = useState('back')
+  const [flashOn, setFlashOn] = useState(false)
+  const [capturedImages, setCapturedImages] = useState<Record<string, string>>({
+    front: angleFrontImg,
+  })
+
+  const completedCount = Object.keys(capturedImages).length
+
+  const handleFileCapture = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = reader.result as string
+      setCapturedImages((prev) => ({
+        ...prev,
+        [currentAngle]: result,
+      }))
+
+      // Auto advance to next pending angle
+      const angleKeys = DEFAULT_ANGLES.map((a) => a.id)
+      const currentIndex = angleKeys.indexOf(currentAngle)
+      if (currentIndex >= 0 && currentIndex < angleKeys.length - 1) {
+        setCurrentAngle(angleKeys[currentIndex + 1])
+      }
+    }
+    reader.readAsDataURL(file)
+
+    // Reset input so same file can be re-selected if retrying
+    e.target.value = ''
+  }
+
+  const handleRetake = () => {
+    setCapturedImages((prev) => {
+      const copy = { ...prev }
+      delete copy[currentAngle]
+      return copy
+    })
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5 }}>
+      {/* Hidden file inputs for Live Camera and Gallery */}
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        style={{ display: 'none' }}
+        onChange={handleFileCapture}
+      />
+      <input
+        ref={galleryInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleFileCapture}
+      />
+
       {/* ── Header ── */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <IconButton
@@ -71,19 +131,20 @@ export const ScanDevicePage: FC = () => {
 
         <IconButton
           size="small"
+          onClick={() => setFlashOn((v) => !v)}
           aria-label="Toggle flash"
           sx={{
             width: 38,
             height: 38,
-            backgroundColor: '#ffffff',
+            backgroundColor: flashOn ? '#0f172a' : '#ffffff',
             border: '1px solid #e2e8f0',
             borderRadius: '50%',
-            color: '#0f172a',
+            color: flashOn ? '#abf06b' : '#0f172a',
             boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-            '&:hover': { backgroundColor: '#f8fafc' },
+            '&:hover': { backgroundColor: flashOn ? '#1e293b' : '#f8fafc' },
           }}
         >
-          <FlashOnRoundedIcon sx={{ fontSize: 18 }} />
+          {flashOn ? <FlashOnRoundedIcon sx={{ fontSize: 18 }} /> : <FlashOffRoundedIcon sx={{ fontSize: 18 }} />}
         </IconButton>
       </Box>
 
@@ -103,23 +164,40 @@ export const ScanDevicePage: FC = () => {
           boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
         }}
       >
-        {/* Subtle grid background */}
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: 'radial-gradient(#1e293b 1px, transparent 1px)',
-            backgroundSize: '20px 20px',
-            opacity: 0.6,
-            pointerEvents: 'none',
-          }}
-        />
+        {/* If image captured for active angle, show preview */}
+        {capturedImages[currentAngle] ? (
+          <Box
+            component="img"
+            src={capturedImages[currentAngle]}
+            alt={`Angle ${currentAngle}`}
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              zIndex: 1,
+            }}
+          />
+        ) : (
+          /* Subtle grid background */
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage: 'radial-gradient(#1e293b 1px, transparent 1px)',
+              backgroundSize: '20px 20px',
+              opacity: 0.6,
+              pointerEvents: 'none',
+            }}
+          />
+        )}
 
         {/* Decorative electric lime corner brackets */}
-        <Box sx={{ position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderTop: '2.5px solid #abf06b', borderLeft: '2.5px solid #abf06b', borderRadius: '3px 0 0 0' }} />
-        <Box sx={{ position: 'absolute', top: 12, right: 12, width: 22, height: 22, borderTop: '2.5px solid #abf06b', borderRight: '2.5px solid #abf06b', borderRadius: '0 3px 0 0' }} />
-        <Box sx={{ position: 'absolute', bottom: 12, left: 12, width: 22, height: 22, borderBottom: '2.5px solid #abf06b', borderLeft: '2.5px solid #abf06b', borderRadius: '0 0 0 3px' }} />
-        <Box sx={{ position: 'absolute', bottom: 12, right: 12, width: 22, height: 22, borderBottom: '2.5px solid #abf06b', borderRight: '2.5px solid #abf06b', borderRadius: '0 0 3px 0' }} />
+        <Box sx={{ position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderTop: '2.5px solid #abf06b', borderLeft: '2.5px solid #abf06b', borderRadius: '3px 0 0 0', zIndex: 2 }} />
+        <Box sx={{ position: 'absolute', top: 12, right: 12, width: 22, height: 22, borderTop: '2.5px solid #abf06b', borderRight: '2.5px solid #abf06b', borderRadius: '0 3px 0 0', zIndex: 2 }} />
+        <Box sx={{ position: 'absolute', bottom: 12, left: 12, width: 22, height: 22, borderBottom: '2.5px solid #abf06b', borderLeft: '2.5px solid #abf06b', borderRadius: '0 0 0 3px', zIndex: 2 }} />
+        <Box sx={{ position: 'absolute', bottom: 12, right: 12, width: 22, height: 22, borderBottom: '2.5px solid #abf06b', borderRight: '2.5px solid #abf06b', borderRadius: '0 0 3px 0', zIndex: 2 }} />
 
         {/* Top HUD badge */}
         <Box sx={{ display: 'flex', justifyContent: 'center', zIndex: 2 }}>
@@ -143,95 +221,97 @@ export const ScanDevicePage: FC = () => {
                 width: 7,
                 height: 7,
                 borderRadius: '50%',
-                backgroundColor: '#abf06b',
+                backgroundColor: capturedImages[currentAngle] ? '#16a34a' : flashOn ? '#abf06b' : '#22c55e',
                 boxShadow: '0 0 8px #abf06b',
               }}
             />
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', letterSpacing: '0.06em' }}>
-              OPTICAL LOCK: 98.4%
+              {capturedImages[currentAngle] ? `CAPTURED: ${currentAngle.toUpperCase()} VIEW` : 'OPTICAL SCANNER READY'}
             </Typography>
           </Box>
         </Box>
 
-        {/* Center device representation & reticle */}
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            my: 'auto',
-            position: 'relative',
-            zIndex: 1,
-            py: 2,
-          }}
-        >
-          {/* Laser scanning beam */}
+        {/* Center device representation & reticle (shown when no photo captured yet) */}
+        {!capturedImages[currentAngle] && (
           <Box
             sx={{
-              position: 'absolute',
-              width: '100%',
-              height: 2,
-              backgroundColor: '#abf06b',
-              boxShadow: '0 0 12px #abf06b, 0 0 4px #abf06b',
-              top: '48%',
-              zIndex: 3,
-            }}
-          />
-
-          {/* Smartphone outline */}
-          <Box
-            sx={{
-              width: 124,
-              height: 184,
-              backgroundColor: '#0f172a',
-              borderRadius: 2,
-              border: '2px solid #334155',
-              position: 'relative',
-              p: 1.25,
-              boxShadow: '0 8px 28px rgba(0,0,0,0.4)',
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'space-between',
+              alignItems: 'center',
+              justifyContent: 'center',
+              my: 'auto',
+              position: 'relative',
+              zIndex: 1,
+              py: 2,
             }}
           >
-            {/* Camera bump */}
+            {/* Laser scanning beam */}
             <Box
               sx={{
-                width: 46,
-                height: 50,
-                borderRadius: 1.25,
-                backgroundColor: '#020617',
-                border: '1.5px solid #334155',
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 0.5,
-                p: 0.5,
+                position: 'absolute',
+                width: '100%',
+                height: 2,
+                backgroundColor: '#abf06b',
+                boxShadow: '0 0 12px #abf06b, 0 0 4px #abf06b',
+                top: '48%',
+                zIndex: 3,
               }}
-            >
-              <Box sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: '#0f172a', border: '1.5px solid #475569' }} />
-              <Box sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: '#0f172a', border: '1.5px solid #475569' }} />
-              <Box sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: '#0f172a', border: '1.5px solid #475569' }} />
-            </Box>
+            />
 
-            {/* Target reticle */}
+            {/* Smartphone outline */}
             <Box
               sx={{
-                alignSelf: 'center',
-                my: 'auto',
-                width: 52,
-                height: 52,
-                borderRadius: '50%',
-                border: '1.5px dashed rgba(171, 240, 107, 0.7)',
+                width: 124,
+                height: 184,
+                backgroundColor: '#0f172a',
+                borderRadius: 2,
+                border: '2px solid #334155',
+                position: 'relative',
+                p: 1.25,
+                boxShadow: '0 8px 28px rgba(0,0,0,0.4)',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
               }}
             >
-              <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#abf06b' }} />
+              {/* Camera bump */}
+              <Box
+                sx={{
+                  width: 46,
+                  height: 50,
+                  borderRadius: 1.25,
+                  backgroundColor: '#020617',
+                  border: '1.5px solid #334155',
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: 0.5,
+                  p: 0.5,
+                }}
+              >
+                <Box sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: '#0f172a', border: '1.5px solid #475569' }} />
+                <Box sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: '#0f172a', border: '1.5px solid #475569' }} />
+                <Box sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: '#0f172a', border: '1.5px solid #475569' }} />
+              </Box>
+
+              {/* Target reticle */}
+              <Box
+                sx={{
+                  alignSelf: 'center',
+                  my: 'auto',
+                  width: 52,
+                  height: 52,
+                  borderRadius: '50%',
+                  border: '1.5px dashed rgba(171, 240, 107, 0.7)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#abf06b' }} />
+              </Box>
             </Box>
           </Box>
-        </Box>
+        )}
 
         {/* Bottom HUD bar */}
         <Box
@@ -255,44 +335,68 @@ export const ScanDevicePage: FC = () => {
             </Typography>
           </Box>
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.6875rem', color: '#ffffff' }}>
-            Angle 2 of 6: Back View
+            Angle: {currentAngle.toUpperCase()} view
           </Typography>
         </Box>
       </Box>
 
       {/* ── Capture & Retake Controls ── */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 1.25 }}>
-        <Button
-          variant="contained"
-          size="large"
-          startIcon={<CameraAltRoundedIcon sx={{ fontSize: 20 }} />}
-          sx={{
-            py: 1.4,
-            backgroundColor: '#0f172a',
-            color: '#ffffff',
-            fontSize: '0.875rem',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            '&:hover': { backgroundColor: '#1e293b' },
-          }}
-        >
-          Capture angle
-        </Button>
-        <Button
-          variant="outlined"
-          size="large"
-          startIcon={<RefreshRoundedIcon sx={{ fontSize: 18 }} />}
-          sx={{
-            py: 1.4,
-            borderColor: '#e2e8f0',
-            color: '#0f172a',
-            backgroundColor: '#ffffff',
-            fontSize: '0.875rem',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-            '&:hover': { backgroundColor: '#f8fafc', borderColor: '#cbd5e1' },
-          }}
-        >
-          Retake
-        </Button>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.25 }}>
+          <Button
+            variant="contained"
+            size="large"
+            onClick={() => cameraInputRef.current?.click()}
+            startIcon={<CameraAltRoundedIcon sx={{ fontSize: 20, color: '#abf06b' }} />}
+            sx={{
+              py: 1.4,
+              backgroundColor: '#0f172a',
+              color: '#ffffff',
+              fontSize: '0.8125rem',
+              fontWeight: 700,
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              '&:hover': { backgroundColor: '#1e293b' },
+            }}
+          >
+            Take photo
+          </Button>
+          <Button
+            variant="outlined"
+            size="large"
+            onClick={() => galleryInputRef.current?.click()}
+            startIcon={<PhotoLibraryRoundedIcon sx={{ fontSize: 18, color: '#0f172a' }} />}
+            sx={{
+              py: 1.4,
+              borderColor: '#cbd5e1',
+              color: '#0f172a',
+              backgroundColor: '#ffffff',
+              fontSize: '0.8125rem',
+              fontWeight: 700,
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              '&:hover': { backgroundColor: '#f8fafc', borderColor: '#94a3b8' },
+            }}
+          >
+            Upload gallery
+          </Button>
+        </Box>
+
+        {capturedImages[currentAngle] && (
+          <Button
+            variant="text"
+            size="small"
+            onClick={handleRetake}
+            startIcon={<RefreshRoundedIcon sx={{ fontSize: 16 }} />}
+            sx={{
+              color: '#dc2626',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              textTransform: 'none',
+              alignSelf: 'center',
+            }}
+          >
+            Retake / Clear current photo
+          </Button>
+        )}
       </Box>
 
       {/* ── Angles Progress ── */}
@@ -310,15 +414,15 @@ export const ScanDevicePage: FC = () => {
             }}
           >
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#abf06b' }}>
-              2/6 completed
+              {completedCount}/6 completed
             </Typography>
           </Box>
         </Box>
 
         {/* 3x2 Grid of angle chips */}
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
-          {ANGLES.map((angle) => {
-            const isCompleted = angle.status === 'completed'
+          {DEFAULT_ANGLES.map((angle) => {
+            const isCompleted = Boolean(capturedImages[angle.id])
             const isActive = angle.id === currentAngle
 
             return (
@@ -330,16 +434,16 @@ export const ScanDevicePage: FC = () => {
                   px: 1.5,
                   borderRadius: 9999,
                   border: isCompleted
-                    ? '1.5px solid #e2e8f0'
+                    ? '1.5px solid #86efac'
                     : isActive
                       ? '1.5px solid #0f172a'
                       : '1.5px solid #e2e8f0',
                   backgroundColor: isCompleted
-                    ? '#f8fafc'
+                    ? '#f0fdf4'
                     : isActive
                       ? '#0f172a'
                       : '#ffffff',
-                  color: isActive ? '#ffffff' : '#0f172a',
+                  color: isActive ? '#ffffff' : isCompleted ? '#15803d' : '#0f172a',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -359,8 +463,12 @@ export const ScanDevicePage: FC = () => {
                 >
                   {angle.label}
                 </Typography>
-                {isCompleted && <CheckRoundedIcon sx={{ fontSize: 16, color: '#0f172a' }} />}
-                {isActive && <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#abf06b' }} />}
+                {isCompleted && (
+                  <CheckRoundedIcon sx={{ fontSize: 14, color: '#16a34a' }} />
+                )}
+                {isActive && (
+                  <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#abf06b' }} />
+                )}
               </Box>
             )
           })}
@@ -445,138 +553,140 @@ export const ScanDevicePage: FC = () => {
         </Box>
 
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1 }}>
-          {/* Slot 1: Captured Front */}
-          <Box
-            sx={{
-              height: 100,
-              borderRadius: 1.5,
-              backgroundColor: '#f8fafc',
-              border: '1.5px solid #e2e8f0',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              position: 'relative',
-              overflow: 'hidden',
-              p: 0.75,
-            }}
-          >
-            <Box
-              component="img"
-              src={angleFrontImg}
-              alt="Front angle capture"
-              sx={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-              }}
-            />
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 7,
-                left: 7,
-                width: 18,
-                height: 18,
-                borderRadius: '50%',
-                backgroundColor: '#0f172a',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 1,
-              }}
-            >
-              <CheckRoundedIcon sx={{ fontSize: 12, color: '#abf06b' }} />
-            </Box>
-            <Box sx={{ flex: 1 }} />
-            <Box
-              sx={{
-                width: '100%',
-                backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                borderRadius: 1,
-                py: 0.25,
-                textAlign: 'center',
-                zIndex: 1,
-                backdropFilter: 'blur(2px)',
-              }}
-            >
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.625rem', color: '#ffffff' }}>
-                Front
-              </Typography>
-            </Box>
-          </Box>
+          {(['front', 'back', 'left', 'right'] as const).map((angleKey) => {
+            const img = capturedImages[angleKey]
+            const isSelected = currentAngle === angleKey
+            const label = angleKey.charAt(0).toUpperCase() + angleKey.slice(1)
 
-          {/* Slot 2: Capturing Back */}
-          <Box
-            sx={{
-              height: 100,
-              borderRadius: 1.5,
-              backgroundColor: 'rgba(171, 240, 107, 0.08)',
-              border: '2px dashed #abf06b',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 0.75,
-              p: 0.75,
-            }}
-          >
-            <CropFreeRoundedIcon sx={{ fontSize: 24, color: '#0f172a' }} />
-            <Typography
-              sx={{
-                fontFamily: "'Quicksand', sans-serif",
-                fontWeight: 700,
-                fontSize: '0.625rem',
-                color: '#0f172a',
-                textAlign: 'center',
-                lineHeight: 1.2,
-              }}
-            >
-              Capturing Back
-            </Typography>
-          </Box>
+            if (img) {
+              return (
+                <Box
+                  key={angleKey}
+                  onClick={() => setCurrentAngle(angleKey)}
+                  sx={{
+                    height: 100,
+                    borderRadius: 1.5,
+                    backgroundColor: '#f8fafc',
+                    border: isSelected ? '2px solid #0f172a' : '1.5px solid #86efac',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    p: 0.75,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={img}
+                    alt={`${label} capture`}
+                    sx={{
+                      position: 'absolute',
+                      inset: 0,
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 7,
+                      left: 7,
+                      width: 18,
+                      height: 18,
+                      borderRadius: '50%',
+                      backgroundColor: '#0f172a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 1,
+                    }}
+                  >
+                    <CheckRoundedIcon sx={{ fontSize: 12, color: '#abf06b' }} />
+                  </Box>
+                  <Box sx={{ flex: 1 }} />
+                  <Box
+                    sx={{
+                      width: '100%',
+                      backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                      borderRadius: 1,
+                      py: 0.25,
+                      textAlign: 'center',
+                      zIndex: 1,
+                      backdropFilter: 'blur(2px)',
+                    }}
+                  >
+                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.625rem', color: '#ffffff' }}>
+                      {label}
+                    </Typography>
+                  </Box>
+                </Box>
+              )
+            }
 
-          {/* Slot 3: Left slot */}
-          <Box
-            sx={{
-              height: 100,
-              borderRadius: 1.5,
-              backgroundColor: '#ffffff',
-              border: '1.5px dotted #cbd5e1',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 0.5,
-            }}
-          >
-            <AddRoundedIcon sx={{ fontSize: 20, color: '#94a3b8' }} />
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.625rem', color: '#94a3b8' }}>
-              Left slot
-            </Typography>
-          </Box>
+            if (isSelected) {
+              return (
+                <Box
+                  key={angleKey}
+                  sx={{
+                    height: 100,
+                    borderRadius: 1.5,
+                    backgroundColor: 'rgba(171, 240, 107, 0.08)',
+                    border: '2px dashed #abf06b',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 0.75,
+                    p: 0.75,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <CropFreeRoundedIcon sx={{ fontSize: 24, color: '#0f172a' }} />
+                  <Typography
+                    sx={{
+                      fontFamily: "'Quicksand', sans-serif",
+                      fontWeight: 700,
+                      fontSize: '0.625rem',
+                      color: '#0f172a',
+                      textAlign: 'center',
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    Capturing {label}
+                  </Typography>
+                </Box>
+              )
+            }
 
-          {/* Slot 4: Right slot */}
-          <Box
-            sx={{
-              height: 100,
-              borderRadius: 1.5,
-              backgroundColor: '#ffffff',
-              border: '1.5px dotted #cbd5e1',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 0.5,
-            }}
-          >
-            <AddRoundedIcon sx={{ fontSize: 20, color: '#94a3b8' }} />
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.625rem', color: '#94a3b8' }}>
-              Right slot
-            </Typography>
-          </Box>
+            return (
+              <Box
+                key={angleKey}
+                onClick={() => setCurrentAngle(angleKey)}
+                sx={{
+                  height: 100,
+                  borderRadius: 1.5,
+                  backgroundColor: '#ffffff',
+                  border: '1.5px dotted #cbd5e1',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 0.5,
+                  cursor: 'pointer',
+                  '&:hover': { backgroundColor: '#f8fafc', borderColor: '#94a3b8' },
+                }}
+              >
+                <AddRoundedIcon sx={{ fontSize: 20, color: '#94a3b8' }} />
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.625rem', color: '#94a3b8' }}>
+                  {label} slot
+                </Typography>
+              </Box>
+            )
+          })}
         </Box>
       </Box>
 

@@ -6,6 +6,8 @@ import {
   Card,
   IconButton,
   Typography,
+  Snackbar,
+  Alert,
 } from '@mui/material'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import ShareOutlinedIcon from '@mui/icons-material/ShareOutlined'
@@ -22,6 +24,31 @@ import thinkpadDetailImg from '@/assets/ui/thinkpad_detail.jpeg'
 export const ReuseItemDetailPage: FC = () => {
   const navigate = useNavigate()
   const [selectedWindow, setSelectedWindow] = useState('01:00 PM')
+  const [toastMsg, setToastMsg] = useState<string | null>(null)
+
+  const handleShare = async () => {
+    const shareData = {
+      title: 'Lenovo ThinkPad T480 - EcoByte Reuse Hub',
+      text: 'Check out this verified refurbished ThinkPad available for pickup at Commonwealth Hub on EcoByte!',
+      url: window.location.href,
+    }
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData)
+        setToastMsg('Item shared successfully!')
+      } catch {
+        // User closed share
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(window.location.href)
+        setToastMsg('Share link copied to clipboard!')
+      } catch {
+        setToastMsg('Link: ' + window.location.href)
+      }
+    }
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5 }}>
@@ -52,6 +79,7 @@ export const ReuseItemDetailPage: FC = () => {
         <IconButton
           size="small"
           aria-label="Share item"
+          onClick={handleShare}
           sx={{
             width: 38,
             height: 38,
@@ -355,6 +383,29 @@ export const ReuseItemDetailPage: FC = () => {
           Reserve Item
         </Button>
       </Box>
+
+      {/* Toast Feedback */}
+      <Snackbar
+        open={Boolean(toastMsg)}
+        autoHideDuration={3000}
+        onClose={() => setToastMsg(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setToastMsg(null)}
+          severity="success"
+          variant="filled"
+          sx={{
+            width: '100%',
+            fontWeight: 700,
+            fontFamily: "'Quicksand', sans-serif",
+            backgroundColor: '#0f172a',
+            color: '#abf06b',
+          }}
+        >
+          {toastMsg}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }
