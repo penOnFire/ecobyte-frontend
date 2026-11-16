@@ -23,9 +23,8 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded'
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded'
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded'
-import WorkOutlineRoundedIcon from '@mui/icons-material/WorkOutlineRounded'
 
-export type UserRole = 'Admin' | 'Official' | 'Staff' | 'Deactivated'
+export type UserRole = 'Admin' | 'Official' | 'Deactivated'
 export type UserStatus = 'Active' | 'Suspended' | 'Deactivated'
 
 export interface OfficialUser {
@@ -111,14 +110,14 @@ const INITIAL_USERS: OfficialUser[] = [
     name: 'Ramon Del Rosario',
     email: 'ramon.dr@ecobyte.org',
     phone: '+63 927 765 4321',
-    idCode: 'ID-0205-STF',
-    role: 'Staff',
+    idCode: 'ID-0205-OFC',
+    role: 'Official',
     department: 'Reuse & Refurbishment Hub Desk',
     status: 'Active',
     twoFactorEnabled: true,
     initials: 'RD',
     lastActive: '3 hours ago',
-    notes: 'Component testing and community reuse coordinator',
+    notes: 'Component testing and community intake coordinator',
   },
   {
     id: 'USR-105',
@@ -150,8 +149,8 @@ const INITIAL_USERS: OfficialUser[] = [
   },
 ]
 
-function generateBadgeId(role: 'Admin' | 'Official' | 'Staff'): string {
-  const code = role === 'Admin' ? 'ADM' : role === 'Official' ? 'OFC' : 'STF'
+function generateBadgeId(role: 'Admin' | 'Official'): string {
+  const code = role === 'Admin' ? 'ADM' : 'OFC'
   const num = Math.floor(1000 + Math.random() * 9000)
   return `ID-${num}-${code}`
 }
@@ -175,14 +174,14 @@ export const AdminAccessPage: FC = () => {
   const [users, setUsers] = useState<OfficialUser[]>(INITIAL_USERS)
   const [selectedUser, setSelectedUser] = useState<OfficialUser | null>(null)
   const [search, setSearch] = useState('')
-  const [filterRole, setFilterRole] = useState<'all' | 'admin' | 'official' | 'staff' | 'deactivated'>('all')
+  const [filterRole, setFilterRole] = useState<'all' | 'admin' | 'official' | 'deactivated'>('all')
 
-  // Form Fields State
+  // Form Fields State (Only Official and Admin)
   const [formName, setFormName] = useState('')
   const [formEmail, setFormEmail] = useState('')
   const [formPhone, setFormPhone] = useState('')
   const [formIdCode, setFormIdCode] = useState(generateBadgeId('Official'))
-  const [formRole, setFormRole] = useState<'Admin' | 'Official' | 'Staff'>('Official')
+  const [formRole, setFormRole] = useState<'Admin' | 'Official'>('Official')
   const [formDepartment, setFormDepartment] = useState(COMMONWEALTH_FACILITIES[0])
   const [formStatus, setFormStatus] = useState<UserStatus>('Active')
   const [formTwoFactor, setFormTwoFactor] = useState(true)
@@ -203,7 +202,7 @@ export const AdminAccessPage: FC = () => {
     setFormEmail(user.email)
     setFormPhone(user.phone)
     setFormIdCode(user.idCode)
-    setFormRole(user.role === 'Admin' ? 'Admin' : user.role === 'Staff' ? 'Staff' : 'Official')
+    setFormRole(user.role === 'Admin' ? 'Admin' : 'Official')
     setFormDepartment(user.department || COMMONWEALTH_FACILITIES[0])
     setFormStatus(user.status || (user.role === 'Deactivated' ? 'Deactivated' : 'Active'))
     setFormTwoFactor(user.twoFactorEnabled)
@@ -256,7 +255,7 @@ export const AdminAccessPage: FC = () => {
     }
   }
 
-  const handleRoleChange = (newRole: 'Admin' | 'Official' | 'Staff') => {
+  const handleRoleChange = (newRole: 'Admin' | 'Official') => {
     if (selectedUser?.isSelf) return
     setFormRole(newRole)
     if (!selectedUser) {
@@ -423,7 +422,6 @@ export const AdminAccessPage: FC = () => {
   const filteredUsers = users.filter((u) => {
     if (filterRole === 'admin' && u.role !== 'Admin') return false
     if (filterRole === 'official' && u.role !== 'Official') return false
-    if (filterRole === 'staff' && u.role !== 'Staff') return false
     if (filterRole === 'deactivated' && u.role !== 'Deactivated') return false
     if (!search.trim()) return true
     const q = search.toLowerCase()
@@ -441,7 +439,7 @@ export const AdminAccessPage: FC = () => {
   const isPasswordsMismatch = formConfirmPassword && formPassword !== formConfirmPassword
 
   const activeAdminsCount = users.filter((u) => u.role === 'Admin' && u.status === 'Active').length
-  const activeFieldCount = users.filter((u) => (u.role === 'Official' || u.role === 'Staff') && u.status === 'Active').length
+  const activeOfficialsCount = users.filter((u) => u.role === 'Official' && u.status === 'Active').length
   const deactivatedCount = users.filter((u) => u.role === 'Deactivated' || u.status === 'Deactivated').length
   const twoFactorPercent = Math.round((users.filter((u) => u.twoFactorEnabled).length / users.length) * 100)
 
@@ -578,11 +576,11 @@ export const AdminAccessPage: FC = () => {
             }}
           >
             <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-              Field Officials &amp; Staff
+              Field Officials
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', mt: 1 }}>
               <Typography sx={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a' }}>
-                {activeFieldCount}
+                {activeOfficialsCount}
               </Typography>
               <Box
                 sx={{
@@ -610,7 +608,7 @@ export const AdminAccessPage: FC = () => {
             }}
           >
             <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, color: '#dc2626', textTransform: 'uppercase' }}>
-              Deactivated / Suspended
+              Deactivated Accounts
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', mt: 1 }}>
               <Typography sx={{ fontSize: '1.75rem', fontWeight: 800, color: '#dc2626' }}>
@@ -736,13 +734,12 @@ export const AdminAccessPage: FC = () => {
             />
           </Box>
 
-          {/* Filter Quick Toggles */}
+          {/* Filter Quick Toggles (All, Admin, Official, Deactivated) */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, overflowX: 'auto', pb: 0.5 }}>
             {[
               { id: 'all', label: `All (${users.length})` },
               { id: 'admin', label: `Admin (${users.filter((u) => u.role === 'Admin').length})` },
               { id: 'official', label: `Official (${users.filter((u) => u.role === 'Official').length})` },
-              { id: 'staff', label: `Staff (${users.filter((u) => u.role === 'Staff').length})` },
               { id: 'deactivated', label: `Deactivated (${users.filter((u) => u.role === 'Deactivated').length})` },
             ].map((tab) => {
               const active = filterRole === tab.id
@@ -800,11 +797,9 @@ export const AdminAccessPage: FC = () => {
                     const roleColor =
                       user.role === 'Admin'
                         ? '#16a34a'
-                        : user.role === 'Staff'
-                          ? '#0284c7'
-                          : isDeactivated
-                            ? '#dc2626'
-                            : '#006a61'
+                        : isDeactivated
+                          ? '#dc2626'
+                          : '#006a61'
 
                     return (
                       <tr
@@ -828,11 +823,9 @@ export const AdminAccessPage: FC = () => {
                                 borderRadius: 8,
                                 background: user.role === 'Admin'
                                   ? 'linear-gradient(135deg, rgb(21, 128, 61), rgb(34, 197, 94))'
-                                  : user.role === 'Staff'
-                                    ? 'linear-gradient(135deg, rgb(2, 132, 199), rgb(56, 189, 248))'
-                                    : isDeactivated
-                                      ? '#fee2e2'
-                                      : '#006a61',
+                                  : isDeactivated
+                                    ? '#fee2e2'
+                                    : '#006a61',
                                 color: isDeactivated ? '#dc2626' : '#ffffff',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -969,146 +962,122 @@ export const AdminAccessPage: FC = () => {
           </Box>
         </Box>
 
-        {/* RIGHT PANEL: Complete Add Official / Manage Official Form */}
+        {/* RIGHT PANEL: Scrollable Form with Locked Action Bar */}
         <Box
           sx={{
             backgroundColor: '#ffffff',
             borderRadius: '12px',
-            p: 3,
             border: '1px solid #e2e8f0',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
             display: 'flex',
             flexDirection: 'column',
-            gap: 2.5,
+            maxHeight: { xs: 'none', lg: 'calc(100vh - 140px)' },
+            position: { xs: 'static', lg: 'sticky' },
+            top: { xs: 'auto', lg: 24 },
+            overflow: 'hidden',
           }}
         >
-          {/* Header */}
+          {/* Header - Fixed Top */}
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              pb: 1.5,
+              p: 3,
+              pb: 2,
               borderBottom: '1px solid #e2e8f0',
+              flexShrink: 0,
+              backgroundColor: '#ffffff',
             }}
           >
-            <Box>
-              <Typography sx={{ fontSize: '0.6875rem', fontWeight: 800, color: '#16a34a', textTransform: 'uppercase' }}>
-                {selectedUser ? 'Identity Modification' : 'Credential Enrollment'}
-              </Typography>
-              <Typography sx={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
-                {selectedUser ? `Edit ${selectedUser.name}` : 'Enroll New Official'}
-              </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box>
+                <Typography sx={{ fontSize: '0.6875rem', fontWeight: 800, color: '#16a34a', textTransform: 'uppercase' }}>
+                  {selectedUser ? 'Identity Modification' : 'Credential Enrollment'}
+                </Typography>
+                <Typography sx={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+                  {selectedUser ? `Edit ${selectedUser.name}` : 'Enroll New Official'}
+                </Typography>
+              </Box>
+              <ButtonBase
+                onClick={handleResetForm}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.75,
+                  px: 1.5,
+                  py: 0.75,
+                  borderRadius: '6px',
+                  backgroundColor: '#f1f5f9',
+                  color: '#475569',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  '&:hover': { backgroundColor: '#e2e8f0' },
+                }}
+                title="Reset Form / Clear Selection"
+              >
+                <PersonAddRoundedIcon sx={{ fontSize: 16 }} />
+                <span>New Official</span>
+              </ButtonBase>
             </Box>
-            <ButtonBase
-              onClick={handleResetForm}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.75,
-                px: 1.5,
-                py: 0.75,
-                borderRadius: '6px',
-                backgroundColor: '#f1f5f9',
-                color: '#475569',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                '&:hover': { backgroundColor: '#e2e8f0' },
-              }}
-              title="Reset Form / Clear Selection"
-            >
-              <PersonAddRoundedIcon sx={{ fontSize: 16 }} />
-              <span>New Official</span>
-            </ButtonBase>
+
+            {/* Self demotion warning */}
+            {selectedUser?.isSelf && (
+              <Box
+                sx={{
+                  mt: 1.5,
+                  p: 1.5,
+                  borderRadius: '8px',
+                  backgroundColor: '#fee2e2',
+                  border: '1px solid #fecaca',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 1.25,
+                }}
+              >
+                <LockOutlinedIcon sx={{ fontSize: 18, color: '#dc2626', mt: 0.25 }} />
+                <Typography sx={{ fontSize: '0.75rem', color: '#991b1b', lineHeight: 1.3 }}>
+                  <strong>Protected Session Constraint:</strong> You are currently logged in with this account. You cannot demote or deactivate your own account.
+                </Typography>
+              </Box>
+            )}
           </Box>
 
-          {/* Self demotion warning */}
-          {selectedUser?.isSelf && (
-            <Box
-              sx={{
-                p: 1.5,
-                borderRadius: '8px',
-                backgroundColor: '#fee2e2',
-                border: '1px solid #fecaca',
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: 1.25,
-              }}
-            >
-              <LockOutlinedIcon sx={{ fontSize: 18, color: '#dc2626', mt: 0.25 }} />
-              <Typography sx={{ fontSize: '0.75rem', color: '#991b1b', lineHeight: 1.3 }}>
-                <strong>Protected Session Constraint:</strong> You are currently logged in with this account. You cannot demote or deactivate your own account.
-              </Typography>
-            </Box>
-          )}
-
-          {/* SECTION 1: Personal & Contact Information */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {/* SCROLLABLE INNER BODY */}
+          <Box
+            sx={{
+              p: 3,
+              pt: 2.5,
+              pb: 2.5,
+              overflowY: 'auto',
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2.5,
+              /* Subtle custom scrollbar */
+              '&::-webkit-scrollbar': { width: 6 },
+              '&::-webkit-scrollbar-track': { backgroundColor: '#f8fafc' },
+              '&::-webkit-scrollbar-thumb': { backgroundColor: '#cbd5e1', borderRadius: 3 },
+              '&::-webkit-scrollbar-thumb:hover': { backgroundColor: '#94a3b8' },
+            }}
+          >
+            {/* SECTION 1: Personal & Contact Information */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 1. Personal &amp; Contact Information
               </Typography>
-            </Box>
 
-            {/* Official Full Name */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
-                  Full Name <span style={{ color: '#dc2626' }}>*</span>
-                </Typography>
-                {validationErrors.name && (
-                  <Typography sx={{ fontSize: '0.6875rem', color: '#dc2626', fontWeight: 600 }}>
-                    {validationErrors.name}
-                  </Typography>
-                )}
-              </Box>
-              <Box sx={{ position: 'relative' }}>
-                <PersonOutlineRoundedIcon
-                  sx={{
-                    position: 'absolute',
-                    left: 12,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#94a3b8',
-                    fontSize: 18,
-                  }}
-                />
-                <input
-                  type="text"
-                  value={formName}
-                  onChange={(e) => {
-                    setFormName(e.target.value)
-                    if (validationErrors.name) setValidationErrors((prev) => ({ ...prev, name: '' }))
-                  }}
-                  placeholder="e.g. Kenneth Adams"
-                  style={{
-                    width: '100%',
-                    height: 40,
-                    paddingLeft: 38,
-                    paddingRight: 12,
-                    borderRadius: 8,
-                    border: `1px solid ${validationErrors.name ? '#ef4444' : '#cbd5e1'}`,
-                    backgroundColor: '#f8fafc',
-                    fontFamily: "'Rethink Sans', 'Inter', sans-serif",
-                    fontSize: '0.8125rem',
-                    color: '#0f172a',
-                    outline: 'none',
-                  }}
-                />
-              </Box>
-            </Box>
-
-            {/* Email Address & Phone Number Grid */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5 }}>
-              {/* Official Email */}
+              {/* Official Full Name */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
-                    Official Email <span style={{ color: '#dc2626' }}>*</span>
+                    Full Name <span style={{ color: '#dc2626' }}>*</span>
                   </Typography>
+                  {validationErrors.name && (
+                    <Typography sx={{ fontSize: '0.6875rem', color: '#dc2626', fontWeight: 600 }}>
+                      {validationErrors.name}
+                    </Typography>
+                  )}
                 </Box>
                 <Box sx={{ position: 'relative' }}>
-                  <MailOutlineRoundedIcon
+                  <PersonOutlineRoundedIcon
                     sx={{
                       position: 'absolute',
                       left: 12,
@@ -1119,20 +1088,20 @@ export const AdminAccessPage: FC = () => {
                     }}
                   />
                   <input
-                    type="email"
-                    value={formEmail}
+                    type="text"
+                    value={formName}
                     onChange={(e) => {
-                      setFormEmail(e.target.value)
-                      if (validationErrors.email) setValidationErrors((prev) => ({ ...prev, email: '' }))
+                      setFormName(e.target.value)
+                      if (validationErrors.name) setValidationErrors((prev) => ({ ...prev, name: '' }))
                     }}
-                    placeholder="official@ecobyte.gov"
+                    placeholder="e.g. Kenneth Adams"
                     style={{
                       width: '100%',
                       height: 40,
                       paddingLeft: 38,
                       paddingRight: 12,
                       borderRadius: 8,
-                      border: `1px solid ${validationErrors.email ? '#ef4444' : '#cbd5e1'}`,
+                      border: `1px solid ${validationErrors.name ? '#ef4444' : '#cbd5e1'}`,
                       backgroundColor: '#f8fafc',
                       fontFamily: "'Rethink Sans', 'Inter', sans-serif",
                       fontSize: '0.8125rem',
@@ -1141,20 +1110,127 @@ export const AdminAccessPage: FC = () => {
                     }}
                   />
                 </Box>
-                {validationErrors.email && (
-                  <Typography sx={{ fontSize: '0.6875rem', color: '#dc2626', fontWeight: 600 }}>
-                    {validationErrors.email}
-                  </Typography>
-                )}
               </Box>
 
-              {/* Mobile / Contact Number */}
+              {/* Email Address & Phone Number Grid */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5 }}>
+                {/* Official Email */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
+                    Official Email <span style={{ color: '#dc2626' }}>*</span>
+                  </Typography>
+                  <Box sx={{ position: 'relative' }}>
+                    <MailOutlineRoundedIcon
+                      sx={{
+                        position: 'absolute',
+                        left: 12,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#94a3b8',
+                        fontSize: 18,
+                      }}
+                    />
+                    <input
+                      type="email"
+                      value={formEmail}
+                      onChange={(e) => {
+                        setFormEmail(e.target.value)
+                        if (validationErrors.email) setValidationErrors((prev) => ({ ...prev, email: '' }))
+                      }}
+                      placeholder="official@ecobyte.gov"
+                      style={{
+                        width: '100%',
+                        height: 40,
+                        paddingLeft: 38,
+                        paddingRight: 12,
+                        borderRadius: 8,
+                        border: `1px solid ${validationErrors.email ? '#ef4444' : '#cbd5e1'}`,
+                        backgroundColor: '#f8fafc',
+                        fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                        fontSize: '0.8125rem',
+                        color: '#0f172a',
+                        outline: 'none',
+                      }}
+                    />
+                  </Box>
+                  {validationErrors.email && (
+                    <Typography sx={{ fontSize: '0.6875rem', color: '#dc2626', fontWeight: 600 }}>
+                      {validationErrors.email}
+                    </Typography>
+                  )}
+                </Box>
+
+                {/* Mobile / Contact Number */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
+                    Mobile / Contact <span style={{ color: '#dc2626' }}>*</span>
+                  </Typography>
+                  <Box sx={{ position: 'relative' }}>
+                    <PhoneRoundedIcon
+                      sx={{
+                        position: 'absolute',
+                        left: 12,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#94a3b8',
+                        fontSize: 18,
+                      }}
+                    />
+                    <input
+                      type="tel"
+                      value={formPhone}
+                      onChange={(e) => {
+                        setFormPhone(e.target.value)
+                        if (validationErrors.phone) setValidationErrors((prev) => ({ ...prev, phone: '' }))
+                      }}
+                      placeholder="+63 9XX XXX XXXX"
+                      style={{
+                        width: '100%',
+                        height: 40,
+                        paddingLeft: 38,
+                        paddingRight: 12,
+                        borderRadius: 8,
+                        border: `1px solid ${validationErrors.phone ? '#ef4444' : '#cbd5e1'}`,
+                        backgroundColor: '#f8fafc',
+                        fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                        fontSize: '0.8125rem',
+                        color: '#0f172a',
+                        outline: 'none',
+                      }}
+                    />
+                  </Box>
+                  {validationErrors.phone && (
+                    <Typography sx={{ fontSize: '0.6875rem', color: '#dc2626', fontWeight: 600 }}>
+                      {validationErrors.phone}
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+
+              {/* Official Badge ID Code */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
-                  Mobile / Contact <span style={{ color: '#dc2626' }}>*</span>
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
+                    Badge / Employee ID <span style={{ color: '#dc2626' }}>*</span>
+                  </Typography>
+                  <ButtonBase
+                    onClick={handleRegenerateBadge}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      fontSize: '0.6875rem',
+                      fontWeight: 700,
+                      color: '#16a34a',
+                      '&:hover': { textDecoration: 'underline' },
+                    }}
+                  >
+                    <RefreshRoundedIcon sx={{ fontSize: 13 }} />
+                    <span>Generate New ID</span>
+                  </ButtonBase>
+                </Box>
                 <Box sx={{ position: 'relative' }}>
-                  <PhoneRoundedIcon
+                  <BadgeOutlinedIcon
                     sx={{
                       position: 'absolute',
                       left: 12,
@@ -1165,425 +1241,237 @@ export const AdminAccessPage: FC = () => {
                     }}
                   />
                   <input
-                    type="tel"
-                    value={formPhone}
-                    onChange={(e) => {
-                      setFormPhone(e.target.value)
-                      if (validationErrors.phone) setValidationErrors((prev) => ({ ...prev, phone: '' }))
-                    }}
-                    placeholder="+63 9XX XXX XXXX"
+                    type="text"
+                    value={formIdCode}
+                    onChange={(e) => setFormIdCode(e.target.value)}
+                    placeholder="ID-0000-OFC"
                     style={{
                       width: '100%',
                       height: 40,
                       paddingLeft: 38,
                       paddingRight: 12,
                       borderRadius: 8,
-                      border: `1px solid ${validationErrors.phone ? '#ef4444' : '#cbd5e1'}`,
+                      border: '1px solid #cbd5e1',
                       backgroundColor: '#f8fafc',
-                      fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                      fontFamily: 'monospace',
                       fontSize: '0.8125rem',
+                      fontWeight: 700,
                       color: '#0f172a',
                       outline: 'none',
                     }}
                   />
                 </Box>
-                {validationErrors.phone && (
-                  <Typography sx={{ fontSize: '0.6875rem', color: '#dc2626', fontWeight: 600 }}>
-                    {validationErrors.phone}
-                  </Typography>
-                )}
               </Box>
             </Box>
 
-            {/* Official Badge ID Code */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* SECTION 2: Role, Assignment & Facility */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1, borderTop: '1px solid #f1f5f9' }}>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                2. Role &amp; Facility Assignment
+              </Typography>
+
+              {/* Role Selection Tabs (Official & Admin ONLY) */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
+                    Assigned Authority Role
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.6875rem', color: '#16a34a', fontWeight: 700 }}>
+                    {formRole === 'Admin' ? 'Super Admin Privileges' : 'Triage, Inspect & Log E-Waste'}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 1, p: 0.5, borderRadius: '8px', backgroundColor: '#f1f5f9' }}>
+                  <ButtonBase
+                    onClick={() => handleRoleChange('Official')}
+                    disabled={selectedUser?.isSelf}
+                    sx={{
+                      flex: 1,
+                      py: 1.1,
+                      borderRadius: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 0.75,
+                      fontSize: '0.8125rem',
+                      fontWeight: 700,
+                      backgroundColor: formRole === 'Official' ? '#006a61' : 'transparent',
+                      color: formRole === 'Official' ? '#ffffff' : '#475569',
+                      boxShadow: formRole === 'Official' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <FactCheckOutlinedIcon sx={{ fontSize: 16 }} />
+                    <span>Official</span>
+                  </ButtonBase>
+
+                  <ButtonBase
+                    onClick={() => handleRoleChange('Admin')}
+                    sx={{
+                      flex: 1,
+                      py: 1.1,
+                      borderRadius: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 0.75,
+                      fontSize: '0.8125rem',
+                      fontWeight: 700,
+                      backgroundColor: formRole === 'Admin' ? '#16a34a' : 'transparent',
+                      color: formRole === 'Admin' ? '#ffffff' : '#475569',
+                      boxShadow: formRole === 'Admin' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <ShieldRoundedIcon sx={{ fontSize: 16 }} />
+                    <span>Admin</span>
+                  </ButtonBase>
+                </Box>
+              </Box>
+
+              {/* Assigned Facility Dropdown */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                 <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
-                  Badge / Employee ID <span style={{ color: '#dc2626' }}>*</span>
+                  Assigned Barangay Facility / Sector
+                </Typography>
+                <Box sx={{ position: 'relative' }}>
+                  <BusinessRoundedIcon
+                    sx={{
+                      position: 'absolute',
+                      left: 12,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: '#94a3b8',
+                      fontSize: 18,
+                      pointerEvents: 'none',
+                    }}
+                  />
+                  <select
+                    value={formDepartment}
+                    onChange={(e) => setFormDepartment(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: 40,
+                      paddingLeft: 38,
+                      paddingRight: 12,
+                      borderRadius: 8,
+                      border: '1px solid #cbd5e1',
+                      backgroundColor: '#f8fafc',
+                      fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                      fontSize: '0.8125rem',
+                      color: '#0f172a',
+                      outline: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {COMMONWEALTH_FACILITIES.map((fac) => (
+                      <option key={fac} value={fac}>
+                        {fac}
+                      </option>
+                    ))}
+                  </select>
+                </Box>
+              </Box>
+
+              {/* Account Status Selection */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
+                  Account Operational Status
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  {(['Active', 'Suspended', 'Deactivated'] as UserStatus[]).map((st) => {
+                    const isCurrent = formStatus === st
+                    return (
+                      <ButtonBase
+                        key={st}
+                        onClick={() => setFormStatus(st)}
+                        disabled={selectedUser?.isSelf && st !== 'Active'}
+                        sx={{
+                          flex: 1,
+                          py: 0.75,
+                          borderRadius: '6px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          backgroundColor: isCurrent
+                            ? st === 'Active'
+                              ? '#dcfce7'
+                              : st === 'Suspended'
+                                ? '#fef3c7'
+                                : '#fee2e2'
+                            : '#f8fafc',
+                          color: isCurrent
+                            ? st === 'Active'
+                              ? '#15803d'
+                              : st === 'Suspended'
+                                ? '#b45309'
+                                : '#dc2626'
+                            : '#64748b',
+                          border: '1px solid',
+                          borderColor: isCurrent
+                            ? st === 'Active'
+                              ? '#86efac'
+                              : st === 'Suspended'
+                                ? '#fcd34d'
+                                : '#fca5a5'
+                            : '#e2e8f0',
+                        }}
+                      >
+                        {st}
+                      </ButtonBase>
+                    )
+                  })}
+                </Box>
+              </Box>
+            </Box>
+
+            {/* SECTION 3: Security Credentials & Passwords */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1, borderTop: '1px solid #f1f5f9' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  3. Security &amp; Passwords
                 </Typography>
                 <ButtonBase
-                  onClick={handleRegenerateBadge}
+                  onClick={handleGeneratePassword}
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 0.5,
+                    px: 1.25,
+                    py: 0.4,
+                    borderRadius: '6px',
+                    backgroundColor: '#eff4ff',
+                    color: '#1d4ed8',
                     fontSize: '0.6875rem',
                     fontWeight: 700,
-                    color: '#16a34a',
-                    '&:hover': { textDecoration: 'underline' },
+                    border: '1px solid #bfdbfe',
+                    '&:hover': { backgroundColor: '#dbeafe' },
                   }}
                 >
-                  <RefreshRoundedIcon sx={{ fontSize: 13 }} />
-                  <span>Generate New ID</span>
+                  <AutoAwesomeRoundedIcon sx={{ fontSize: 13 }} />
+                  <span>Auto-Generate Password</span>
                 </ButtonBase>
               </Box>
-              <Box sx={{ position: 'relative' }}>
-                <BadgeOutlinedIcon
-                  sx={{
-                    position: 'absolute',
-                    left: 12,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#94a3b8',
-                    fontSize: 18,
-                  }}
-                />
-                <input
-                  type="text"
-                  value={formIdCode}
-                  onChange={(e) => setFormIdCode(e.target.value)}
-                  placeholder="ID-0000-OFC"
-                  style={{
-                    width: '100%',
-                    height: 40,
-                    paddingLeft: 38,
-                    paddingRight: 12,
-                    borderRadius: 8,
-                    border: '1px solid #cbd5e1',
-                    backgroundColor: '#f8fafc',
-                    fontFamily: 'monospace',
-                    fontSize: '0.8125rem',
-                    fontWeight: 700,
-                    color: '#0f172a',
-                    outline: 'none',
-                  }}
-                />
-              </Box>
-            </Box>
-          </Box>
 
-          {/* SECTION 2: Role, Assignment & Facility */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1, borderTop: '1px solid #f1f5f9' }}>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              2. Role &amp; Facility Assignment
-            </Typography>
-
-            {/* Role Selection Tabs */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
-                  Assigned Authority Role
-                </Typography>
-                <Typography sx={{ fontSize: '0.6875rem', color: '#16a34a', fontWeight: 700 }}>
-                  {formRole === 'Admin'
-                    ? 'Super Admin Privileges'
-                    : formRole === 'Staff'
-                      ? 'Drop-off & Community Desk'
-                      : 'Triage, Inspect & Log E-Waste'}
-                </Typography>
-              </Box>
-
-              <Box sx={{ display: 'flex', gap: 1, p: 0.5, borderRadius: '8px', backgroundColor: '#f1f5f9' }}>
-                <ButtonBase
-                  onClick={() => handleRoleChange('Official')}
-                  disabled={selectedUser?.isSelf}
-                  sx={{
-                    flex: 1,
-                    py: 1,
-                    borderRadius: '6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 0.75,
-                    fontSize: '0.8125rem',
-                    fontWeight: 700,
-                    backgroundColor: formRole === 'Official' ? '#006a61' : 'transparent',
-                    color: formRole === 'Official' ? '#ffffff' : '#475569',
-                    boxShadow: formRole === 'Official' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <FactCheckOutlinedIcon sx={{ fontSize: 16 }} />
-                  <span>Official</span>
-                </ButtonBase>
-
-                <ButtonBase
-                  onClick={() => handleRoleChange('Staff')}
-                  disabled={selectedUser?.isSelf}
-                  sx={{
-                    flex: 1,
-                    py: 1,
-                    borderRadius: '6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 0.75,
-                    fontSize: '0.8125rem',
-                    fontWeight: 700,
-                    backgroundColor: formRole === 'Staff' ? '#0284c7' : 'transparent',
-                    color: formRole === 'Staff' ? '#ffffff' : '#475569',
-                    boxShadow: formRole === 'Staff' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <WorkOutlineRoundedIcon sx={{ fontSize: 16 }} />
-                  <span>Staff</span>
-                </ButtonBase>
-
-                <ButtonBase
-                  onClick={() => handleRoleChange('Admin')}
-                  sx={{
-                    flex: 1,
-                    py: 1,
-                    borderRadius: '6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 0.75,
-                    fontSize: '0.8125rem',
-                    fontWeight: 700,
-                    backgroundColor: formRole === 'Admin' ? '#16a34a' : 'transparent',
-                    color: formRole === 'Admin' ? '#ffffff' : '#475569',
-                    boxShadow: formRole === 'Admin' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <ShieldRoundedIcon sx={{ fontSize: 16 }} />
-                  <span>Admin</span>
-                </ButtonBase>
-              </Box>
-            </Box>
-
-            {/* Assigned Facility Dropdown */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
-                Assigned Barangay Facility / Sector
-              </Typography>
-              <Box sx={{ position: 'relative' }}>
-                <BusinessRoundedIcon
-                  sx={{
-                    position: 'absolute',
-                    left: 12,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#94a3b8',
-                    fontSize: 18,
-                    pointerEvents: 'none',
-                  }}
-                />
-                <select
-                  value={formDepartment}
-                  onChange={(e) => setFormDepartment(e.target.value)}
-                  style={{
-                    width: '100%',
-                    height: 40,
-                    paddingLeft: 38,
-                    paddingRight: 12,
-                    borderRadius: 8,
-                    border: '1px solid #cbd5e1',
-                    backgroundColor: '#f8fafc',
-                    fontFamily: "'Rethink Sans', 'Inter', sans-serif",
-                    fontSize: '0.8125rem',
-                    color: '#0f172a',
-                    outline: 'none',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {COMMONWEALTH_FACILITIES.map((fac) => (
-                    <option key={fac} value={fac}>
-                      {fac}
-                    </option>
-                  ))}
-                </select>
-              </Box>
-            </Box>
-
-            {/* Account Status Selection */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
-                Account Operational Status
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                {(['Active', 'Suspended', 'Deactivated'] as UserStatus[]).map((st) => {
-                  const isCurrent = formStatus === st
-                  return (
-                    <ButtonBase
-                      key={st}
-                      onClick={() => setFormStatus(st)}
-                      disabled={selectedUser?.isSelf && st !== 'Active'}
-                      sx={{
-                        flex: 1,
-                        py: 0.75,
-                        borderRadius: '6px',
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        backgroundColor: isCurrent
-                          ? st === 'Active'
-                            ? '#dcfce7'
-                            : st === 'Suspended'
-                              ? '#fef3c7'
-                              : '#fee2e2'
-                          : '#f8fafc',
-                        color: isCurrent
-                          ? st === 'Active'
-                            ? '#15803d'
-                            : st === 'Suspended'
-                              ? '#b45309'
-                              : '#dc2626'
-                          : '#64748b',
-                        border: '1px solid',
-                        borderColor: isCurrent
-                          ? st === 'Active'
-                            ? '#86efac'
-                            : st === 'Suspended'
-                              ? '#fcd34d'
-                              : '#fca5a5'
-                          : '#e2e8f0',
-                      }}
-                    >
-                      {st}
-                    </ButtonBase>
-                  )
-                })}
-              </Box>
-            </Box>
-          </Box>
-
-          {/* SECTION 3: Security Credentials & Passwords */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1, borderTop: '1px solid #f1f5f9' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                3. Security &amp; Passwords
-              </Typography>
-              <ButtonBase
-                onClick={handleGeneratePassword}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  px: 1.25,
-                  py: 0.4,
-                  borderRadius: '6px',
-                  backgroundColor: '#eff4ff',
-                  color: '#1d4ed8',
-                  fontSize: '0.6875rem',
-                  fontWeight: 700,
-                  border: '1px solid #bfdbfe',
-                  '&:hover': { backgroundColor: '#dbeafe' },
-                }}
-              >
-                <AutoAwesomeRoundedIcon sx={{ fontSize: 13 }} />
-                <span>Auto-Generate Password</span>
-              </ButtonBase>
-            </Box>
-
-            {/* Password Input Field */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
-                  {selectedUser ? 'New Password (leave blank to retain current)' : 'Account Password *'}
-                </Typography>
-                {formPassword && (
-                  <Typography
-                    sx={{
-                      fontSize: '0.6875rem',
-                      fontWeight: 800,
-                      color: passwordStrength.color,
-                    }}
-                  >
-                    Strength: {passwordStrength.label}
-                  </Typography>
-                )}
-              </Box>
-              <Box sx={{ position: 'relative' }}>
-                <KeyRoundedIcon
-                  sx={{
-                    position: 'absolute',
-                    left: 12,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#94a3b8',
-                    fontSize: 18,
-                  }}
-                />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={formPassword}
-                  onChange={(e) => {
-                    setFormPassword(e.target.value)
-                    if (validationErrors.password) setValidationErrors((prev) => ({ ...prev, password: '' }))
-                  }}
-                  placeholder={selectedUser ? '••••••••  (Leave blank if unchanged)' : 'Enter strong password (min 8 chars)'}
-                  style={{
-                    width: '100%',
-                    height: 40,
-                    paddingLeft: 38,
-                    paddingRight: 40,
-                    borderRadius: 8,
-                    border: `1px solid ${validationErrors.password ? '#ef4444' : '#cbd5e1'}`,
-                    backgroundColor: '#f8fafc',
-                    fontFamily: showPassword ? "'Rethink Sans', 'Inter', sans-serif" : 'monospace',
-                    fontSize: '0.8125rem',
-                    color: '#0f172a',
-                    outline: 'none',
-                  }}
-                />
-                <ButtonBase
-                  onClick={() => setShowPassword(!showPassword)}
-                  sx={{
-                    position: 'absolute',
-                    right: 8,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    p: 0.5,
-                    borderRadius: '4px',
-                    color: '#64748b',
-                  }}
-                  title={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? (
-                    <VisibilityOffRoundedIcon sx={{ fontSize: 18 }} />
-                  ) : (
-                    <VisibilityRoundedIcon sx={{ fontSize: 18 }} />
-                  )}
-                </ButtonBase>
-              </Box>
-              {validationErrors.password && (
-                <Typography sx={{ fontSize: '0.6875rem', color: '#dc2626', fontWeight: 600 }}>
-                  {validationErrors.password}
-                </Typography>
-              )}
-
-              {/* Password Strength Meter Bar */}
-              {formPassword && (
-                <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5 }}>
-                  {[1, 2, 3, 4].map((step) => (
-                    <Box
-                      key={step}
-                      sx={{
-                        flex: 1,
-                        height: 4,
-                        borderRadius: 2,
-                        backgroundColor: step <= passwordStrength.score ? passwordStrength.color : '#e2e8f0',
-                        transition: 'background-color 0.2s ease',
-                      }}
-                    />
-                  ))}
-                </Box>
-              )}
-            </Box>
-
-            {/* Confirm Password Input Field */}
-            {(formPassword || !selectedUser) && (
+              {/* Password Input Field */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
-                    Confirm Password
+                    {selectedUser ? 'New Password (leave blank to retain current)' : 'Account Password *'}
                   </Typography>
-                  {isPasswordsMatching && (
-                    <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, color: '#16a34a', display: 'flex', alignItems: 'center', gap: 0.25 }}>
-                      <CheckRoundedIcon sx={{ fontSize: 13 }} />
-                      <span>Passwords match</span>
-                    </Typography>
-                  )}
-                  {isPasswordsMismatch && (
-                    <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, color: '#dc2626' }}>
-                      Passwords do not match
+                  {formPassword && (
+                    <Typography
+                      sx={{
+                        fontSize: '0.6875rem',
+                        fontWeight: 800,
+                        color: passwordStrength.color,
+                      }}
+                    >
+                      Strength: {passwordStrength.label}
                     </Typography>
                   )}
                 </Box>
                 <Box sx={{ position: 'relative' }}>
-                  <LockOutlinedIcon
+                  <KeyRoundedIcon
                     sx={{
                       position: 'absolute',
                       left: 12,
@@ -1594,29 +1482,29 @@ export const AdminAccessPage: FC = () => {
                     }}
                   />
                   <input
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    value={formConfirmPassword}
+                    type={showPassword ? 'text' : 'password'}
+                    value={formPassword}
                     onChange={(e) => {
-                      setFormConfirmPassword(e.target.value)
-                      if (validationErrors.confirmPassword) setValidationErrors((prev) => ({ ...prev, confirmPassword: '' }))
+                      setFormPassword(e.target.value)
+                      if (validationErrors.password) setValidationErrors((prev) => ({ ...prev, password: '' }))
                     }}
-                    placeholder="Repeat password to verify"
+                    placeholder={selectedUser ? '••••••••  (Leave blank if unchanged)' : 'Enter strong password (min 8 chars)'}
                     style={{
                       width: '100%',
                       height: 40,
                       paddingLeft: 38,
                       paddingRight: 40,
                       borderRadius: 8,
-                      border: `1px solid ${validationErrors.confirmPassword || isPasswordsMismatch ? '#ef4444' : '#cbd5e1'}`,
+                      border: `1px solid ${validationErrors.password ? '#ef4444' : '#cbd5e1'}`,
                       backgroundColor: '#f8fafc',
-                      fontFamily: showConfirmPassword ? "'Rethink Sans', 'Inter', sans-serif" : 'monospace',
+                      fontFamily: showPassword ? "'Rethink Sans', 'Inter', sans-serif" : 'monospace',
                       fontSize: '0.8125rem',
                       color: '#0f172a',
                       outline: 'none',
                     }}
                   />
                   <ButtonBase
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    onClick={() => setShowPassword(!showPassword)}
                     sx={{
                       position: 'absolute',
                       right: 8,
@@ -1626,99 +1514,207 @@ export const AdminAccessPage: FC = () => {
                       borderRadius: '4px',
                       color: '#64748b',
                     }}
-                    title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    title={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    {showConfirmPassword ? (
+                    {showPassword ? (
                       <VisibilityOffRoundedIcon sx={{ fontSize: 18 }} />
                     ) : (
                       <VisibilityRoundedIcon sx={{ fontSize: 18 }} />
                     )}
                   </ButtonBase>
                 </Box>
-                {validationErrors.confirmPassword && (
+                {validationErrors.password && (
                   <Typography sx={{ fontSize: '0.6875rem', color: '#dc2626', fontWeight: 600 }}>
-                    {validationErrors.confirmPassword}
+                    {validationErrors.password}
                   </Typography>
                 )}
+
+                {/* Password Strength Meter Bar */}
+                {formPassword && (
+                  <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5 }}>
+                    {[1, 2, 3, 4].map((step) => (
+                      <Box
+                        key={step}
+                        sx={{
+                          flex: 1,
+                          height: 4,
+                          borderRadius: 2,
+                          backgroundColor: step <= passwordStrength.score ? passwordStrength.color : '#e2e8f0',
+                          transition: 'background-color 0.2s ease',
+                        }}
+                      />
+                    ))}
+                  </Box>
+                )}
               </Box>
-            )}
 
-            {/* Checkbox Options: Force Password Change & 2FA Enforcement */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 0.5 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
-                <input
-                  type="checkbox"
-                  checked={formMustChangePassword}
-                  onChange={(e) => setFormMustChangePassword(e.target.checked)}
-                  style={{ width: 16, height: 16, accentColor: '#16a34a', cursor: 'pointer' }}
-                />
-                <span style={{ fontSize: '0.75rem', color: '#334155', fontWeight: 600 }}>
-                  Require password reset upon first official sign-in
-                </span>
-              </label>
+              {/* Confirm Password Input Field */}
+              {(formPassword || !selectedUser) && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
+                      Confirm Password
+                    </Typography>
+                    {isPasswordsMatching && (
+                      <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, color: '#16a34a', display: 'flex', alignItems: 'center', gap: 0.25 }}>
+                        <CheckRoundedIcon sx={{ fontSize: 13 }} />
+                        <span>Passwords match</span>
+                      </Typography>
+                    )}
+                    {isPasswordsMismatch && (
+                      <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, color: '#dc2626' }}>
+                        Passwords do not match
+                      </Typography>
+                    )}
+                  </Box>
+                  <Box sx={{ position: 'relative' }}>
+                    <LockOutlinedIcon
+                      sx={{
+                        position: 'absolute',
+                        left: 12,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#94a3b8',
+                        fontSize: 18,
+                      }}
+                    />
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={formConfirmPassword}
+                      onChange={(e) => {
+                        setFormConfirmPassword(e.target.value)
+                        if (validationErrors.confirmPassword) setValidationErrors((prev) => ({ ...prev, confirmPassword: '' }))
+                      }}
+                      placeholder="Repeat password to verify"
+                      style={{
+                        width: '100%',
+                        height: 40,
+                        paddingLeft: 38,
+                        paddingRight: 40,
+                        borderRadius: 8,
+                        border: `1px solid ${validationErrors.confirmPassword || isPasswordsMismatch ? '#ef4444' : '#cbd5e1'}`,
+                        backgroundColor: '#f8fafc',
+                        fontFamily: showConfirmPassword ? "'Rethink Sans', 'Inter', sans-serif" : 'monospace',
+                        fontSize: '0.8125rem',
+                        color: '#0f172a',
+                        outline: 'none',
+                      }}
+                    />
+                    <ButtonBase
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      sx={{
+                        position: 'absolute',
+                        right: 8,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        p: 0.5,
+                        borderRadius: '4px',
+                        color: '#64748b',
+                      }}
+                      title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showConfirmPassword ? (
+                        <VisibilityOffRoundedIcon sx={{ fontSize: 18 }} />
+                      ) : (
+                        <VisibilityRoundedIcon sx={{ fontSize: 18 }} />
+                      )}
+                    </ButtonBase>
+                  </Box>
+                  {validationErrors.confirmPassword && (
+                    <Typography sx={{ fontSize: '0.6875rem', color: '#dc2626', fontWeight: 600 }}>
+                      {validationErrors.confirmPassword}
+                    </Typography>
+                  )}
+                </Box>
+              )}
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
-                <input
-                  type="checkbox"
-                  checked={formTwoFactor}
-                  onChange={(e) => setFormTwoFactor(e.target.checked)}
-                  style={{ width: 16, height: 16, accentColor: '#16a34a', cursor: 'pointer' }}
-                />
-                <span style={{ fontSize: '0.75rem', color: '#334155', fontWeight: 600 }}>
-                  Enforce Two-Factor Authentication (SMS OTP / Authenticator App)
-                </span>
-              </label>
+              {/* Checkbox Options: Force Password Change & 2FA Enforcement */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 0.5 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={formMustChangePassword}
+                    onChange={(e) => setFormMustChangePassword(e.target.checked)}
+                    style={{ width: 16, height: 16, accentColor: '#16a34a', cursor: 'pointer' }}
+                  />
+                  <span style={{ fontSize: '0.75rem', color: '#334155', fontWeight: 600 }}>
+                    Require password reset upon first official sign-in
+                  </span>
+                </label>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={formTwoFactor}
+                    onChange={(e) => setFormTwoFactor(e.target.checked)}
+                    style={{ width: 16, height: 16, accentColor: '#16a34a', cursor: 'pointer' }}
+                  />
+                  <span style={{ fontSize: '0.75rem', color: '#334155', fontWeight: 600 }}>
+                    Enforce Two-Factor Authentication (SMS OTP / Authenticator App)
+                  </span>
+                </label>
+              </Box>
+            </Box>
+
+            {/* SECTION 4: Administrative Notes (Optional) */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, pt: 1, borderTop: '1px solid #f1f5f9' }}>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
+                Administrative Notes &amp; Scope Justification
+              </Typography>
+              <textarea
+                value={formNotes}
+                onChange={(e) => setFormNotes(e.target.value)}
+                placeholder="e.g. Assigned to morning intake triage at Commonwealth MRF; clearance issued by Brgy Captain."
+                rows={2}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                  border: '1px solid #cbd5e1',
+                  backgroundColor: '#f8fafc',
+                  fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                  fontSize: '0.8125rem',
+                  color: '#0f172a',
+                  outline: 'none',
+                  resize: 'vertical',
+                }}
+              />
+            </Box>
+
+            {/* Scope Overview Box */}
+            <Box
+              sx={{
+                p: 1.5,
+                borderRadius: '8px',
+                backgroundColor: '#eff4ff',
+                border: '1px solid #dce9ff',
+              }}
+            >
+              <Typography sx={{ fontSize: '0.625rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
+                Assigned Permissions Scope
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#0f172a', mt: 0.5, lineHeight: 1.4 }}>
+                {formRole === 'Admin'
+                  ? 'Full administrative governance, RBAC management, downstream manifest signing, credential provisioning, and compliance auditing.'
+                  : 'Authorized to inspect incoming e-waste, record battery diagnostics, assign condition grades, and mark units ready for Reuse Hub.'}
+              </Typography>
             </Box>
           </Box>
 
-          {/* SECTION 4: Administrative Notes (Optional) */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, pt: 1, borderTop: '1px solid #f1f5f9' }}>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
-              Administrative Notes &amp; Scope Justification
-            </Typography>
-            <textarea
-              value={formNotes}
-              onChange={(e) => setFormNotes(e.target.value)}
-              placeholder="e.g. Assigned to morning intake triage at Commonwealth MRF; clearance issued by Brgy Captain."
-              rows={2}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                borderRadius: 8,
-                border: '1px solid #cbd5e1',
-                backgroundColor: '#f8fafc',
-                fontFamily: "'Rethink Sans', 'Inter', sans-serif",
-                fontSize: '0.8125rem',
-                color: '#0f172a',
-                outline: 'none',
-                resize: 'vertical',
-              }}
-            />
-          </Box>
-
-          {/* Scope Overview Box */}
+          {/* LOCKED FOOTER & ACTION BUTTONS - FIXED AT BOTTOM */}
           <Box
             sx={{
-              p: 1.5,
-              borderRadius: '8px',
-              backgroundColor: '#eff4ff',
-              border: '1px solid #dce9ff',
+              p: 2.5,
+              pt: 2,
+              borderTop: '1px solid #e2e8f0',
+              backgroundColor: '#ffffff',
+              flexShrink: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1.25,
+              boxShadow: '0 -4px 12px rgba(0,0,0,0.03)',
             }}
           >
-            <Typography sx={{ fontSize: '0.625rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
-              Assigned Permissions Scope
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#0f172a', mt: 0.5, lineHeight: 1.4 }}>
-              {formRole === 'Admin'
-                ? 'Full administrative governance, RBAC management, downstream manifest signing, credential provisioning, and compliance auditing.'
-                : formRole === 'Staff'
-                  ? 'Authorized to welcome residents, log hardware intake, generate reservation tokens, and route items to inspection benches.'
-                  : 'Authorized to inspect incoming e-waste, record battery diagnostics, assign condition grades, and mark units ready for Reuse Hub.'}
-            </Typography>
-          </Box>
-
-          {/* Form Actions & Submission */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, pt: 1 }}>
             <ButtonBase
               onClick={handleSave}
               sx={{
@@ -1788,22 +1784,22 @@ export const AdminAccessPage: FC = () => {
                 <span>Reactivate Official &amp; Issue Fresh Badge</span>
               </ButtonBase>
             )}
-          </Box>
 
-          {/* Panel Footer Note */}
-          <Box
-            sx={{
-              pt: 2,
-              borderTop: '1px solid #e2e8f0',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              fontSize: '0.75rem',
-              color: '#64748b',
-            }}
-          >
-            <span style={{ fontStyle: 'italic' }}>Complies with QC E-Governance Security Mandate</span>
-            <span style={{ fontFamily: 'monospace', fontSize: '0.625rem' }}>SEC-V4.3</span>
+            {/* Compliance Note */}
+            <Box
+              sx={{
+                pt: 1,
+                borderTop: '1px solid #f1f5f9',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: '0.6875rem',
+                color: '#64748b',
+              }}
+            >
+              <span style={{ fontStyle: 'italic' }}>Complies with QC E-Governance Security Mandate</span>
+              <span style={{ fontFamily: 'monospace', fontSize: '0.625rem' }}>SEC-V4.4</span>
+            </Box>
           </Box>
         </Box>
       </Box>
