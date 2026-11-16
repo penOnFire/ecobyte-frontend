@@ -30,6 +30,10 @@ export type UserStatus = 'Active' | 'Suspended' | 'Deactivated'
 export interface OfficialUser {
   id: string
   name: string
+  firstName?: string
+  middleName?: string
+  lastName?: string
+  suffix?: string
   email: string
   phone: string
   idCode: string
@@ -65,6 +69,8 @@ const INITIAL_USERS: OfficialUser[] = [
   {
     id: 'USR-101',
     name: 'Elena Vance',
+    firstName: 'Elena',
+    lastName: 'Vance',
     email: 'elena.vance@ecobyte.gov',
     phone: '+63 917 892 1001',
     idCode: 'ID-0021-ADM',
@@ -80,6 +86,8 @@ const INITIAL_USERS: OfficialUser[] = [
   {
     id: 'USR-102',
     name: 'Sarah Jenkins',
+    firstName: 'Sarah',
+    lastName: 'Jenkins',
     email: 's.jenkins@ecobyte.org',
     phone: '+63 918 440 2190',
     idCode: 'ID-0144-OFC',
@@ -94,6 +102,8 @@ const INITIAL_USERS: OfficialUser[] = [
   {
     id: 'USR-103',
     name: 'Marcus Thorne',
+    firstName: 'Marcus',
+    lastName: 'Thorne',
     email: 'marcus.thorne@ecobyte.org',
     phone: '+63 920 311 8844',
     idCode: 'ID-0182-OFC',
@@ -108,6 +118,9 @@ const INITIAL_USERS: OfficialUser[] = [
   {
     id: 'USR-104',
     name: 'Ramon Del Rosario',
+    firstName: 'Ramon',
+    middleName: 'Del',
+    lastName: 'Rosario',
     email: 'ramon.dr@ecobyte.org',
     phone: '+63 927 765 4321',
     idCode: 'ID-0205-OFC',
@@ -122,6 +135,8 @@ const INITIAL_USERS: OfficialUser[] = [
   {
     id: 'USR-105',
     name: 'Tariq Sterling',
+    firstName: 'Tariq',
+    lastName: 'Sterling',
     email: 'tariq.s@ecobyte.gov',
     phone: '+63 919 654 3210',
     idCode: 'ID-0019-ADM',
@@ -136,6 +151,8 @@ const INITIAL_USERS: OfficialUser[] = [
   {
     id: 'USR-106',
     name: 'Julian Karras',
+    firstName: 'Julian',
+    lastName: 'Karras',
     email: 'j.karras@former-contractor.org',
     phone: '+63 908 112 3344',
     idCode: 'ID-REVOKED',
@@ -170,14 +187,48 @@ function calculatePasswordStrength(pass: string): { score: number; label: string
   return { score: 4, label: 'Strong', color: '#16a34a' }
 }
 
+function parseNameParts(user: OfficialUser): { first: string; middle: string; last: string; suffix: string } {
+  if (user.firstName && user.lastName) {
+    return {
+      first: user.firstName,
+      middle: user.middleName || '',
+      last: user.lastName,
+      suffix: user.suffix || '',
+    }
+  }
+  const parts = user.name.trim().split(/\s+/)
+  if (parts.length === 1) return { first: parts[0], middle: '', last: '', suffix: '' }
+  if (parts.length === 2) return { first: parts[0], middle: '', last: parts[1], suffix: '' }
+
+  const knownSuffixes = ['jr', 'jr.', 'sr', 'sr.', 'ii', 'iii', 'iv', 'v']
+  const lastPart = parts[parts.length - 1]
+  if (knownSuffixes.includes(lastPart.toLowerCase())) {
+    const suffix = lastPart
+    const last = parts[parts.length - 2]
+    const middle = parts.slice(1, parts.length - 2).join(' ')
+    return { first: parts[0], middle, last, suffix }
+  }
+
+  return {
+    first: parts[0],
+    middle: parts.slice(1, parts.length - 1).join(' '),
+    last: parts[parts.length - 1],
+    suffix: '',
+  }
+}
+
 export const AdminAccessPage: FC = () => {
   const [users, setUsers] = useState<OfficialUser[]>(INITIAL_USERS)
   const [selectedUser, setSelectedUser] = useState<OfficialUser | null>(null)
   const [search, setSearch] = useState('')
   const [filterRole, setFilterRole] = useState<'all' | 'admin' | 'official' | 'deactivated'>('all')
 
-  // Form Fields State (Only Official and Admin)
-  const [formName, setFormName] = useState('')
+  // Form Fields State: Separated Name Components
+  const [formFirstName, setFormFirstName] = useState('')
+  const [formMiddleName, setFormMiddleName] = useState('')
+  const [formLastName, setFormLastName] = useState('')
+  const [formSuffix, setFormSuffix] = useState('')
+
   const [formEmail, setFormEmail] = useState('')
   const [formPhone, setFormPhone] = useState('')
   const [formIdCode, setFormIdCode] = useState(generateBadgeId('Official'))
@@ -198,7 +249,12 @@ export const AdminAccessPage: FC = () => {
 
   const handleSelectUser = (user: OfficialUser) => {
     setSelectedUser(user)
-    setFormName(user.name)
+    const { first, middle, last, suffix } = parseNameParts(user)
+    setFormFirstName(first)
+    setFormMiddleName(middle)
+    setFormLastName(last)
+    setFormSuffix(suffix)
+
     setFormEmail(user.email)
     setFormPhone(user.phone)
     setFormIdCode(user.idCode)
@@ -208,7 +264,8 @@ export const AdminAccessPage: FC = () => {
     setFormTwoFactor(user.twoFactorEnabled)
     setFormMustChangePassword(user.mustChangePassword ?? false)
     setFormNotes(user.notes || '')
-    // Reset password fields when selecting an existing user (they can optionally input a new one)
+
+    // Reset password fields when selecting an existing user
     setFormPassword('')
     setFormConfirmPassword('')
     setValidationErrors({})
@@ -217,7 +274,10 @@ export const AdminAccessPage: FC = () => {
 
   const handleResetForm = () => {
     setSelectedUser(null)
-    setFormName('')
+    setFormFirstName('')
+    setFormMiddleName('')
+    setFormLastName('')
+    setFormSuffix('')
     setFormEmail('')
     setFormPhone('')
     setFormIdCode(generateBadgeId('Official'))
@@ -270,10 +330,11 @@ export const AdminAccessPage: FC = () => {
   const validate = (): boolean => {
     const errors: Record<string, string> = {}
 
-    if (!formName.trim()) {
-      errors.name = 'Full name is required.'
-    } else if (formName.trim().length < 2) {
-      errors.name = 'Please provide a valid full name.'
+    if (!formFirstName.trim()) {
+      errors.firstName = 'First name is required.'
+    }
+    if (!formLastName.trim()) {
+      errors.lastName = 'Last name is required.'
     }
 
     if (!formEmail.trim()) {
@@ -301,7 +362,6 @@ export const AdminAccessPage: FC = () => {
         errors.confirmPassword = 'Passwords do not match.'
       }
     } else if (formPassword) {
-      // If updating and entered a new password
       if (formPassword.length < 8) {
         errors.password = 'New password must be at least 8 characters.'
       }
@@ -323,14 +383,18 @@ export const AdminAccessPage: FC = () => {
       return
     }
 
-    const calculatedInitials = formName
-      .trim()
-      .split(' ')
+    const constructedFullName = [
+      formFirstName.trim(),
+      formMiddleName.trim(),
+      formLastName.trim(),
+      formSuffix.trim(),
+    ]
       .filter(Boolean)
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2) || 'OF'
+      .join(' ')
+
+    const calculatedInitials = (
+      (formFirstName.trim()[0] || '') + (formLastName.trim()[0] || '')
+    ).toUpperCase() || 'OF'
 
     if (selectedUser) {
       // Update existing official
@@ -339,7 +403,11 @@ export const AdminAccessPage: FC = () => {
           u.id === selectedUser.id
             ? {
                 ...u,
-                name: formName.trim(),
+                name: constructedFullName,
+                firstName: formFirstName.trim(),
+                middleName: formMiddleName.trim(),
+                lastName: formLastName.trim(),
+                suffix: formSuffix.trim(),
                 email: formEmail.trim(),
                 phone: formPhone.trim(),
                 idCode: formIdCode.trim(),
@@ -357,13 +425,17 @@ export const AdminAccessPage: FC = () => {
       )
       setFeedbackBanner({
         type: 'success',
-        message: `Successfully updated profile & credentials for ${formName.trim()} (${formIdCode}).`,
+        message: `Successfully updated profile & credentials for ${constructedFullName} (${formIdCode}).`,
       })
     } else {
       // Create new official
       const newUser: OfficialUser = {
         id: `USR-${Date.now().toString().slice(-4)}`,
-        name: formName.trim(),
+        name: constructedFullName,
+        firstName: formFirstName.trim(),
+        middleName: formMiddleName.trim(),
+        lastName: formLastName.trim(),
+        suffix: formSuffix.trim(),
         email: formEmail.trim(),
         phone: formPhone.trim(),
         idCode: formIdCode.trim(),
@@ -1064,44 +1136,150 @@ export const AdminAccessPage: FC = () => {
                 1. Personal &amp; Contact Information
               </Typography>
 
-              {/* Official Full Name */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
-                    Full Name <span style={{ color: '#dc2626' }}>*</span>
-                  </Typography>
-                  {validationErrors.name && (
+              {/* Row 1: First Name & Middle Name */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1.4fr 1fr' }, gap: 1.5 }}>
+                {/* First Name */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
+                      First Name <span style={{ color: '#dc2626' }}>*</span>
+                    </Typography>
+                  </Box>
+                  <Box sx={{ position: 'relative' }}>
+                    <PersonOutlineRoundedIcon
+                      sx={{
+                        position: 'absolute',
+                        left: 12,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#94a3b8',
+                        fontSize: 18,
+                      }}
+                    />
+                    <input
+                      type="text"
+                      value={formFirstName}
+                      onChange={(e) => {
+                        setFormFirstName(e.target.value)
+                        if (validationErrors.firstName) setValidationErrors((prev) => ({ ...prev, firstName: '' }))
+                      }}
+                      placeholder="e.g. Kenneth"
+                      style={{
+                        width: '100%',
+                        height: 40,
+                        paddingLeft: 38,
+                        paddingRight: 12,
+                        borderRadius: 8,
+                        border: `1px solid ${validationErrors.firstName ? '#ef4444' : '#cbd5e1'}`,
+                        backgroundColor: '#f8fafc',
+                        fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                        fontSize: '0.8125rem',
+                        color: '#0f172a',
+                        outline: 'none',
+                      }}
+                    />
+                  </Box>
+                  {validationErrors.firstName && (
                     <Typography sx={{ fontSize: '0.6875rem', color: '#dc2626', fontWeight: 600 }}>
-                      {validationErrors.name}
+                      {validationErrors.firstName}
                     </Typography>
                   )}
                 </Box>
-                <Box sx={{ position: 'relative' }}>
-                  <PersonOutlineRoundedIcon
-                    sx={{
-                      position: 'absolute',
-                      left: 12,
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      color: '#94a3b8',
-                      fontSize: 18,
-                    }}
-                  />
+
+                {/* Middle Name */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
+                    Middle Name <span style={{ fontSize: '0.6875rem', color: '#94a3b8', fontWeight: 500 }}>(Optional)</span>
+                  </Typography>
                   <input
                     type="text"
-                    value={formName}
-                    onChange={(e) => {
-                      setFormName(e.target.value)
-                      if (validationErrors.name) setValidationErrors((prev) => ({ ...prev, name: '' }))
-                    }}
-                    placeholder="e.g. Kenneth Adams"
+                    value={formMiddleName}
+                    onChange={(e) => setFormMiddleName(e.target.value)}
+                    placeholder="e.g. Paul"
                     style={{
                       width: '100%',
                       height: 40,
-                      paddingLeft: 38,
+                      paddingLeft: 12,
                       paddingRight: 12,
                       borderRadius: 8,
-                      border: `1px solid ${validationErrors.name ? '#ef4444' : '#cbd5e1'}`,
+                      border: '1px solid #cbd5e1',
+                      backgroundColor: '#f8fafc',
+                      fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                      fontSize: '0.8125rem',
+                      color: '#0f172a',
+                      outline: 'none',
+                    }}
+                  />
+                </Box>
+              </Box>
+
+              {/* Row 2: Last Name & Suffix */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1.4fr 1fr' }, gap: 1.5 }}>
+                {/* Last Name */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
+                      Last Name <span style={{ color: '#dc2626' }}>*</span>
+                    </Typography>
+                  </Box>
+                  <Box sx={{ position: 'relative' }}>
+                    <PersonOutlineRoundedIcon
+                      sx={{
+                        position: 'absolute',
+                        left: 12,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#94a3b8',
+                        fontSize: 18,
+                      }}
+                    />
+                    <input
+                      type="text"
+                      value={formLastName}
+                      onChange={(e) => {
+                        setFormLastName(e.target.value)
+                        if (validationErrors.lastName) setValidationErrors((prev) => ({ ...prev, lastName: '' }))
+                      }}
+                      placeholder="e.g. Adams"
+                      style={{
+                        width: '100%',
+                        height: 40,
+                        paddingLeft: 38,
+                        paddingRight: 12,
+                        borderRadius: 8,
+                        border: `1px solid ${validationErrors.lastName ? '#ef4444' : '#cbd5e1'}`,
+                        backgroundColor: '#f8fafc',
+                        fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                        fontSize: '0.8125rem',
+                        color: '#0f172a',
+                        outline: 'none',
+                      }}
+                    />
+                  </Box>
+                  {validationErrors.lastName && (
+                    <Typography sx={{ fontSize: '0.6875rem', color: '#dc2626', fontWeight: 600 }}>
+                      {validationErrors.lastName}
+                    </Typography>
+                  )}
+                </Box>
+
+                {/* Suffix */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
+                    Suffix <span style={{ fontSize: '0.6875rem', color: '#94a3b8', fontWeight: 500 }}>(e.g. Jr, III)</span>
+                  </Typography>
+                  <input
+                    type="text"
+                    value={formSuffix}
+                    onChange={(e) => setFormSuffix(e.target.value)}
+                    placeholder="Jr., Sr., III"
+                    style={{
+                      width: '100%',
+                      height: 40,
+                      paddingLeft: 12,
+                      paddingRight: 12,
+                      borderRadius: 8,
+                      border: '1px solid #cbd5e1',
                       backgroundColor: '#f8fafc',
                       fontFamily: "'Rethink Sans', 'Inter', sans-serif",
                       fontSize: '0.8125rem',
