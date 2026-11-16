@@ -39,7 +39,10 @@ import { authApi } from '@/lib/api'
 
 export const RegisterPage: FC = () => {
   const navigate = useNavigate()
-  const [fullName, setFullName] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [middleName, setMiddleName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [suffix, setSuffix] = useState('')
   const [email, setEmail] = useState('')
   const [baseNumber, setBaseNumber] = useState('brgy_commonwealth')
   const [purokSitio, setPurokSitio] = useState('Purok 4')
@@ -56,11 +59,30 @@ export const RegisterPage: FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successModalOpen, setSuccessModalOpen] = useState(false)
 
+  const constructedFullName = [
+    firstName.trim(),
+    middleName.trim(),
+    lastName.trim(),
+    suffix.trim(),
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setErrorMessage(null)
 
-    if (!fullName.trim() || !email.trim() || !password.trim()) {
+    if (!firstName.trim()) {
+      setErrorMessage('Please enter your first name.')
+      return
+    }
+
+    if (!lastName.trim()) {
+      setErrorMessage('Please enter your last name.')
+      return
+    }
+
+    if (!email.trim() || !password.trim()) {
       setErrorMessage('Please fill in all required fields.')
       return
     }
@@ -84,7 +106,7 @@ export const RegisterPage: FC = () => {
 
     try {
       const res = await authApi.register({
-        fullName: fullName.trim(),
+        fullName: constructedFullName,
         email: email.trim(),
         phone: phone.trim() || '+63 900 000 0000',
         barangayId: baseNumber,
@@ -94,6 +116,7 @@ export const RegisterPage: FC = () => {
       if (res?.accessToken) {
         localStorage.setItem('ecobyte_token', res.accessToken)
       }
+      localStorage.setItem('ecobyte_user_name', constructedFullName)
 
       // Show registration success confirmation modal
       setSuccessModalOpen(true)
@@ -106,6 +129,7 @@ export const RegisterPage: FC = () => {
       if (isNetworkError) {
         localStorage.setItem('ecobyte_token', `offline_mock_token_resident_${Date.now()}`)
         localStorage.setItem('ecobyte_user_role', 'RESIDENT')
+        localStorage.setItem('ecobyte_user_name', constructedFullName)
         setSuccessModalOpen(true)
         return
       }
@@ -278,33 +302,112 @@ export const RegisterPage: FC = () => {
           )}
 
           <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
-            {/* Full Name */}
-            <Box>
-              <Typography
-                sx={{
-                  fontFamily: "'Quicksand', sans-serif",
-                  fontWeight: 700,
-                  fontSize: '0.75rem',
-                  letterSpacing: '0.06em',
-                  color: '#64748b',
-                  textTransform: 'uppercase',
-                  mb: 0.75,
-                }}
-              >
-                Full Name
-              </Typography>
-              <OutlinedInput
-                fullWidth
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Alex Mercer"
-                startAdornment={
-                  <InputAdornment position="start">
-                    <PersonOutlineRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
-                  </InputAdornment>
-                }
-                sx={{ borderRadius: 1.5 }}
-              />
+            {/* Row 1: First Name & Middle Name */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1.4fr 1fr' }, gap: 1.25 }}>
+              <Box>
+                <Typography
+                  sx={{
+                    fontFamily: "'Quicksand', sans-serif",
+                    fontWeight: 700,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.06em',
+                    color: '#64748b',
+                    textTransform: 'uppercase',
+                    mb: 0.75,
+                  }}
+                >
+                  First Name <span style={{ color: '#dc2626' }}>*</span>
+                </Typography>
+                <OutlinedInput
+                  fullWidth
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="e.g. Alex"
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <PersonOutlineRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
+                    </InputAdornment>
+                  }
+                  sx={{ borderRadius: 1.5 }}
+                />
+              </Box>
+
+              <Box>
+                <Typography
+                  sx={{
+                    fontFamily: "'Quicksand', sans-serif",
+                    fontWeight: 700,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.06em',
+                    color: '#64748b',
+                    textTransform: 'uppercase',
+                    mb: 0.75,
+                  }}
+                >
+                  Middle Name <span style={{ fontSize: '0.6875rem', color: '#94a3b8', textTransform: 'none' }}>(Opt)</span>
+                </Typography>
+                <OutlinedInput
+                  fullWidth
+                  value={middleName}
+                  onChange={(e) => setMiddleName(e.target.value)}
+                  placeholder="e.g. Cruz"
+                  sx={{ borderRadius: 1.5 }}
+                />
+              </Box>
+            </Box>
+
+            {/* Row 2: Last Name & Suffix */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1.4fr 1fr' }, gap: 1.25 }}>
+              <Box>
+                <Typography
+                  sx={{
+                    fontFamily: "'Quicksand', sans-serif",
+                    fontWeight: 700,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.06em',
+                    color: '#64748b',
+                    textTransform: 'uppercase',
+                    mb: 0.75,
+                  }}
+                >
+                  Last Name <span style={{ color: '#dc2626' }}>*</span>
+                </Typography>
+                <OutlinedInput
+                  fullWidth
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="e.g. Mercer"
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <PersonOutlineRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
+                    </InputAdornment>
+                  }
+                  sx={{ borderRadius: 1.5 }}
+                />
+              </Box>
+
+              <Box>
+                <Typography
+                  sx={{
+                    fontFamily: "'Quicksand', sans-serif",
+                    fontWeight: 700,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.06em',
+                    color: '#64748b',
+                    textTransform: 'uppercase',
+                    mb: 0.75,
+                  }}
+                >
+                  Suffix <span style={{ fontSize: '0.6875rem', color: '#94a3b8', textTransform: 'none' }}>(Opt)</span>
+                </Typography>
+                <OutlinedInput
+                  fullWidth
+                  value={suffix}
+                  onChange={(e) => setSuffix(e.target.value)}
+                  placeholder="Jr., III"
+                  sx={{ borderRadius: 1.5 }}
+                />
+              </Box>
             </Box>
 
             {/* Email */}
@@ -774,7 +877,7 @@ export const RegisterPage: FC = () => {
             <Box sx={{ p: 2, borderRadius: '12px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', textAlign: 'left', mb: 1 }}>
               <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>Account Name</Typography>
               <Typography sx={{ fontSize: '0.875rem', fontWeight: 800, color: '#0f172a', mb: 1 }}>
-                {fullName || 'Alex Rivera'}
+                {constructedFullName || 'Alex Rivera'}
               </Typography>
 
               <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>Resident Address</Typography>
