@@ -30,6 +30,18 @@ const TILE_URLS = {
   topo: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
 }
 
+const BASE_SHORT_NAMES: Record<number, string> = {
+  1: 'Brgy Hall',
+  2: 'Pangako',
+  3: 'Payatas',
+  4: 'Litex',
+  5: 'Market',
+  6: 'Pilot',
+  7: 'Batasan',
+  8: 'Don Fabian',
+  9: 'Veterans',
+}
+
 interface CommonwealthLeafletMapProps {
   sites: DropOffSite[]
   selectedSiteId: string
@@ -576,71 +588,131 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
         />
       </Box>
 
-      {/* ── 3. Bottom Partition Selector Bar (OUTSIDE the map) ── */}
+      {/* ── 3. Bottom Partition Selector (Non-scrollable, all 9 choices visible at once) ── */}
       <Box
         sx={{
           backgroundColor: '#ffffff',
-          borderRadius: 2,
+          borderRadius: 2.5,
           border: '1.5px solid #0f172a',
-          py: 0.6,
-          px: 1,
+          p: { xs: 1, sm: 1.25 },
+          boxShadow: '0 2px 6px rgba(15,23,42,0.06)',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          flexDirection: 'column',
           gap: 0.75,
-          overflowX: 'auto',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
         }}
       >
-        <Typography
+        {/* Header row: title and selected partition name */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 0.25 }}>
+          <Typography
+            sx={{
+              fontFamily: "'Quicksand', sans-serif",
+              fontSize: '0.6875rem',
+              fontWeight: 800,
+              color: '#0f172a',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+            }}
+          >
+            Base Partitions (All 9 Areas):
+          </Typography>
+          <Typography
+            noWrap
+            sx={{
+              fontFamily: "'Quicksand', sans-serif",
+              fontSize: '0.6875rem',
+              fontWeight: 700,
+              color: selectedPartition ? '#166534' : '#64748b',
+              maxWidth: { xs: '55%', sm: '70%' },
+            }}
+          >
+            {selectedPartition ? `Active: Base ${selectedPartition.num} • ${selectedPartition.name}` : 'Tap a base to inspect'}
+          </Typography>
+        </Box>
+
+        {/* 9-Column Choice Grid: All 9 choices fit simultaneously with ZERO horizontal scroll */}
+        <Box
           sx={{
-            fontFamily: "'Quicksand', sans-serif",
-            fontSize: '0.6875rem',
-            fontWeight: 800,
-            color: '#0f172a',
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-            whiteSpace: 'nowrap',
-            mr: 0.5,
+            display: 'grid',
+            gridTemplateColumns: 'repeat(9, 1fr)',
+            gap: { xs: 0.5, sm: 0.75 },
+            width: '100%',
           }}
         >
-          Base Partitions:
-        </Typography>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           {COMMONWEALTH_PARTITIONS.map((partition) => {
             const isSelected = partition.id === selectedSiteId
             const isHovered = partition.id === hoveredPartitionId
+            const shortName = BASE_SHORT_NAMES[partition.num] || `Base ${partition.num}`
+
             return (
-              <Tooltip key={partition.id} title={`Base ${partition.num}: ${partition.name}`} arrow>
+              <Tooltip
+                key={partition.id}
+                title={`Base ${partition.num}: ${partition.name}`}
+                arrow
+                placement="top"
+              >
                 <Box
                   onClick={() => onSelectSite(partition.id)}
                   onMouseEnter={() => setHoveredPartitionId(partition.id)}
                   onMouseLeave={() => setHoveredPartitionId(null)}
                   sx={{
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    gap: 0.4,
-                    px: 0.75,
-                    py: 0.25,
-                    borderRadius: 1.25,
+                    justifyContent: 'center',
+                    py: { xs: 0.65, sm: 0.85 },
+                    px: 0.25,
+                    borderRadius: 1.5,
                     cursor: 'pointer',
-                    border: isSelected ? '1.5px solid #0f172a' : '1px solid #e2e8f0',
+                    border: isSelected ? '2px solid #0f172a' : '1px solid #cbd5e1',
                     backgroundColor: isSelected ? '#0f172a' : isHovered ? '#f1f5f9' : '#ffffff',
+                    color: isSelected ? '#abf06b' : '#0f172a',
                     transition: 'all 0.15s ease',
-                    '&:hover': { transform: 'translateY(-1px)' },
+                    boxShadow: isSelected ? '0 2px 6px rgba(15,23,42,0.2)' : 'none',
+                    '&:hover': {
+                      borderColor: '#0f172a',
+                      transform: 'translateY(-1px)',
+                    },
                   }}
                 >
                   <Typography
                     sx={{
                       fontFamily: "'Quicksand', sans-serif",
-                      fontSize: '0.6875rem',
-                      fontWeight: 800,
-                      color: isSelected ? '#abf06b' : '#0f172a',
-                      whiteSpace: 'nowrap',
+                      fontSize: { xs: '0.5625rem', sm: '0.625rem' },
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.02em',
+                      lineHeight: 1,
+                      opacity: isSelected ? 0.9 : 0.6,
+                      mb: 0.25,
                     }}
                   >
-                    Base {partition.num}
+                    Base
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: "'Quicksand', sans-serif",
+                      fontSize: { xs: '0.875rem', sm: '1rem' },
+                      fontWeight: 800,
+                      lineHeight: 1.1,
+                      color: isSelected ? '#abf06b' : '#0f172a',
+                    }}
+                  >
+                    {partition.num}
+                  </Typography>
+                  <Typography
+                    noWrap
+                    sx={{
+                      fontFamily: "'Quicksand', sans-serif",
+                      fontSize: '0.5625rem',
+                      fontWeight: 600,
+                      lineHeight: 1,
+                      mt: 0.35,
+                      color: isSelected ? '#ffffff' : '#64748b',
+                      maxWidth: '100%',
+                      display: { xs: 'none', sm: 'block' },
+                    }}
+                  >
+                    {shortName}
                   </Typography>
                 </Box>
               </Tooltip>
