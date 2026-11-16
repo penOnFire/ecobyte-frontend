@@ -8,7 +8,7 @@ import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined'
 import CropFreeRoundedIcon from '@mui/icons-material/CropFreeRounded'
 import type { DropOffSite } from '@/types'
 
-// High-precision boundary perimeter for Barangay Commonwealth, Quezon City
+// Precise boundary perimeter for Barangay Commonwealth, Quezon City
 const COMMONWEALTH_POLYGON: [number, number][] = [
   [14.719, 121.104], // Litex Junction / North Apex
   [14.7175, 121.1085], // Payatas North Boundary
@@ -29,12 +29,12 @@ const COMMONWEALTH_POLYGON: [number, number][] = [
   [14.719, 121.104], // Loop closure
 ]
 
-// Inverted world ring mask to black-out / isolate everything outside Commonwealth
+// Web Mercator full world boundary ring for inverted masking
 const WORLD_MASK_RING: [number, number][] = [
-  [-90, -180],
-  [-90, 180],
-  [90, 180],
-  [90, -180],
+  [-85.0511, -180],
+  [-85.0511, 180],
+  [85.0511, 180],
+  [85.0511, -180],
 ]
 
 // 100% Free, Public Tile Servers (ZERO API Key Required)
@@ -74,7 +74,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
     const map = mapInstanceRef.current
     if (!map) return
     const bounds = L.latLngBounds(COMMONWEALTH_POLYGON)
-    map.fitBounds(bounds, { padding: [14, 14], maxZoom: 15.5 })
+    map.fitBounds(bounds, { padding: [16, 16], maxZoom: 15.5 })
   }
 
   // Initialize Map with Boundary Isolation & Masking
@@ -84,13 +84,18 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
 
     const bounds = L.latLngBounds(COMMONWEALTH_POLYGON)
 
+    // Wide-padded SVG renderer ensures the mask polygon never clips when dragging
+    const wideMaskRenderer = L.svg({ padding: 3.0 })
+
     const map = L.map(mapContainerRef.current, {
       center: bounds.getCenter(),
       zoom: 14.5,
       minZoom: 13.5,
       maxZoom: 18,
-      maxBounds: bounds.pad(0.04), // Lock bounds strictly to Commonwealth perimeter
-      maxBoundsViscosity: 1.0, // Stiff bounce if user drags outside
+      maxBounds: bounds.pad(0.06), // Keep navigation strictly locked to Commonwealth
+      maxBoundsViscosity: 0.85, // Smooth repulsion without jerky rubber-banding
+      inertia: true,
+      inertiaDeceleration: 3000,
       zoomControl: false,
       attributionControl: false,
     })
@@ -103,33 +108,36 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
 
     tileLayerRef.current = tileLayer
 
-    // Inverted Mask: blackout all regions outside Barangay Commonwealth
+    // Inverted Mask: light, clean, airy off-white/pale slate veil (#f1f5f9)
+    // Masks everything outside Commonwealth without looking heavy or cramped
     L.polygon([WORLD_MASK_RING, COMMONWEALTH_POLYGON], {
-      fillColor: '#090d16',
-      fillOpacity: 0.92,
+      fillColor: '#f1f5f9',
+      fillOpacity: 0.9,
       stroke: false,
       interactive: false,
+      renderer: wideMaskRenderer,
     }).addTo(map)
 
-    // Glowing Neon Boundary Outline for Barangay Commonwealth
+    // Clean, crisp boundary stroke for Barangay Commonwealth
     L.polygon(COMMONWEALTH_POLYGON, {
-      color: '#abf06b',
-      weight: 3,
-      opacity: 1,
+      color: '#0f172a',
+      weight: 2.5,
+      opacity: 0.8,
       fill: false,
       dashArray: '6, 6',
       interactive: false,
+      renderer: wideMaskRenderer,
     }).addTo(map)
 
     mapInstanceRef.current = map
 
     // Ensure initial fit
-    map.fitBounds(bounds, { padding: [14, 14] })
+    map.fitBounds(bounds, { padding: [16, 16] })
 
     // Invalidate size once rendered inside flex layout
     setTimeout(() => {
       map.invalidateSize()
-      map.fitBounds(bounds, { padding: [14, 14] })
+      map.fitBounds(bounds, { padding: [16, 16] })
     }, 250)
 
     return () => {
@@ -173,7 +181,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
             border-radius: 50%;
             background-color: ${isSelected ? '#abf06b' : '#0f172a'};
             border: ${isSelected ? '3px solid #0f172a' : '2px solid #abf06b'};
-            box-shadow: ${isSelected ? '0 0 0 5px rgba(171, 240, 107, 0.45), 0 4px 12px rgba(0,0,0,0.6)' : '0 2px 6px rgba(0,0,0,0.4)'};
+            box-shadow: ${isSelected ? '0 0 0 5px rgba(171, 240, 107, 0.45), 0 4px 12px rgba(0,0,0,0.4)' : '0 2px 6px rgba(0,0,0,0.25)'};
             display: flex;
             align-items: center;
             justify-content: center;
@@ -197,7 +205,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
                   margin-top: 3px;
                   white-space: nowrap;
                   border: 1px solid #334155;
-                  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+                  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
                 ">${site.name.split(' ')[0]} ${site.name.split(' ')[1] || ''}</div>`
               : ''
           }
@@ -314,7 +322,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
                 border-radius: 50%;
                 background-color: #0284c7;
                 border: 3px solid #ffffff;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
               "></div>
             </div>
           `,
@@ -342,9 +350,9 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
         height,
         borderRadius: 2,
         overflow: 'hidden',
-        border: '1.5px solid #1e293b',
-        boxShadow: '0 4px 14px rgba(15,23,42,0.2)',
-        backgroundColor: '#090d16',
+        border: '1px solid #e2e8f0',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+        backgroundColor: '#f1f5f9',
       }}
     >
       {/* Map Container */}
@@ -353,9 +361,10 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
         sx={{
           width: '100%',
           height: '100%',
+          backgroundColor: '#f1f5f9',
           '& .leaflet-popup-content-wrapper': {
             borderRadius: '12px',
-            boxShadow: '0 8px 24px rgba(15,23,42,0.3)',
+            boxShadow: '0 8px 24px rgba(15,23,42,0.18)',
             padding: '2px',
           },
           '& .leaflet-popup-tip': {
@@ -364,24 +373,23 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
         }}
       />
 
-      {/* Top Banner Tag: Isolated Commonwealth Territory */}
+      {/* Top Banner Tag: Clean White Badge with Green Dot */}
       <Box
         sx={{
           position: 'absolute',
           top: 10,
           left: 10,
           zIndex: 1000,
-          backgroundColor: 'rgba(9, 13, 22, 0.92)',
-          backdropFilter: 'blur(8px)',
-          color: '#abf06b',
+          backgroundColor: '#ffffff',
+          color: '#0f172a',
           px: 1.25,
           py: 0.45,
           borderRadius: 9999,
-          border: '1px solid rgba(171, 240, 107, 0.35)',
+          border: '1px solid #e2e8f0',
           display: 'flex',
           alignItems: 'center',
           gap: 0.75,
-          boxShadow: '0 2px 10px rgba(0,0,0,0.4)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
         }}
       >
         <Box
@@ -389,8 +397,8 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
             width: 7,
             height: 7,
             borderRadius: '50%',
-            backgroundColor: '#abf06b',
-            boxShadow: '0 0 8px #abf06b',
+            backgroundColor: '#16a34a',
+            boxShadow: '0 0 6px rgba(22,163,74,0.5)',
           }}
         />
         <Typography
@@ -398,11 +406,11 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
             fontFamily: "'Quicksand', sans-serif",
             fontWeight: 800,
             fontSize: '0.6875rem',
-            color: '#abf06b',
+            color: '#0f172a',
             letterSpacing: '0.02em',
           }}
         >
-          Barangay Commonwealth Scope (9 Bases)
+          Barangay Commonwealth (9 Active Bases)
         </Typography>
       </Box>
 
@@ -426,12 +434,11 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
             sx={{
               width: 32,
               height: 32,
-              backgroundColor: 'rgba(9, 13, 22, 0.92)',
-              backdropFilter: 'blur(4px)',
-              color: '#abf06b',
-              border: '1px solid rgba(255,255,255,0.15)',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-              '&:hover': { backgroundColor: '#0f172a' },
+              backgroundColor: '#ffffff',
+              color: '#0f172a',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+              '&:hover': { backgroundColor: '#f8fafc' },
             }}
           >
             <CropFreeRoundedIcon sx={{ fontSize: 16 }} />
@@ -447,12 +454,11 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
               sx={{
                 width: 32,
                 height: 32,
-                backgroundColor: 'rgba(9, 13, 22, 0.92)',
-                backdropFilter: 'blur(4px)',
-                color: userLocation ? '#38bdf8' : '#ffffff',
-                border: '1px solid rgba(255,255,255,0.15)',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                '&:hover': { backgroundColor: '#0f172a' },
+                backgroundColor: '#ffffff',
+                color: userLocation ? '#0284c7' : '#0f172a',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                '&:hover': { backgroundColor: '#f8fafc' },
               }}
             >
               <MyLocationRoundedIcon sx={{ fontSize: 16 }} />
@@ -468,12 +474,11 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
             sx={{
               width: 32,
               height: 32,
-              backgroundColor: 'rgba(9, 13, 22, 0.92)',
-              backdropFilter: 'blur(4px)',
-              color: '#ffffff',
-              border: '1px solid rgba(255,255,255,0.15)',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-              '&:hover': { backgroundColor: '#0f172a' },
+              backgroundColor: '#ffffff',
+              color: '#0f172a',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+              '&:hover': { backgroundColor: '#f8fafc' },
             }}
           >
             <LayersOutlinedIcon sx={{ fontSize: 16 }} />
@@ -487,12 +492,11 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
           sx={{
             width: 32,
             height: 32,
-            backgroundColor: 'rgba(9, 13, 22, 0.92)',
-            backdropFilter: 'blur(4px)',
-            color: '#ffffff',
-            border: '1px solid rgba(255,255,255,0.15)',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-            '&:hover': { backgroundColor: '#0f172a' },
+            backgroundColor: '#ffffff',
+            color: '#0f172a',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+            '&:hover': { backgroundColor: '#f8fafc' },
           }}
         >
           <ZoomInRoundedIcon sx={{ fontSize: 16 }} />
@@ -505,12 +509,11 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
           sx={{
             width: 32,
             height: 32,
-            backgroundColor: 'rgba(9, 13, 22, 0.92)',
-            backdropFilter: 'blur(4px)',
-            color: '#ffffff',
-            border: '1px solid rgba(255,255,255,0.15)',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-            '&:hover': { backgroundColor: '#0f172a' },
+            backgroundColor: '#ffffff',
+            color: '#0f172a',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+            '&:hover': { backgroundColor: '#f8fafc' },
           }}
         >
           <ZoomOutRoundedIcon sx={{ fontSize: 16 }} />
@@ -524,23 +527,24 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
           bottom: 8,
           left: 10,
           zIndex: 1000,
-          backgroundColor: 'rgba(9, 13, 22, 0.88)',
+          backgroundColor: 'rgba(255, 255, 255, 0.94)',
           backdropFilter: 'blur(4px)',
           px: 1.1,
           py: 0.35,
           borderRadius: 1.5,
-          border: '1px solid rgba(255,255,255,0.12)',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
         }}
       >
         <Typography
           sx={{
             fontFamily: "'Quicksand', sans-serif",
             fontSize: '0.6875rem',
-            color: '#ffffff',
+            color: '#475569',
             fontWeight: 700,
           }}
         >
-          Isolated to Barangay Commonwealth (9 drop-off bases)
+          Barangay Commonwealth drop-off zone
         </Typography>
       </Box>
     </Box>
