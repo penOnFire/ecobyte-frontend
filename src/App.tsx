@@ -1,6 +1,7 @@
-import type { FC } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import type { FC, ReactNode } from 'react'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
+import { LandingPage } from '@/pages/LandingPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { SignInPage } from '@/pages/SignInPage'
 import { RegisterPage } from '@/pages/RegisterPage'
@@ -24,104 +25,143 @@ import { AdminReuseHubPage } from '@/pages/admin/AdminReuseHubPage'
 import { AdminDisposalPage } from '@/pages/admin/AdminDisposalPage'
 import { AdminAccessPage } from '@/pages/admin/AdminAccessPage'
 
+const RequireAuth: FC<{ children: ReactNode; requireAdmin?: boolean }> = ({
+  children,
+  requireAdmin = false,
+}) => {
+  const location = useLocation()
+  const token =
+    typeof window !== 'undefined' ? window.localStorage.getItem('ecobyte_token') : null
+  if (!token) {
+    const target = `${location.pathname}${location.search}`
+    return <Navigate to={`/signin?redirect=${encodeURIComponent(target)}`} replace />
+  }
+  if (requireAdmin && window.localStorage.getItem('ecobyte_user_role') !== 'ADMIN') {
+    return <Navigate to="/dashboard" replace />
+  }
+  return <>{children}</>
+}
+
 export const App: FC = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Auth Routes (Default Entry: Starts at Login) */}
-        <Route path="/" element={<Navigate to="/signin" replace />} />
+        {/* Public Landing Page & Auth Routes */}
+        <Route path="/" element={<LandingPage />} />
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/login" element={<Navigate to="/signin" replace />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* Core Mobile Application Routes (Wrapped in AppShell) */}
+        {/* Core Mobile Application Routes (Wrapped in RequireAuth + AppShell) */}
         <Route
           path="/dashboard"
           element={
-            <AppShell>
-              <DashboardPage />
-            </AppShell>
+            <RequireAuth>
+              <AppShell>
+                <DashboardPage />
+              </AppShell>
+            </RequireAuth>
           }
         />
         <Route path="/home" element={<Navigate to="/dashboard" replace />} />
         <Route
           path="/scan"
           element={
-            <AppShell>
-              <ScanDevicePage />
-            </AppShell>
+            <RequireAuth>
+              <AppShell>
+                <ScanDevicePage />
+              </AppShell>
+            </RequireAuth>
           }
         />
         <Route
           path="/assess"
           element={
-            <AppShell>
-              <AddDetailsPage />
-            </AppShell>
+            <RequireAuth>
+              <AppShell>
+                <AddDetailsPage />
+              </AppShell>
+            </RequireAuth>
           }
         />
         <Route
           path="/diagnostic"
           element={
-            <AppShell>
-              <AiDiagnosticPage />
-            </AppShell>
+            <RequireAuth>
+              <AppShell>
+                <AiDiagnosticPage />
+              </AppShell>
+            </RequireAuth>
           }
         />
         <Route
           path="/reuse-guide"
           element={
-            <AppShell>
-              <ReuseRepairGuidePage />
-            </AppShell>
+            <RequireAuth>
+              <AppShell>
+                <ReuseRepairGuidePage />
+              </AppShell>
+            </RequireAuth>
           }
         />
         <Route
           path="/reuse"
           element={
-            <AppShell>
-              <ReuseHubPage />
-            </AppShell>
+            <RequireAuth>
+              <AppShell>
+                <ReuseHubPage />
+              </AppShell>
+            </RequireAuth>
           }
         />
         <Route
           path="/reuse/:id"
           element={
-            <AppShell>
-              <ReuseItemDetailPage />
-            </AppShell>
+            <RequireAuth>
+              <AppShell>
+                <ReuseItemDetailPage />
+              </AppShell>
+            </RequireAuth>
           }
         />
         <Route
           path="/confirm-reservation"
           element={
-            <AppShell>
-              <ConfirmReservationPage />
-            </AppShell>
+            <RequireAuth>
+              <AppShell>
+                <ConfirmReservationPage />
+              </AppShell>
+            </RequireAuth>
           }
         />
         <Route
           path="/reservation-code"
           element={
-            <AppShell>
-              <ReservationPassPage />
-            </AppShell>
+            <RequireAuth>
+              <AppShell>
+                <ReservationPassPage />
+              </AppShell>
+            </RequireAuth>
           }
         />
         <Route
           path="/proof-of-claim"
           element={
-            <AppShell>
-              <ProofOfClaimPage />
-            </AppShell>
+            <RequireAuth>
+              <AppShell>
+                <ProofOfClaimPage />
+              </AppShell>
+            </RequireAuth>
           }
         />
         <Route
           path="/drop-offs"
           element={
-            <AppShell>
-              <DropOffFinderPage />
-            </AppShell>
+            <RequireAuth>
+              <AppShell>
+                <DropOffFinderPage />
+              </AppShell>
+            </RequireAuth>
           }
         />
         <Route path="/dropoffs" element={<Navigate to="/drop-offs" replace />} />
@@ -130,9 +170,11 @@ export const App: FC = () => {
         <Route
           path="/dropoff-schedule"
           element={
-            <AppShell>
-              <DropoffSchedulerPage />
-            </AppShell>
+            <RequireAuth>
+              <AppShell>
+                <DropoffSchedulerPage />
+              </AppShell>
+            </RequireAuth>
           }
         />
         <Route path="/schedule-dropoff" element={<Navigate to="/dropoff-schedule" replace />} />
@@ -141,75 +183,93 @@ export const App: FC = () => {
         <Route
           path="/requests"
           element={
-            <AppShell>
-              <MyRequestsPage />
-            </AppShell>
+            <RequireAuth>
+              <AppShell>
+                <MyRequestsPage />
+              </AppShell>
+            </RequireAuth>
           }
         />
 
-        {/* Desktop Admin Portal Routes (Wrapped in AdminShell) */}
+        {/* Desktop Admin Portal Routes (Wrapped in RequireAuth + AdminShell) */}
         <Route
           path="/admin"
           element={
-            <AdminShell>
-              <AdminDashboardPage />
-            </AdminShell>
+            <RequireAuth requireAdmin>
+              <AdminShell>
+                <AdminDashboardPage />
+              </AdminShell>
+            </RequireAuth>
           }
         />
         <Route
           path="/admin/dashboard"
           element={
-            <AdminShell>
-              <AdminDashboardPage />
-            </AdminShell>
+            <RequireAuth requireAdmin>
+              <AdminShell>
+                <AdminDashboardPage />
+              </AdminShell>
+            </RequireAuth>
           }
         />
         <Route
           path="/admin/to-inspect"
           element={
-            <AdminShell>
-              <AdminToInspectPage />
-            </AdminShell>
+            <RequireAuth requireAdmin>
+              <AdminShell>
+                <AdminToInspectPage />
+              </AdminShell>
+            </RequireAuth>
           }
         />
         <Route
           path="/admin/inspect"
           element={
-            <AdminShell>
-              <AdminPhysicalInspectionPage />
-            </AdminShell>
+            <RequireAuth requireAdmin>
+              <AdminShell>
+                <AdminPhysicalInspectionPage />
+              </AdminShell>
+            </RequireAuth>
           }
         />
         <Route
           path="/admin/inspect/:id"
           element={
-            <AdminShell>
-              <AdminPhysicalInspectionPage />
-            </AdminShell>
+            <RequireAuth requireAdmin>
+              <AdminShell>
+                <AdminPhysicalInspectionPage />
+              </AdminShell>
+            </RequireAuth>
           }
         />
         <Route
           path="/admin/reuse-hub"
           element={
-            <AdminShell>
-              <AdminReuseHubPage />
-            </AdminShell>
+            <RequireAuth requireAdmin>
+              <AdminShell>
+                <AdminReuseHubPage />
+              </AdminShell>
+            </RequireAuth>
           }
         />
         <Route
           path="/admin/disposal"
           element={
-            <AdminShell>
-              <AdminDisposalPage />
-            </AdminShell>
+            <RequireAuth requireAdmin>
+              <AdminShell>
+                <AdminDisposalPage />
+              </AdminShell>
+            </RequireAuth>
           }
         />
         <Route
           path="/admin/access"
           element={
-            <AdminShell>
-              <AdminAccessPage />
-            </AdminShell>
+            <RequireAuth requireAdmin>
+              <AdminShell>
+                <AdminAccessPage />
+              </AdminShell>
+            </RequireAuth>
           }
         />
 

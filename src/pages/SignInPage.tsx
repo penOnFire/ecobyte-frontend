@@ -20,21 +20,29 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined'
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import LockRoundedIcon from '@mui/icons-material/LockRounded'
 import AppleIcon from '@mui/icons-material/Apple'
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined'
-import { useNavigate } from 'react-router-dom'
+import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom'
 import ecobyteLogo from '@/assets/ui/ecobyte_logo.svg'
 import { authApi } from '@/lib/api'
 
 export const SignInPage: FC = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const rawRedirect = searchParams.get('redirect')
+  const safeRedirect =
+    rawRedirect && rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')
+      ? rawRedirect
+      : null
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -66,7 +74,9 @@ export const SignInPage: FC = () => {
 
       localStorage.setItem('ecobyte_user_role', isAdmin ? 'ADMIN' : 'RESIDENT')
 
-      if (isAdmin) {
+      if (safeRedirect && (isAdmin || !safeRedirect.startsWith('/admin'))) {
+        navigate(safeRedirect, { replace: true })
+      } else if (isAdmin) {
         navigate('/admin')
       } else {
         navigate('/dashboard')
@@ -88,7 +98,9 @@ export const SignInPage: FC = () => {
         localStorage.setItem('ecobyte_token', `offline_mock_token_${isAdmin ? 'admin' : 'resident'}`)
         localStorage.setItem('ecobyte_user_role', isAdmin ? 'ADMIN' : 'RESIDENT')
 
-        if (isAdmin) {
+        if (safeRedirect && (isAdmin || !safeRedirect.startsWith('/admin'))) {
+          navigate(safeRedirect, { replace: true })
+        } else if (isAdmin) {
           navigate('/admin')
         } else {
           navigate('/dashboard')
@@ -119,6 +131,38 @@ export const SignInPage: FC = () => {
       }}
     >
       <Container maxWidth="xs" disableGutters>
+        {/* Back to Landing Page Link */}
+        <Box sx={{ mb: 2.5 }}>
+          <Link
+            component={RouterLink}
+            to="/"
+            underline="none"
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 0.75,
+              px: 1.5,
+              py: 0.75,
+              borderRadius: '12px',
+              backgroundColor: '#ffffff',
+              border: '1.5px solid #dce4dc',
+              borderBottom: '3px solid #c1cdc1',
+              fontFamily: "'Quicksand', sans-serif",
+              fontWeight: 700,
+              fontSize: '0.8125rem',
+              color: '#0f172a',
+              transition: 'all 0.15s ease',
+              '&:hover': {
+                backgroundColor: '#eef3ed',
+                borderColor: '#4f5f4b',
+              },
+            }}
+          >
+            <ArrowBackRoundedIcon sx={{ fontSize: 16, color: '#4f5f4b' }} />
+            Back to EcoByte Home
+          </Link>
+        </Box>
+
         {/* Brand */}
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
           <Box
