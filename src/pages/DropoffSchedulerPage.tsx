@@ -29,12 +29,105 @@ import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded'
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined'
 import NavigationRoundedIcon from '@mui/icons-material/NavigationRounded'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { dropoffsApi } from '@/lib/api'
 import type { DropOffSite } from '@/types'
 import { CommonwealthLeafletMap } from '@/components/map/CommonwealthLeafletMap'
-import { COMMONWEALTH_FALLBACK_SITES } from '@/components/map/commonwealthData'
+import { COMMONWEALTH_FALLBACK_SITES, findPartitionForSite } from '@/components/map/commonwealthData'
+
+function formatIsoDate(year: number, monthIndex: number, day: number): string {
+  const mm = String(monthIndex + 1).padStart(2, '0')
+  const dd = String(day).padStart(2, '0')
+  return `${year}-${mm}-${dd}`
+}
+
+function getTodayIso(): { iso: string; year: number; month: number } {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth()
+  const day = now.getDate()
+  return { iso: formatIsoDate(year, month, day), year, month }
+}
+
+function formatReadableDate(isoDate: string, style: 'long' | 'short' = 'long'): string {
+  const [y, m, d] = isoDate.split('-').map(Number)
+  if (!y || !m || !d) return isoDate
+  const utc = new Date(Date.UTC(y, m - 1, d))
+  return new Intl.DateTimeFormat('en-US', {
+    month: style === 'long' ? 'long' : 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(utc)
+}
+
+function formatMonthYear(year: number, monthIndex: number): string {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(year, monthIndex, 1)))
+}
+
+interface CalendarCell {
+  key: string
+  day: number
+  isoDate: string
+  inCurrentMonth: boolean
+  isPast: boolean
+}
+
+function buildMonthGrid(year: number, monthIndex: number, todayIso: string): CalendarCell[] {
+  const firstDayOfWeek = new Date(Date.UTC(year, monthIndex, 1)).getUTCDay()
+  // Monday-first offset (Mo=0 .. Su=6)
+  const leadingEmpty = (firstDayOfWeek + 6) % 7
+  const daysInMonth = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate()
+  const prevMonthYear = monthIndex === 0 ? year - 1 : year
+  const prevMonthIndex = monthIndex === 0 ? 11 : monthIndex - 1
+  const daysInPrevMonth = new Date(Date.UTC(prevMonthYear, prevMonthIndex + 1, 0)).getUTCDate()
+
+  const cells: CalendarCell[] = []
+
+  for (let i = leadingEmpty - 1; i >= 0; i--) {
+    const day = daysInPrevMonth - i
+    const isoDate = formatIsoDate(prevMonthYear, prevMonthIndex, day)
+    cells.push({
+      key: `prev-${isoDate}`,
+      day,
+      isoDate,
+      inCurrentMonth: false,
+      isPast: true,
+    })
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const isoDate = formatIsoDate(year, monthIndex, day)
+    cells.push({
+      key: `curr-${isoDate}`,
+      day,
+      isoDate,
+      inCurrentMonth: true,
+      isPast: isoDate < todayIso,
+    })
+  }
+
+  const nextMonthYear = monthIndex === 11 ? year + 1 : year
+  const nextMonthIndex = monthIndex === 11 ? 0 : monthIndex + 1
+  const trailingCount = (7 - (cells.length % 7)) % 7
+  for (let day = 1; day <= trailingCount; day++) {
+    const isoDate = formatIsoDate(nextMonthYear, nextMonthIndex, day)
+    cells.push({
+      key: `next-${isoDate}`,
+      day,
+      isoDate,
+      inCurrentMonth: false,
+      isPast: isoDate < todayIso,
+    })
+  }
+
+  return cells
+}
 
 const TIME_WINDOWS = [
   {
@@ -62,9 +155,19 @@ const TIME_WINDOWS = [
 
 export const DropoffSchedulerPage: FC = () => {
   const navigate = useNavigate()
-  const [selectedDate, setSelectedDate] = useState(25)
+  const [searchParams] = useSearchParams()
+  const requestedSiteParam = searchParams.get('siteId') || ''
+
+  const [todayInfo] = useState(() => getTodayIso())
+  const [viewedMonth, setViewedMonth] = useState(() => ({
+    year: todayInfo.year,
+    month: todayInfo.month,
+  }))
+  const [selectedDateStr, setSelectedDateStr] = useState(() => todayInfo.iso)
   const [selectedWindow, setSelectedWindow] = useState('afternoon')
-  const [selectedHub, setSelectedHub] = useState<string>('commonwealth-mrf-area1')
+  const [selectedHub, setSelectedHub] = useState<string>(
+    () => requestedSiteParam || 'site_commonwealth_area1'
+  )
   const [sites, setSites] = useState<DropOffSite[]>(COMMONWEALTH_FALLBACK_SITES)
   const [isLoadingSites, setIsLoadingSites] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -79,19 +182,29 @@ export const DropoffSchedulerPage: FC = () => {
       .then((data) => {
         if (!isMounted) return
         if (data && data.length > 0) {
-          // Enrich with coordinates from Commonwealth fallback if missing
           const enriched = data.map((d, i) => {
-            const fallback = COMMONWEALTH_FALLBACK_SITES[i % COMMONWEALTH_FALLBACK_SITES.length]
+            const partition = findPartitionForSite(d.id, d.name, i)
+            const fallback =
+              COMMONWEALTH_FALLBACK_SITES[(partition?.num ?? i + 1) - 1] ||
+              COMMONWEALTH_FALLBACK_SITES[i % COMMONWEALTH_FALLBACK_SITES.length]
             return {
               ...d,
-              coordinates: d.coordinates || fallback.coordinates,
+              coordinates: partition
+                ? { lat: partition.center[0], lng: partition.center[1] }
+                : d.coordinates || fallback.coordinates,
               hazmatAccredited: d.hazmatAccredited ?? fallback.hazmatAccredited,
             }
           })
           setSites(enriched)
-          if (!selectedHub && enriched.length > 0) {
-            setSelectedHub(enriched[0].id)
-          }
+          setSelectedHub((prev) => {
+            if (requestedSiteParam && enriched.some((s) => s.id === requestedSiteParam)) {
+              return requestedSiteParam
+            }
+            if (enriched.some((s) => s.id === prev)) {
+              return prev
+            }
+            return enriched[0].id
+          })
         }
       })
       .catch((err) => {
@@ -104,7 +217,30 @@ export const DropoffSchedulerPage: FC = () => {
     return () => {
       isMounted = false
     }
-  }, [selectedHub])
+  }, [requestedSiteParam])
+
+  const isAtCurrentMonth =
+    viewedMonth.year === todayInfo.year && viewedMonth.month === todayInfo.month
+
+  const handlePrevMonth = () => {
+    if (isAtCurrentMonth) return
+    setViewedMonth((prev) =>
+      prev.month === 0
+        ? { year: prev.year - 1, month: 11 }
+        : { year: prev.year, month: prev.month - 1 }
+    )
+  }
+
+  const handleNextMonth = () => {
+    setViewedMonth((prev) =>
+      prev.month === 11
+        ? { year: prev.year + 1, month: 0 }
+        : { year: prev.year, month: prev.month + 1 }
+    )
+  }
+
+  const calendarCells = buildMonthGrid(viewedMonth.year, viewedMonth.month, todayInfo.iso)
+  const viewedMonthLabel = formatMonthYear(viewedMonth.year, viewedMonth.month)
 
   const handleLocateUser = () => {
     if (!navigator.geolocation) {
@@ -147,12 +283,11 @@ export const DropoffSchedulerPage: FC = () => {
   const handleConfirmSchedule = async () => {
     setIsSubmitting(true)
     const siteToBook = currentSite
-    const paddedDay = String(selectedDate).padStart(2, '0')
 
     try {
       await dropoffsApi.scheduleIntake({
         siteId: siteToBook.id,
-        scheduledDate: `2026-10-${paddedDay}`,
+        scheduledDate: selectedDateStr,
         timeSlot: selectedWindow,
         courierOrSelf: 'SELF_DROPOFF',
       })
@@ -492,7 +627,7 @@ export const DropoffSchedulerPage: FC = () => {
             </Typography>
           </Box>
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
-            October 2026
+            {viewedMonthLabel}
           </Typography>
         </Box>
 
@@ -500,13 +635,24 @@ export const DropoffSchedulerPage: FC = () => {
           {/* Calendar header */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
-              October 2026
+              {viewedMonthLabel}
             </Typography>
             <Box sx={{ display: 'flex', gap: 0.5 }}>
-              <IconButton size="small" aria-label="Previous month" sx={{ color: '#64748b' }}>
+              <IconButton
+                size="small"
+                onClick={handlePrevMonth}
+                disabled={isAtCurrentMonth}
+                aria-label="Previous month"
+                sx={{ color: isAtCurrentMonth ? '#cbd5e1' : '#0f172a' }}
+              >
                 <ChevronLeftRoundedIcon sx={{ fontSize: 20 }} />
               </IconButton>
-              <IconButton size="small" aria-label="Next month" sx={{ color: '#64748b' }}>
+              <IconButton
+                size="small"
+                onClick={handleNextMonth}
+                aria-label="Next month"
+                sx={{ color: '#0f172a' }}
+              >
                 <ChevronRightRoundedIcon sx={{ fontSize: 20 }} />
               </IconButton>
             </Box>
@@ -523,28 +669,41 @@ export const DropoffSchedulerPage: FC = () => {
 
           {/* Dates grid */}
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.5, textAlign: 'center' }}>
-            <Typography sx={{ py: 0.75, fontSize: '0.75rem', color: '#cbd5e1' }}>28</Typography>
-            <Typography sx={{ py: 0.75, fontSize: '0.75rem', color: '#cbd5e1' }}>29</Typography>
-            <Typography sx={{ py: 0.75, fontSize: '0.75rem', color: '#cbd5e1' }}>30</Typography>
-            <Typography sx={{ py: 0.75, fontSize: '0.75rem', color: '#94a3b8' }}>1</Typography>
-            <Typography sx={{ py: 0.75, fontSize: '0.75rem', color: '#94a3b8' }}>2</Typography>
-            <Typography sx={{ py: 0.75, fontSize: '0.75rem', color: '#94a3b8' }}>3</Typography>
-            <Typography sx={{ py: 0.75, fontSize: '0.75rem', color: '#94a3b8' }}>4</Typography>
+            {calendarCells.map((cell) => {
+              const isSelectable = cell.inCurrentMonth && !cell.isPast
+              const isSelected = cell.isoDate === selectedDateStr
 
-            <Typography sx={{ py: 0.75, fontSize: '0.75rem', color: '#94a3b8' }}>19</Typography>
-            <Typography sx={{ py: 0.75, fontSize: '0.75rem', color: '#94a3b8' }}>20</Typography>
-            <Typography sx={{ py: 0.75, fontSize: '0.75rem', color: '#94a3b8' }}>21</Typography>
-            <Typography sx={{ py: 0.75, fontSize: '0.75rem', color: '#94a3b8' }}>22</Typography>
-            <Typography sx={{ py: 0.75, fontSize: '0.75rem', color: '#94a3b8' }}>23</Typography>
-            <Typography sx={{ py: 0.75, fontSize: '0.75rem', color: '#94a3b8' }}>24</Typography>
+              if (!isSelectable) {
+                return (
+                  <Box
+                    key={cell.key}
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mx: 'auto',
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontFamily: "'Quicksand', sans-serif",
+                        fontSize: '0.75rem',
+                        color: cell.inCurrentMonth ? '#94a3b8' : '#cbd5e1',
+                        fontWeight: 500,
+                      }}
+                    >
+                      {cell.day}
+                    </Typography>
+                  </Box>
+                )
+              }
 
-            {/* Dates: 25 to 31 */}
-            {[25, 26, 27, 28, 29, 30, 31].map((day) => {
-              const isSelected = selectedDate === day
               return (
                 <Box
-                  key={day}
-                  onClick={() => setSelectedDate(day)}
+                  key={cell.key}
+                  onClick={() => setSelectedDateStr(cell.isoDate)}
                   sx={{
                     width: 32,
                     height: 32,
@@ -566,7 +725,7 @@ export const DropoffSchedulerPage: FC = () => {
                   }}
                 >
                   <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem', lineHeight: 1 }}>
-                    {day}
+                    {cell.day}
                   </Typography>
                   <Box
                     sx={{
@@ -601,7 +760,7 @@ export const DropoffSchedulerPage: FC = () => {
               </Box>
             </Box>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem', color: '#0f172a' }}>
-              Date: October {selectedDate}, 2026
+              Date: {formatReadableDate(selectedDateStr, 'long')}
             </Typography>
           </Box>
         </Card>
@@ -682,7 +841,7 @@ export const DropoffSchedulerPage: FC = () => {
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
             <span style={{ color: '#64748b' }}>Scheduled Slot:</span>
-            <strong style={{ color: '#0f172a' }}>Oct {selectedDate}, 2026 ({currentWindow.hours})</strong>
+            <strong style={{ color: '#0f172a' }}>{formatReadableDate(selectedDateStr, 'short')} ({currentWindow.hours})</strong>
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
             <span style={{ color: '#64748b' }}>Hazmat Category:</span>

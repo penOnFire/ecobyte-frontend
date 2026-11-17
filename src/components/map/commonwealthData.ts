@@ -1776,3 +1776,41 @@ export const COMMONWEALTH_FALLBACK_SITES: DropOffSite[] = [
   },
 ]
 
+export function resolveSiteBaseNumber(
+  siteId?: string,
+  siteName?: string,
+): number | null {
+  if (siteId) {
+    const exact = COMMONWEALTH_PARTITIONS.find((p) => p.id === siteId)
+    if (exact) return exact.num
+    const areaIdMatch = /(?:area|base)[\s_-]*(\d+)/i.exec(siteId)
+    if (areaIdMatch) {
+      const n = Number(areaIdMatch[1])
+      if (n >= 1 && n <= COMMONWEALTH_PARTITIONS.length) return n
+    }
+  }
+  if (siteName) {
+    const nameMatch = /(?:area|base)[\s_-]*(\d+)/i.exec(siteName)
+    if (nameMatch) {
+      const n = Number(nameMatch[1])
+      if (n >= 1 && n <= COMMONWEALTH_PARTITIONS.length) return n
+    }
+  }
+  return null
+}
+
+export function findPartitionForSite(
+  siteId?: string,
+  siteName?: string,
+  fallbackIndex?: number,
+): CommonwealthPartition | undefined {
+  const num = resolveSiteBaseNumber(siteId, siteName)
+  if (num !== null) {
+    return COMMONWEALTH_PARTITIONS.find((p) => p.num === num)
+  }
+  if (typeof fallbackIndex === 'number' && fallbackIndex >= 0) {
+    return COMMONWEALTH_PARTITIONS[fallbackIndex % COMMONWEALTH_PARTITIONS.length]
+  }
+  return undefined
+}
+

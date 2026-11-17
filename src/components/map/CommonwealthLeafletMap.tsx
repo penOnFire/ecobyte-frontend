@@ -21,6 +21,7 @@ import {
   COMMONWEALTH_BOUNDARY,
   COMMONWEALTH_PARTITIONS,
   WORLD_MASK_RING,
+  findPartitionForSite,
   type CommonwealthPartition,
 } from './commonwealthData'
 
@@ -63,14 +64,26 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
 
   const onSelectSiteRef = useRef(onSelectSite)
   const selectedSiteIdRef = useRef(selectedSiteId)
+  const sitesRef = useRef(sites)
 
   useEffect(() => {
     onSelectSiteRef.current = onSelectSite
     selectedSiteIdRef.current = selectedSiteId
-  }, [onSelectSite, selectedSiteId])
+    sitesRef.current = sites
+  }, [onSelectSite, selectedSiteId, sites])
 
-  const selectedSite = sites.find((s) => s.id === selectedSiteId)
-  const selectedPartition = COMMONWEALTH_PARTITIONS.find((p) => p.id === selectedSiteId)
+  const selectedSiteIndex = sites.findIndex((s) => s.id === selectedSiteId)
+  const selectedSite = selectedSiteIndex >= 0 ? sites[selectedSiteIndex] : undefined
+  const selectedPartition = selectedSite
+    ? findPartitionForSite(selectedSite.id, selectedSite.name, selectedSiteIndex)
+    : findPartitionForSite(selectedSiteId)
+
+  const resolveSiteIdForPartition = (partition: CommonwealthPartition): string => {
+    const matched = sitesRef.current.find(
+      (s, idx) => findPartitionForSite(s.id, s.name, idx)?.num === partition.num
+    )
+    return matched ? matched.id : partition.id
+  }
 
   // Reset strictly to Barangay Commonwealth boundary bounds
   const fitCommonwealthBounds = () => {
@@ -155,9 +168,9 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
         }
       })
 
-      // Click partition to select base
+      // Click partition to select matching site
       poly.on('click', () => {
-        onSelectSiteRef.current(partition.id)
+        onSelectSiteRef.current(resolveSiteIdForPartition(partition))
       })
 
       // Clean Tooltip
@@ -237,11 +250,12 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
 
   // Sync Partition Styling when Selection Changes (Lines Only — No Green Fill)
   useEffect(() => {
+    const activeNum = selectedPartition?.num
     COMMONWEALTH_PARTITIONS.forEach((partition: CommonwealthPartition) => {
       const poly = polygonsRef.current[partition.id]
       if (!poly) return
 
-      const isSelected = partition.id === selectedSiteId
+      const isSelected = activeNum !== undefined && partition.num === activeNum
       poly.setStyle({
         fill: false, // Never apply green highlight
         color: isSelected ? '#0f172a' : '#475569',
@@ -253,7 +267,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
         poly.bringToFront()
       }
     })
-  }, [selectedSiteId])
+  }, [selectedPartition?.num])
 
   // Sync Base Markers for Sites
   useEffect(() => {
@@ -263,12 +277,12 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
     Object.values(markersRef.current).forEach((m) => m.remove())
     markersRef.current = {}
 
-    sites.forEach((site) => {
+    sites.forEach((site, idx) => {
       if (!site.coordinates) return
 
       const isSelected = site.id === selectedSiteId
-      const partition = COMMONWEALTH_PARTITIONS.find((p) => p.id === site.id)
-      const baseNum = partition?.num ?? 1
+      const partition = findPartitionForSite(site.id, site.name, idx)
+      const baseNum = partition?.num ?? idx + 1
 
       const markerHtml = `
         <div style="position: relative; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
@@ -625,7 +639,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
           }}
         >
           {COMMONWEALTH_PARTITIONS.map((partition) => {
-            const isSelected = partition.id === selectedSiteId
+            const isSelected = selectedPartition?.num === partition.num
             const isHovered = partition.id === hoveredPartitionId
 
             return (
@@ -636,7 +650,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
                 placement="top"
               >
                 <Box
-                  onClick={() => onSelectSite(partition.id)}
+                  onClick={() => onSelectSite(resolveSiteIdForPartition(partition))}
                   onMouseEnter={() => setHoveredPartitionId(partition.id)}
                   onMouseLeave={() => setHoveredPartitionId(null)}
                   sx={{
