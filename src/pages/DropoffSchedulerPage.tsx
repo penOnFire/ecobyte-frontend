@@ -157,6 +157,8 @@ export const DropoffSchedulerPage: FC = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const requestedSiteParam = searchParams.get('siteId') || ''
+  const requestIdParam = searchParams.get('requestId') || ''
+  const isRescheduling = Boolean(requestIdParam)
 
   const [todayInfo] = useState(() => getTodayIso())
   const [viewedMonth, setViewedMonth] = useState(() => ({
@@ -285,12 +287,21 @@ export const DropoffSchedulerPage: FC = () => {
     const siteToBook = currentSite
 
     try {
-      await dropoffsApi.scheduleIntake({
-        siteId: siteToBook.id,
-        scheduledDate: selectedDateStr,
-        timeSlot: selectedWindow,
-        courierOrSelf: 'SELF_DROPOFF',
-      })
+      if (requestIdParam) {
+        await dropoffsApi.rescheduleIntake(requestIdParam, {
+          siteId: siteToBook.id,
+          scheduledDate: selectedDateStr,
+          timeSlot: selectedWindow,
+          courierOrSelf: 'SELF_DROPOFF',
+        })
+      } else {
+        await dropoffsApi.scheduleIntake({
+          siteId: siteToBook.id,
+          scheduledDate: selectedDateStr,
+          timeSlot: selectedWindow,
+          courierOrSelf: 'SELF_DROPOFF',
+        })
+      }
       localStorage.removeItem('ecobyte_ongoing_requests')
       navigate('/requests?tab=ongoing')
     } catch (err: any) {
@@ -328,10 +339,12 @@ export const DropoffSchedulerPage: FC = () => {
 
           <Box>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', lineHeight: 1.2 }}>
-              Schedule Hazardous Drop-off
+              {isRescheduling ? `Reschedule Request #${requestIdParam}` : 'Schedule Hazardous Drop-off'}
             </Typography>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#64748b' }}>
-              Barangay Commonwealth • 9 Accredited Bases
+              {isRescheduling
+                ? 'Update your drop-off base, date, and time window'
+                : 'Barangay Commonwealth • 9 Accredited Bases'}
             </Typography>
           </Box>
         </Box>
@@ -871,7 +884,13 @@ export const DropoffSchedulerPage: FC = () => {
             '&:hover': { backgroundColor: '#1e293b' },
           }}
         >
-          {isSubmitting ? 'Confirming Drop-off with Commonwealth Hub...' : 'Confirm Drop-off Schedule'}
+          {isSubmitting
+            ? isRescheduling
+              ? 'Updating Drop-off Schedule...'
+              : 'Confirming Drop-off with Commonwealth Hub...'
+            : isRescheduling
+              ? 'Save New Drop-off Schedule'
+              : 'Confirm Drop-off Schedule'}
         </Button>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.75, mt: 1.25 }}>

@@ -360,7 +360,9 @@ export const MyRequestsPage: FC = () => {
                 </Button>
               </Card>
             ) : (
-              ongoing.map((req) => (
+              ongoing.map((req) => {
+                const canReschedule = req.status === 'Scheduled' || req.status === 'Under review'
+                return (
                 <Card
                   key={req.requestId}
                   sx={{
@@ -369,11 +371,15 @@ export const MyRequestsPage: FC = () => {
                     border: '1px solid #e2e8f0',
                     backgroundColor: '#ffffff',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                    cursor: 'pointer',
+                    cursor: canReschedule ? 'pointer' : 'default',
                     transition: 'all 0.15s ease',
-                    '&:hover': { borderColor: '#0f172a' },
+                    '&:hover': canReschedule ? { borderColor: '#0f172a' } : {},
                   }}
-                  onClick={() => navigate('/schedule-dropoff')}
+                  onClick={() => {
+                    if (canReschedule) {
+                      navigate(`/schedule-dropoff?requestId=${encodeURIComponent(req.requestId)}`)
+                    }
+                  }}
                 >
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
                     <Box>
@@ -443,21 +449,37 @@ export const MyRequestsPage: FC = () => {
                     />
                   </Box>
 
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 1 }}>
-                    <CalendarTodayOutlinedIcon sx={{ fontSize: 14, color: '#64748b' }} />
-                    <Typography
-                      sx={{
-                        fontFamily: "'Quicksand', sans-serif",
-                        fontSize: '0.6875rem',
-                        color: '#64748b',
-                        fontWeight: 500,
-                      }}
-                    >
-                      {req.scheduledSlot}
-                    </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mt: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
+                      <CalendarTodayOutlinedIcon sx={{ fontSize: 14, color: '#64748b', flexShrink: 0 }} />
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontSize: '0.6875rem',
+                          color: '#64748b',
+                          fontWeight: 500,
+                        }}
+                      >
+                        {req.scheduledSlot}
+                      </Typography>
+                    </Box>
+                    {canReschedule && (
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontSize: '0.6875rem',
+                          color: '#15803d',
+                          fontWeight: 700,
+                          flexShrink: 0,
+                        }}
+                      >
+                        Change date &gt;
+                      </Typography>
+                    )}
                   </Box>
                 </Card>
-              ))
+                )
+              })
             )}
           </Box>
         </>
