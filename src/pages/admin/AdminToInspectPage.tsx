@@ -1,5 +1,5 @@
-import { useState, type FC } from 'react'
-import { Box, ButtonBase, Typography } from '@mui/material'
+import { useCallback, useEffect, useState, type FC } from 'react'
+import { Alert, Box, ButtonBase, CircularProgress, Snackbar, Typography } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import PendingActionsRoundedIcon from '@mui/icons-material/PendingActionsRounded'
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded'
@@ -14,102 +14,171 @@ import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
 import SchemaRoundedIcon from '@mui/icons-material/SchemaRounded'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
+import {
+  adminApi,
+  type AdminCollectionRequest,
+  type AdminInspectionQueueItem,
+} from '@/lib/api'
 
-interface QueueItem {
-  id: string
-  name: string
-  serial: string
-  specs: string
-  date: string
-  relativeDate: string
-  risk: 'High Risk' | 'Medium Risk' | 'Low Risk'
-  suggestion: string
-  icon: typeof LaptopMacRoundedIcon
+function resolveCategoryIcon(category?: string, name?: string) {
+  const lower = `${category || ''} ${name || ''}`.toLowerCase()
+  if (lower.includes('battery') || lower.includes('lipo') || lower.includes('lithium')) {
+    return BatteryAlertRoundedIcon
+  }
+  if (lower.includes('server') || lower.includes('rack')) return DnsRoundedIcon
+  if (lower.includes('router') || lower.includes('switch') || lower.includes('network')) {
+    return HubRoundedIcon
+  }
+  if (lower.includes('phone') || lower.includes('scanner') || lower.includes('tablet')) {
+    return QrCodeScannerRoundedIcon
+  }
+  return LaptopMacRoundedIcon
 }
-
-const QUEUE_ITEMS: QueueItem[] = [
-  {
-    id: 'AP-882194-X',
-    name: 'MacBook Pro 15" Retina',
-    serial: 'SN: AP-882194-X',
-    specs: 'Core i7, 16GB',
-    date: 'Oct 22, 2024',
-    relativeDate: '4 days ago',
-    risk: 'High Risk',
-    suggestion: 'Battery swelling detected, recommend hazardous disposal or battery replacement',
-    icon: LaptopMacRoundedIcon,
-  },
-  {
-    id: 'DE-552011-R',
-    name: 'Dell PowerEdge R740xd',
-    serial: 'SN: DE-552011-R',
-    specs: '2U Chassis',
-    date: 'Oct 23, 2024',
-    relativeDate: '3 days ago',
-    risk: 'Low Risk',
-    suggestion: 'Fully intact chassis, suitable for enterprise refurbishing and reuse',
-    icon: DnsRoundedIcon,
-  },
-  {
-    id: 'CS-00914-SW',
-    name: 'Cisco Catalyst 3850',
-    serial: 'SN: CS-00914-SW',
-    specs: '48-Port PoE',
-    date: 'Oct 24, 2024',
-    relativeDate: '2 days ago',
-    risk: 'Low Risk',
-    suggestion: 'Power supply intact, factory reset verified, route to Reuse Hub',
-    icon: HubRoundedIcon,
-  },
-  {
-    id: 'ZB-4410-X',
-    name: 'Zebra TC52x Scanner',
-    serial: 'SN: ZB-4410-X',
-    specs: 'Android Handheld',
-    date: 'Oct 25, 2024',
-    relativeDate: '1 day ago',
-    risk: 'Medium Risk',
-    suggestion: 'Minor display scuff, check barcode imager functionality',
-    icon: QrCodeScannerRoundedIcon,
-  },
-  {
-    id: 'DJI-TB60-993',
-    name: 'DJI Matrice 300 TB60',
-    serial: 'SN: DJI-TB60-993',
-    specs: 'LiPo Smart Battery',
-    date: 'Oct 25, 2024',
-    relativeDate: '1 day ago',
-    risk: 'High Risk',
-    suggestion: 'Thermal deformation detected, immediate battery isolation required',
-    icon: BatteryAlertRoundedIcon,
-  },
-  {
-    id: 'LN-991204-C',
-    name: 'Lenovo ThinkPad X1 Carbon',
-    serial: 'SN: LN-991204-C',
-    specs: '8th Gen i5',
-    date: 'Oct 26, 2024',
-    relativeDate: 'Today',
-    risk: 'Low Risk',
-    suggestion: 'Clean cosmetic condition, test display backlight and keyboard',
-    icon: LaptopMacRoundedIcon,
-  },
-]
 
 export const AdminToInspectPage: FC = () => {
   const navigate = useNavigate()
   const [filter, setFilter] = useState<'waiting' | 'inspected' | 'all'>('waiting')
   const [search, setSearch] = useState('')
+  const [requests, setRequests] = useState<AdminCollectionRequest[]>([])
+  const [queueItems, setQueueItems] = useState<AdminInspectionQueueItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [busyRequestId, setBusyRequestId] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ message: string; severity: 'success' | 'error' } | null>(null)
 
-  const filteredItems = QUEUE_ITEMS.filter((item) => {
+  const fetchIntakeQueue = useCallback(async () => {
+    const [reqs, items] = await Promise.all([
+      adminApi.getRequests(),
+      adminApi.getInspectionQueue('all'),
+    ])
+    return { reqs, items }
+  }, [])
+
+  const loadData = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      const { reqs, items } = await fetchIntakeQueue()
+      setRequests(reqs)
+      setQueueItems(items)
+    } catch (err: any) {
+      console.error('Failed to load admin intake queue:', err)
+      setToast({
+        message: err?.message || 'Unable to load intake requests from the backend.',
+        severity: 'error',
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }, [fetchIntakeQueue])
+
+  useEffect(() => {
+    let active = true
+    fetchIntakeQueue()
+      .then(({ reqs, items }) => {
+        if (!active) return
+        setRequests(reqs)
+        setQueueItems(items)
+      })
+      .catch((err: any) => {
+        if (!active) return
+        console.error('Failed to load admin intake queue:', err)
+        setToast({
+          message: err?.message || 'Unable to load intake requests from the backend.',
+          severity: 'error',
+        })
+      })
+      .finally(() => {
+        if (active) setIsLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [fetchIntakeQueue])
+
+  const isWaitingRequest = (req: AdminCollectionRequest) => {
+    const s = (req.status || '').toLowerCase()
+    return s === 'pending_review' || s === 'scheduled' || s === 'collected'
+  }
+
+  const isInspectedRequest = (req: AdminCollectionRequest) => {
+    const s = (req.status || '').toLowerCase()
+    return s === 'turned_over' || s === 'completed'
+  }
+
+  const waitingRequestsCount = requests.filter(isWaitingRequest).length
+  const inspectedRequestsCount = requests.filter(isInspectedRequest).length
+  const waitingItemsCount = queueItems.filter((i) => i.queueBucket !== 'inspected').length
+  const inspectedItemsCount = queueItems.filter((i) => i.queueBucket === 'inspected').length
+
+  const totalWaitingCount = waitingRequestsCount + waitingItemsCount
+  const totalInspectedCount = inspectedRequestsCount + inspectedItemsCount
+  const highRiskCount = queueItems.filter(
+    (i) => i.queueBucket !== 'inspected' && i.risk === 'High Risk'
+  ).length
+
+  const filteredRequests = requests.filter((req) => {
+    if (filter === 'waiting' && !isWaitingRequest(req)) return false
+    if (filter === 'inspected' && !isInspectedRequest(req)) return false
+    if (!search.trim()) return true
+    const q = search.toLowerCase()
+    return (
+      req.requestCode.toLowerCase().includes(q) ||
+      req.residentName.toLowerCase().includes(q) ||
+      req.residentEmail.toLowerCase().includes(q) ||
+      req.siteName.toLowerCase().includes(q) ||
+      req.scheduledSlot.toLowerCase().includes(q)
+    )
+  })
+
+  const filteredItems = queueItems.filter((item) => {
+    if (filter === 'waiting' && item.queueBucket === 'inspected') return false
+    if (filter === 'inspected' && item.queueBucket !== 'inspected') return false
     if (!search.trim()) return true
     const q = search.toLowerCase()
     return (
       item.name.toLowerCase().includes(q) ||
       item.serial.toLowerCase().includes(q) ||
+      item.specs.toLowerCase().includes(q) ||
       item.suggestion.toLowerCase().includes(q)
     )
   })
+
+  const handleMarkCollected = async (req: AdminCollectionRequest) => {
+    setBusyRequestId(req.id)
+    try {
+      await adminApi.updateRequestStatus(req.id, 'collected')
+      setToast({
+        message: `${req.requestCode} marked as Collected at Barangay Hub.`,
+        severity: 'success',
+      })
+      await loadData()
+    } catch (err: any) {
+      setToast({
+        message: err?.message || 'Failed to update request status.',
+        severity: 'error',
+      })
+    } finally {
+      setBusyRequestId(null)
+    }
+  }
+
+  const handleInspectRequest = async (req: AdminCollectionRequest) => {
+    if (req.linkedItemId) {
+      navigate(`/admin/inspect?item=${req.linkedItemId}`)
+      return
+    }
+    setBusyRequestId(req.id)
+    try {
+      const res = await adminApi.startRequestInspection(req.id)
+      navigate(`/admin/inspect?item=${res.itemId}`)
+    } catch (err: any) {
+      setToast({
+        message: err?.message || 'Unable to start physical inspection for this request.',
+        severity: 'error',
+      })
+      setBusyRequestId(null)
+    }
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5, pb: 4 }}>
@@ -181,7 +250,7 @@ export const AdminToInspectPage: FC = () => {
               Pending queue:
             </Typography>
             <Typography sx={{ fontSize: '0.8125rem', fontWeight: 800, color: '#0f172a' }}>
-              6 Assets
+              {totalWaitingCount} {totalWaitingCount === 1 ? 'Item' : 'Items'}
             </Typography>
           </Box>
 
@@ -200,7 +269,7 @@ export const AdminToInspectPage: FC = () => {
           >
             <WarningAmberRoundedIcon sx={{ fontSize: 18, color: '#dc2626' }} />
             <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#991b1b' }}>
-              2 Critical hazards
+              {highRiskCount} Critical hazards
             </Typography>
           </Box>
         </Box>
@@ -323,8 +392,9 @@ export const AdminToInspectPage: FC = () => {
                       display: 'inline-flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      width: 18,
+                      minWidth: 18,
                       height: 18,
+                      paddingInline: 5,
                       borderRadius: '9999px',
                       backgroundColor: filter === 'waiting' ? 'rgba(255,255,255,0.25)' : '#cbd5e1',
                       color: filter === 'waiting' ? '#ffffff' : '#0f172a',
@@ -332,7 +402,7 @@ export const AdminToInspectPage: FC = () => {
                       fontWeight: 800,
                     }}
                   >
-                    6
+                    {totalWaitingCount}
                   </span>
                 </ButtonBase>
 
@@ -359,8 +429,9 @@ export const AdminToInspectPage: FC = () => {
                       display: 'inline-flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      width: 18,
+                      minWidth: 18,
                       height: 18,
+                      paddingInline: 5,
                       borderRadius: '9999px',
                       backgroundColor: '#cbd5e1',
                       color: '#0f172a',
@@ -368,7 +439,7 @@ export const AdminToInspectPage: FC = () => {
                       fontWeight: 800,
                     }}
                   >
-                    18
+                    {totalInspectedCount}
                   </span>
                 </ButtonBase>
 
@@ -401,6 +472,172 @@ export const AdminToInspectPage: FC = () => {
                 </Typography>
               </Box>
             </Box>
+          </Box>
+
+          {/* Resident Drop-Off Requests Ledger */}
+          <Box
+            sx={{
+              backgroundColor: '#ffffff',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              overflow: 'hidden',
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                px: 2.5,
+                py: 1.5,
+                backgroundColor: '#f0fdf4',
+                borderBottom: '1px solid #bbf7d0',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <LocalShippingOutlinedIcon sx={{ fontSize: 18, color: '#16a34a' }} />
+                <Typography sx={{ fontSize: '0.8125rem', fontWeight: 800, color: '#0f172a' }}>
+                  Resident Drop-off Requests
+                </Typography>
+              </Box>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#15803d' }}>
+                {filteredRequests.length} {filteredRequests.length === 1 ? 'request' : 'requests'}
+              </Typography>
+            </Box>
+
+            {isLoading ? (
+              <Box sx={{ py: 4, display: 'flex', justifyContent: 'center' }}>
+                <CircularProgress size={24} sx={{ color: '#16a34a' }} />
+              </Box>
+            ) : filteredRequests.length === 0 ? (
+              <Box sx={{ py: 3.5, px: 2.5, textAlign: 'center', color: '#64748b' }}>
+                <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
+                  No resident drop-off requests match this filter.
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                {filteredRequests.map((req) => {
+                  const statusLower = (req.status || '').toLowerCase()
+                  const canCollect = statusLower === 'scheduled' || statusLower === 'pending_review'
+                  const canInspect = statusLower !== 'cancelled' && statusLower !== 'completed' && statusLower !== 'turned_over'
+                  const isBusy = busyRequestId === req.id
+
+                  return (
+                    <Box
+                      key={req.id}
+                      sx={{
+                        display: 'grid',
+                        gridTemplateColumns: { xs: '1fr', md: '2.5fr 2fr 2fr auto' },
+                        gap: 1.5,
+                        alignItems: 'center',
+                        px: 2.5,
+                        py: 1.75,
+                        borderBottom: '1px solid #f1f5f9',
+                        '&:last-child': { borderBottom: 'none' },
+                      }}
+                    >
+                      <Box sx={{ minWidth: 0 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography sx={{ fontWeight: 800, fontSize: '0.875rem', color: '#0b1c30' }}>
+                            {req.requestCode}
+                          </Typography>
+                          <Box
+                            sx={{
+                              px: 1,
+                              py: 0.2,
+                              borderRadius: '9999px',
+                              fontSize: '0.6875rem',
+                              fontWeight: 700,
+                              backgroundColor:
+                                statusLower === 'turned_over' || statusLower === 'completed'
+                                  ? '#dcfce7'
+                                  : statusLower === 'collected'
+                                    ? '#e0f2fe'
+                                    : '#fef3c7',
+                              color:
+                                statusLower === 'turned_over' || statusLower === 'completed'
+                                  ? '#15803d'
+                                  : statusLower === 'collected'
+                                    ? '#0369a1'
+                                    : '#b45309',
+                            }}
+                          >
+                            {req.displayStatus}
+                          </Box>
+                        </Box>
+                        <Typography sx={{ fontSize: '0.75rem', color: '#334155', fontWeight: 600, mt: 0.25 }}>
+                          {req.residentName} • {req.residentEmail || req.contactNumber}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
+                          {req.siteName}
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>
+                          {req.scheduledSlot}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: '#0f172a' }}>
+                          {req.requestedDate}
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>
+                          {req.relativeDate}
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
+                        {canCollect && (
+                          <ButtonBase
+                            disabled={isBusy}
+                            onClick={() => void handleMarkCollected(req)}
+                            sx={{
+                              height: 32,
+                              px: 1.5,
+                              borderRadius: '8px',
+                              backgroundColor: '#eff4ff',
+                              border: '1px solid #bfdbfe',
+                              color: '#1d4ed8',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              '&:hover': { backgroundColor: '#dbeafe' },
+                            }}
+                          >
+                            Mark Collected
+                          </ButtonBase>
+                        )}
+                        {canInspect && (
+                          <ButtonBase
+                            disabled={isBusy}
+                            onClick={() => void handleInspectRequest(req)}
+                            sx={{
+                              height: 32,
+                              px: 1.75,
+                              borderRadius: '8px',
+                              backgroundColor: '#16a34a',
+                              color: '#ffffff',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                              '&:hover': { backgroundColor: '#15803d' },
+                            }}
+                          >
+                            <span>Inspect</span>
+                            <ChevronRightRoundedIcon sx={{ fontSize: 16 }} />
+                          </ButtonBase>
+                        )}
+                      </Box>
+                    </Box>
+                  )
+                })}
+              </Box>
+            )}
           </Box>
 
           {/* Device Queue Card List & Headers */}
@@ -443,176 +680,188 @@ export const AdminToInspectPage: FC = () => {
 
             {/* Table Rows */}
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              {filteredItems.map((item) => {
-                const Icon = item.icon
-                const isHighRisk = item.risk === 'High Risk'
-                const isMediumRisk = item.risk === 'Medium Risk'
+              {isLoading ? (
+                <Box sx={{ py: 4, display: 'flex', justifyContent: 'center' }}>
+                  <CircularProgress size={24} sx={{ color: '#16a34a' }} />
+                </Box>
+              ) : filteredItems.length === 0 ? (
+                <Box sx={{ py: 4, px: 2.5, textAlign: 'center', color: '#64748b' }}>
+                  <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
+                    No e-waste items match this filter.
+                  </Typography>
+                </Box>
+              ) : (
+                filteredItems.map((item) => {
+                  const Icon = resolveCategoryIcon(item.category, item.name)
+                  const isHighRisk = item.risk === 'High Risk'
+                  const isMediumRisk = item.risk === 'Medium Risk'
 
-                return (
-                  <Box
-                    key={item.id}
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: {
-                        xs: '1fr auto',
-                        sm: '3fr 1.5fr 1.5fr 3fr 1fr',
-                      },
-                      gap: 1.5,
-                      alignItems: 'center',
-                      px: 2.5,
-                      py: 1.75,
-                      borderBottom: '1px solid #f1f5f9',
-                      transition: 'background-color 0.15s ease',
-                      '&:hover': {
-                        backgroundColor: '#eff4ff',
-                      },
-                      '&:last-child': {
-                        borderBottom: 'none',
-                      },
-                    }}
-                  >
-                    {/* Item Details */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
-                      <Box
-                        sx={{
-                          width: 38,
-                          height: 38,
-                          borderRadius: '8px',
-                          backgroundColor: '#f1f5f9',
-                          color: '#16a34a',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          shrink: 0,
-                        }}
-                      >
-                        <Icon sx={{ fontSize: 20 }} />
-                      </Box>
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography
+                  return (
+                    <Box
+                      key={item.id}
+                      sx={{
+                        display: 'grid',
+                        gridTemplateColumns: {
+                          xs: '1fr auto',
+                          sm: '3fr 1.5fr 1.5fr 3fr 1fr',
+                        },
+                        gap: 1.5,
+                        alignItems: 'center',
+                        px: 2.5,
+                        py: 1.75,
+                        borderBottom: '1px solid #f1f5f9',
+                        transition: 'background-color 0.15s ease',
+                        '&:hover': {
+                          backgroundColor: '#eff4ff',
+                        },
+                        '&:last-child': {
+                          borderBottom: 'none',
+                        },
+                      }}
+                    >
+                      {/* Item Details */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
+                        <Box
                           sx={{
-                            fontFamily: "'Rethink Sans', 'Inter', sans-serif",
-                            fontWeight: 700,
-                            fontSize: '0.875rem',
-                            color: '#0b1c30',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
+                            width: 38,
+                            height: 38,
+                            borderRadius: '8px',
+                            backgroundColor: '#f1f5f9',
+                            color: '#16a34a',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            shrink: 0,
                           }}
                         >
-                          {item.name}
+                          <Icon sx={{ fontSize: 20 }} />
+                        </Box>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography
+                            sx={{
+                              fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                              fontWeight: 700,
+                              fontSize: '0.875rem',
+                              color: '#0b1c30',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
+                            {item.name}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontSize: '0.6875rem',
+                              color: '#64748b',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
+                            {item.serial} • {item.specs}
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      {/* Dropped Off */}
+                      <Box sx={{ display: { xs: 'none', sm: 'flex' }, flexDirection: 'column' }}>
+                        <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: '#0f172a' }}>
+                          {item.date}
                         </Typography>
                         <Typography
                           sx={{
                             fontSize: '0.6875rem',
-                            color: '#64748b',
+                            fontWeight: 600,
+                            color: item.relativeDate.includes('Just') ? '#16a34a' : isHighRisk ? '#dc2626' : '#64748b',
+                          }}
+                        >
+                          {item.relativeDate}
+                        </Typography>
+                      </Box>
+
+                      {/* Health Risk Badge */}
+                      <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center' }}>
+                        <Box
+                          sx={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                            px: 1.25,
+                            py: 0.35,
+                            borderRadius: '9999px',
+                            fontSize: '0.6875rem',
+                            fontWeight: 700,
+                            backgroundColor: isHighRisk ? '#fee2e2' : isMediumRisk ? '#fef3c7' : '#dcfce7',
+                            color: isHighRisk ? '#b91c1c' : isMediumRisk ? '#b45309' : '#15803d',
+                          }}
+                        >
+                          {!isHighRisk && (
+                            <Box
+                              sx={{
+                                width: 6,
+                                height: 6,
+                                borderRadius: '9999px',
+                                backgroundColor: isMediumRisk ? '#d97706' : '#16a34a',
+                              }}
+                            />
+                          )}
+                          {item.risk}
+                        </Box>
+                      </Box>
+
+                      {/* AI Suggestion */}
+                      <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center' }}>
+                        <Box
+                          sx={{
+                            p: 1,
+                            borderRadius: '6px',
+                            backgroundColor: '#f8fafc',
+                            border: '1px solid #e2e8f0',
+                            fontSize: '0.6875rem',
+                            color: '#475569',
+                            lineHeight: 1.3,
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
+                            maxWidth: '100%',
                           }}
                         >
-                          {item.serial} • {item.specs}
-                        </Typography>
+                          {item.suggestion}
+                        </Box>
+                      </Box>
+
+                      {/* Inspect Button */}
+                      <Box sx={{ textAlign: 'right' }}>
+                        <ButtonBase
+                          onClick={() => navigate(`/admin/inspect?item=${item.id}`)}
+                          sx={{
+                            height: 32,
+                            px: 1.75,
+                            borderRadius: '8px',
+                            backgroundColor: '#16a34a',
+                            color: '#ffffff',
+                            fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            boxShadow: '0 1px 3px rgba(22, 163, 74, 0.25)',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                            transition: 'all 0.15s ease',
+                            '&:hover': {
+                              backgroundColor: '#15803d',
+                            },
+                          }}
+                        >
+                          <span>Inspect</span>
+                          <ChevronRightRoundedIcon sx={{ fontSize: 16 }} />
+                        </ButtonBase>
                       </Box>
                     </Box>
-
-                    {/* Dropped Off */}
-                    <Box sx={{ display: { xs: 'none', sm: 'flex' }, flexDirection: 'column' }}>
-                      <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: '#0f172a' }}>
-                        {item.date}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: '0.6875rem',
-                          fontWeight: 600,
-                          color: item.relativeDate.includes('Today') ? '#16a34a' : isHighRisk ? '#dc2626' : '#64748b',
-                        }}
-                      >
-                        {item.relativeDate}
-                      </Typography>
-                    </Box>
-
-                    {/* Health Risk Badge */}
-                    <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center' }}>
-                      <Box
-                        sx={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 0.5,
-                          px: 1.25,
-                          py: 0.35,
-                          borderRadius: '9999px',
-                          fontSize: '0.6875rem',
-                          fontWeight: 700,
-                          backgroundColor: isHighRisk ? '#fee2e2' : isMediumRisk ? '#fef3c7' : '#dcfce7',
-                          color: isHighRisk ? '#b91c1c' : isMediumRisk ? '#b45309' : '#15803d',
-                        }}
-                      >
-                        {!isHighRisk && (
-                          <Box
-                            sx={{
-                              width: 6,
-                              height: 6,
-                              borderRadius: '9999px',
-                              backgroundColor: isMediumRisk ? '#d97706' : '#16a34a',
-                            }}
-                          />
-                        )}
-                        {item.risk}
-                      </Box>
-                    </Box>
-
-                    {/* AI Suggestion */}
-                    <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center' }}>
-                      <Box
-                        sx={{
-                          p: 1,
-                          borderRadius: '6px',
-                          backgroundColor: '#f8fafc',
-                          border: '1px solid #e2e8f0',
-                          fontSize: '0.6875rem',
-                          color: '#475569',
-                          lineHeight: 1.3,
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          maxWidth: '100%',
-                        }}
-                      >
-                        {item.suggestion}
-                      </Box>
-                    </Box>
-
-                    {/* Inspect Button */}
-                    <Box sx={{ textAlign: 'right' }}>
-                      <ButtonBase
-                        onClick={() => navigate(`/admin/inspect?item=${item.id}`)}
-                        sx={{
-                          height: 32,
-                          px: 1.75,
-                          borderRadius: '8px',
-                          backgroundColor: '#16a34a',
-                          color: '#ffffff',
-                          fontFamily: "'Rethink Sans', 'Inter', sans-serif",
-                          fontSize: '0.75rem',
-                          fontWeight: 700,
-                          boxShadow: '0 1px 3px rgba(22, 163, 74, 0.25)',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 0.5,
-                          transition: 'all 0.15s ease',
-                          '&:hover': {
-                            backgroundColor: '#15803d',
-                          },
-                        }}
-                      >
-                        <span>Inspect</span>
-                        <ChevronRightRoundedIcon sx={{ fontSize: 16 }} />
-                      </ButtonBase>
-                    </Box>
-                  </Box>
-                )
-              })}
+                  )
+                })
+              )}
             </Box>
 
             {/* Bottom Pagination Bar */}
@@ -629,35 +878,11 @@ export const AdminToInspectPage: FC = () => {
                 color: '#64748b',
               }}
             >
-              <span>Showing 1-6 of 6 triage items awaiting physical diagnostic</span>
+              <span>
+                Showing {filteredItems.length} of {filteredItems.length} intake item(s)
+              </span>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box
-                  sx={{
-                    px: 1.25,
-                    py: 0.35,
-                    borderRadius: '4px',
-                    backgroundColor: '#e2e8f0',
-                    color: '#94a3b8',
-                    fontWeight: 600,
-                    cursor: 'not-allowed',
-                  }}
-                >
-                  Previous
-                </Box>
-                <Typography sx={{ fontWeight: 800, color: '#0f172a', px: 0.5 }}>1</Typography>
-                <Box
-                  sx={{
-                    px: 1.25,
-                    py: 0.35,
-                    borderRadius: '4px',
-                    backgroundColor: '#e2e8f0',
-                    color: '#94a3b8',
-                    fontWeight: 600,
-                    cursor: 'not-allowed',
-                  }}
-                >
-                  Next
-                </Box>
+                <Typography sx={{ fontWeight: 800, color: '#0f172a', px: 0.5 }}>Page 1</Typography>
               </Box>
             </Box>
           </Box>
@@ -964,6 +1189,22 @@ export const AdminToInspectPage: FC = () => {
           </Box>
         </Box>
       </Box>
+
+      <Snackbar
+        open={Boolean(toast)}
+        autoHideDuration={3500}
+        onClose={() => setToast(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setToast(null)}
+          severity={toast?.severity || 'success'}
+          variant="filled"
+          sx={{ width: '100%', fontWeight: 700 }}
+        >
+          {toast?.message}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

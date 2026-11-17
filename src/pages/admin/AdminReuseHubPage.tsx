@@ -1,5 +1,5 @@
-import { useState, type FC } from 'react'
-import { Box, ButtonBase, Typography } from '@mui/material'
+import { useEffect, useState, type FC } from 'react'
+import { Alert, Box, ButtonBase, CircularProgress, Snackbar, Typography } from '@mui/material'
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import QueryStatsRoundedIcon from '@mui/icons-material/QueryStatsRounded'
@@ -17,6 +17,7 @@ import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded'
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded'
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
+import { adminApi, type AdminReuseInventoryItem } from '@/lib/api'
 
 interface HubItem {
   id: string
@@ -32,97 +33,93 @@ interface HubItem {
   colorText: string
 }
 
-const HUB_ITEMS: HubItem[] = [
-  {
-    id: '1',
-    name: 'Lenovo ThinkPad T480',
-    sub: '14" FHD Core i5, 16GB RAM',
-    grade: 'Grade A',
-    hub: 'Pasig Green Hub',
-    locker: 'Depot Bin 04',
-    status: 'Available',
-    pickupDate: '—',
-    icon: LaptopMacRoundedIcon,
-    colorBg: '#ecfdf5',
-    colorText: '#15803d',
-  },
-  {
-    id: '2',
-    name: 'Keychron K2 V2',
-    sub: 'Wireless Mechanical Keyboard',
-    grade: 'Gateron Brown',
-    hub: 'San Antonio Hub',
-    locker: 'Locker B2',
-    status: 'Reserved',
-    pickupDate: 'Oct 28, 2024',
-    icon: KeyboardRoundedIcon,
-    colorBg: '#fef3c7',
-    colorText: '#b45309',
-  },
-  {
-    id: '3',
-    name: 'Dell UltraSharp U2419H',
-    sub: '24" InfinityEdge Monitor',
-    grade: 'IPS FHD',
-    hub: 'Barangay San Antonio',
-    locker: 'Display Staging Area',
-    status: 'Available',
-    pickupDate: '—',
-    icon: DesktopWindowsRoundedIcon,
-    colorBg: '#ecfdf5',
-    colorText: '#15803d',
-  },
-  {
-    id: '4',
-    name: 'Apple iPad Air (4th Gen)',
-    sub: '64GB Wi-Fi Sky Blue',
-    grade: 'Checked OK',
-    hub: 'Pasig Green Hub',
-    locker: 'Completed Locker 01',
-    status: 'Claimed',
-    pickupDate: 'Oct 25, 2024',
-    icon: TabletMacRoundedIcon,
-    colorBg: '#f1f5f9',
-    colorText: '#475569',
-  },
-  {
-    id: '5',
-    name: 'Logitech MX Master 3S',
-    sub: 'Ergonomic Wireless Mouse',
-    grade: 'Quiet Clicks',
-    hub: 'Kapitolyo Eco-Drop',
-    locker: 'Smart Locker 08',
-    status: 'Reserved',
-    pickupDate: 'Oct 29, 2024',
-    icon: MouseRoundedIcon,
-    colorBg: '#fef3c7',
-    colorText: '#b45309',
-  },
-  {
-    id: '6',
-    name: 'Cisco Catalyst 2960-X',
-    sub: '24-Port Gigabit Switch',
-    grade: 'Rack-mount',
-    hub: 'Central E-Depot',
-    locker: 'Depot Bay 1',
-    status: 'Available',
-    pickupDate: '—',
-    icon: RouterRoundedIcon,
-    colorBg: '#ecfdf5',
-    colorText: '#15803d',
-  },
-]
+function mapInventoryItem(item: AdminReuseInventoryItem): HubItem {
+  const cat = `${item.category} ${item.title}`.toLowerCase()
+  let icon = LaptopMacRoundedIcon
+  if (cat.includes('keyboard') || cat.includes('peripheral')) icon = KeyboardRoundedIcon
+  else if (cat.includes('monitor') || cat.includes('display')) icon = DesktopWindowsRoundedIcon
+  else if (cat.includes('tablet') || cat.includes('ipad') || cat.includes('phone')) icon = TabletMacRoundedIcon
+  else if (cat.includes('mouse')) icon = MouseRoundedIcon
+  else if (cat.includes('router') || cat.includes('switch')) icon = RouterRoundedIcon
+
+  const isAvail = item.status === 'Available'
+  const isRes = item.status === 'Reserved'
+
+  return {
+    id: item.id,
+    name: item.title,
+    sub: item.description || item.category,
+    grade: item.condition,
+    hub: item.hub || 'Commonwealth Area 1 Eco-Hub',
+    locker: item.lockerBay,
+    status: item.status,
+    pickupDate: item.createdAt || '—',
+    icon,
+    colorBg: isAvail ? '#ecfdf5' : isRes ? '#fef3c7' : '#f1f5f9',
+    colorText: isAvail ? '#15803d' : isRes ? '#b45309' : '#475569',
+  }
+}
 
 export const AdminReuseHubPage: FC = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'Available' | 'Reserved' | 'Claimed'>('all')
   const [search, setSearch] = useState('')
+  const [items, setItems] = useState<HubItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  const filteredItems = HUB_ITEMS.filter((item) => {
+  useEffect(() => {
+    let active = true
+    adminApi
+      .getReuseInventory()
+      .then((rows) => {
+        if (!active) return
+        setItems(rows.map(mapInventoryItem))
+        setErrorMsg(null)
+      })
+      .catch((err: any) => {
+        if (!active) return
+        setErrorMsg(err?.message || 'Unable to load Reuse Hub inventory from backend.')
+      })
+      .finally(() => {
+        if (active) setIsLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const availableCount = items.filter((i) => i.status === 'Available').length
+  const reservedCount = items.filter((i) => i.status === 'Reserved').length
+  const claimedCount = items.filter((i) => i.status === 'Claimed').length
+
+  const filteredItems = items.filter((item) => {
     if (activeTab !== 'all' && item.status !== activeTab) return false
     if (!search.trim()) return true
     const q = search.toLowerCase()
-    return item.name.toLowerCase().includes(q) || item.sub.toLowerCase().includes(q) || item.hub.toLowerCase().includes(q)
+    return (
+      item.name.toLowerCase().includes(q) ||
+      item.sub.toLowerCase().includes(q) ||
+      item.hub.toLowerCase().includes(q)
+    )
   })
+
+  const handleExportCsv = () => {
+    const csv =
+      'data:text/csv;charset=utf-8,' +
+      [
+        'ID,Item,Category_Condition,Hub,Locker,Status,Date',
+        ...filteredItems.map(
+          (i) =>
+            `${i.id},"${i.name.replace(/"/g, '""')}","${i.grade}","${i.hub}","${i.locker}",${i.status},${i.pickupDate}`
+        ),
+      ].join('\n')
+    const link = document.createElement('a')
+    link.href = encodeURI(csv)
+    link.download = `ecobyte-reuse-inventory-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5, pb: 4 }}>
@@ -202,6 +199,7 @@ export const AdminReuseHubPage: FC = () => {
           </Box>
 
           <ButtonBase
+            onClick={handleExportCsv}
             sx={{
               display: 'flex',
               alignItems: 'center',
@@ -267,10 +265,10 @@ export const AdminReuseHubPage: FC = () => {
               }}
             >
               {[
-                { id: 'all', label: 'All Listings', count: 6 },
-                { id: 'Available', label: 'Available', count: 3 },
-                { id: 'Reserved', label: 'Reserved', count: 2 },
-                { id: 'Claimed', label: 'Claimed', count: 1 },
+                { id: 'all', label: 'All Listings', count: items.length },
+                { id: 'Available', label: 'Available', count: availableCount },
+                { id: 'Reserved', label: 'Reserved', count: reservedCount },
+                { id: 'Claimed', label: 'Claimed', count: claimedCount },
               ].map((tab) => {
                 const active = activeTab === tab.id
                 return (
@@ -348,7 +346,20 @@ export const AdminReuseHubPage: FC = () => {
                 </tr>
               </thead>
               <tbody style={{ fontSize: '0.8125rem', color: '#0f172a' }}>
-                {filteredItems.map((item) => {
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={4} style={{ padding: '28px 16px', textAlign: 'center' }}>
+                      <CircularProgress size={24} sx={{ color: '#16a34a' }} />
+                    </td>
+                  </tr>
+                ) : filteredItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} style={{ padding: '28px 16px', textAlign: 'center', color: '#64748b', fontWeight: 600 }}>
+                      No Reuse Hub listings found matching your filter.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredItems.map((item) => {
                   const Icon = item.icon
                   const isAvailable = item.status === 'Available'
                   const isReserved = item.status === 'Reserved'
@@ -443,7 +454,8 @@ export const AdminReuseHubPage: FC = () => {
                       </td>
                     </tr>
                   )
-                })}
+                })
+                )}
               </tbody>
             </table>
 
@@ -461,7 +473,7 @@ export const AdminReuseHubPage: FC = () => {
                 color: '#64748b',
               }}
             >
-              <span>Showing 1-6 of 48 items</span>
+              <span>Showing {filteredItems.length} of {items.length} items</span>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box
                   sx={{
@@ -558,11 +570,11 @@ export const AdminReuseHubPage: FC = () => {
                 <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#16a34a' }} />
               </Box>
               <Typography sx={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
-                28
+                {availableCount}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1, color: '#15803d', fontSize: '0.6875rem', fontWeight: 700 }}>
                 <ArrowUpwardRoundedIcon sx={{ fontSize: 14 }} />
-                <span>+3 today</span>
+                <span>Live catalog</span>
               </Box>
             </Box>
 
@@ -575,11 +587,11 @@ export const AdminReuseHubPage: FC = () => {
                 <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#d97706' }} />
               </Box>
               <Typography sx={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
-                12
+                {reservedCount}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1, color: '#475569', fontSize: '0.6875rem', fontWeight: 600 }}>
                 <HourglassTopRoundedIcon sx={{ fontSize: 14, color: '#d97706' }} />
-                <span>Pickup &lt; 24h</span>
+                <span>Pending pickup</span>
               </Box>
             </Box>
 
@@ -592,11 +604,11 @@ export const AdminReuseHubPage: FC = () => {
                 <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#64748b' }} />
               </Box>
               <Typography sx={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
-                64
+                {claimedCount}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1, color: '#475569', fontSize: '0.6875rem', fontWeight: 600 }}>
                 <VerifiedRoundedIcon sx={{ fontSize: 14, color: '#16a34a' }} />
-                <span>98.4% success</span>
+                <span>Verified claims</span>
               </Box>
             </Box>
 
@@ -604,16 +616,16 @@ export const AdminReuseHubPage: FC = () => {
             <Box sx={{ p: 2, borderRadius: '10px', backgroundColor: '#eff4ff' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                 <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase' }}>
-                  Expired
+                  Total Units
                 </Typography>
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#dc2626' }} />
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#16a34a' }} />
               </Box>
-              <Typography sx={{ fontSize: '1.75rem', fontWeight: 800, color: '#dc2626', lineHeight: 1 }}>
-                4
+              <Typography sx={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
+                {items.length}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1, color: '#475569', fontSize: '0.6875rem', fontWeight: 600 }}>
-                <RestartAltRoundedIcon sx={{ fontSize: 14, color: '#dc2626' }} />
-                <span>Restocked pool</span>
+                <RestartAltRoundedIcon sx={{ fontSize: 14, color: '#16a34a' }} />
+                <span>Active listings</span>
               </Box>
             </Box>
           </Box>
@@ -646,15 +658,15 @@ export const AdminReuseHubPage: FC = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.6875rem', color: '#64748b', pt: 0.5 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#16a34a' }} />
-                <span>Avail (412)</span>
+                <span>Avail ({availableCount})</span>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#f59e0b' }} />
-                <span>Res (189)</span>
+                <span>Res ({reservedCount})</span>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#64748b' }} />
-                <span>Claimed (1,240)</span>
+                <span>Claimed ({claimedCount})</span>
               </Box>
             </Box>
           </Box>
@@ -697,6 +709,17 @@ export const AdminReuseHubPage: FC = () => {
           </Box>
         </Box>
       </Box>
+
+      <Snackbar
+        open={Boolean(errorMsg)}
+        autoHideDuration={4500}
+        onClose={() => setErrorMsg(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert severity="error" variant="filled" onClose={() => setErrorMsg(null)}>
+          {errorMsg}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

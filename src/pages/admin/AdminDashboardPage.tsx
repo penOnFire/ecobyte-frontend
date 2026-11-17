@@ -1,4 +1,4 @@
-import { useState, type FC } from 'react'
+import { useEffect, useState, type FC } from 'react'
 import { Box, ButtonBase, Typography, Snackbar, Alert } from '@mui/material'
 import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded'
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
@@ -12,6 +12,7 @@ import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded'
 import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded'
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import { adminApi, type AdminDashboardOverview } from '@/lib/api'
 
 interface DateRangeData {
   totalProcessed: number
@@ -19,6 +20,7 @@ interface DateRangeData {
   trendPct: string
   runRate: string
   awaitingInspection: number
+  scheduledRequestsCount: number
   avgDwell: string
   listedReuse: number
   reuseRate: string
@@ -31,7 +33,7 @@ interface DateRangeData {
   hazardShare: string
   netIntakeWeight: string
   forecastCallout: string
-  predictedDelta: string
+  yAxisMax: number
   bars: Array<{ name: string; count: number; y: number; height: number; fill: string; capFill?: string }>
   tableRows: Array<{
     name: string
@@ -46,171 +48,112 @@ interface DateRangeData {
   }>
 }
 
-const DASHBOARD_DATA_BY_RANGE: Record<'7d' | '30d' | 'q3' | 'custom', DateRangeData> = {
-  '7d': {
-    totalProcessed: 329,
-    totalWeight: '890 kg',
-    trendPct: '+6.2%',
-    runRate: '47 / day',
-    awaitingInspection: 14,
-    avgDwell: '2.1 hrs',
-    listedReuse: 196,
-    reuseRate: '59.5%',
-    reuseAvgDays: '1.2 days',
-    disposalCount: 119,
-    disposalPct: '36.1%',
-    batchNo: 'Batch #19',
-    highRiskCount: 4,
-    primaryStream: 'Laptops / Compute (31%)',
-    hazardShare: '20.6% (Li-Ion)',
-    netIntakeWeight: '890 kg',
-    forecastCallout: '~490 u',
-    predictedDelta: '+8.4%',
-    bars: [
-      { name: 'Laptops', count: 102, y: 76, height: 124, fill: '#15803d', capFill: '#4ade80' },
-      { name: 'Li-Ion', count: 68, y: 118, height: 82, fill: '#16a34a', capFill: '#86efac' },
-      { name: 'Mobile/IoT', count: 84, y: 98, height: 102, fill: '#22c55e', capFill: '#bbf7d0' },
-      { name: 'Displays', count: 42, y: 149, height: 51, fill: '#15803d', capFill: '#4ade80' },
-      { name: 'Appliances', count: 21, y: 174, height: 26, fill: '#334155' },
-      { name: 'Network', count: 12, y: 185, height: 15, fill: '#d97706', capFill: '#fde68a' },
-    ],
-    tableRows: [
-      { name: 'Laptops & PCs', units: '102', weight: '280 kg', hazmat: 'Class II', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '81.4%', rateColor: '#15803d', dot: '#15803d' },
-      { name: 'Lithium Battery Packs', units: '68', weight: '102 kg', hazmat: 'Critical', hazmatBg: '#fee2e2', hazmatColor: '#991b1b', rate: '14.7%', rateColor: '#d97706', dot: '#16a34a' },
-      { name: 'Smart Devices & Mobiles', units: '84', weight: '42 kg', hazmat: 'Class I', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '85.7%', rateColor: '#15803d', dot: '#22c55e' },
-      { name: 'CRT & Flat Displays', units: '42', weight: '315 kg', hazmat: 'Heavy Metal', hazmatBg: '#ffdcc3', hazmatColor: '#804300', rate: '45.2%', rateColor: '#475569', dot: '#15803d' },
-      { name: 'Small Office Appliances', units: '21', weight: '84 kg', hazmat: 'Class I', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '66.7%', rateColor: '#15803d', dot: '#334155' },
-      { name: 'Telemetry & Routing', units: '12', weight: '32 kg', hazmat: 'Class II', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '91.7%', rateColor: '#15803d', dot: '#d97706' },
-    ],
-  },
-  '30d': {
-    totalProcessed: 1420,
-    totalWeight: '3,890 kg',
-    trendPct: '+12.4%',
-    runRate: '47 / day',
-    awaitingInspection: 24,
-    avgDwell: '3.8 hrs',
-    listedReuse: 850,
-    reuseRate: '59.8%',
-    reuseAvgDays: '1.8 days',
-    disposalCount: 546,
-    disposalPct: '38.4%',
-    batchNo: 'Batch #18',
-    highRiskCount: 12,
-    primaryStream: 'Laptops / Compute (29%)',
-    hazardShare: '20.0% (Li-Ion)',
-    netIntakeWeight: '3,890 kg',
-    forecastCallout: '~2,180 u',
-    predictedDelta: '+14.2%',
-    bars: [
-      { name: 'Laptops', count: 412, y: 52, height: 148, fill: '#15803d', capFill: '#4ade80' },
-      { name: 'Li-Ion', count: 284, y: 98, height: 102, fill: '#16a34a', capFill: '#86efac' },
-      { name: 'Mobile/IoT', count: 320, y: 85, height: 115, fill: '#22c55e', capFill: '#bbf7d0' },
-      { name: 'Displays', count: 185, y: 133, height: 67, fill: '#15803d', capFill: '#4ade80' },
-      { name: 'Appliances', count: 145, y: 148, height: 52, fill: '#334155' },
-      { name: 'Network', count: 74, y: 173, height: 27, fill: '#d97706', capFill: '#fde68a' },
-    ],
-    tableRows: [
-      { name: 'Laptops & PCs', units: '412', weight: '1,154 kg', hazmat: 'Class II', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '78.4%', rateColor: '#15803d', dot: '#15803d' },
-      { name: 'Lithium Battery Packs', units: '284', weight: '426 kg', hazmat: 'Critical', hazmatBg: '#fee2e2', hazmatColor: '#991b1b', rate: '14.1%', rateColor: '#d97706', dot: '#16a34a' },
-      { name: 'Smart Devices & Mobiles', units: '320', weight: '160 kg', hazmat: 'Class I', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '84.2%', rateColor: '#15803d', dot: '#22c55e' },
-      { name: 'CRT & Flat Displays', units: '185', weight: '1,380 kg', hazmat: 'Heavy Metal', hazmatBg: '#ffdcc3', hazmatColor: '#804300', rate: '42.0%', rateColor: '#475569', dot: '#15803d' },
-      { name: 'Small Office Appliances', units: '145', weight: '580 kg', hazmat: 'Class I', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '62.8%', rateColor: '#15803d', dot: '#334155' },
-      { name: 'Telemetry & Routing', units: '74', weight: '190 kg', hazmat: 'Class II', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '91.9%', rateColor: '#15803d', dot: '#d97706' },
-    ],
-  },
-  'q3': {
-    totalProcessed: 4280,
-    totalWeight: '11,480 kg',
-    trendPct: '+18.6%',
-    runRate: '46 / day',
-    awaitingInspection: 38,
-    avgDwell: '4.2 hrs',
-    listedReuse: 2610,
-    reuseRate: '61.0%',
-    reuseAvgDays: '2.1 days',
-    disposalCount: 1618,
-    disposalPct: '37.8%',
-    batchNo: 'Batch #17-18',
-    highRiskCount: 32,
-    primaryStream: 'Laptops / Compute (29%)',
-    hazardShare: '19.6% (Li-Ion)',
-    netIntakeWeight: '11,480 kg',
-    forecastCallout: '~6,450 u',
-    predictedDelta: '+19.8%',
-    bars: [
-      { name: 'Laptops', count: 1240, y: 46, height: 154, fill: '#15803d', capFill: '#4ade80' },
-      { name: 'Li-Ion', count: 840, y: 92, height: 108, fill: '#16a34a', capFill: '#86efac' },
-      { name: 'Mobile/IoT', count: 980, y: 78, height: 122, fill: '#22c55e', capFill: '#bbf7d0' },
-      { name: 'Displays', count: 590, y: 124, height: 76, fill: '#15803d', capFill: '#4ade80' },
-      { name: 'Appliances', count: 410, y: 142, height: 58, fill: '#334155' },
-      { name: 'Network', count: 220, y: 168, height: 32, fill: '#d97706', capFill: '#fde68a' },
-    ],
-    tableRows: [
-      { name: 'Laptops & PCs', units: '1,240', weight: '3,472 kg', hazmat: 'Class II', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '79.1%', rateColor: '#15803d', dot: '#15803d' },
-      { name: 'Lithium Battery Packs', units: '840', weight: '1,260 kg', hazmat: 'Critical', hazmatBg: '#fee2e2', hazmatColor: '#991b1b', rate: '13.8%', rateColor: '#d97706', dot: '#16a34a' },
-      { name: 'Smart Devices & Mobiles', units: '980', weight: '490 kg', hazmat: 'Class I', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '83.9%', rateColor: '#15803d', dot: '#22c55e' },
-      { name: 'CRT & Flat Displays', units: '590', weight: '4,410 kg', hazmat: 'Heavy Metal', hazmatBg: '#ffdcc3', hazmatColor: '#804300', rate: '41.5%', rateColor: '#475569', dot: '#15803d' },
-      { name: 'Small Office Appliances', units: '410', weight: '1,640 kg', hazmat: 'Class I', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '63.2%', rateColor: '#15803d', dot: '#334155' },
-      { name: 'Telemetry & Routing', units: '220', weight: '568 kg', hazmat: 'Class II', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '92.3%', rateColor: '#15803d', dot: '#d97706' },
-    ],
-  },
-  'custom': {
-    totalProcessed: 2150,
-    totalWeight: '5,820 kg',
-    trendPct: '+15.1%',
-    runRate: '48 / day',
-    awaitingInspection: 28,
-    avgDwell: '3.4 hrs',
-    listedReuse: 1290,
-    reuseRate: '60.0%',
-    reuseAvgDays: '1.6 days',
-    disposalCount: 825,
-    disposalPct: '38.3%',
-    batchNo: 'Batch #18b',
-    highRiskCount: 18,
-    primaryStream: 'Laptops / Compute (30%)',
-    hazardShare: '19.8% (Li-Ion)',
-    netIntakeWeight: '5,820 kg',
-    forecastCallout: '~3,420 u',
-    predictedDelta: '+16.5%',
-    bars: [
-      { name: 'Laptops', count: 645, y: 56, height: 144, fill: '#15803d', capFill: '#4ade80' },
-      { name: 'Li-Ion', count: 425, y: 102, height: 98, fill: '#16a34a', capFill: '#86efac' },
-      { name: 'Mobile/IoT', count: 490, y: 88, height: 112, fill: '#22c55e', capFill: '#bbf7d0' },
-      { name: 'Displays', count: 290, y: 130, height: 70, fill: '#15803d', capFill: '#4ade80' },
-      { name: 'Appliances', count: 200, y: 150, height: 50, fill: '#334155' },
-      { name: 'Network', count: 100, y: 172, height: 28, fill: '#d97706', capFill: '#fde68a' },
-    ],
-    tableRows: [
-      { name: 'Laptops & PCs', units: '645', weight: '1,806 kg', hazmat: 'Class II', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '78.8%', rateColor: '#15803d', dot: '#15803d' },
-      { name: 'Lithium Battery Packs', units: '425', weight: '638 kg', hazmat: 'Critical', hazmatBg: '#fee2e2', hazmatColor: '#991b1b', rate: '14.2%', rateColor: '#d97706', dot: '#16a34a' },
-      { name: 'Smart Devices & Mobiles', units: '490', weight: '245 kg', hazmat: 'Class I', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '84.5%', rateColor: '#15803d', dot: '#22c55e' },
-      { name: 'CRT & Flat Displays', units: '290', weight: '2,175 kg', hazmat: 'Heavy Metal', hazmatBg: '#ffdcc3', hazmatColor: '#804300', rate: '42.1%', rateColor: '#475569', dot: '#15803d' },
-      { name: 'Small Office Appliances', units: '200', weight: '800 kg', hazmat: 'Class I', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '63.0%', rateColor: '#15803d', dot: '#334155' },
-      { name: 'Telemetry & Routing', units: '100', weight: '256 kg', hazmat: 'Class II', hazmatBg: '#f1f5f9', hazmatColor: '#475569', rate: '92.0%', rateColor: '#15803d', dot: '#d97706' },
-    ],
-  },
+function buildDashboardData(overview: AdminDashboardOverview): DateRangeData {
+  const categories = overview.categories || []
+  const maxUnits = Math.max(4, ...categories.map((c) => c.units))
+  const yAxisMax = Math.ceil(maxUnits / 4) * 4
+  const palette = ['#15803d', '#16a34a', '#22c55e', '#334155', '#d97706', '#0f766e']
+
+  const bars = categories.slice(0, 6).map((c, idx) => {
+    const height = Math.max(8, Math.round((c.units / yAxisMax) * 160))
+    return {
+      name: c.name,
+      count: c.units,
+      y: 200 - height,
+      height,
+      fill: palette[idx % palette.length],
+      capFill: idx % 2 === 0 ? '#4ade80' : '#86efac',
+    }
+  })
+
+  const tableRows = categories.map((c, idx) => ({
+    name: c.name,
+    units: String(c.units),
+    weight: `${c.weightKg} kg`,
+    hazmat: c.hazardUnits > 0 ? `${c.hazardUnits} Flagged` : 'Standard',
+    hazmatBg: c.hazardUnits > 0 ? '#fee2e2' : '#f1f5f9',
+    hazmatColor: c.hazardUnits > 0 ? '#991b1b' : '#475569',
+    rate: `${c.reuseRatePercent}%`,
+    rateColor: c.reuseRatePercent >= 50 ? '#15803d' : '#475569',
+    dot: palette[idx % palette.length],
+  }))
+
+  const topStream = [...categories].sort((a, b) => b.units - a.units)[0]
+  const totalProcessed = overview.totalProcessed || 0
+  const disposalPct =
+    totalProcessed > 0 ? `${((overview.disposalCount / totalProcessed) * 100).toFixed(1)}%` : '0%'
+
+  return {
+    totalProcessed,
+    totalWeight: `${overview.totalWeightKg} kg`,
+    trendPct: 'Live DB',
+    runRate: `${overview.divertedKgTotal} kg diverted`,
+    awaitingInspection: overview.awaitingInspection + overview.scheduledRequestsCount,
+    scheduledRequestsCount: overview.scheduledRequestsCount,
+    avgDwell: `${overview.scheduledRequestsCount} scheduled`,
+    listedReuse: overview.listedReuse,
+    reuseRate: `${overview.reuseConversionRatePercent}%`,
+    reuseAvgDays: `${overview.divertedKgTotal} kg saved`,
+    disposalCount: overview.disposalCount,
+    disposalPct,
+    batchNo: 'PostgreSQL Live',
+    highRiskCount: overview.hazardAlertsActive,
+    primaryStream: topStream ? `${topStream.name} (${topStream.units})` : 'No items yet',
+    hazardShare: `${overview.hazardAlertsActive} active alerts`,
+    netIntakeWeight: `${overview.totalWeightKg} kg`,
+    forecastCallout: `${totalProcessed} units`,
+    yAxisMax,
+    bars,
+    tableRows,
+  }
+}
+
+const EMPTY_OVERVIEW: AdminDashboardOverview = {
+  totalProcessed: 0,
+  totalWeightKg: 0,
+  divertedKgTotal: 0,
+  awaitingInspection: 0,
+  scheduledRequestsCount: 0,
+  listedReuse: 0,
+  reuseConversionRatePercent: 0,
+  disposalCount: 0,
+  hazardAlertsActive: 0,
+  categories: [],
 }
 
 export const AdminDashboardPage: FC = () => {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | 'q3' | 'custom'>('30d')
   const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart')
   const [exportSnackbar, setExportSnackbar] = useState(false)
+  const [overview, setOverview] = useState<AdminDashboardOverview>(EMPTY_OVERVIEW)
 
-  const currentData = DASHBOARD_DATA_BY_RANGE[dateRange]
+  useEffect(() => {
+    let active = true
+    adminApi
+      .getDashboardOverview()
+      .then((res) => {
+        if (active && res) {
+          setOverview(res)
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load admin dashboard overview:', err)
+      })
+    return () => {
+      active = false
+    }
+  }, [dateRange])
+
+  const currentData = buildDashboardData(overview)
 
   const handleExportLog = () => {
     const csvContent =
       'data:text/csv;charset=utf-8,' +
       [
-        'Log_ID,Timestamp,Stream,Weight_kg,Disposition,Hazmat_Class,Operator,Status',
-        'LOG-8921,2024-10-24 14:32:01,Laptops & Compute,2.45,Reuse Hub,Class II,E. Vance,Completed',
-        'LOG-8922,2024-10-24 14:45:12,Lithium Battery Pack,0.85,Certified Smelter,Critical Hazard,E. Vance,Verified',
-        'LOG-8923,2024-10-24 15:10:45,Smart Devices,0.32,Reuse Hub,Class I,M. Santos,Completed',
-        'LOG-8924,2024-10-24 15:35:22,CRT Display Monitor,12.40,Safe Neutralization,Heavy Metal,J. Cruz,Processing',
-        'LOG-8925,2024-10-24 16:02:18,Small Appliances,3.10,Polymer Shredding,Class I,E. Vance,Completed',
-        'LOG-8926,2024-10-24 16:20:00,Network Equipment,1.80,Reuse Hub,Class II,M. Santos,Completed',
+        'Category,Units,Weight_kg,Hazmat_Flags,Reuse_Rate',
+        ...currentData.tableRows.map(
+          (row) => `"${row.name}",${row.units},"${row.weight}","${row.hazmat}",${row.rate}`
+        ),
       ].join('\n')
 
     const encodedUri = encodeURI(csvContent)
@@ -908,10 +851,10 @@ export const AdminDashboardPage: FC = () => {
                   <line x1="45" y1="200" x2="520" y2="200" stroke="#cbd5e1" strokeWidth="1.2" />
 
                   {/* Y-Axis numbers */}
-                  <text x="35" y="24" textAnchor="end" fontSize="9" fill="#64748b" fontWeight="600">500</text>
-                  <text x="35" y="69" textAnchor="end" fontSize="9" fill="#64748b" fontWeight="600">375</text>
-                  <text x="35" y="114" textAnchor="end" fontSize="9" fill="#64748b" fontWeight="600">250</text>
-                  <text x="35" y="159" textAnchor="end" fontSize="9" fill="#64748b" fontWeight="600">125</text>
+                  <text x="35" y="24" textAnchor="end" fontSize="9" fill="#64748b" fontWeight="600">{currentData.yAxisMax}</text>
+                  <text x="35" y="69" textAnchor="end" fontSize="9" fill="#64748b" fontWeight="600">{Math.round(currentData.yAxisMax * 0.75)}</text>
+                  <text x="35" y="114" textAnchor="end" fontSize="9" fill="#64748b" fontWeight="600">{Math.round(currentData.yAxisMax * 0.5)}</text>
+                  <text x="35" y="159" textAnchor="end" fontSize="9" fill="#64748b" fontWeight="600">{Math.round(currentData.yAxisMax * 0.25)}</text>
                   <text x="35" y="204" textAnchor="end" fontSize="9" fill="#64748b" fontWeight="600">0</text>
 
                   {/* Bars Rendered Dynamically from currentData */}
