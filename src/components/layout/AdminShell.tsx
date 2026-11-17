@@ -1,4 +1,4 @@
-import { useState, type FC, type ReactNode } from 'react'
+import { useEffect, useState, type FC, type ReactNode } from 'react'
 import {
   Box,
   ButtonBase,
@@ -11,6 +11,8 @@ import {
   Button,
 } from '@mui/material'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { adminApi, authApi, getCachedUser } from '@/lib/api'
+import type { User } from '@/types'
 import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded'
 import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined'
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
@@ -37,9 +39,9 @@ interface NavItem {
   badge?: number
 }
 
-const NAV_ITEMS: NavItem[] = [
+const BASE_NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', path: '/admin', icon: GridViewRoundedIcon },
-  { label: 'To inspect', path: '/admin/to-inspect', icon: FactCheckOutlinedIcon, badge: 6 },
+  { label: 'To inspect', path: '/admin/to-inspect', icon: FactCheckOutlinedIcon },
   { label: 'Reuse Hub', path: '/admin/reuse-hub', icon: Inventory2OutlinedIcon },
   { label: 'Disposal', path: '/admin/disposal', icon: DeleteSweepOutlinedIcon },
   { label: 'Access', path: '/admin/access', icon: AdminPanelSettingsOutlinedIcon },
@@ -52,6 +54,53 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
 
   const [profileOpen, setProfileOpen] = useState(false)
   const [logoutOpen, setLogoutOpen] = useState(false)
+  const [toInspectBadge, setToInspectBadge] = useState<number>(0)
+  const [currentUser, setCurrentUser] = useState<User | null>(() => getCachedUser())
+
+  useEffect(() => {
+    let active = true
+    authApi
+      .getProfile()
+      .then((profile) => {
+        if (active && profile) {
+          setCurrentUser(profile)
+        }
+      })
+      .catch(() => {
+        // Keep cached user if offline
+      })
+
+    Promise.all([
+      adminApi.getRequests().catch(() => []),
+      adminApi.getInspectionQueue('waiting').catch(() => []),
+    ]).then(([requests, waitingItems]) => {
+      if (!active) return
+      const activeRequestsCount = requests.filter((r) => {
+        const s = (r.status || '').toLowerCase()
+        return s === 'pending_review' || s === 'scheduled' || s === 'collected'
+      }).length
+      setToInspectBadge(activeRequestsCount + waitingItems.length)
+    })
+
+    return () => {
+      active = false
+    }
+  }, [path])
+
+  const navItems: NavItem[] = BASE_NAV_ITEMS.map((item) =>
+    item.path === '/admin/to-inspect' && toInspectBadge > 0
+      ? { ...item, badge: toInspectBadge }
+      : item
+  )
+
+  const staffRoleUpper = (currentUser?.role || '').toUpperCase()
+  const staffRoleLabel =
+    staffRoleUpper === 'BARANGAY_OFFICIAL' || staffRoleUpper === 'OFFICIAL'
+      ? 'Official'
+      : 'Admin'
+  const staffFullName = currentUser?.fullName?.trim() || 'Barangay Staff'
+  const staffEmail = currentUser?.email || 'staff@ecobyte.gov.ph'
+  const staffArea = currentUser?.barangay?.name || 'Barangay Commonwealth MRF'
 
   const isCurrentActive = (itemPath: string) => {
     if (itemPath === '/admin') {
@@ -146,7 +195,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
 
           {/* Navigation Links */}
           <Box component="nav" sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-            {NAV_ITEMS.map((item) => {
+            {navItems.map((item) => {
               const active = isCurrentActive(item.path)
               const Icon = item.icon
 
@@ -336,7 +385,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
               boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
             }}
           >
-            Admin
+            {staffRoleLabel}
           </Box>
           <Box
             onClick={() => setProfileOpen(true)}
@@ -450,7 +499,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', color: '#0f172a' }}>
-                  Elena Vance
+                  {staffFullName}
                 </Typography>
                 <Box
                   sx={{
@@ -468,7 +517,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
                 </Box>
               </Box>
               <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
-                Super Administrator • Level 1 Access
+                {staffRoleLabel === 'Admin' ? 'Super Administrator' : 'Barangay Official'} • {staffRoleLabel} Access
               </Typography>
             </Box>
           </Box>
@@ -481,7 +530,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
                 <Typography sx={{ fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>Email Address</Typography>
               </Box>
               <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: '#0f172a' }}>
-                elena.vance@ecobyte.gov.ph
+                {staffEmail}
               </Typography>
             </Box>
 
@@ -491,7 +540,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
                 <Typography sx={{ fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>Assigned Facility Node</Typography>
               </Box>
               <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: '#0f172a' }}>
-                Central-Depot-01 (Barangay Commonwealth MRF)
+                {staffArea}
               </Typography>
             </Box>
 
@@ -597,6 +646,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
           </Button>
           <Button
             onClick={() => {
+              authApi.logout()
               setLogoutOpen(false)
               navigate('/signin')
             }}

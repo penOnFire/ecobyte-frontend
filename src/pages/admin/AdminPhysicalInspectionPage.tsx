@@ -1,5 +1,5 @@
-import { useState, type FC } from 'react'
-import { Box, ButtonBase, Dialog, Typography } from '@mui/material'
+import { useEffect, useState, type FC } from 'react'
+import { Alert, Box, ButtonBase, CircularProgress, Dialog, Snackbar, Typography } from '@mui/material'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded'
@@ -13,33 +13,93 @@ import RecyclingRoundedIcon from '@mui/icons-material/RecyclingRounded'
 import DeleteForeverRoundedIcon from '@mui/icons-material/DeleteForeverRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import thinkpadDetailImg from '@/assets/ui/thinkpad_detail.jpeg'
+import { adminApi, type AdminInspectionDetails } from '@/lib/api'
 
 export const AdminPhysicalInspectionPage: FC = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const itemParam = searchParams.get('item') || 'AP-882194-X'
+  const itemParam = searchParams.get('item') || ''
+
+  const [details, setDetails] = useState<AdminInspectionDetails | null>(null)
+  const [isLoading, setIsLoading] = useState(Boolean(itemParam))
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(() =>
+    itemParam ? null : 'Select an item or resident drop-off request from the To Inspect queue first.'
+  )
 
   const [bootState, setBootState] = useState<'yes' | 'no' | 'not_sure'>('yes')
-  const [chassisCondition, setChassisCondition] = useState<'good' | 'damaged' | 'swollen'>('swollen')
-  const [notes, setNotes] = useState(
-    'Chassis deflection 1.8mm at palmrest. Bench multimeter: Power draws 45W stable on USB-C port 1. Minor screen scratch top bezel (grade B-). Keyboard and trackpad intact. Battery cycle counter logged at 980 cycles.',
-  )
+  const [chassisCondition, setChassisCondition] = useState<'good' | 'damaged' | 'swollen'>('good')
+  const [notes, setNotes] = useState('')
 
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean
     type: 'reuse' | 'disposal' | null
   }>({ open: false, type: null })
 
+  useEffect(() => {
+    if (!itemParam) {
+      return
+    }
+    let active = true
+    adminApi
+      .getInspectionDetails(itemParam)
+      .then((res) => {
+        if (!active) return
+        setDetails(res)
+        setBootState(res.reportedCondition.powersOn ? 'yes' : 'no')
+        if (res.reportedCondition.visibleDamage.includes('swollen_battery')) {
+          setChassisCondition('swollen')
+        } else if (!res.reportedCondition.displayIntact) {
+          setChassisCondition('damaged')
+        } else {
+          setChassisCondition('good')
+        }
+        setNotes(res.benchNotes || '')
+      })
+      .catch((err: any) => {
+        if (!active) return
+        setErrorMsg(err?.message || 'Unable to load inspection record from backend.')
+      })
+      .finally(() => {
+        if (active) setIsLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [itemParam])
+
   const handleQuickTelemetry = () => {
     setNotes(
-      'Diagnostic bench check: Multimeter Vbus = 20.2V, 2.25A steady. Thermals: Battery cell #2 elevated to 38.4°C. Display panel intact with 98% sRGB gamut. SSD SMART status verified healthy (0 bad sectors). Grade B chassis.',
+      'Diagnostic bench check: Power draw steady. Display & chassis inspected. Ready for final disposition verdict.'
     )
   }
 
-  const handleConfirmAction = () => {
-    const target = confirmModal.type === 'reuse' ? '/admin/reuse-hub' : '/admin/disposal'
-    setConfirmModal({ open: false, type: null })
-    navigate(target)
+  const handleConfirmAction = async () => {
+    if (!confirmModal.type || !itemParam) return
+    setIsSubmitting(true)
+    setErrorMsg(null)
+    const action = confirmModal.type === 'reuse' ? 'REUSE' : 'DISPOSAL'
+    const conditionGrade =
+      chassisCondition === 'good' && bootState === 'yes'
+        ? 'Inspected & Working'
+        : chassisCondition === 'damaged'
+          ? 'Minor Bezel Scratch'
+          : 'Safe & Tested'
+    try {
+      await adminApi.submitInspectionVerdict(itemParam, {
+        action,
+        conditionGrade,
+        benchNotes: notes,
+      })
+      const target = confirmModal.type === 'reuse' ? '/admin/reuse-hub' : '/admin/disposal'
+      setConfirmModal({ open: false, type: null })
+      navigate(target)
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Failed to submit physical inspection verdict.')
+      setConfirmModal({ open: false, type: null })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -96,7 +156,7 @@ export const AdminPhysicalInspectionPage: FC = () => {
                 letterSpacing: '-0.025em',
               }}
             >
-              MacBook Pro 15" Retina
+              {isLoading ? 'Loading item...' : details?.deviceModel || 'Physical Inspection'}
             </Typography>
             <Box
               sx={{
@@ -110,7 +170,7 @@ export const AdminPhysicalInspectionPage: FC = () => {
                 fontWeight: 700,
               }}
             >
-              #{itemParam}
+              #{details?.serialNumber || itemParam || 'UNSELECTED'}
             </Box>
           </Box>
         </Box>
@@ -289,25 +349,25 @@ export const AdminPhysicalInspectionPage: FC = () => {
             <Box>
               <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>OEM / Model</Typography>
               <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: '#0f172a' }}>
-                MacBook Pro 15" Retina (A1990)
+                {details?.deviceModel || 'Electronic Device'}
               </Typography>
             </Box>
             <Box>
               <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>Serial Number</Typography>
               <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: '#0f172a', fontFamily: 'monospace' }}>
-                AP-882194-X
+                {details?.serialNumber || itemParam || 'N/A'}
               </Typography>
             </Box>
             <Box>
-              <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>Processor</Typography>
+              <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>Resident Submitter</Typography>
               <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: '#0f172a' }}>
-                Intel Core i7-8850H 2.6GHz
+                {details?.resident?.name || 'Resident'}
               </Typography>
             </Box>
             <Box>
-              <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>Memory / Storage</Typography>
+              <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>Barangay Base</Typography>
               <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: '#0f172a' }}>
-                32GB RAM / 1TB NVMe
+                {details?.resident?.barangay || 'Barangay Commonwealth'}
               </Typography>
             </Box>
           </Box>
@@ -988,7 +1048,8 @@ export const AdminPhysicalInspectionPage: FC = () => {
             Cancel
           </ButtonBase>
           <ButtonBase
-            onClick={handleConfirmAction}
+            disabled={isSubmitting}
+            onClick={() => void handleConfirmAction()}
             sx={{
               px: 2.5,
               py: 1,
@@ -998,12 +1059,27 @@ export const AdminPhysicalInspectionPage: FC = () => {
               fontWeight: 700,
               fontSize: '0.8125rem',
               boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 1,
             }}
           >
-            Confirm &amp; Proceed
+            {isSubmitting && <CircularProgress size={14} color="inherit" />}
+            <span>{isSubmitting ? 'Saving...' : 'Confirm & Proceed'}</span>
           </ButtonBase>
         </Box>
       </Dialog>
+
+      <Snackbar
+        open={Boolean(errorMsg)}
+        autoHideDuration={5000}
+        onClose={() => setErrorMsg(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert severity="error" variant="filled" onClose={() => setErrorMsg(null)}>
+          {errorMsg}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

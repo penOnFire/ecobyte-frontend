@@ -1,5 +1,16 @@
-import { useState, type FC, type MouseEvent } from 'react'
-import { Box, ButtonBase, Typography, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material'
+import { useEffect, useState, type FC, type MouseEvent } from 'react'
+import {
+  Alert,
+  Box,
+  ButtonBase,
+  CircularProgress,
+  Typography,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Snackbar,
+} from '@mui/material'
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import LockRoundedIcon from '@mui/icons-material/LockRounded'
@@ -13,159 +24,78 @@ import FilterListRoundedIcon from '@mui/icons-material/FilterListRounded'
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded'
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
+import { adminApi, type AdminDisposalLogItem } from '@/lib/api'
 
 interface DisposalRecord {
   id: string
   recordNumber: string
   item: string
-  pathwayTag: string
+  pathwayTag: 'Critical Hazard' | 'Precious Metals' | 'Polymer Shred' | 'Salvage Components'
   pathwaySub: string
   pathwayDetail: string
   date: string
+  periodLabel: string
   status: string
+  weightKg: number
   isHazard?: boolean
 }
 
-const DISPOSAL_RECORDS: DisposalRecord[] = [
-  {
-    id: '1',
-    recordNumber: '#DR-9842',
-    item: 'Cisco Catalyst 3850',
-    pathwayTag: 'Precious Metals',
-    pathwaySub: '99.2% match',
-    pathwayDetail: 'Further assessment (Gold/Palladium Recovery)',
-    date: 'Oct 24, 2024',
-    status: 'Turned over',
-  },
-  {
-    id: '2',
-    recordNumber: '#DR-9839',
-    item: 'DJI Matrice 300 TB60 LiPo',
-    pathwayTag: 'Critical Hazard',
-    pathwaySub: 'Class 9',
-    pathwayDetail: 'Further assessment (Severe Thermal Risk / Swollen)',
-    date: 'Oct 24, 2024',
-    status: 'Turned over',
-    isHazard: true,
-  },
-  {
-    id: '3',
-    recordNumber: '#DR-9831',
-    item: 'Dell PowerEdge Server Blade',
-    pathwayTag: 'Precious Metals',
-    pathwaySub: '98.6% match',
-    pathwayDetail: 'Smelting extraction (PCB Gold Fingers)',
-    date: 'Oct 23, 2024',
-    status: 'Turned over',
-  },
-  {
-    id: '4',
-    recordNumber: '#DR-9814',
-    item: 'Zebra TC52x Handheld Scanner',
-    pathwayTag: 'Polymer Shred',
-    pathwaySub: 'Zero Landfill',
-    pathwayDetail: 'Further assessment (Plastic Shredding & Pellets)',
-    date: 'Oct 22, 2024',
-    status: 'Turned over',
-  },
-  {
-    id: '5',
-    recordNumber: '#DR-9807',
-    item: 'HP LaserJet Enterprise M608',
-    pathwayTag: 'Salvage Components',
-    pathwaySub: 'Recycled',
-    pathwayDetail: 'Further assessment (Fuser unit & board recycling)',
-    date: 'Oct 21, 2024',
-    status: 'Turned over',
-  },
-  {
-    id: '6',
-    recordNumber: '#DR-9799',
-    item: 'Apple MacBook Pro 15 (2018)',
-    pathwayTag: 'Precious Metals',
-    pathwaySub: '99.0% match',
-    pathwayDetail: 'Logic board gold recovery & chassis aluminum melt',
-    date: 'Oct 19, 2024',
-    status: 'Turned over',
-  },
-  {
-    id: '7',
-    recordNumber: '#DR-9782',
-    item: 'Samsung Galaxy Note 8 Battery',
-    pathwayTag: 'Critical Hazard',
-    pathwaySub: 'Class 9',
-    pathwayDetail: 'Hazmat isolation cell (Severe electrolyte rupture)',
-    date: 'Oct 15, 2024',
-    status: 'Turned over',
-    isHazard: true,
-  },
-  {
-    id: '8',
-    recordNumber: '#DR-9764',
-    item: 'APC Smart-UPS 1500VA',
-    pathwayTag: 'Critical Hazard',
-    pathwaySub: 'Lead-Acid',
-    pathwayDetail: 'Acid neutralizer chamber and lead reclamation',
-    date: 'Oct 10, 2024',
-    status: 'Turned over',
-    isHazard: true,
-  },
-  {
-    id: '9',
-    recordNumber: '#DR-9740',
-    item: 'Sony Trinitron CRT 21-inch',
-    pathwayTag: 'Salvage Components',
-    pathwaySub: 'Heavy Metal',
-    pathwayDetail: 'Phosphor & leaded funnel glass certified segregation',
-    date: 'Sep 28, 2024',
-    status: 'Turned over',
-  },
-  {
-    id: '10',
-    recordNumber: '#DR-9715',
-    item: 'Lenovo ThinkPad T470 Chassis',
-    pathwayTag: 'Polymer Shred',
-    pathwaySub: 'ABS/PC Resin',
-    pathwayDetail: 'Cryogenic milling into high-grade feedstock',
-    date: 'Sep 22, 2024',
-    status: 'Turned over',
-  },
-  {
-    id: '11',
-    recordNumber: '#DR-9690',
-    item: 'Industrial Inverter Controller',
-    pathwayTag: 'Precious Metals',
-    pathwaySub: 'Copper/Silver',
-    pathwayDetail: 'Electrolytic refining and busbar extraction',
-    date: 'Sep 14, 2024',
-    status: 'Turned over',
-  },
-  {
-    id: '12',
-    recordNumber: '#DR-9650',
-    item: 'Segway Ninebot ES4 External Battery',
-    pathwayTag: 'Critical Hazard',
-    pathwaySub: 'Class 9',
-    pathwayDetail: 'Submerged brine discharge & pyrometallurgical smelt',
-    date: 'Aug 29, 2024',
-    status: 'Turned over',
-    isHazard: true,
-  },
-  {
-    id: '13',
-    recordNumber: '#DR-9610',
-    item: 'Canon PIXMA Inkjet Housing',
-    pathwayTag: 'Polymer Shred',
-    pathwaySub: 'Zero Landfill',
-    pathwayDetail: 'Non-toxic plastic compounding lot #4',
-    date: 'Aug 18, 2024',
-    status: 'Turned over',
-  },
-]
+function mapDisposalLog(log: AdminDisposalLogItem, index: number): DisposalRecord {
+  const combined = `${log.category || ''} ${log.itemName || ''} ${log.decisionNotes || ''}`.toLowerCase()
+  const isHazard =
+    combined.includes('battery') ||
+    combined.includes('lipo') ||
+    combined.includes('lithium') ||
+    combined.includes('hazard') ||
+    combined.includes('critical')
+  const parsedDate = new Date(log.date)
+  const validDate = !Number.isNaN(parsedDate.getTime())
+  const dateDisplay = validDate
+    ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(parsedDate)
+    : log.date
+  const periodLabel = validDate
+    ? new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(parsedDate)
+    : log.date.slice(0, 7)
+
+  return {
+    id: log.id || `${log.manifestId}-${index}`,
+    recordNumber: log.manifestId,
+    item: log.itemName || 'Hazardous E-Waste Unit',
+    pathwayTag: isHazard ? 'Critical Hazard' : 'Salvage Components',
+    pathwaySub: `${Number(log.totalWeightKg ?? 0).toFixed(2)} kg`,
+    pathwayDetail: log.decisionNotes || log.recycler,
+    date: dateDisplay,
+    periodLabel,
+    status: log.status ? log.status.charAt(0).toUpperCase() + log.status.slice(1) : 'Tagged',
+    weightKg: Number(log.totalWeightKg ?? 0),
+    isHazard,
+  }
+}
+
+function triggerDisposalCsvDownload(records: DisposalRecord[]): void {
+  const csv =
+    'data:text/csv;charset=utf-8,' +
+    [
+      'Manifest_ID,Item,Pathway,Weight_kg,Details,Date,Status',
+      ...records.map(
+        (r) =>
+          `${r.recordNumber},"${r.item.replace(/"/g, '""')}",${r.pathwayTag},${r.weightKg},"${r.pathwayDetail.replace(/"/g, '""')}",${r.date},${r.status}`
+      ),
+    ].join('\n')
+  const link = document.createElement('a')
+  link.href = encodeURI(csv)
+  link.download = `ecobyte-disposal-manifests-${new Date().toISOString().slice(0, 10)}.csv`
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
 
 export const AdminDisposalPage: FC = () => {
+  const [records, setRecords] = useState<DisposalRecord[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [search, setSearch] = useState('')
-  const [periodFilter, setPeriodFilter] = useState<'all' | 'Oct 2024' | 'Sep 2024' | 'Aug 2024'>('Oct 2024')
+  const [periodFilter, setPeriodFilter] = useState<string>('all')
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'Critical Hazard' | 'Precious Metals' | 'Polymer Shred' | 'Salvage Components'>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const pageSize = 5
@@ -173,11 +103,34 @@ export const AdminDisposalPage: FC = () => {
   const [periodAnchor, setPeriodAnchor] = useState<null | HTMLElement>(null)
   const [filterAnchor, setFilterAnchor] = useState<null | HTMLElement>(null)
 
+  useEffect(() => {
+    let active = true
+    adminApi
+      .getDisposalLogs()
+      .then((logs) => {
+        if (!active) return
+        setRecords(logs.map(mapDisposalLog))
+        setErrorMsg(null)
+      })
+      .catch((err: any) => {
+        if (!active) return
+        setErrorMsg(err?.message || 'Unable to load disposal records from backend.')
+      })
+      .finally(() => {
+        if (active) setIsLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const availablePeriods = ['all', ...Array.from(new Set(records.map((r) => r.periodLabel)))]
+
   const handlePeriodClick = (event: MouseEvent<HTMLElement>) => {
     setPeriodAnchor(event.currentTarget)
   }
 
-  const handlePeriodSelect = (period: typeof periodFilter) => {
+  const handlePeriodSelect = (period: string) => {
     setPeriodFilter(period)
     setCurrentPage(1)
     setPeriodAnchor(null)
@@ -193,8 +146,7 @@ export const AdminDisposalPage: FC = () => {
     setFilterAnchor(null)
   }
 
-  const filteredRecords = DISPOSAL_RECORDS.filter((rec) => {
-    // Search filter
+  const filteredRecords = records.filter((rec) => {
     if (search.trim()) {
       const q = search.toLowerCase()
       const matchesSearch =
@@ -205,14 +157,12 @@ export const AdminDisposalPage: FC = () => {
       if (!matchesSearch) return false
     }
 
-    // Period filter
-    if (periodFilter !== 'all') {
-      if (!rec.date.includes(periodFilter)) return false
+    if (periodFilter !== 'all' && rec.periodLabel !== periodFilter) {
+      return false
     }
 
-    // Category filter
-    if (categoryFilter !== 'all') {
-      if (rec.pathwayTag !== categoryFilter) return false
+    if (categoryFilter !== 'all' && rec.pathwayTag !== categoryFilter) {
+      return false
     }
 
     return true
@@ -221,6 +171,14 @@ export const AdminDisposalPage: FC = () => {
   const totalPages = Math.max(1, Math.ceil(filteredRecords.length / pageSize))
   const safePage = Math.min(currentPage, totalPages)
   const paginatedRecords = filteredRecords.slice((safePage - 1) * pageSize, safePage * pageSize)
+  const totalDivertedKg = Number(records.reduce((sum, r) => sum + r.weightKg, 0).toFixed(2))
+  const hazardCount = records.filter((r) => r.isHazard).length
+  const hazardPct = records.length > 0 ? Math.round((hazardCount / records.length) * 100) : 0
+  const salvagePct = records.length > 0 ? 100 - hazardPct : 0
+
+  const handleExportManifest = () => {
+    triggerDisposalCsvDownload(filteredRecords)
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5, pb: 4 }}>
@@ -287,6 +245,7 @@ export const AdminDisposalPage: FC = () => {
           </Box>
 
           <ButtonBase
+            onClick={handleExportManifest}
             sx={{
               display: 'flex',
               alignItems: 'center',
@@ -403,7 +362,7 @@ export const AdminDisposalPage: FC = () => {
                   },
                 }}
               >
-                {(['all', 'Oct 2024', 'Sep 2024', 'Aug 2024'] as const).map((period) => (
+                {availablePeriods.map((period) => (
                   <MenuItem
                     key={period}
                     selected={periodFilter === period}
@@ -540,7 +499,11 @@ export const AdminDisposalPage: FC = () => {
 
             {/* Table Rows */}
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              {paginatedRecords.length > 0 ? (
+              {isLoading ? (
+                <Box sx={{ py: 5, display: 'flex', justifyContent: 'center' }}>
+                  <CircularProgress size={24} sx={{ color: '#16a34a' }} />
+                </Box>
+              ) : paginatedRecords.length > 0 ? (
                 paginatedRecords.map((rec) => (
                   <Box
                     key={rec.id}
@@ -905,15 +868,15 @@ export const AdminDisposalPage: FC = () => {
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5, mt: 0.25 }}>
                   <Typography sx={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
-                    18.4
+                    {totalDivertedKg}
                   </Typography>
                   <Typography sx={{ fontSize: '1.125rem', fontWeight: 800, color: '#16a34a' }}>
-                    Tons
+                    kg
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.75, color: '#15803d', fontSize: '0.6875rem', fontWeight: 700 }}>
                   <TrendingUpRoundedIcon sx={{ fontSize: 14 }} />
-                  <span>+12.4% vs last billing cycle</span>
+                  <span>{records.length} logged manifests</span>
                 </Box>
               </Box>
 
@@ -939,16 +902,14 @@ export const AdminDisposalPage: FC = () => {
             {/* Category Breakdown Bars */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 1 }}>
               {[
-                { label: 'Precious Metals (Gold/Pd)', weight: '7.7 Tons', percent: 42, color: '#16a34a' },
-                { label: 'Lithium Battery Hazards', weight: '5.2 Tons', percent: 28, color: '#f59e0b' },
-                { label: 'Circuit Boards / PCBs', weight: '3.7 Tons', percent: 20, color: '#006a61' },
-                { label: 'Structural Polymers', weight: '1.8 Tons', percent: 10, color: '#64748b' },
+                { label: 'Lithium / Critical Hazards', count: `${hazardCount} items`, percent: hazardPct, color: '#f59e0b' },
+                { label: 'Certified Recycling & Salvage', count: `${records.length - hazardCount} items`, percent: salvagePct, color: '#16a34a' },
               ].map((item) => (
                 <Box key={item.label} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
                     <Typography sx={{ fontWeight: 600, color: '#0f172a' }}>{item.label}</Typography>
                     <Typography sx={{ fontWeight: 700, color: '#475569' }}>
-                      {item.weight} ({item.percent}%)
+                      {item.count} ({item.percent}%)
                     </Typography>
                   </Box>
                   <Box sx={{ width: '100%', height: 6, borderRadius: '9999px', backgroundColor: '#eff4ff', overflow: 'hidden' }}>
@@ -960,6 +921,17 @@ export const AdminDisposalPage: FC = () => {
           </Box>
         </Box>
       </Box>
+
+      <Snackbar
+        open={Boolean(errorMsg)}
+        autoHideDuration={4500}
+        onClose={() => setErrorMsg(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert severity="error" variant="filled" onClose={() => setErrorMsg(null)}>
+          {errorMsg}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

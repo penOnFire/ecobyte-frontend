@@ -22,12 +22,17 @@ import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 import MyLocationRoundedIcon from '@mui/icons-material/MyLocationRounded'
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import { useNavigate } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { dropoffsApi } from '@/lib/api'
 import type { DropOffSite } from '@/types'
 import { CommonwealthLeafletMap } from '@/components/map/CommonwealthLeafletMap'
-import { COMMONWEALTH_FALLBACK_SITES } from '@/components/map/commonwealthData'
+import {
+  COMMONWEALTH_FALLBACK_SITES,
+  findPartitionForSite,
+  resolveSiteBaseNumber,
+} from '@/components/map/commonwealthData'
 
 const FILTERS = ['All Sites (9)', 'Open Now', 'Staffed', '24/7 Smart Bin']
 
@@ -82,12 +87,17 @@ export const DropOffFinderPage: FC = () => {
       .getSites()
       .then((data) => {
         if (isMounted && data && data.length > 0) {
-          // Merge coordinates if backend doesn't provide them yet
+          // Place each site at its real Barangay Commonwealth base partition coordinates
           const enriched = data.map((d, i) => {
-            const fallback = COMMONWEALTH_FALLBACK_SITES[i % COMMONWEALTH_FALLBACK_SITES.length]
+            const partition = findPartitionForSite(d.id, d.name, i)
+            const fallback =
+              COMMONWEALTH_FALLBACK_SITES[(partition?.num ?? i + 1) - 1] ||
+              COMMONWEALTH_FALLBACK_SITES[i % COMMONWEALTH_FALLBACK_SITES.length]
             return {
               ...d,
-              coordinates: d.coordinates || fallback.coordinates,
+              coordinates: partition
+                ? { lat: partition.center[0], lng: partition.center[1] }
+                : d.coordinates || fallback.coordinates,
             }
           })
           setSites(enriched)
@@ -172,22 +182,18 @@ export const DropOffFinderPage: FC = () => {
     setSelectedArea(newArea)
     setAreaDialogOpen(false)
 
-    // Map area name to corresponding Commonwealth site
-    const areaMap: Record<string, string> = {
-      'Area 1 (Brgy Hall Complex / Katuparan)': 'commonwealth-mrf-area1',
-      'Area 2 (Lupang Pangako / Riverside)': 'area2-lupang-pangako',
-      'Area 3 (Payatas Border / Market)': 'area3-payatas-border',
-      'Area 4 (Don Fabian / Litex)': 'litex-commercial-hub',
-      'Area 5 (Commonwealth Market / MRT-7)': 'area5-market-mrt7',
-      'Area 6 (Pilot Area / Eco-Depot)': 'area6-pilot-depot',
-      'Area 7 (Kasunduan / Batasan Road)': 'batasan-border-depot',
-      'Area 8 (Holy Spirit / Commonwealth Ave)': 'area8-holy-spirit',
-      'Area 9 (Veterans Village / Sandigan)': 'area9-veterans-village',
+    const targetNum = resolveSiteBaseNumber(undefined, newArea)
+    if (targetNum !== null) {
+      const matched = sites.find((s, idx) => findPartitionForSite(s.id, s.name, idx)?.num === targetNum)
+      if (matched) {
+        handlePinClick(matched.id)
+        return
+      }
     }
 
-    const matchedSiteId = areaMap[newArea]
-    if (matchedSiteId) {
-      handlePinClick(matchedSiteId)
+    const fallbackSite = COMMONWEALTH_FALLBACK_SITES.find((_, idx) => idx + 1 === targetNum)
+    if (fallbackSite) {
+      handlePinClick(fallbackSite.id)
     }
   }
 
@@ -203,16 +209,36 @@ export const DropOffFinderPage: FC = () => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5 }}>
       {/* ── Header ── */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <Box>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1.625rem', color: '#0f172a' }}>
-            Drop-off Finder
-          </Typography>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.8125rem', color: '#64748b', mt: 0.25 }}>
-            Accredited e-waste sites (Barangay Commonwealth)
-          </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+          <IconButton
+            size="small"
+            onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/dashboard'))}
+            aria-label="Back"
+            sx={{
+              width: 38,
+              height: 38,
+              backgroundColor: '#ffffff',
+              border: '1px solid #e2e8f0',
+              borderRadius: '50%',
+              color: '#0f172a',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              flexShrink: 0,
+              '&:hover': { backgroundColor: '#f8fafc' },
+            }}
+          >
+            <ArrowBackRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+          <Box>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1.375rem', color: '#0f172a', lineHeight: 1.2 }}>
+              Drop-off Finder
+            </Typography>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#64748b', mt: 0.2 }}>
+              Accredited e-waste sites (Barangay Commonwealth)
+            </Typography>
+          </Box>
         </Box>
-        <Box onClick={handleLocateUser} sx={{ cursor: 'pointer' }}>
+        <Box onClick={handleLocateUser} sx={{ cursor: 'pointer', flexShrink: 0 }}>
           <StatusBadge
             label={userLocation ? 'GPS Synced' : isLocating ? 'Locating...' : 'Sync GPS'}
             variant={userLocation ? 'electric' : 'muted'}

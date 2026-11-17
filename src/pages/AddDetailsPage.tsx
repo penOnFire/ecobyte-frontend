@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FC } from 'react'
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -20,42 +21,107 @@ import SmartphoneRoundedIcon from '@mui/icons-material/SmartphoneRounded'
 import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded'
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded'
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
+import EditNoteRoundedIcon from '@mui/icons-material/EditNoteRounded'
 import { useNavigate } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+
+const FOUR_ANGLES = [
+  { id: 'front', label: 'Front', icon: '📱' },
+  { id: 'back', label: 'Back', icon: '📱' },
+  { id: 'left', label: 'Left', icon: '🔍' },
+  { id: 'right', label: 'Right', icon: '🔍' },
+] as const
 
 export const AddDetailsPage: FC = () => {
   const navigate = useNavigate()
 
+  const [capturedAngles] = useState<Record<string, string>>(() => {
+    try {
+      const saved = sessionStorage.getItem('ecobyte_scan_angles')
+      return saved ? (JSON.parse(saved) as Record<string, string>) : {}
+    } catch {
+      return {}
+    }
+  })
+
   // Guided questions state
   const [workingStatus, setWorkingStatus] = useState<'yes' | 'no' | 'notsure'>('no')
-  const [visibleDamage, setVisibleDamage] = useState<string[]>(['cracked', 'swollen'])
+  const [visibleDamage, setVisibleDamage] = useState<string[]>(['none'])
+  const [otherDamageText, setOtherDamageText] = useState('')
   const [missingParts, setMissingParts] = useState<string[]>(['none'])
+  const [otherMissingText, setOtherMissingText] = useState('')
   const [notes, setNotes] = useState('')
+  const [validationError, setValidationError] = useState<string | null>(null)
+
+  const readyAnglesCount = FOUR_ANGLES.filter((a) => Boolean(capturedAngles[a.id])).length
 
   const toggleDamage = (val: string) => {
+    setValidationError(null)
     if (val === 'none') {
       setVisibleDamage(['none'])
+      setOtherDamageText('')
+      return
+    }
+    const filtered = visibleDamage.filter((d) => d !== 'none')
+    if (filtered.includes(val)) {
+      const next = filtered.filter((d) => d !== val)
+      if (val === 'others') setOtherDamageText('')
+      setVisibleDamage(next.length > 0 ? next : ['none'])
     } else {
-      const filtered = visibleDamage.filter((d) => d !== 'none')
-      if (filtered.includes(val)) {
-        setVisibleDamage(filtered.filter((d) => d !== val))
-      } else {
-        setVisibleDamage([...filtered, val])
-      }
+      setVisibleDamage([...filtered, val])
     }
   }
 
   const toggleMissing = (val: string) => {
+    setValidationError(null)
     if (val === 'none') {
       setMissingParts(['none'])
-    } else {
-      const filtered = missingParts.filter((m) => m !== 'none')
-      if (filtered.includes(val)) {
-        setMissingParts(filtered.filter((m) => m !== val))
-      } else {
-        setMissingParts([...filtered, val])
-      }
+      setOtherMissingText('')
+      return
     }
+    const filtered = missingParts.filter((m) => m !== 'none')
+    if (filtered.includes(val)) {
+      const next = filtered.filter((m) => m !== val)
+      if (val === 'others') setOtherMissingText('')
+      setMissingParts(next.length > 0 ? next : ['none'])
+    } else {
+      setMissingParts([...filtered, val])
+    }
+  }
+
+  const handleAnalyzeSubmit = () => {
+    if (visibleDamage.includes('others') && !otherDamageText.trim()) {
+      setValidationError('Please specify the other visible damage before continuing.')
+      return
+    }
+    if (missingParts.includes('others') && !otherMissingText.trim()) {
+      setValidationError('Please specify the other missing part(s) before continuing.')
+      return
+    }
+
+    const resolvedDamage = visibleDamage
+      .filter((d) => d !== 'others')
+      .concat(visibleDamage.includes('others') ? [`other:${otherDamageText.trim()}`] : [])
+    const resolvedMissing = missingParts
+      .filter((m) => m !== 'others')
+      .concat(missingParts.includes('others') ? [`other:${otherMissingText.trim()}`] : [])
+
+    try {
+      sessionStorage.setItem(
+        'ecobyte_assessment_draft',
+        JSON.stringify({
+          workingStatus,
+          visibleDamage: resolvedDamage,
+          missingParts: resolvedMissing,
+          notes: notes.trim() || undefined,
+          anglesCount: readyAnglesCount,
+        })
+      )
+    } catch {
+      // Ignore quota errors
+    }
+
+    navigate('/diagnostic')
   }
 
   return (
@@ -121,74 +187,91 @@ export const AddDetailsPage: FC = () => {
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
             Photos captured
           </Typography>
-          <StatusBadge label="6/6 angles ready" variant="electric" size="sm" />
+          <StatusBadge
+            label={`${readyAnglesCount}/${FOUR_ANGLES.length} angles ready`}
+            variant={readyAnglesCount === FOUR_ANGLES.length ? 'electric' : 'muted'}
+            size="sm"
+          />
         </Box>
         <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mb: 1.75, lineHeight: 1.45 }}>
-          Multi-angle optical telemetry for automated hardware classification.
+          4-angle optical telemetry for automated hardware classification.
         </Typography>
 
         {/* 4 Thumbnails */}
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1 }}>
-          {[
-            { label: 'Front', ready: true, icon: '📱' },
-            { label: 'Back', ready: true, icon: '📱' },
-            { label: 'Left', ready: true, icon: '🔍' },
-            { label: 'Right', ready: false, icon: '🔍' },
-          ].map((item) => (
-            <Box
-              key={item.label}
-              sx={{
-                height: 76,
-                borderRadius: 1.25,
-                backgroundColor: '#0f172a',
-                border: '1px solid #1e293b',
-                color: '#ffffff',
-                position: 'relative',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                p: 0.5,
-                overflow: 'hidden',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-              }}
-            >
-              {item.ready && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 6,
-                    right: 6,
-                    width: 16,
-                    height: 16,
-                    borderRadius: '50%',
-                    backgroundColor: '#abf06b',
-                    color: '#0f172a',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <CheckRoundedIcon sx={{ fontSize: 11 }} />
-                </Box>
-              )}
-              <Typography sx={{ fontSize: '1.25rem', my: 'auto', opacity: 0.75 }}>{item.icon}</Typography>
+          {FOUR_ANGLES.map((item) => {
+            const imgSrc = capturedAngles[item.id]
+            const ready = Boolean(imgSrc)
+            return (
               <Box
+                key={item.id}
+                onClick={() => navigate('/scan')}
                 sx={{
-                  width: '100%',
-                  backgroundColor: 'rgba(2, 6, 23, 0.75)',
-                  backdropFilter: 'blur(4px)',
-                  borderRadius: 1,
-                  py: 0.25,
-                  textAlign: 'center',
+                  height: 76,
+                  borderRadius: 1.25,
+                  backgroundColor: '#0f172a',
+                  border: ready ? '1.5px solid #16a34a' : '1px solid #1e293b',
+                  color: '#ffffff',
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  p: 0.5,
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                 }}
               >
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.5625rem', color: '#ffffff' }}>
-                  {item.label}
-                </Typography>
+                {imgSrc && (
+                  <Box
+                    component="img"
+                    src={imgSrc}
+                    alt={item.label}
+                    sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                )}
+                {ready && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 6,
+                      right: 6,
+                      width: 16,
+                      height: 16,
+                      borderRadius: '50%',
+                      backgroundColor: '#abf06b',
+                      color: '#0f172a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 1,
+                    }}
+                  >
+                    <CheckRoundedIcon sx={{ fontSize: 11 }} />
+                  </Box>
+                )}
+                {!imgSrc && (
+                  <Typography sx={{ fontSize: '1.25rem', my: 'auto', opacity: 0.75 }}>{item.icon}</Typography>
+                )}
+                <Box
+                  sx={{
+                    width: '100%',
+                    backgroundColor: 'rgba(2, 6, 23, 0.75)',
+                    backdropFilter: 'blur(4px)',
+                    borderRadius: 1,
+                    py: 0.25,
+                    textAlign: 'center',
+                    zIndex: 1,
+                  }}
+                >
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.5625rem', color: '#ffffff' }}>
+                    {item.label}
+                  </Typography>
+                </Box>
               </Box>
-            </Box>
-          ))}
+            )
+          })}
         </Box>
       </Card>
 
@@ -317,14 +400,14 @@ export const AddDetailsPage: FC = () => {
                 py: 0.75,
                 px: 1.5,
                 borderRadius: 9999,
-                backgroundColor: '#fffbeb',
-                color: '#b45309',
-                border: '1.5px solid #f59e0b',
+                backgroundColor: visibleDamage.includes('swollen') ? '#fffbeb' : '#ffffff',
+                color: visibleDamage.includes('swollen') ? '#b45309' : '#0f172a',
+                border: visibleDamage.includes('swollen') ? '1.5px solid #f59e0b' : '1.5px solid #e2e8f0',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 0.75,
                 cursor: 'pointer',
-                boxShadow: '0 1px 3px rgba(245, 158, 11, 0.15)',
+                boxShadow: visibleDamage.includes('swollen') ? '0 1px 3px rgba(245, 158, 11, 0.15)' : 'none',
               }}
             >
               <WarningAmberRoundedIcon sx={{ fontSize: 16, color: '#b45309' }} />
@@ -344,6 +427,29 @@ export const AddDetailsPage: FC = () => {
                   HAZARD
                 </Typography>
               </Box>
+            </Box>
+
+            {/* Others */}
+            <Box
+              onClick={() => toggleDamage('others')}
+              sx={{
+                py: 0.75,
+                px: 1.5,
+                borderRadius: 9999,
+                backgroundColor: visibleDamage.includes('others') ? '#0f172a' : '#ffffff',
+                color: visibleDamage.includes('others') ? '#ffffff' : '#0f172a',
+                border: visibleDamage.includes('others') ? '1.5px solid #0f172a' : '1.5px solid #e2e8f0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.75,
+                cursor: 'pointer',
+              }}
+            >
+              <EditNoteRoundedIcon sx={{ fontSize: 16 }} />
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem' }}>
+                Others
+              </Typography>
+              {visibleDamage.includes('others') && <CloseRoundedIcon sx={{ fontSize: 14 }} />}
             </Box>
 
             {/* None */}
@@ -368,6 +474,31 @@ export const AddDetailsPage: FC = () => {
               </Typography>
             </Box>
           </Box>
+
+          {visibleDamage.includes('others') && (
+            <Box sx={{ mt: 1.5 }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem', color: '#0f172a', mb: 0.5 }}>
+                Specify other visible damage *
+              </Typography>
+              <OutlinedInput
+                fullWidth
+                size="small"
+                required
+                value={otherDamageText}
+                onChange={(e) => {
+                  setOtherDamageText(e.target.value)
+                  if (validationError) setValidationError(null)
+                }}
+                error={Boolean(validationError && !otherDamageText.trim())}
+                placeholder="e.g. Loose hinge, liquid residue, frayed charging port"
+                sx={{
+                  borderRadius: 1.5,
+                  backgroundColor: '#f8fafc',
+                  fontSize: '0.8125rem',
+                }}
+              />
+            </Box>
+          )}
         </Box>
 
         {/* Q3: Missing parts */}
@@ -404,6 +535,29 @@ export const AddDetailsPage: FC = () => {
               )
             })}
 
+            {/* Others */}
+            <Box
+              onClick={() => toggleMissing('others')}
+              sx={{
+                py: 0.75,
+                px: 1.5,
+                borderRadius: 9999,
+                backgroundColor: missingParts.includes('others') ? '#0f172a' : '#ffffff',
+                color: missingParts.includes('others') ? '#ffffff' : '#0f172a',
+                border: missingParts.includes('others') ? '1.5px solid #0f172a' : '1.5px solid #e2e8f0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.6,
+                cursor: 'pointer',
+              }}
+            >
+              <EditNoteRoundedIcon sx={{ fontSize: 16 }} />
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem' }}>
+                Others
+              </Typography>
+              {missingParts.includes('others') && <CloseRoundedIcon sx={{ fontSize: 14 }} />}
+            </Box>
+
             {/* None */}
             <Box
               onClick={() => toggleMissing('none')}
@@ -426,6 +580,31 @@ export const AddDetailsPage: FC = () => {
               </Typography>
             </Box>
           </Box>
+
+          {missingParts.includes('others') && (
+            <Box sx={{ mt: 1.5 }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem', color: '#0f172a', mb: 0.5 }}>
+                Specify other missing part(s) *
+              </Typography>
+              <OutlinedInput
+                fullWidth
+                size="small"
+                required
+                value={otherMissingText}
+                onChange={(e) => {
+                  setOtherMissingText(e.target.value)
+                  if (validationError) setValidationError(null)
+                }}
+                error={Boolean(validationError && !otherMissingText.trim())}
+                placeholder="e.g. SIM tray, power button cap, screws"
+                sx={{
+                  borderRadius: 1.5,
+                  backgroundColor: '#f8fafc',
+                  fontSize: '0.8125rem',
+                }}
+              />
+            </Box>
+          )}
         </Box>
 
         {/* Notes */}
@@ -500,13 +679,19 @@ export const AddDetailsPage: FC = () => {
         </Box>
       </Card>
 
+      {validationError && (
+        <Alert severity="error" sx={{ borderRadius: 2 }}>
+          {validationError}
+        </Alert>
+      )}
+
       {/* ── Analyze CTA Button ── */}
       <Box sx={{ mt: 0.5, mb: 2 }}>
         <Button
           fullWidth
           variant="contained"
           size="large"
-          onClick={() => navigate('/diagnostic')}
+          onClick={handleAnalyzeSubmit}
           startIcon={<AutoAwesomeRoundedIcon sx={{ fontSize: 20, color: '#abf06b' }} />}
           endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
           sx={{

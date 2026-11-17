@@ -1,8 +1,12 @@
-import { useState, useRef, type FC, type ChangeEvent } from 'react'
+import { useEffect, useState, useRef, type FC, type ChangeEvent } from 'react'
 import {
   Box,
   Button,
   Card,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   Typography,
 } from '@mui/material'
@@ -12,27 +16,27 @@ import FlashOffRoundedIcon from '@mui/icons-material/FlashOffRounded'
 import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded'
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded'
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
-import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
-import CropFreeRoundedIcon from '@mui/icons-material/CropFreeRounded'
 import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded'
 import PhotoLibraryRoundedIcon from '@mui/icons-material/PhotoLibraryRounded'
+import ZoomInRoundedIcon from '@mui/icons-material/ZoomInRounded'
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded'
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import { useNavigate } from 'react-router-dom'
-import angleFrontImg from '@/assets/ui/angle_front.jpeg'
 
-interface AngleItem {
-  id: string
+export const SCAN_ANGLES_STORAGE_KEY = 'ecobyte_scan_angles'
+
+interface AngleConfig {
+  id: 'front' | 'back' | 'left' | 'right'
   label: string
-  status: 'completed' | 'active' | 'pending'
+  prompt: string
 }
 
-const DEFAULT_ANGLES: AngleItem[] = [
-  { id: 'front', label: 'Front', status: 'completed' },
-  { id: 'back', label: 'Back', status: 'active' },
-  { id: 'left', label: 'Left', status: 'pending' },
-  { id: 'right', label: 'Right', status: 'pending' },
-  { id: 'top', label: 'Top', status: 'pending' },
-  { id: 'bottom', label: 'Bottom', status: 'pending' },
+const DEFAULT_ANGLES: AngleConfig[] = [
+  { id: 'front', label: 'Front', prompt: 'Align the front screen and bezel inside the frame' },
+  { id: 'back', label: 'Back', prompt: 'Show the back housing, model label, and camera module' },
+  { id: 'left', label: 'Left', prompt: 'Tilt slightly left to inspect side buttons and seams' },
+  { id: 'right', label: 'Right', prompt: 'Tilt slightly right to inspect ports and chassis edge' },
 ]
 
 export const ScanDevicePage: FC = () => {
@@ -40,32 +44,48 @@ export const ScanDevicePage: FC = () => {
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
 
-  const [currentAngle, setCurrentAngle] = useState('back')
+  const [currentAngle, setCurrentAngle] = useState<AngleConfig['id']>('front')
   const [flashOn, setFlashOn] = useState(false)
-  const [capturedImages, setCapturedImages] = useState<Record<string, string>>({
-    front: angleFrontImg,
+  const [previewAngle, setPreviewAngle] = useState<AngleConfig['id'] | null>(null)
+  const [capturedImages, setCapturedImages] = useState<Record<string, string>>(() => {
+    try {
+      const saved = sessionStorage.getItem(SCAN_ANGLES_STORAGE_KEY)
+      return saved ? (JSON.parse(saved) as Record<string, string>) : {}
+    } catch {
+      return {}
+    }
   })
 
-  const completedCount = Object.keys(capturedImages).length
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(SCAN_ANGLES_STORAGE_KEY, JSON.stringify(capturedImages))
+    } catch {
+      // Ignore storage quota errors cleanly
+    }
+  }, [capturedImages])
+
+  const completedCount = DEFAULT_ANGLES.filter((a) => Boolean(capturedImages[a.id])).length
+  const activeConfig = DEFAULT_ANGLES.find((a) => a.id === currentAngle) ?? DEFAULT_ANGLES[0]
 
   const handleFileCapture = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
+    const angleToSave = currentAngle
     const reader = new FileReader()
     reader.onload = () => {
       const result = reader.result as string
-      setCapturedImages((prev) => ({
-        ...prev,
-        [currentAngle]: result,
-      }))
-
-      // Auto advance to next pending angle
-      const angleKeys = DEFAULT_ANGLES.map((a) => a.id)
-      const currentIndex = angleKeys.indexOf(currentAngle)
-      if (currentIndex >= 0 && currentIndex < angleKeys.length - 1) {
-        setCurrentAngle(angleKeys[currentIndex + 1])
-      }
+      setCapturedImages((prev) => {
+        const next = {
+          ...prev,
+          [angleToSave]: result,
+        }
+        const nextPending = DEFAULT_ANGLES.find((a) => a.id !== angleToSave && !next[a.id])
+        if (nextPending) {
+          setCurrentAngle(nextPending.id)
+        }
+        return next
+      })
     }
     reader.readAsDataURL(file)
 
@@ -73,12 +93,16 @@ export const ScanDevicePage: FC = () => {
     e.target.value = ''
   }
 
-  const handleRetake = () => {
+  const handleRetake = (angleId: AngleConfig['id'] = currentAngle) => {
     setCapturedImages((prev) => {
       const copy = { ...prev }
-      delete copy[currentAngle]
+      delete copy[angleId]
       return copy
     })
+    setCurrentAngle(angleId)
+    if (previewAngle === angleId) {
+      setPreviewAngle(null)
+    }
   }
 
   return (
@@ -384,7 +408,7 @@ export const ScanDevicePage: FC = () => {
           <Button
             variant="text"
             size="small"
-            onClick={handleRetake}
+            onClick={() => handleRetake(currentAngle)}
             startIcon={<RefreshRoundedIcon sx={{ fontSize: 16 }} />}
             sx={{
               color: '#dc2626',
@@ -394,16 +418,16 @@ export const ScanDevicePage: FC = () => {
               alignSelf: 'center',
             }}
           >
-            Retake / Clear current photo
+            Retake / Clear {activeConfig.label} photo
           </Button>
         )}
       </Box>
 
-      {/* ── Angles Progress ── */}
+      {/* ── Angles Selection (Single source for picking which angle to capture) ── */}
       <Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
-            Angles
+            Select angle to capture
           </Typography>
           <Box
             sx={{
@@ -414,13 +438,13 @@ export const ScanDevicePage: FC = () => {
             }}
           >
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#abf06b' }}>
-              {completedCount}/6 completed
+              {completedCount}/{DEFAULT_ANGLES.length} completed
             </Typography>
           </Box>
         </Box>
 
-        {/* 3x2 Grid of angle chips */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
+        {/* 2x2 Grid of 4 angle selector buttons */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1 }}>
           {DEFAULT_ANGLES.map((angle) => {
             const isCompleted = Boolean(capturedImages[angle.id])
             const isActive = angle.id === currentAngle
@@ -433,30 +457,30 @@ export const ScanDevicePage: FC = () => {
                   py: 1,
                   px: 1.5,
                   borderRadius: 9999,
-                  border: isCompleted
-                    ? '1.5px solid #86efac'
-                    : isActive
-                      ? '1.5px solid #0f172a'
-                      : '1.5px solid #e2e8f0',
-                  backgroundColor: isCompleted
-                    ? '#f0fdf4'
-                    : isActive
-                      ? '#0f172a'
+                  border: isActive
+                    ? '2px solid #0f172a'
+                    : isCompleted
+                      ? '1.5px solid #16a34a'
+                      : '1.5px solid #cbd5e1',
+                  backgroundColor: isActive
+                    ? '#abf06b'
+                    : isCompleted
+                      ? '#dcfce7'
                       : '#ffffff',
-                  color: isActive ? '#ffffff' : isCompleted ? '#15803d' : '#0f172a',
+                  color: isActive ? '#0f172a' : isCompleted ? '#14532d' : '#0f172a',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 0.6,
+                  gap: 0.75,
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
-                  boxShadow: isActive ? '0 2px 6px rgba(15,23,42,0.15)' : 'none',
+                  boxShadow: isActive ? '0 2px 6px rgba(15,23,42,0.16)' : 'none',
                 }}
               >
                 <Typography
                   sx={{
                     fontFamily: "'Quicksand', sans-serif",
-                    fontWeight: 700,
+                    fontWeight: 800,
                     fontSize: '0.8125rem',
                     color: 'inherit',
                   }}
@@ -464,10 +488,10 @@ export const ScanDevicePage: FC = () => {
                   {angle.label}
                 </Typography>
                 {isCompleted && (
-                  <CheckRoundedIcon sx={{ fontSize: 14, color: '#16a34a' }} />
+                  <CheckRoundedIcon sx={{ fontSize: 15, color: isActive ? '#0f172a' : '#15803d' }} />
                 )}
-                {isActive && (
-                  <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#abf06b' }} />
+                {isActive && !isCompleted && (
+                  <Box sx={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#0f172a' }} />
                 )}
               </Box>
             )
@@ -509,65 +533,70 @@ export const ScanDevicePage: FC = () => {
               lineHeight: 1.45,
             }}
           >
-            Prompt: Tilt device slightly to the left for lens inspection
+            Prompt ({activeConfig.label}): {activeConfig.prompt}
           </Typography>
         </Box>
 
-        {/* Segmented mini progress bar (6 segments) */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0.5, mb: 1.25 }}>
-          <Box sx={{ height: 4, borderRadius: 9999, backgroundColor: '#abf06b' }} />
-          <Box sx={{ height: 4, borderRadius: 9999, backgroundColor: '#0f172a' }} />
-          <Box sx={{ height: 4, borderRadius: 9999, backgroundColor: '#e2e8f0' }} />
-          <Box sx={{ height: 4, borderRadius: 9999, backgroundColor: '#e2e8f0' }} />
-          <Box sx={{ height: 4, borderRadius: 9999, backgroundColor: '#e2e8f0' }} />
-          <Box sx={{ height: 4, borderRadius: 9999, backgroundColor: '#e2e8f0' }} />
+        {/* Segmented mini progress bar (4 segments) */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0.75, mb: 1.25 }}>
+          {DEFAULT_ANGLES.map((angle) => {
+            const done = Boolean(capturedImages[angle.id])
+            const active = angle.id === currentAngle
+            return (
+              <Box
+                key={angle.id}
+                sx={{
+                  height: 5,
+                  borderRadius: 9999,
+                  backgroundColor: done ? '#16a34a' : active ? '#0f172a' : '#e2e8f0',
+                }}
+              />
+            )
+          })}
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-            Hardware Model ID: SM-G998B
+            4-Angle Scan Session
           </Typography>
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#0f172a', fontWeight: 700 }}>
-            Lens Clarity: High
+            {completedCount} of {DEFAULT_ANGLES.length} Ready
           </Typography>
         </Box>
       </Card>
 
-      {/* ── Captured Angles Slots ── */}
+      {/* ── Captured Photos Gallery (Preview & Replace only, no duplicate selector) ── */}
       <Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.25 }}>
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
-            Captured angles
+            Captured photos
           </Typography>
           <Typography
             sx={{
               fontFamily: "'Quicksand', sans-serif",
-              fontWeight: 700,
-              fontSize: '0.8125rem',
-              color: '#4f5f4b',
-              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '0.75rem',
+              color: '#64748b',
             }}
           >
-            Reorder
+            Tap photo to preview or retake
           </Typography>
         </Box>
 
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1 }}>
-          {(['front', 'back', 'left', 'right'] as const).map((angleKey) => {
-            const img = capturedImages[angleKey]
-            const isSelected = currentAngle === angleKey
-            const label = angleKey.charAt(0).toUpperCase() + angleKey.slice(1)
+          {DEFAULT_ANGLES.map((angle) => {
+            const img = capturedImages[angle.id]
 
             if (img) {
               return (
                 <Box
-                  key={angleKey}
-                  onClick={() => setCurrentAngle(angleKey)}
+                  key={angle.id}
+                  onClick={() => setPreviewAngle(angle.id)}
                   sx={{
                     height: 100,
                     borderRadius: 1.5,
                     backgroundColor: '#f8fafc',
-                    border: isSelected ? '2px solid #0f172a' : '1.5px solid #86efac',
+                    border: '1.5px solid #16a34a',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -581,7 +610,7 @@ export const ScanDevicePage: FC = () => {
                   <Box
                     component="img"
                     src={img}
-                    alt={`${label} capture`}
+                    alt={`${angle.label} capture`}
                     sx={{
                       position: 'absolute',
                       inset: 0,
@@ -593,19 +622,19 @@ export const ScanDevicePage: FC = () => {
                   <Box
                     sx={{
                       position: 'absolute',
-                      top: 7,
-                      left: 7,
-                      width: 18,
-                      height: 18,
+                      top: 6,
+                      right: 6,
+                      width: 22,
+                      height: 22,
                       borderRadius: '50%',
-                      backgroundColor: '#0f172a',
+                      backgroundColor: 'rgba(15, 23, 42, 0.8)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       zIndex: 1,
                     }}
                   >
-                    <CheckRoundedIcon sx={{ fontSize: 12, color: '#abf06b' }} />
+                    <ZoomInRoundedIcon sx={{ fontSize: 13, color: '#abf06b' }} />
                   </Box>
                   <Box sx={{ flex: 1 }} />
                   <Box
@@ -616,73 +645,38 @@ export const ScanDevicePage: FC = () => {
                       py: 0.25,
                       textAlign: 'center',
                       zIndex: 1,
-                      backdropFilter: 'blur(2px)',
                     }}
                   >
                     <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.625rem', color: '#ffffff' }}>
-                      {label}
+                      {angle.label}
                     </Typography>
                   </Box>
                 </Box>
               )
             }
 
-            if (isSelected) {
-              return (
-                <Box
-                  key={angleKey}
-                  sx={{
-                    height: 100,
-                    borderRadius: 1.5,
-                    backgroundColor: 'rgba(171, 240, 107, 0.08)',
-                    border: '2px dashed #abf06b',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 0.75,
-                    p: 0.75,
-                    cursor: 'pointer',
-                  }}
-                >
-                  <CropFreeRoundedIcon sx={{ fontSize: 24, color: '#0f172a' }} />
-                  <Typography
-                    sx={{
-                      fontFamily: "'Quicksand', sans-serif",
-                      fontWeight: 700,
-                      fontSize: '0.625rem',
-                      color: '#0f172a',
-                      textAlign: 'center',
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    Capturing {label}
-                  </Typography>
-                </Box>
-              )
-            }
-
             return (
               <Box
-                key={angleKey}
-                onClick={() => setCurrentAngle(angleKey)}
+                key={angle.id}
                 sx={{
                   height: 100,
                   borderRadius: 1.5,
-                  backgroundColor: '#ffffff',
-                  border: '1.5px dotted #cbd5e1',
+                  backgroundColor: '#f8fafc',
+                  border: '1.5px dashed #cbd5e1',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 0.5,
-                  cursor: 'pointer',
-                  '&:hover': { backgroundColor: '#f8fafc', borderColor: '#94a3b8' },
+                  p: 0.75,
                 }}
               >
-                <AddRoundedIcon sx={{ fontSize: 20, color: '#94a3b8' }} />
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.625rem', color: '#94a3b8' }}>
-                  {label} slot
+                <CameraAltRoundedIcon sx={{ fontSize: 18, color: '#94a3b8' }} />
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.625rem', color: '#64748b', textAlign: 'center' }}>
+                  {angle.label}
+                </Typography>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.5625rem', color: '#94a3b8', textAlign: 'center' }}>
+                  No photo
                 </Typography>
               </Box>
             )
@@ -714,6 +708,68 @@ export const ScanDevicePage: FC = () => {
         Next: add details
         <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
       </Button>
+
+      {/* Photo Preview & Retake/Replace Modal */}
+      <Dialog
+        open={Boolean(previewAngle && capturedImages[previewAngle])}
+        onClose={() => setPreviewAngle(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.5 }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1rem' }}>
+            {previewAngle ? `${previewAngle.charAt(0).toUpperCase() + previewAngle.slice(1)} Angle Photo` : 'Photo Preview'}
+          </Typography>
+          <IconButton size="small" onClick={() => setPreviewAngle(null)} aria-label="Close preview">
+            <CloseRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 1.5 }}>
+          {previewAngle && capturedImages[previewAngle] && (
+            <Box
+              component="img"
+              src={capturedImages[previewAngle]}
+              alt={`${previewAngle} preview`}
+              sx={{ width: '100%', maxHeight: 360, objectFit: 'contain', borderRadius: 1.5, backgroundColor: '#0f172a' }}
+            />
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 2, pb: 2, justifyContent: 'space-between' }}>
+          <Button
+            size="small"
+            color="error"
+            startIcon={<DeleteOutlineRoundedIcon />}
+            onClick={() => previewAngle && handleRetake(previewAngle)}
+            sx={{ fontWeight: 700, textTransform: 'none' }}
+          >
+            Remove
+          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<RefreshRoundedIcon />}
+              onClick={() => {
+                if (!previewAngle) return
+                setCurrentAngle(previewAngle)
+                setPreviewAngle(null)
+                cameraInputRef.current?.click()
+              }}
+              sx={{ fontWeight: 700, textTransform: 'none', borderColor: '#0f172a', color: '#0f172a' }}
+            >
+              Retake
+            </Button>
+            <Button
+              size="small"
+              variant="contained"
+              onClick={() => setPreviewAngle(null)}
+              sx={{ fontWeight: 700, textTransform: 'none', backgroundColor: '#0f172a' }}
+            >
+              Done
+            </Button>
+          </Box>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

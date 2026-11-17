@@ -1,4 +1,4 @@
-import { useState, type FC } from 'react'
+import { useEffect, useState, type FC } from 'react'
 import {
   Box,
   Button,
@@ -29,62 +29,128 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 import { useNavigate } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import keychronImg from '@/assets/ui/keychron.jpeg'
+import { authApi, dropoffsApi, getCachedUser } from '@/lib/api'
+import {
+  buildPickupVoucherPdfBlob,
+  buildVerificationMatrix,
+} from '@/lib/pdf/voucherPdf'
+import type { User, UserReservationItem } from '@/types'
+
+function formatVoucherSchedule(expiresIso: string | null | undefined, fallbackMs: number) {
+  const expiryDate = expiresIso ? new Date(expiresIso) : new Date(fallbackMs + 48 * 60 * 60 * 1000)
+  const validExpiry = Number.isNaN(expiryDate.getTime())
+    ? new Date(fallbackMs + 48 * 60 * 60 * 1000)
+    : expiryDate
+
+  const pickupDateLabel = new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(validExpiry)
+
+  const heldUntilLabel = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(validExpiry)
+
+  const hoursRemaining = Math.max(
+    1,
+    Math.ceil((validExpiry.getTime() - fallbackMs) / (1000 * 60 * 60))
+  )
+  const remainingLabel =
+    hoursRemaining >= 24
+      ? `${Math.ceil(hoursRemaining / 24)} days remaining`
+      : `${hoursRemaining}h remaining`
+
+  return { pickupDateLabel, heldUntilLabel, remainingLabel }
+}
 
 export const ReservationPassPage: FC = () => {
   const navigate = useNavigate()
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
   const [toastMsg, setToastMsg] = useState<string | null>(null)
+  const [mountedAtMs] = useState(() => Date.now())
+  const [currentUser, setCurrentUser] = useState<User | null>(() => getCachedUser())
+  const [reservation, setReservation] = useState<UserReservationItem | null>(null)
 
-  const pickupCode = 'ECO-4821'
+  useEffect(() => {
+    let active = true
+    authApi
+      .getProfile()
+      .then((profile) => {
+        if (active && profile) setCurrentUser(profile)
+      })
+      .catch(() => {
+        // Keep cached user
+      })
+    dropoffsApi
+      .getMyRequests()
+      .then((res) => {
+        if (active && Array.isArray(res?.reservations) && res.reservations.length > 0) {
+          setReservation(res.reservations[0])
+        }
+      })
+      .catch(() => {
+        // Keep fallback voucher details
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const pickupCode = reservation?.pickupCode || 'ECO-4821'
+  const itemTitle = reservation?.itemTitle || 'Keychron K2 V2'
+  const claimantName = currentUser?.fullName?.trim() || 'Resident Claimant'
+  const collectionPlace = reservation?.siteName || 'Commonwealth Area 1 Eco-Hub'
+  const desk = 'E-Waste Hub Desk 2'
+  const statusLabel = reservation?.status ? `${reservation.status} (Active)` : 'Reserved (Active)'
+  const { pickupDateLabel, heldUntilLabel, remainingLabel } = formatVoucherSchedule(
+    reservation?.expiresAt,
+    mountedAtMs
+  )
+  const qrMatrix = buildVerificationMatrix(`${pickupCode}|${itemTitle}`)
 
   const handleCopyCode = async () => {
     try {
       await navigator.clipboard.writeText(pickupCode)
-      setToastMsg('Pick-up code ECO-4821 copied to clipboard!')
+      setToastMsg(`Pick-up code ${pickupCode} copied to clipboard!`)
     } catch {
-      setToastMsg('Code: ECO-4821')
+      setToastMsg(`Code: ${pickupCode}`)
     }
     setMenuAnchor(null)
   }
 
   const handleDownloadPass = () => {
-    const voucherText = `
-========================================
-       ECOBYTE RESIDENT PICK-UP PASS
-========================================
-OFFICIAL CODE:     ${pickupCode}
-ITEM:              Keychron K2 V2 (Mechanical Keyboard)
-CLAIMANT:          Alex Rivera
-COLLECTION PLACE:  Barangay Commonwealth MRF / E-Waste Hub
-DESK:              E-Waste Hub Desk 2
-PICK-UP WINDOW:    Until Oct 23, 2024, 5:00 PM
-STATUS:            Reserved (Active)
-
-INSTRUCTIONS:
-1. Present this digital code or printed pass to the barangay desk officer.
-2. The officer will release the item and scan the verification voucher.
-3. Snap a quick photo with the item inside the app to complete your proof of claim.
-
-Barangay Commonwealth, Quezon City | EcoByte Circular Electronics Initiative
-========================================
-`
-    const blob = new Blob([voucherText.trim()], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
+    const pdfBlob = buildPickupVoucherPdfBlob({
+      pickupCode,
+      itemTitle,
+      claimantName,
+      collectionPlace,
+      desk,
+      pickupDateLabel,
+      heldUntilLabel,
+      statusLabel,
+    })
+    const url = URL.createObjectURL(pdfBlob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `ecobyte-pass-${pickupCode}.txt`
+    link.download = `ecobyte-voucher-${pickupCode}.pdf`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
-    setToastMsg('Pick-up pass voucher downloaded successfully!')
+    setToastMsg('Official Pick-up Voucher (.pdf) downloaded successfully!')
   }
 
   const handleShare = async () => {
     setMenuAnchor(null)
     const shareData = {
       title: 'EcoByte Pick-up Pass',
-      text: `My EcoByte pick-up code is ${pickupCode} for Keychron K2 V2 at Barangay Commonwealth Hub.`,
+      text: `My EcoByte pick-up code is ${pickupCode} for ${itemTitle} at ${collectionPlace}.`,
       url: window.location.href,
     }
 
@@ -238,20 +304,20 @@ Barangay Commonwealth, Quezon City | EcoByte Circular Electronics Initiative
           <Box sx={{ flex: 1 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>
-                Keychron K2 V2
+                {itemTitle}
               </Typography>
               <StatusBadge label="Reserved" variant="electric" size="sm" />
             </Box>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.2 }}>
-              Mechanical Keyboard • 75% Layout
+              Claimant: {claimantName}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
               <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#0f172a', fontWeight: 600 }}>
-                📍 Commonwealth Eco-Hub
+                📍 {collectionPlace}
               </Typography>
               <Box sx={{ px: 0.75, py: 0.15, backgroundColor: '#f1f5f9', borderRadius: 1, border: '1px solid #e2e8f0' }}>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.625rem', color: '#64748b', fontWeight: 700 }}>
-                  #CIR-84920
+                  #{reservation?.reservationId ? `RSV-${reservation.reservationId}` : 'CIR-84920'}
                 </Typography>
               </Box>
             </Box>
@@ -287,7 +353,7 @@ Barangay Commonwealth, Quezon City | EcoByte Circular Electronics Initiative
           🎟️ OFFICIAL PICK-UP CODE
         </Typography>
 
-        {/* Code Box */}
+        {/* Code Box & QR Verification Matrix */}
         <Box
           sx={{
             backgroundColor: '#020617',
@@ -296,21 +362,50 @@ Barangay Commonwealth, Quezon City | EcoByte Circular Electronics Initiative
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            gap: 1.5,
             border: '1px solid #334155',
           }}
         >
-          <Typography
-            sx={{
-              fontFamily: "'Courier New', monospace",
-              fontWeight: 800,
-              fontSize: '1.625rem',
-              letterSpacing: '0.15em',
-              color: '#abf06b',
-              pl: 1,
-            }}
-          >
-            ECO - 4821
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
+            <Box
+              sx={{
+                backgroundColor: '#ffffff',
+                p: 0.6,
+                borderRadius: 1,
+                flexShrink: 0,
+                display: 'flex',
+              }}
+              aria-label="Pick-up verification QR code"
+            >
+              <svg width="56" height="56" viewBox={`0 0 ${qrMatrix.length} ${qrMatrix.length}`}>
+                {qrMatrix.map((row, rIdx) =>
+                  row.map((cell, cIdx) =>
+                    cell ? (
+                      <rect
+                        key={`${rIdx}-${cIdx}`}
+                        x={cIdx}
+                        y={rIdx}
+                        width={1}
+                        height={1}
+                        fill="#0f172a"
+                      />
+                    ) : null
+                  )
+                )}
+              </svg>
+            </Box>
+            <Typography
+              sx={{
+                fontFamily: "'Courier New', monospace",
+                fontWeight: 800,
+                fontSize: '1.375rem',
+                letterSpacing: '0.12em',
+                color: '#abf06b',
+              }}
+            >
+              {pickupCode}
+            </Typography>
+          </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <IconButton
               size="small"
@@ -347,7 +442,7 @@ Barangay Commonwealth, Quezon City | EcoByte Circular Electronics Initiative
               },
             }}
           >
-            Download Official Pick-up Voucher (.txt)
+            Download Official Pick-up Voucher (.pdf)
           </Button>
         </Box>
 
@@ -376,7 +471,7 @@ Barangay Commonwealth, Quezon City | EcoByte Circular Electronics Initiative
               </Typography>
             </Box>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#0f172a', fontWeight: 700 }}>
-              Fri, Oct 23, 2024
+              {pickupDateLabel}
             </Typography>
           </Box>
 
@@ -390,10 +485,10 @@ Barangay Commonwealth, Quezon City | EcoByte Circular Electronics Initiative
             </Box>
             <Box sx={{ textAlign: 'right' }}>
               <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#0f172a', fontWeight: 700 }}>
-                Barangay Commonwealth, QC
+                {collectionPlace}
               </Typography>
               <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b' }}>
-                E-Waste Hub Desk 2
+                {desk}
               </Typography>
             </Box>
           </Box>
@@ -408,10 +503,10 @@ Barangay Commonwealth, Quezon City | EcoByte Circular Electronics Initiative
             </Box>
             <Box sx={{ textAlign: 'right' }}>
               <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#dc2626', fontWeight: 700 }}>
-                Oct 23, 5:00 PM
+                {heldUntilLabel}
               </Typography>
               <Box sx={{ mt: 0.25 }}>
-                <StatusBadge label="2 days remaining" variant="electric" size="sm" />
+                <StatusBadge label={remainingLabel} variant="electric" size="sm" />
               </Box>
             </Box>
           </Box>

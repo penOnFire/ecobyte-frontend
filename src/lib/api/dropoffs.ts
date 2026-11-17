@@ -29,6 +29,15 @@ export const dropoffsApi = {
       }
     ),
 
+  rescheduleIntake: (requestId: string, payload: ScheduleBookingPayload) =>
+    apiFetch<{ requestId: string; status: string; scheduledTime: string }>(
+      `/dropoffs/schedule/${requestId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      }
+    ),
+
   getMyRequests: () =>
     apiFetch<{
       ongoing: EwasteRequestItem[]
