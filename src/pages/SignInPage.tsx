@@ -26,7 +26,7 @@ import AppleIcon from '@mui/icons-material/Apple'
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined'
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom'
 import ecobyteLogo from '@/assets/ui/ecobyte_logo.svg'
-import { authApi, setCachedUser } from '@/lib/api'
+import { authApi, clearStaleLocalRequests, setCachedUser } from '@/lib/api'
 
 export const SignInPage: FC = () => {
   const navigate = useNavigate()
@@ -62,6 +62,7 @@ export const SignInPage: FC = () => {
         rememberMe,
       })
 
+      clearStaleLocalRequests()
       if (res?.accessToken) {
         localStorage.setItem('ecobyte_token', res.accessToken)
       }

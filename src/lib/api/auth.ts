@@ -21,11 +21,18 @@ export const COMMONWEALTH_BASES_FALLBACK: Barangay[] = [
 
 const USER_CACHE_KEY = 'ecobyte_user'
 
+export function clearStaleLocalRequests(): void {
+  if (typeof window === 'undefined') return
+  localStorage.removeItem('ecobyte_ongoing_requests')
+  localStorage.removeItem('ecobyte_claimed_requests')
+}
+
 export function setCachedUser(user: User | null): void {
   if (typeof window === 'undefined') return
   if (!user) {
     localStorage.removeItem(USER_CACHE_KEY)
     localStorage.removeItem('ecobyte_user_name')
+    clearStaleLocalRequests()
     return
   }
   localStorage.setItem(USER_CACHE_KEY, JSON.stringify(user))

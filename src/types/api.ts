@@ -151,6 +151,15 @@ export interface EwasteRequestItem {
   scheduledSlot: string
 }
 
+export interface UserReservationItem {
+  reservationId: string
+  itemTitle: string
+  pickupCode: string
+  siteName: string
+  expiresAt: string | null
+  status: 'Reserved' | 'Claimed' | 'Expired'
+}
+
 // ── Reuse Hub Marketplace & Reservations ──
 export type ReuseCategory = 'All' | 'Laptops' | 'Phones' | 'Chargers' | 'Peripherals'
 export type ItemCondition = 'Inspected & Working' | 'Screen Replaced' | 'Safe & Tested' | 'Minor Bezel Scratch'

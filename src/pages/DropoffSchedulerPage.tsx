@@ -32,7 +32,7 @@ import NavigationRoundedIcon from '@mui/icons-material/NavigationRounded'
 import { useNavigate } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { dropoffsApi } from '@/lib/api'
-import type { DropOffSite, EwasteRequestItem } from '@/types'
+import type { DropOffSite } from '@/types'
 import { CommonwealthLeafletMap } from '@/components/map/CommonwealthLeafletMap'
 import { COMMONWEALTH_FALLBACK_SITES } from '@/components/map/commonwealthData'
 
@@ -147,44 +147,25 @@ export const DropoffSchedulerPage: FC = () => {
   const handleConfirmSchedule = async () => {
     setIsSubmitting(true)
     const siteToBook = currentSite
-    const newRequestId = `${Math.floor(2000 + Math.random() * 8000)}`
-    const scheduledSlotFormatted = `Oct ${selectedDate}, 2026 • ${currentWindow.hours} • ${siteToBook.name}`
-
-    // Construct local ongoing request ticket
-    const newRequest: EwasteRequestItem = {
-      requestId: newRequestId,
-      deviceTitle: 'iPhone 11 Pro (Swollen Battery)',
-      siteName: siteToBook.name,
-      status: 'Scheduled',
-      statusStage: 'Drop-off confirmed',
-      progressStep: 'Step 2/3',
-      progressPercent: 66,
-      scheduledSlot: scheduledSlotFormatted,
-    }
+    const paddedDay = String(selectedDate).padStart(2, '0')
 
     try {
       await dropoffsApi.scheduleIntake({
         siteId: siteToBook.id,
-        scheduledDate: `2026-10-${selectedDate}`,
+        scheduledDate: `2026-10-${paddedDay}`,
         timeSlot: selectedWindow,
         courierOrSelf: 'SELF_DROPOFF',
       })
-    } catch (err) {
-      console.warn('Booking API scheduled with local fallback context:', err)
+      localStorage.removeItem('ecobyte_ongoing_requests')
+      navigate('/requests?tab=ongoing')
+    } catch (err: any) {
+      console.error('Failed to schedule drop-off:', err)
+      setToastMessage(
+        err?.message || 'Unable to confirm drop-off schedule. Please try again.'
+      )
+    } finally {
+      setIsSubmitting(false)
     }
-
-    // Persist to local ongoing requests storage for MyRequestsPage
-    try {
-      const existing = localStorage.getItem('ecobyte_ongoing_requests')
-      const parsed: EwasteRequestItem[] = existing ? JSON.parse(existing) : []
-      const updated = [newRequest, ...parsed.filter((r) => r.requestId !== newRequestId)]
-      localStorage.setItem('ecobyte_ongoing_requests', JSON.stringify(updated))
-    } catch (e) {
-      console.error('Failed to persist ongoing request to localStorage:', e)
-    }
-
-    setIsSubmitting(false)
-    navigate('/requests?tab=ongoing')
   }
 
   return (

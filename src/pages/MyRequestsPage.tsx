@@ -18,41 +18,7 @@ import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined
 import { useNavigate, useLocation } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { dropoffsApi } from '@/lib/api'
-import type { EwasteRequestItem } from '@/types'
-
-import keychronImg from '@/assets/ui/keychron.jpeg'
-
-/*
- * ==============================================================================
- * STATIC MOCK DATA (COMMENTED FOR BACKEND TESTING)
- * ==============================================================================
- * The hardcoded ongoing drop-off requests below have been replaced with live
- * data fetched dynamically from GET /api/v1/requests/my-requests.
- *
-const STATIC_ONGOING_REQUESTS = [
-  {
-    requestId: '2041',
-    deviceTitle: 'MacBook Pro 13″',
-    siteName: 'San Antonio Hub',
-    status: 'Scheduled',
-    statusStage: 'Drop-off confirmed',
-    progressStep: 'Step 2/3',
-    progressPercent: 66,
-    scheduledSlot: 'Today, 3:30 PM • Pasig Green Hub',
-  },
-  {
-    requestId: '2042',
-    deviceTitle: 'Galaxy A52',
-    siteName: 'Bel-Air Drop Site',
-    status: 'Under review',
-    statusStage: 'Submitted',
-    progressStep: 'Step 1/3',
-    progressPercent: 33,
-    scheduledSlot: 'Assessment submitted · AI diagnostic completed',
-  },
-]
- * ==============================================================================
- */
+import type { EwasteRequestItem, UserReservationItem } from '@/types'
 
 export const MyRequestsPage: FC = () => {
   const navigate = useNavigate()
@@ -61,73 +27,32 @@ export const MyRequestsPage: FC = () => {
   const [activeTab, setActiveTab] = useState<'ongoing' | 'completed'>(initialTab)
   const [ongoing, setOngoing] = useState<EwasteRequestItem[]>([])
   const [completed, setCompleted] = useState<EwasteRequestItem[]>([])
+  const [reservations, setReservations] = useState<UserReservationItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [hasClaimedItem] = useState(() => {
-    try {
-      const stored = localStorage.getItem('ecobyte_claimed_requests')
-      return Boolean(stored && JSON.parse(stored).length > 0)
-    } catch {
-      return false
-    }
-  })
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   useEffect(() => {
     let isMounted = true
-
-    let localClaimed: EwasteRequestItem[] = []
-    let localOngoing: EwasteRequestItem[] = []
-    try {
-      const stored = localStorage.getItem('ecobyte_claimed_requests')
-      if (stored) {
-        localClaimed = JSON.parse(stored)
-      }
-    } catch (e) {
-      console.warn('Failed to parse ecobyte_claimed_requests:', e)
-    }
-
-    try {
-      const storedOngoing = localStorage.getItem('ecobyte_ongoing_requests')
-      if (storedOngoing) {
-        localOngoing = JSON.parse(storedOngoing)
-      }
-    } catch (e) {
-      console.warn('Failed to parse ecobyte_ongoing_requests:', e)
-    }
+    localStorage.removeItem('ecobyte_ongoing_requests')
+    localStorage.removeItem('ecobyte_claimed_requests')
 
     dropoffsApi
       .getMyRequests()
       .then((data) => {
         if (!isMounted) return
-        // Merge locally scheduled requests that haven't been synced to server yet
-        const serverOngoing = data.ongoing || []
-        const combinedOngoing = [...localOngoing]
-        serverOngoing.forEach((s) => {
-          if (!combinedOngoing.some((o) => o.requestId === s.requestId)) {
-            combinedOngoing.push(s)
-          }
-        })
-        setOngoing(combinedOngoing)
-        setCompleted([...localClaimed, ...(data.completed || [])])
+        setOngoing(data.ongoing || [])
+        setCompleted(data.completed || [])
+        setReservations(data.reservations || [])
+        setLoadError(null)
         setIsLoading(false)
       })
       .catch((err) => {
-        console.error('Failed to load user requests from backend, using local/fallback requests:', err)
+        console.error('Failed to load user requests from backend:', err)
         if (isMounted) {
-          const fallbackOngoing: EwasteRequestItem[] = [
-            ...localOngoing,
-            {
-              requestId: '2042',
-              deviceTitle: 'Galaxy A52',
-              siteName: 'Area 1 Eco-Hub (Brgy Hall Complex)',
-              status: 'Under review',
-              statusStage: 'Submitted',
-              progressStep: 'Step 1/3',
-              progressPercent: 33,
-              scheduledSlot: 'Assessment submitted · AI diagnostic completed',
-            },
-          ]
-          setOngoing(fallbackOngoing)
-          setCompleted(localClaimed)
+          setOngoing([])
+          setCompleted([])
+          setReservations([])
+          setLoadError('Unable to load requests from the server right now.')
           setIsLoading(false)
         }
       })
@@ -266,80 +191,48 @@ export const MyRequestsPage: FC = () => {
               >
                 Reservations
               </Typography>
-              <StatusBadge label={hasClaimedItem ? "0 Active" : "1 Active"} variant={hasClaimedItem ? "muted" : "electric"} size="sm" />
+              <StatusBadge
+                label={reservations.length > 0 ? `${reservations.length} Active` : '0 Active'}
+                variant={reservations.length > 0 ? 'electric' : 'muted'}
+                size="sm"
+              />
             </Box>
 
-            {hasClaimedItem ? (
-              <Card
-                sx={{
-                  p: 2,
-                  borderRadius: 2,
-                  backgroundColor: '#f0fdf4',
-                  border: '1px solid #bbf7d0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <Box>
-                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.875rem', color: '#166534' }}>
-                    Keychron K2 V2 Picked Up!
-                  </Typography>
-                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#15803d', mt: 0.25 }}>
-                    Your handover proof has been certified. Moved to Completed tab.
-                  </Typography>
-                </Box>
+            {loadError && (
+              <Card sx={{ p: 2, borderRadius: 2, border: '1px solid #fecaca', backgroundColor: '#fef2f2' }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#b91c1c' }}>
+                  {loadError}
+                </Typography>
+              </Card>
+            )}
+
+            {isLoading ? null : reservations.length === 0 ? (
+              <Card sx={{ p: 2.5, textAlign: 'center', borderRadius: 2, border: '1px dashed #cbd5e1', backgroundColor: '#ffffff' }}>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
+                  No active reservations
+                </Typography>
                 <Button
                   size="small"
-                  onClick={() => setActiveTab('completed')}
-                  sx={{
-                    backgroundColor: '#166534',
-                    color: '#ffffff',
-                    fontWeight: 700,
-                    fontSize: '0.75rem',
-                    textTransform: 'none',
-                    borderRadius: 1.5,
-                    px: 1.5,
-                    '&:hover': { backgroundColor: '#14532d' },
-                  }}
+                  onClick={() => navigate('/reuse')}
+                  sx={{ mt: 1, color: '#0f172a', fontWeight: 700, textDecoration: 'underline' }}
                 >
-                  View in Completed
+                  Browse Reuse Hub
                 </Button>
               </Card>
             ) : (
-              <Card
-                sx={{
-                  p: 2,
-                  borderRadius: 2,
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #e2e8f0',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                }}
-              >
-                <Box sx={{ display: 'flex', gap: 1.75, alignItems: 'flex-start' }}>
-                  {/* Keyboard Thumbnail */}
-                  <Box
-                    sx={{
-                      width: 64,
-                      height: 64,
-                      borderRadius: 1.25,
-                      overflow: 'hidden',
-                      backgroundColor: '#f1f5f9',
-                      border: '1px solid #e2e8f0',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Box
-                      component="img"
-                      src={keychronImg}
-                      alt="Keychron K2 V2"
-                      sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  </Box>
-
-                  {/* Details */}
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              reservations.map((res) => (
+                <Card
+                  key={res.reservationId}
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1 }}>
+                    <Box sx={{ minWidth: 0 }}>
                       <Typography
                         sx={{
                           fontFamily: "'Quicksand', sans-serif",
@@ -348,89 +241,91 @@ export const MyRequestsPage: FC = () => {
                           color: '#0f172a',
                         }}
                       >
-                        Keychron K2 V2
+                        {res.itemTitle}
                       </Typography>
-                      <Box
+                      <Typography
                         sx={{
-                          backgroundColor: '#0f172a',
-                          px: 1,
-                          py: 0.3,
-                          borderRadius: 9999,
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontSize: '0.75rem',
+                          color: '#64748b',
+                          fontWeight: 500,
+                          mt: 0.5,
+                          lineHeight: 1.45,
                         }}
                       >
-                        <Typography
-                          sx={{
-                            fontFamily: "'Quicksand', sans-serif",
-                            fontWeight: 700,
-                            fontSize: '0.6875rem',
-                            color: '#abf06b',
-                          }}
-                        >
-                          Code: ECO-4821
-                        </Typography>
-                      </Box>
+                        {res.expiresAt
+                          ? `Hold expires ${new Date(res.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                          : 'Held for 48 hours'}
+                        <br />
+                        ({res.siteName})
+                      </Typography>
                     </Box>
-
-                    <Typography
+                    <Box
                       sx={{
-                        fontFamily: "'Quicksand', sans-serif",
-                        fontSize: '0.75rem',
-                        color: '#64748b',
-                        fontWeight: 500,
-                        mt: 0.5,
-                        lineHeight: 1.45,
+                        backgroundColor: '#0f172a',
+                        px: 1,
+                        py: 0.3,
+                        borderRadius: 9999,
+                        flexShrink: 0,
                       }}
                     >
-                      Held for 2 days · Pick up by Fri, Oct 23
-                      <br />
-                      (Commonwealth Area 1 Hub)
-                    </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontWeight: 700,
+                          fontSize: '0.6875rem',
+                          color: '#abf06b',
+                        }}
+                      >
+                        Code: {res.pickupCode}
+                      </Typography>
+                    </Box>
                   </Box>
-                </Box>
 
-                {/* Action Buttons */}
-                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mt: 2, pt: 1.5, borderTop: '1px solid #f1f5f9' }}>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    startIcon={<QrCode2RoundedIcon sx={{ fontSize: 18 }} />}
-                    onClick={() => navigate('/reservation-code')}
-                    sx={{
-                      borderColor: '#e2e8f0',
-                      color: '#0f172a',
-                      fontWeight: 700,
-                      fontSize: '0.75rem',
-                      borderRadius: 9999,
-                      py: 0.8,
-                      '&:hover': {
-                        backgroundColor: '#f8fafc',
-                        borderColor: '#cbd5e1',
-                      },
-                    }}
-                  >
-                    View Code
-                  </Button>
+                  {/* Action Buttons */}
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mt: 2, pt: 1.5, borderTop: '1px solid #f1f5f9' }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<QrCode2RoundedIcon sx={{ fontSize: 18 }} />}
+                      onClick={() => navigate('/reservation-code')}
+                      sx={{
+                        borderColor: '#e2e8f0',
+                        color: '#0f172a',
+                        fontWeight: 700,
+                        fontSize: '0.75rem',
+                        borderRadius: 9999,
+                        py: 0.8,
+                        '&:hover': {
+                          backgroundColor: '#f8fafc',
+                          borderColor: '#cbd5e1',
+                        },
+                      }}
+                    >
+                      View Code
+                    </Button>
 
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<FileUploadOutlinedIcon sx={{ fontSize: 18, color: '#abf06b' }} />}
-                    onClick={() => navigate('/proof-of-claim')}
-                    sx={{
-                      backgroundColor: '#0f172a',
-                      color: '#ffffff',
-                      fontWeight: 700,
-                      fontSize: '0.75rem',
-                      borderRadius: 9999,
-                      py: 0.8,
-                      boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
-                      '&:hover': { backgroundColor: '#1e293b' },
-                    }}
-                  >
-                    Upload Proof
-                  </Button>
-                </Box>
-              </Card>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<FileUploadOutlinedIcon sx={{ fontSize: 18, color: '#abf06b' }} />}
+                      onClick={() => navigate('/proof-of-claim')}
+                      sx={{
+                        backgroundColor: '#0f172a',
+                        color: '#ffffff',
+                        fontWeight: 700,
+                        fontSize: '0.75rem',
+                        borderRadius: 9999,
+                        py: 0.8,
+                        boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
+                        '&:hover': { backgroundColor: '#1e293b' },
+                      }}
+                    >
+                      Upload Proof
+                    </Button>
+                  </Box>
+                </Card>
+              ))
             )}
           </Box>
 
