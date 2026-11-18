@@ -1,10 +1,12 @@
 import { useEffect, useState, type FC } from 'react'
 import { Box, ButtonBase, Drawer, Typography } from '@mui/material'
-import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded'
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
-import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded'
+import AdminPanelSettingsRoundedIcon from '@mui/icons-material/AdminPanelSettingsRounded'
+import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined'
+import PeopleOutlineRoundedIcon from '@mui/icons-material/PeopleOutlineRounded'
+import PersonOffOutlinedIcon from '@mui/icons-material/PersonOffOutlined'
 import { adminApi } from '@/lib/api'
 import {
   COMMONWEALTH_FACILITIES,
@@ -27,6 +29,8 @@ export const AdminAccessPage: FC = () => {
   const [selectedUser, setSelectedUser] = useState<OfficialUser | null>(null)
   const [search, setSearch] = useState('')
   const [filterRole, setFilterRole] = useState<AccessRoleFilter>('all')
+  const [filterBarangay, setFilterBarangay] = useState('')
+  const [filterStatus, setFilterStatus] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [isEnrollmentDrawerOpen, setIsEnrollmentDrawerOpen] = useState(false)
 
@@ -385,7 +389,14 @@ export const AdminAccessPage: FC = () => {
   const filteredUsers = users.filter((u) => {
     if (filterRole === 'admin' && u.role !== 'Admin') return false
     if (filterRole === 'official' && u.role !== 'Official') return false
+    if (filterRole === 'resident' && u.role !== 'Resident') return false
     if (filterRole === 'deactivated' && u.role !== 'Deactivated') return false
+    if (filterBarangay && u.barangay?.toLowerCase() !== filterBarangay.toLowerCase()) return false
+    if (filterStatus) {
+      const isDeactivated = u.role === 'Deactivated' || u.status === 'Deactivated'
+      if (filterStatus === 'Active' && isDeactivated) return false
+      if (filterStatus === 'Deactivated' && !isDeactivated) return false
+    }
     if (!search.trim()) return true
     const q = search.toLowerCase()
     return (
@@ -397,272 +408,229 @@ export const AdminAccessPage: FC = () => {
     )
   })
 
-  const activeAdminsCount = users.filter((u) => u.role === 'Admin' && u.status === 'Active').length
-  const activeOfficialsCount = users.filter(
-    (u) => u.role === 'Official' && u.status === 'Active',
-  ).length
-  const deactivatedCount = users.filter(
-    (u) => u.role === 'Deactivated' || u.status === 'Deactivated',
-  ).length
-  const twoFactorPercent =
-    users.length > 0
-      ? Math.round((users.filter((u) => u.twoFactorEnabled).length / users.length) * 100)
-      : 0
+  const superAdminsCount = users.filter((u) => u.role === 'Admin').length
+  const officialsCount = users.filter((u) => u.role === 'Official').length
+  const activeOfficialsCount = users.filter((u) => u.role === 'Official' && u.status === 'Active').length
+  const residentsCount = users.filter((u) => u.role === 'Resident').length
+  const activeResidentsCount = users.filter((u) => u.role === 'Resident' && u.status === 'Active').length
+  const deactivatedCount = users.filter((u) => u.role === 'Deactivated' || u.status === 'Deactivated').length
+
+  const handleToggleUserStatus = async (user: OfficialUser) => {
+    if (user.isSelf) return
+    const isDeactivated = user.role === 'Deactivated' || user.status === 'Deactivated'
+    setIsSaving(true)
+    try {
+      if (isDeactivated) {
+        const restoredRole = user.department?.toLowerCase().includes('resident') ? 'Resident' : 'Official'
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === user.id
+              ? {
+                  ...u,
+                  role: restoredRole,
+                  status: 'Active',
+                  idCode: user.idCode && user.idCode !== 'ID-REVOKED' ? user.idCode : generateBadgeId('Official'),
+                  lastActive: 'Reactivated just now',
+                }
+              : u
+          )
+        )
+        setFeedbackBanner({
+          type: 'success',
+          message: `Account for ${user.name} has been reactivated.`,
+        })
+      } else {
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === user.id ? { ...u, role: 'Deactivated', status: 'Deactivated', idCode: 'ID-REVOKED' } : u
+          )
+        )
+        setFeedbackBanner({
+          type: 'success',
+          message: `Account for ${user.name} deactivated and access revoked.`,
+        })
+      }
+    } catch {
+      setFeedbackBanner({
+        type: 'error',
+        message: 'Failed to update account status.',
+      })
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5, pb: 4 }}>
-      {/* Page Header & Metrics Summary Bar */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5, pb: 6, fontFamily: "'Quicksand', sans-serif" }}>
+      {/* 4 KPI Summary Cards matching Prototype */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', xl: 'repeat(4, 1fr)' },
+          gap: 2.5,
+        }}
+      >
+        {/* KPI 1: Super Admins */}
         <Box
           sx={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #dbe3d6',
+            borderRadius: '1.25rem',
+            p: 2.5,
             display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            justifyContent: 'space-between',
-            alignItems: { xs: 'flex-start', md: 'center' },
+            alignItems: 'flex-start',
             gap: 2,
+            boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
           }}
         >
-          <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-              <Typography
-                sx={{
-                  fontSize: '0.6875rem',
-                  fontWeight: 700,
-                  color: '#64748b',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Security Infrastructure
-              </Typography>
-              <span style={{ color: '#cbd5e1' }}>/</span>
-              <Typography
-                sx={{
-                  fontSize: '0.6875rem',
-                  fontWeight: 800,
-                  color: '#16a34a',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Access &amp; Identity Management
-              </Typography>
-            </Box>
-            <Typography
-              variant="h4"
-              sx={{
-                fontFamily: "'Rethink Sans', 'Inter', sans-serif",
-                fontWeight: 800,
-                fontSize: { xs: '1.75rem', md: '2.125rem' },
-                color: '#0b1c30',
-                letterSpacing: '-0.025em',
-              }}
-            >
-              Access &amp; Identity Management
-            </Typography>
+          <Box
+            sx={{
+              width: 44,
+              height: 44,
+              borderRadius: '1rem',
+              backgroundColor: '#f5f3ff',
+              color: '#6d28d9',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <AdminPanelSettingsRoundedIcon sx={{ fontSize: 22 }} />
           </Box>
-
-          {/* Quick Status Badges */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1.25,
-                px: 2,
-                py: 0.85,
-                borderRadius: '8px',
-                backgroundColor: '#eff4ff',
-                border: '1px solid #dce9ff',
-              }}
-            >
-              <Box
-                sx={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: '9999px',
-                  backgroundColor: '#16a34a',
-                  boxShadow: '0 0 0 3px rgba(34, 197, 94, 0.2)',
-                }}
-              />
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: '#334155' }}>
-                RBAC Mode: Enforced
-              </Typography>
-            </Box>
-
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                px: 2,
-                py: 0.85,
-                borderRadius: '8px',
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-              }}
-            >
-              <SecurityRoundedIcon sx={{ fontSize: 15, color: '#16a34a' }} />
-              <Typography
-                sx={{
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  color: '#475569',
-                  fontFamily: 'monospace',
-                }}
-              >
-                2FA Coverage: {twoFactorPercent}%
-              </Typography>
-            </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
+              Super Admins
+            </Typography>
+            <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
+              {superAdminsCount}
+            </Typography>
+            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
+              All scopes
+            </Typography>
           </Box>
         </Box>
 
-        {/* Telemetry Strip */}
+        {/* KPI 2: Barangay Officials */}
         <Box
           sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+            backgroundColor: '#ffffff',
+            border: '1px solid #dbe3d6',
+            borderRadius: '1.25rem',
+            p: 2.5,
+            display: 'flex',
+            alignItems: 'flex-start',
             gap: 2,
+            boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
           }}
         >
           <Box
             sx={{
-              backgroundColor: '#ffffff',
-              borderRadius: '10px',
-              p: 2,
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              width: 44,
+              height: 44,
+              borderRadius: '1rem',
+              backgroundColor: '#f0f9ff',
+              color: '#0369a1',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
             }}
           >
-            <Typography
-              sx={{
-                fontSize: '0.6875rem',
-                fontWeight: 700,
-                color: '#64748b',
-                textTransform: 'uppercase',
-              }}
-            >
-              Active Administrators
-            </Typography>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'baseline',
-                justifyContent: 'space-between',
-                mt: 1,
-              }}
-            >
-              <Typography sx={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a' }}>
-                {activeAdminsCount}
-              </Typography>
-              <Box
-                sx={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  px: 1.25,
-                  py: 0.25,
-                  borderRadius: '9999px',
-                  backgroundColor: '#dcfce7',
-                  color: '#15803d',
-                  fontSize: '0.6875rem',
-                  fontWeight: 700,
-                }}
-              >
-                <ShieldRoundedIcon sx={{ fontSize: 13 }} />
-                <span>Tier 1 Authority</span>
-              </Box>
-            </Box>
+            <BadgeOutlinedIcon sx={{ fontSize: 22 }} />
           </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
+              Barangay Officials
+            </Typography>
+            <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
+              {officialsCount}
+            </Typography>
+            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
+              {activeOfficialsCount} active
+            </Typography>
+          </Box>
+        </Box>
 
+        {/* KPI 3: Residents */}
+        <Box
+          sx={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #dbe3d6',
+            borderRadius: '1.25rem',
+            p: 2.5,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 2,
+            boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
+          }}
+        >
           <Box
             sx={{
-              backgroundColor: '#ffffff',
-              borderRadius: '10px',
-              p: 2,
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              width: 44,
+              height: 44,
+              borderRadius: '1rem',
+              backgroundColor: '#f1f4f0',
+              color: '#2e6022',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
             }}
           >
-            <Typography
-              sx={{
-                fontSize: '0.6875rem',
-                fontWeight: 700,
-                color: '#64748b',
-                textTransform: 'uppercase',
-              }}
-            >
-              Field Officials
-            </Typography>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'baseline',
-                justifyContent: 'space-between',
-                mt: 1,
-              }}
-            >
-              <Typography sx={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a' }}>
-                {activeOfficialsCount}
-              </Typography>
-              <Box
-                sx={{
-                  px: 1.25,
-                  py: 0.25,
-                  borderRadius: '9999px',
-                  backgroundColor: '#eff4ff',
-                  color: '#1e40af',
-                  fontSize: '0.6875rem',
-                  fontWeight: 700,
-                }}
-              >
-                Intake &amp; Manifest Auth
-              </Box>
-            </Box>
+            <PeopleOutlineRoundedIcon sx={{ fontSize: 22 }} />
           </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
+              Residents
+            </Typography>
+            <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
+              {residentsCount}
+            </Typography>
+            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
+              {activeResidentsCount} active
+            </Typography>
+          </Box>
+        </Box>
 
+        {/* KPI 4: Deactivated */}
+        <Box
+          sx={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #dbe3d6',
+            borderRadius: '1.25rem',
+            p: 2.5,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 2,
+            boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
+          }}
+        >
           <Box
             sx={{
-              backgroundColor: '#ffffff',
-              borderRadius: '10px',
-              p: 2,
-              border: '1px solid #fee2e2',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              width: 44,
+              height: 44,
+              borderRadius: '1rem',
+              backgroundColor: '#fff1f2',
+              color: '#be123c',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
             }}
           >
-            <Typography
-              sx={{
-                fontSize: '0.6875rem',
-                fontWeight: 700,
-                color: '#dc2626',
-                textTransform: 'uppercase',
-              }}
-            >
-              Deactivated Accounts
+            <PersonOffOutlinedIcon sx={{ fontSize: 22 }} />
+          </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
+              Deactivated
             </Typography>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'baseline',
-                justifyContent: 'space-between',
-                mt: 1,
-              }}
-            >
-              <Typography sx={{ fontSize: '1.75rem', fontWeight: 800, color: '#dc2626' }}>
-                {deactivatedCount}
-              </Typography>
-              <Box
-                sx={{
-                  px: 1.25,
-                  py: 0.25,
-                  borderRadius: '9999px',
-                  backgroundColor: '#fee2e2',
-                  color: '#991b1b',
-                  fontSize: '0.6875rem',
-                  fontWeight: 700,
-                }}
-              >
-                Tokens Revoked
-              </Box>
-            </Box>
+            <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
+              {deactivatedCount}
+            </Typography>
+            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
+              Cannot sign in
+            </Typography>
           </Box>
         </Box>
       </Box>
@@ -672,19 +640,19 @@ export const AdminAccessPage: FC = () => {
         <Box
           sx={{
             p: 1.75,
-            borderRadius: '10px',
+            borderRadius: '0.75rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            backgroundColor: feedbackBanner.type === 'success' ? '#dcfce7' : '#fee2e2',
+            backgroundColor: feedbackBanner.type === 'success' ? '#f1f4f0' : '#fee2e2',
             border: '1px solid',
-            borderColor: feedbackBanner.type === 'success' ? '#86efac' : '#fca5a5',
-            color: feedbackBanner.type === 'success' ? '#14532d' : '#991b1b',
+            borderColor: feedbackBanner.type === 'success' ? '#c5dcba' : '#fca5a5',
+            color: feedbackBanner.type === 'success' ? '#2e6022' : '#991b1b',
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
             {feedbackBanner.type === 'success' ? (
-              <CheckCircleRoundedIcon sx={{ fontSize: 20, color: '#16a34a' }} />
+              <CheckCircleRoundedIcon sx={{ fontSize: 20, color: '#2e6022' }} />
             ) : (
               <ErrorOutlineRoundedIcon sx={{ fontSize: 20, color: '#dc2626' }} />
             )}
@@ -709,9 +677,14 @@ export const AdminAccessPage: FC = () => {
           selectedUserId={selectedUser?.id ?? null}
           search={search}
           filterRole={filterRole}
+          filterBarangay={filterBarangay}
+          filterStatus={filterStatus}
           onSearchChange={setSearch}
           onFilterRoleChange={setFilterRole}
+          onFilterBarangayChange={setFilterBarangay}
+          onFilterStatusChange={setFilterStatus}
           onSelectUser={handleSelectUser}
+          onToggleUserStatus={handleToggleUserStatus}
           onAddUser={handleOpenAddUser}
         />
       </Box>

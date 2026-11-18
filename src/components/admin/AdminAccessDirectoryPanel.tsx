@@ -1,13 +1,10 @@
 import type { FC } from 'react'
-import { Box, Button, ButtonBase, Typography } from '@mui/material'
+import { Box, ButtonBase, Typography } from '@mui/material'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
-import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded'
-import PolicyOutlinedIcon from '@mui/icons-material/PolicyOutlined'
-import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined'
 import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded'
 import type { OfficialUser } from '@/components/admin/adminAccessData'
 
-export type AccessRoleFilter = 'all' | 'admin' | 'official' | 'deactivated'
+export type AccessRoleFilter = 'all' | 'admin' | 'official' | 'resident' | 'deactivated'
 
 interface AdminAccessDirectoryPanelProps {
   users: OfficialUser[]
@@ -15,11 +12,25 @@ interface AdminAccessDirectoryPanelProps {
   selectedUserId: string | null
   search: string
   filterRole: AccessRoleFilter
+  filterBarangay: string
+  filterStatus: string
   onSearchChange: (value: string) => void
   onFilterRoleChange: (filter: AccessRoleFilter) => void
+  onFilterBarangayChange: (val: string) => void
+  onFilterStatusChange: (val: string) => void
   onSelectUser: (user: OfficialUser) => void
+  onToggleUserStatus: (user: OfficialUser) => void
   onAddUser?: () => void
 }
+
+const BARANGAYS = [
+  { id: '', name: 'All barangays' },
+  { id: 'commonwealth', name: 'Commonwealth' },
+  { id: 'batasan', name: 'Batasan Hills' },
+  { id: 'payatas', name: 'Payatas' },
+  { id: 'holyspirit', name: 'Holy Spirit' },
+  { id: 'bagongsilangan', name: 'Bagong Silangan' },
+]
 
 export const AdminAccessDirectoryPanel: FC<AdminAccessDirectoryPanelProps> = ({
   users,
@@ -27,165 +38,193 @@ export const AdminAccessDirectoryPanel: FC<AdminAccessDirectoryPanelProps> = ({
   selectedUserId,
   search,
   filterRole,
+  filterBarangay,
+  filterStatus,
   onSearchChange,
   onFilterRoleChange,
+  onFilterBarangayChange,
+  onFilterStatusChange,
   onSelectUser,
+  onToggleUserStatus,
   onAddUser,
 }) => {
-  const handleExportDirectory = () => {
-    const dataStr =
-      'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(users, null, 2))
-    const downloadAnchor = document.createElement('a')
-    downloadAnchor.setAttribute('href', dataStr)
-    downloadAnchor.setAttribute(
-      'download',
-      `ecobyte_official_directory_${new Date().toISOString().slice(0, 10)}.json`,
-    )
-    document.body.appendChild(downloadAnchor)
-    downloadAnchor.click()
-    downloadAnchor.remove()
-  }
-
   return (
     <Box
       sx={{
         backgroundColor: '#ffffff',
-        borderRadius: '12px',
-        p: 3,
-        border: '1px solid #e2e8f0',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+        borderRadius: '1.25rem',
+        p: { xs: 2.5, sm: 3 },
+        border: '1px solid #dbe3d6',
+        boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
         display: 'flex',
         flexDirection: 'column',
         gap: 2.5,
+        fontFamily: "'Quicksand', sans-serif",
       }}
     >
-      {/* Header */}
+      {/* ── Filters & Add User Row matching Prototype ── */}
       <Box
         sx={{
           display: 'flex',
-          alignItems: 'center',
+          flexDirection: { xs: 'column', xl: 'row' },
+          alignItems: { xs: 'stretch', xl: 'center' },
           justifyContent: 'space-between',
-          pb: 1.5,
-          borderBottom: '1px solid #e2e8f0',
-          flexWrap: 'wrap',
-          gap: 1.5,
+          gap: 2,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <ShieldRoundedIcon sx={{ fontSize: 20, color: '#16a34a' }} />
-          <Typography sx={{ fontWeight: 700, fontSize: '1.125rem', color: '#0f172a' }}>
-            Access Directory
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Typography sx={{ fontSize: '0.6875rem', fontFamily: 'monospace', color: '#64748b' }}>
-            {users.length} IDENTITIES REGISTERED
-          </Typography>
-          {onAddUser && (
-            <Button
-              variant="contained"
-              size="small"
-              onClick={onAddUser}
-              startIcon={<PersonAddRoundedIcon sx={{ fontSize: 18 }} />}
-              sx={{
-                backgroundColor: '#16a34a',
-                color: '#ffffff',
-                fontWeight: 700,
-                fontSize: '0.8125rem',
-                textTransform: 'none',
-                borderRadius: '8px',
-                px: 2,
-                py: 0.7,
-                boxShadow: '0 2px 6px rgba(22, 163, 74, 0.25)',
-                '&:hover': {
-                  backgroundColor: '#15803d',
-                  boxShadow: '0 4px 10px rgba(22, 163, 74, 0.35)',
-                },
-              }}
-            >
-              Add User
-            </Button>
-          )}
-        </Box>
-      </Box>
-
-      {/* Search Input */}
-      <Box sx={{ position: 'relative', width: '100%' }}>
-        <SearchRoundedIcon
+        <Box
           sx={{
-            position: 'absolute',
-            left: 10,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: '#94a3b8',
-            fontSize: 18,
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(4, 1fr)' },
+            gap: 1.5,
+            width: { xs: '100%', xl: 760 },
           }}
-        />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search by name, email, phone, badge ID, or facility..."
-          style={{
-            width: '100%',
-            height: 38,
-            paddingLeft: 34,
-            paddingRight: 12,
-            borderRadius: 8,
-            backgroundColor: '#f8fafc',
-            border: '1px solid #e2e8f0',
-            fontFamily: "'Rethink Sans', 'Inter', sans-serif",
-            fontSize: '0.8125rem',
-            color: '#0f172a',
-            outline: 'none',
-          }}
-        />
-      </Box>
-
-      {/* Filter Quick Toggles (All, Admin, Official, Deactivated) */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, overflowX: 'auto', pb: 0.5 }}>
-        {[
-          { id: 'all', label: `All (${users.length})` },
-          { id: 'admin', label: `Admin (${users.filter((u) => u.role === 'Admin').length})` },
-          {
-            id: 'official',
-            label: `Official (${users.filter((u) => u.role === 'Official').length})`,
-          },
-          {
-            id: 'deactivated',
-            label: `Deactivated (${users.filter((u) => u.role === 'Deactivated').length})`,
-          },
-        ].map((tab) => {
-          const active = filterRole === tab.id
-          return (
-            <ButtonBase
-              key={tab.id}
-              onClick={() => onFilterRoleChange(tab.id as AccessRoleFilter)}
+        >
+          {/* Search name or email */}
+          <Box sx={{ position: 'relative' }}>
+            <SearchRoundedIcon
               sx={{
-                px: 1.5,
-                py: 0.5,
-                borderRadius: '6px',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                backgroundColor: active ? '#eff4ff' : '#ffffff',
-                color: active ? '#0f172a' : '#64748b',
-                border: '1px solid',
-                borderColor: active ? '#93c5fd' : '#e2e8f0',
-                transition: 'background-color 0.15s ease, border-color 0.15s ease',
-                whiteSpace: 'nowrap',
+                position: 'absolute',
+                left: 10,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#94a3b8',
+                fontSize: 18,
+                pointerEvents: 'none',
               }}
-            >
-              {tab.label}
-            </ButtonBase>
-          )
-        })}
+            />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="Search name or email…"
+              style={{
+                width: '100%',
+                height: 40,
+                paddingLeft: 34,
+                paddingRight: 12,
+                borderRadius: '0.75rem',
+                border: '1px solid #dbe3d6',
+                backgroundColor: '#ffffff',
+                fontFamily: "'Quicksand', sans-serif",
+                fontSize: '0.8125rem',
+                fontWeight: 600,
+                color: '#0f172a',
+                outline: 'none',
+              }}
+            />
+          </Box>
+
+          {/* Role Filter */}
+          <select
+            value={filterRole}
+            onChange={(e) => onFilterRoleChange(e.target.value as AccessRoleFilter)}
+            style={{
+              height: 40,
+              padding: '0 12px',
+              borderRadius: '0.75rem',
+              border: '1px solid #dbe3d6',
+              backgroundColor: '#ffffff',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              color: '#334155',
+              outline: 'none',
+              fontFamily: "'Quicksand', sans-serif",
+            }}
+          >
+            <option value="all">All roles</option>
+            <option value="admin">Super Admin</option>
+            <option value="official">Barangay Official</option>
+            <option value="resident">Resident</option>
+            <option value="deactivated">Deactivated</option>
+          </select>
+
+          {/* Barangay Filter */}
+          <select
+            value={filterBarangay}
+            onChange={(e) => onFilterBarangayChange(e.target.value)}
+            style={{
+              height: 40,
+              padding: '0 12px',
+              borderRadius: '0.75rem',
+              border: '1px solid #dbe3d6',
+              backgroundColor: '#ffffff',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              color: '#334155',
+              outline: 'none',
+              fontFamily: "'Quicksand', sans-serif",
+            }}
+          >
+            {BARANGAYS.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+
+          {/* Status Filter */}
+          <select
+            value={filterStatus}
+            onChange={(e) => onFilterStatusChange(e.target.value)}
+            style={{
+              height: 40,
+              padding: '0 12px',
+              borderRadius: '0.75rem',
+              border: '1px solid #dbe3d6',
+              backgroundColor: '#ffffff',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              color: '#334155',
+              outline: 'none',
+              fontFamily: "'Quicksand', sans-serif",
+            }}
+          >
+            <option value="">All statuses</option>
+            <option value="Active">Active</option>
+            <option value="Deactivated">Deactivated</option>
+          </select>
+        </Box>
+
+        {/* Add User Button */}
+        {onAddUser && (
+          <ButtonBase
+            onClick={onAddUser}
+            sx={{
+              background: 'linear-gradient(135deg, #2e6022 0%, #70b822 100%)',
+              color: '#ffffff',
+              fontWeight: 700,
+              fontSize: '0.8125rem',
+              borderRadius: '0.75rem',
+              px: 2.5,
+              py: 1.1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              boxShadow: '0 2px 6px rgba(46, 96, 34, 0.25)',
+              '&:hover': {
+                opacity: 0.95,
+              },
+            }}
+          >
+            <PersonAddRoundedIcon sx={{ fontSize: 18 }} />
+            <span>Create Official Account</span>
+          </ButtonBase>
+        )}
       </Box>
 
-      {/* Official List Table */}
+      {/* Directory Count */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>
+          Showing {filteredUsers.length} of {users.length} accounts
+        </Typography>
+      </Box>
+
+      {/* User Directory Table matching Prototype */}
       <Box
         sx={{
-          borderRadius: '10px',
-          border: '1px solid #e2e8f0',
+          borderRadius: '1rem',
+          border: '1px solid #dbe3d6',
           overflow: 'hidden',
         }}
       >
@@ -193,29 +232,33 @@ export const AdminAccessDirectoryPanel: FC<AdminAccessDirectoryPanelProps> = ({
           <thead>
             <tr
               style={{
-                backgroundColor: '#eff4ff',
+                backgroundColor: '#f8faf6',
                 borderBottom: '1px solid #e2e8f0',
-                fontSize: '0.6875rem',
+                fontSize: '11px',
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
-                color: '#475569',
+                color: '#64748b',
               }}
             >
-              <th style={{ padding: '12px 16px' }}>User &amp; Credential</th>
-              <th style={{ padding: '12px 16px' }}>Badge &amp; Contact</th>
-              <th style={{ padding: '12px 16px' }}>Facility / Unit</th>
-              <th style={{ padding: '12px 16px', textAlign: 'right' }}>Role &amp; Status</th>
+              <th style={{ padding: '12px 16px' }}>User</th>
+              <th style={{ padding: '12px 16px' }}>Role</th>
+              <th style={{ padding: '12px 16px' }}>Barangay</th>
+              <th style={{ padding: '12px 16px' }}>Status</th>
+              <th style={{ padding: '12px 16px' }}>Last Login</th>
+              <th style={{ padding: '12px 16px', textAlign: 'right' }}>Action</th>
             </tr>
           </thead>
           <tbody style={{ fontSize: '0.8125rem', color: '#0f172a' }}>
             {filteredUsers.length === 0 ? (
               <tr>
                 <td
-                  colSpan={4}
-                  style={{ padding: '32px 16px', textAlign: 'center', color: '#64748b' }}
+                  colSpan={6}
+                  style={{ padding: '36px 16px', textAlign: 'center', color: '#64748b' }}
                 >
-                  No officials match your search query.
+                  <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                    No users match your filters.
+                  </Typography>
                 </td>
               </tr>
             ) : (
@@ -224,143 +267,187 @@ export const AdminAccessDirectoryPanel: FC<AdminAccessDirectoryPanelProps> = ({
                   user.role === 'Deactivated' || user.status === 'Deactivated'
                 const isSelected = selectedUserId === user.id
 
-                const roleColor =
-                  user.role === 'Admin'
-                    ? '#16a34a'
-                    : isDeactivated
-                      ? '#dc2626'
-                      : '#006a61'
+                const isSuperAdmin = user.role === 'Admin'
+                const isOfficial = user.role === 'Official'
+                const isResident = user.role === 'Resident'
 
                 return (
                   <tr
                     key={user.id}
-                    onClick={() => onSelectUser(user)}
                     style={{
-                      cursor: 'pointer',
                       borderBottom: '1px solid #f1f5f9',
-                      backgroundColor: isSelected ? '#eff4ff' : 'transparent',
-                      borderLeft: `4px solid ${roleColor}`,
-                      opacity: isDeactivated ? 0.75 : 1,
+                      backgroundColor: isSelected ? '#f1f4f0' : 'transparent',
+                      opacity: isDeactivated ? 0.7 : 1,
                       transition: 'background-color 0.15s ease',
                     }}
                   >
+                    {/* User */}
                     <td style={{ padding: '12px 16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div
-                          style={{
-                            width: 38,
-                            height: 38,
-                            borderRadius: 8,
-                            background:
-                              user.role === 'Admin'
-                                ? 'linear-gradient(135deg, rgb(21, 128, 61), rgb(34, 197, 94))'
-                                : isDeactivated
-                                  ? '#fee2e2'
-                                  : '#006a61',
-                            color: isDeactivated ? '#dc2626' : '#ffffff',
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 200 }}>
+                        <Box
+                          sx={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: '9999px',
+                            backgroundColor: '#f1f5f9',
+                            color: '#475569',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            fontWeight: 800,
+                            fontWeight: 700,
                             fontSize: '0.75rem',
                             flexShrink: 0,
                           }}
                         >
                           {user.initials}
-                        </div>
-                        <div>
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 8,
-                              flexWrap: 'wrap',
-                            }}
-                          >
-                            <span
-                              style={{
+                        </Box>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography
+                              sx={{
                                 fontWeight: 700,
+                                fontSize: '0.8125rem',
                                 color: '#0f172a',
-                                textDecoration: isDeactivated ? 'line-through' : 'none',
+                                lineHeight: 1.2,
                               }}
                             >
                               {user.name}
-                            </span>
+                            </Typography>
                             {user.isSelf && (
-                              <span
-                                style={{
-                                  fontSize: '0.5625rem',
-                                  fontWeight: 800,
-                                  textTransform: 'uppercase',
-                                  padding: '2px 6px',
-                                  borderRadius: 4,
-                                  backgroundColor: '#dcfce7',
-                                  color: '#15803d',
-                                }}
-                              >
-                                You
-                              </span>
+                              <Typography sx={{ fontSize: '0.625rem', color: '#94a3b8', fontWeight: 700 }}>
+                                (you)
+                              </Typography>
                             )}
-                            {user.twoFactorEnabled && (
-                              <span
-                                style={{
-                                  fontSize: '0.5625rem',
-                                  fontWeight: 700,
-                                  padding: '2px 5px',
-                                  borderRadius: 4,
-                                  backgroundColor: '#eff4ff',
-                                  color: '#1d4ed8',
-                                }}
-                                title="Two-Factor Authentication Protected"
-                              >
-                                2FA
-                              </span>
-                            )}
-                          </div>
-                          <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>
+                          </Box>
+                          <Typography
+                            sx={{
+                              fontSize: '0.6875rem',
+                              color: '#64748b',
+                              fontWeight: 500,
+                              mt: 0.25,
+                            }}
+                          >
                             {user.email}
-                          </div>
-                        </div>
-                      </div>
+                          </Typography>
+                        </Box>
+                      </Box>
                     </td>
 
-                    <td style={{ padding: '12px 16px' }}>
-                      <div style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f172a', fontSize: '0.8125rem' }}>
-                        {user.idCode}
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>
-                        {user.phone}
-                      </div>
-                    </td>
-
-                    <td style={{ padding: '12px 16px' }}>
-                      <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#334155' }}>
-                        {user.department}
-                      </div>
-                      <div style={{ fontSize: '0.6875rem', color: '#94a3b8', marginTop: 2 }}>
-                        Commonwealth Hub
-                      </div>
-                    </td>
-
-                    <td style={{ padding: '12px 16px', textAlign: 'right', verticalAlign: 'middle' }}>
-                      <span
-                        style={{
+                    {/* Role */}
+                    <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                      <Box
+                        sx={{
                           display: 'inline-block',
-                          padding: '3px 8px',
-                          borderRadius: 4,
+                          px: 1.25,
+                          py: 0.35,
+                          borderRadius: '9999px',
                           fontSize: '0.6875rem',
                           fontWeight: 700,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.04em',
-                          backgroundColor: roleColor,
-                          color: '#ffffff',
+                          backgroundColor: isSuperAdmin
+                            ? '#f5f3ff'
+                            : isOfficial
+                              ? '#f0f9ff'
+                              : isResident
+                                ? '#f1f4f0'
+                                : '#f1f5f9',
+                          color: isSuperAdmin
+                            ? '#6d28d9'
+                            : isOfficial
+                              ? '#0369a1'
+                              : isResident
+                                ? '#2e6022'
+                                : '#64748b',
+                          border: `1px solid ${
+                            isSuperAdmin
+                              ? '#ddd6fe'
+                              : isOfficial
+                                ? '#bae6fd'
+                                : isResident
+                                  ? '#c5dcba'
+                                  : '#e2e8f0'
+                          }`,
                         }}
                       >
-                        {user.role}
-                      </span>
-                      <div style={{ fontSize: '0.6875rem', color: '#64748b', marginTop: 4 }}>
-                        {user.lastActive}
-                      </div>
+                        {isSuperAdmin
+                          ? 'Super Admin'
+                          : isOfficial
+                            ? 'Barangay Official'
+                            : isResident
+                              ? 'Resident'
+                              : 'Deactivated'}
+                      </Box>
+                    </td>
+
+                    {/* Barangay */}
+                    <td style={{ padding: '12px 16px', fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>
+                      {user.barangay ? user.barangay : isSuperAdmin ? <span style={{ color: '#94a3b8' }}>All</span> : 'Commonwealth'}
+                    </td>
+
+                    {/* Status */}
+                    <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                      <Box
+                        sx={{
+                          display: 'inline-block',
+                          px: 1.25,
+                          py: 0.35,
+                          borderRadius: '9999px',
+                          fontSize: '0.6875rem',
+                          fontWeight: 700,
+                          backgroundColor: !isDeactivated ? '#f1f4f0' : '#fee2e2',
+                          color: !isDeactivated ? '#2e6022' : '#991b1b',
+                          border: `1px solid ${!isDeactivated ? '#c5dcba' : '#fca5a5'}`,
+                        }}
+                      >
+                        {!isDeactivated ? 'Active' : 'Deactivated'}
+                      </Box>
+                    </td>
+
+                    {/* Last Login */}
+                    <td style={{ padding: '12px 16px', color: '#64748b', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                      {user.lastActive || 'Never'}
+                    </td>
+
+                    {/* Action */}
+                    <td style={{ padding: '12px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                        <ButtonBase
+                          onClick={() => onSelectUser(user)}
+                          disabled={user.isSelf}
+                          sx={{
+                            px: 1.5,
+                            py: 0.5,
+                            borderRadius: '0.5rem',
+                            border: '1px solid #dbe3d6',
+                            backgroundColor: '#ffffff',
+                            color: '#334155',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            '&:hover': { backgroundColor: '#f8faf6' },
+                            '&:disabled': { opacity: 0.4 },
+                          }}
+                        >
+                          Change role
+                        </ButtonBase>
+
+                        <ButtonBase
+                          onClick={() => onToggleUserStatus(user)}
+                          disabled={user.isSelf}
+                          sx={{
+                            px: 1.5,
+                            py: 0.5,
+                            borderRadius: '0.5rem',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            backgroundColor: !isDeactivated ? '#fee2e2' : '#f1f4f0',
+                            color: !isDeactivated ? '#991b1b' : '#2e6022',
+                            border: `1px solid ${!isDeactivated ? '#fca5a5' : '#c5dcba'}`,
+                            '&:hover': { opacity: 0.9 },
+                            '&:disabled': { opacity: 0.4 },
+                          }}
+                        >
+                          {!isDeactivated ? 'Deactivate' : 'Reactivate'}
+                        </ButtonBase>
+                      </Box>
                     </td>
                   </tr>
                 )
@@ -368,40 +455,6 @@ export const AdminAccessDirectoryPanel: FC<AdminAccessDirectoryPanelProps> = ({
             )}
           </tbody>
         </table>
-      </Box>
-
-      {/* Compliance Mini Footer inside Left Directory */}
-      <Box
-        sx={{
-          pt: 2,
-          borderTop: '1px solid #e2e8f0',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          fontSize: '0.75rem',
-          color: '#64748b',
-          flexWrap: 'wrap',
-          gap: 1,
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <PolicyOutlinedIcon sx={{ fontSize: 16, color: '#16a34a' }} />
-          <span>ISO 27001 Access Ledger Enforced</span>
-        </Box>
-        <ButtonBase
-          onClick={handleExportDirectory}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 0.5,
-            fontWeight: 700,
-            color: '#0f172a',
-            textDecoration: 'underline',
-          }}
-        >
-          <DownloadOutlinedIcon sx={{ fontSize: 15 }} />
-          <span>Export SEC Log</span>
-        </ButtonBase>
       </Box>
     </Box>
   )

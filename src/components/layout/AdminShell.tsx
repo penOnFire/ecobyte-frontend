@@ -107,9 +107,9 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
   ]
 
   const adminNavItems: NavItem[] = [
-    { label: 'Dashboard', path: '/admin', icon: GridViewRoundedIcon },
-    { label: 'Reports', path: '/admin/reports', icon: BarChartRoundedIcon },
-    { label: 'Transactions', path: '/admin/transactions', icon: ReceiptLongRoundedIcon },
+    { label: 'All-Barangay Overview', path: '/admin', icon: GridViewRoundedIcon },
+    { label: 'Reports & Data', path: '/admin/reports', icon: BarChartRoundedIcon },
+    { label: 'Overall Transactions', path: '/admin/transactions', icon: ReceiptLongRoundedIcon },
     { label: 'Manage Users', path: '/admin/access', icon: AdminPanelSettingsOutlinedIcon },
     { label: 'Activity Logs', path: '/admin/activity-logs', icon: HistoryRoundedIcon },
   ]
@@ -175,7 +175,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
             <Box>
               <Typography
                 sx={{
-                  fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                  fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 800,
                   fontSize: '1.125rem',
                   color: '#0b1c30',
@@ -187,7 +187,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
               </Typography>
               <Typography
                 sx={{
-                  fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                  fontFamily: "'Quicksand', sans-serif",
                   fontSize: '0.6875rem',
                   fontWeight: 600,
                   color: '#16a34a',
@@ -208,6 +208,53 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
               <CloseRoundedIcon sx={{ fontSize: 20 }} />
             </IconButton>
           )}
+        </Box>
+
+        {/* Scope Banner (From Prototype) */}
+        <Box
+          sx={{
+            mx: 1.5,
+            mb: 1,
+            p: 1.5,
+            borderRadius: '12px',
+            backgroundColor: '#f1f4f0',
+            border: '1px solid #dbe3d6',
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: '0.625rem',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              color: '#475569',
+            }}
+          >
+            {isSuperAdmin ? 'System Scope' : 'Assigned Base / Site'}
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.35 }}>
+            <Box
+              sx={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                backgroundColor: '#70b822',
+              }}
+            />
+            <Typography
+              sx={{
+                fontSize: '0.8125rem',
+                fontWeight: 800,
+                color: '#1e2e1a',
+                fontFamily: "'Quicksand', sans-serif",
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {isSuperAdmin ? 'All sites & barangays' : staffArea}
+            </Typography>
+          </Box>
         </Box>
 
         {/* Navigation Links */}
@@ -250,7 +297,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
                       color: active ? '#ffffff' : '#475569',
                     }}
                   />
-                  <span style={{ fontFamily: "'Rethink Sans', 'Inter', sans-serif" }}>
+                  <span style={{ fontFamily: "'Quicksand', sans-serif" }}>
                     {item.label}
                   </span>
                 </Box>
@@ -302,7 +349,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
           }}
         >
           <SmartphoneRoundedIcon sx={{ fontSize: 18, color: '#475569' }} />
-          <span style={{ fontFamily: "'Rethink Sans', 'Inter', sans-serif" }}>Resident View (Mobile)</span>
+          <span style={{ fontFamily: "'Quicksand', sans-serif" }}>Resident View (Mobile)</span>
         </ButtonBase>
 
         {/* Log Out */}
@@ -329,7 +376,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
           }}
         >
           <LogoutRoundedIcon sx={{ fontSize: 18 }} />
-          <span style={{ fontFamily: "'Rethink Sans', 'Inter', sans-serif" }}>Log out</span>
+          <span style={{ fontFamily: "'Quicksand', sans-serif" }}>Log out</span>
         </ButtonBase>
       </Box>
     </>
@@ -339,8 +386,8 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
     <Box
       sx={{
         minHeight: '100vh',
-        backgroundColor: '#f8f9ff',
-        fontFamily: "'Rethink Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+        backgroundColor: '#f6f8f4',
+        fontFamily: "'Quicksand', sans-serif",
         color: '#0b1c30',
       }}
     >
@@ -453,7 +500,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
             />
             <Typography
               sx={{
-                fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                fontFamily: "'Quicksand', sans-serif",
                 fontSize: '0.75rem',
                 fontWeight: 600,
                 color: '#334155',
@@ -467,7 +514,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
           <Typography
             sx={{
               display: { xs: 'block', sm: 'none' },
-              fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+              fontFamily: "'Quicksand', sans-serif",
               fontWeight: 800,
               fontSize: '1rem',
               color: '#0b1c30',
@@ -488,7 +535,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
               borderRadius: '9999px',
               border: '1px solid #cbd5e1',
               backgroundColor: '#ffffff',
-              fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+              fontFamily: "'Quicksand', sans-serif",
               fontSize: '0.6875rem',
               color: '#0f172a',
               textTransform: 'uppercase',
@@ -561,7 +608,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
               borderRadius: '16px',
               p: 1,
               boxShadow: '0 20px 40px rgba(15, 23, 42, 0.16)',
-              fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+              fontFamily: "'Quicksand', sans-serif",
             },
           },
         }}
@@ -711,7 +758,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
               borderRadius: '16px',
               p: 1,
               boxShadow: '0 20px 40px rgba(15, 23, 42, 0.16)',
-              fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+              fontFamily: "'Quicksand', sans-serif",
             },
           },
         }}

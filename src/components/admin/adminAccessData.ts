@@ -1,6 +1,6 @@
 import type { BackendUserRecord, BackendUserRole } from '@/lib/api/admin'
 
-export type UserRole = 'Admin' | 'Official' | 'Deactivated'
+export type UserRole = 'Admin' | 'Official' | 'Resident' | 'Deactivated'
 export type UserStatus = 'Active' | 'Suspended' | 'Deactivated'
 
 export interface OfficialUser {
@@ -15,6 +15,7 @@ export interface OfficialUser {
   idCode: string
   role: UserRole
   department: string
+  barangay?: string
   status: UserStatus
   twoFactorEnabled: boolean
   mustChangePassword?: boolean
@@ -140,6 +141,57 @@ export const INITIAL_USERS: OfficialUser[] = [
     initials: 'JK',
     lastActive: '14 days ago',
     notes: 'Contract expired; credentials revoked per ISO protocol',
+  },
+  {
+    id: 'USR-107',
+    name: 'Juan Dela Cruz',
+    firstName: 'Juan',
+    lastName: 'Dela Cruz',
+    email: 'juan.delacruz@gmail.com',
+    phone: '+63 917 123 4567',
+    idCode: 'ID-0991-RES',
+    role: 'Resident',
+    department: 'Barangay Commonwealth Residential Base',
+    barangay: 'Commonwealth',
+    status: 'Active',
+    twoFactorEnabled: false,
+    initials: 'JD',
+    lastActive: '3 hours ago',
+    notes: 'Registered resident with 3 successful drop-offs',
+  },
+  {
+    id: 'USR-108',
+    name: 'Maria Santos',
+    firstName: 'Maria',
+    lastName: 'Santos',
+    email: 'maria.santos@gmail.com',
+    phone: '+63 918 234 5678',
+    idCode: 'ID-0992-RES',
+    role: 'Resident',
+    department: 'Batasan Hills Residential Base',
+    barangay: 'Batasan Hills',
+    status: 'Active',
+    twoFactorEnabled: false,
+    initials: 'MS',
+    lastActive: '5 hours ago',
+    notes: 'Active community recycler in Batasan Hills',
+  },
+  {
+    id: 'USR-109',
+    name: 'Ricardo Dalisay',
+    firstName: 'Ricardo',
+    lastName: 'Dalisay',
+    email: 'ricardo.d@yahoo.com',
+    phone: '+63 919 345 6789',
+    idCode: 'ID-0993-RES',
+    role: 'Resident',
+    department: 'Payatas Residential Cluster',
+    barangay: 'Payatas',
+    status: 'Active',
+    twoFactorEnabled: false,
+    initials: 'RD',
+    lastActive: '1 day ago',
+    notes: 'Resident e-waste drop-off participant',
   },
 ]
 

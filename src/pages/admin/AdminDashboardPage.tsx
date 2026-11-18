@@ -22,6 +22,7 @@ import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined'
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
 import { adminApi, getCachedUser, type AdminDashboardOverview } from '@/lib/api'
+import { AdminOverviewPage } from './AdminOverviewPage'
 
 interface DateRangeData {
   totalProcessed: number
@@ -157,6 +158,10 @@ export const AdminDashboardPage: FC = () => {
       active = false
     }
   }, [dateRange])
+
+  if (isSuperAdmin) {
+    return <AdminOverviewPage />
+  }
 
   const currentData = buildDashboardData(overview)
 
