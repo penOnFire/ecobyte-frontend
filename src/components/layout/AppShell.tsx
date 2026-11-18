@@ -81,7 +81,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS)
   const [currentUser, setCurrentUser] = useState<User | null>(() => getCachedUser())
   const [editProfileOpen, setEditProfileOpen] = useState(false)
-  const [editPhone, setEditPhone] = useState(() => getCachedUser()?.phone || '+63 917 123 4567')
+  const [editPhone, setEditPhone] = useState(() => getCachedUser()?.phone || '')
   const [smsAlerts, setSmsAlerts] = useState(true)
   const [settingsSavedToast, setSettingsSavedToast] = useState(false)
   const [summary, setSummary] = useState<DashboardSummary>({
@@ -550,7 +550,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             <Button
               onClick={() => {
                 setProfileOpen(false)
-                setEditPhone(currentUser?.phone || '+63 917 123 4567')
+                setEditPhone(currentUser?.phone || '')
                 setEditProfileOpen(true)
               }}
               variant="outlined"

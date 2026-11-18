@@ -1,8 +1,9 @@
-import { useState, useRef, type FC, type ChangeEvent } from 'react'
+import { useEffect, useState, useRef, type FC, type ChangeEvent } from 'react'
 import {
   Box,
   Button,
   Card,
+  CircularProgress,
   IconButton,
   Typography,
   Dialog,
@@ -26,24 +27,86 @@ import ShareRoundedIcon from '@mui/icons-material/ShareRounded'
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { dropoffsApi, reuseApi } from '@/lib/api'
+import thinkpadImg from '@/assets/ui/thinkpad.jpeg'
+import galaxyImg from '@/assets/ui/galaxy_s10.jpeg'
+import chargerImg from '@/assets/ui/charger.jpeg'
+import ipadImg from '@/assets/ui/ipad.jpeg'
 import keychronImg from '@/assets/ui/keychron.jpeg'
-import type { EwasteRequestItem } from '@/types'
+import type { UserReservationItem } from '@/types'
+
+function resolveClaimItemImage(title: string): string {
+  const lower = title.toLowerCase()
+  if (lower.includes('thinkpad') || lower.includes('laptop')) return thinkpadImg
+  if (lower.includes('galaxy') || lower.includes('phone') || lower.includes('s10')) return galaxyImg
+  if (lower.includes('charger') || lower.includes('cable') || lower.includes('usb')) return chargerImg
+  if (lower.includes('ipad') || lower.includes('tablet')) return ipadImg
+  return keychronImg
+}
 
 export const ProofOfClaimPage: FC = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const paramReservationId = searchParams.get('reservationId') || ''
+  const paramCode = searchParams.get('code') || ''
+  const paramTitle = searchParams.get('title') || ''
+  const paramSite = searchParams.get('site') || ''
+
   const cameraInputRef = useRef<HTMLInputElement | null>(null)
   const galleryInputRef = useRef<HTMLInputElement | null>(null)
 
+  const [activeReservation, setActiveReservation] = useState<UserReservationItem | null>(null)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [claimedDivertedKg, setClaimedDivertedKg] = useState<number | null>(null)
   const [helpDialogOpen, setHelpDialogOpen] = useState(false)
   const [claimSuccessOpen, setClaimSuccessOpen] = useState(false)
   const [shareToast, setShareToast] = useState(false)
 
+  useEffect(() => {
+    let active = true
+    dropoffsApi
+      .getMyRequests()
+      .then((res) => {
+        if (!active || !Array.isArray(res?.reservations)) return
+        const matched =
+          (paramReservationId &&
+            res.reservations.find((r) => r.reservationId === paramReservationId)) ||
+          (paramCode && res.reservations.find((r) => r.pickupCode === paramCode)) ||
+          res.reservations[0] ||
+          null
+        if (matched) setActiveReservation(matched)
+      })
+      .catch(() => {
+        // Keep URL query params if backend request cannot complete
+      })
+    return () => {
+      active = false
+    }
+  }, [paramReservationId, paramCode])
+
+  const reservationId = activeReservation?.reservationId || paramReservationId
+  const pickupCode = activeReservation?.pickupCode || paramCode
+  const itemTitle = activeReservation?.itemTitle || paramTitle || 'Reserved Reuse Item'
+  const siteName = activeReservation?.siteName || paramSite || 'Commonwealth Area 1 Eco-Hub'
+  const itemImage = resolveClaimItemImage(itemTitle)
+  const [todayLabel] = useState(() =>
+    new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(new Date())
+  )
+
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      setSelectedFile(file)
+      setSubmitError(null)
       const reader = new FileReader()
       reader.onload = () => {
         setPreviewImage(reader.result as string)
@@ -55,7 +118,7 @@ export const ProofOfClaimPage: FC = () => {
   const handleShare = async () => {
     const shareData = {
       title: 'EcoByte Refurbished Device Claim',
-      text: 'I just claimed a verified refurbished Keychron K2 V2 through EcoByte Commonwealth!',
+      text: `I claimed a verified ${itemTitle} through EcoByte Commonwealth!`,
       url: window.location.href,
     }
     if (navigator.share) {
@@ -71,7 +134,7 @@ export const ProofOfClaimPage: FC = () => {
     // Fallback: clipboard
     try {
       await navigator.clipboard.writeText(
-        `EcoByte Claim Voucher: Keychron K2 V2 reserved at Commonwealth Area 1 Eco-Hub. Link: ${window.location.href}`
+        `EcoByte Claim Voucher: ${itemTitle} at ${siteName}. Link: ${window.location.href}`
       )
       setShareToast(true)
     } catch {
@@ -79,27 +142,39 @@ export const ProofOfClaimPage: FC = () => {
     }
   }
 
-  const handleCompleteClaim = () => {
-    const newClaim: EwasteRequestItem = {
-      requestId: `CLM-${Date.now().toString().slice(-4)}`,
-      deviceTitle: 'Keychron K2 V2 (Wireless Mechanical Keyboard)',
-      siteName: 'Commonwealth Area 1 Eco-Hub',
-      status: 'Turned over',
-      statusStage: 'Claimed & Verified',
-      progressStep: '3/3',
-      progressPercent: 100,
-      scheduledSlot: 'Today / Oct 25 • Handover Photo Verified',
+  const handleCompleteClaim = async () => {
+    setSubmitError(null)
+    if (!reservationId || !pickupCode) {
+      setSubmitError('No active reservation found to verify. Open Proof of Claim from an active reservation in My Requests.')
+      return
+    }
+    if (!selectedFile) {
+      setSubmitError('Please take or upload a handover photo before submitting.')
+      return
     }
 
+    setIsSubmitting(true)
     try {
-      const existingStr = localStorage.getItem('ecobyte_claimed_requests')
-      const existing = existingStr ? JSON.parse(existingStr) : []
-      localStorage.setItem('ecobyte_claimed_requests', JSON.stringify([newClaim, ...existing]))
-    } catch (err) {
-      console.warn('Failed to store claimed item in localStorage:', err)
+      const result = await reuseApi.uploadProofOfClaim(reservationId, pickupCode, selectedFile)
+      setClaimedDivertedKg(result.divertedKg)
+      try {
+        const stored = localStorage.getItem('ecobyte_user_reservations')
+        if (stored) {
+          const parsed: UserReservationItem[] = JSON.parse(stored)
+          const remaining = parsed.filter(
+            (r) => r.reservationId !== reservationId && r.pickupCode !== pickupCode
+          )
+          localStorage.setItem('ecobyte_user_reservations', JSON.stringify(remaining))
+        }
+      } catch {
+        // Ignore storage cleanup failures
+      }
+      setClaimSuccessOpen(true)
+    } catch (err: any) {
+      setSubmitError(err?.message || 'Unable to verify claim right now. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
-
-    setClaimSuccessOpen(true)
   }
 
   return (
@@ -266,7 +341,10 @@ export const ProofOfClaimPage: FC = () => {
               </Box>
               <IconButton
                 size="small"
-                onClick={() => setPreviewImage(null)}
+                onClick={() => {
+                  setPreviewImage(null)
+                  setSelectedFile(null)
+                }}
                 sx={{
                   backgroundColor: 'rgba(239, 68, 68, 0.9)',
                   color: '#ffffff',
@@ -374,7 +452,11 @@ export const ProofOfClaimPage: FC = () => {
               Item details
             </Typography>
           </Box>
-          <StatusBadge label="Code verified: Yes" variant="electric" size="sm" />
+          <StatusBadge
+            label={pickupCode ? `Code: ${pickupCode}` : 'No active code'}
+            variant={pickupCode ? 'electric' : 'warning'}
+            size="sm"
+          />
         </Box>
 
         <Box
@@ -399,8 +481,8 @@ export const ProofOfClaimPage: FC = () => {
             >
               <Box
                 component="img"
-                src={keychronImg}
-                alt="Keychron K2 V2"
+                src={itemImage}
+                alt={itemTitle}
                 sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             </Box>
@@ -409,7 +491,7 @@ export const ProofOfClaimPage: FC = () => {
                 Item
               </Typography>
               <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.875rem', color: '#0f172a' }}>
-                Keychron K2 V2
+                {itemTitle}
               </Typography>
             </Box>
           </Box>
@@ -422,7 +504,7 @@ export const ProofOfClaimPage: FC = () => {
                   Station
                 </Typography>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem', color: '#0f172a' }}>
-                  Commonwealth Area 1 Eco-Hub
+                  {siteName}
                 </Typography>
               </Box>
             </Box>
@@ -434,7 +516,7 @@ export const ProofOfClaimPage: FC = () => {
                   Date
                 </Typography>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem', color: '#0f172a' }}>
-                  Today / Oct 25
+                  {todayLabel}
                 </Typography>
               </Box>
             </Box>
@@ -472,13 +554,20 @@ export const ProofOfClaimPage: FC = () => {
       </Card>
 
       {/* ── Submit Proof Button ── */}
+      {submitError && (
+        <Alert severity="error" sx={{ borderRadius: 1.5, fontFamily: "'Quicksand', sans-serif", fontWeight: 600 }}>
+          {submitError}
+        </Alert>
+      )}
+
       <Box sx={{ mt: 0.5, mb: 2 }}>
         <Button
           fullWidth
           variant="contained"
           size="large"
+          disabled={isSubmitting}
           onClick={handleCompleteClaim}
-          endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
+          endIcon={isSubmitting ? <CircularProgress size={16} sx={{ color: '#ffffff' }} /> : <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
           sx={{
             py: 1.6,
             backgroundColor: '#0f172a',
@@ -490,7 +579,7 @@ export const ProofOfClaimPage: FC = () => {
             '&:hover': { backgroundColor: '#1e293b' },
           }}
         >
-          Submit proof &amp; complete claim
+          {isSubmitting ? 'Submitting verification...' : 'Submit proof & complete claim'}
         </Button>
         <Typography
           sx={{
@@ -554,7 +643,7 @@ export const ProofOfClaimPage: FC = () => {
                   Meet the Hub Volunteer
                 </Typography>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
-                  Show your 6-digit pickup voucher code (ECO-4821) at Commonwealth Area 1 Eco-Hub desk.
+                  Show your pickup voucher code ({pickupCode || 'ECO-XXXX'}) at {siteName} desk.
                 </Typography>
               </Box>
             </Box>
@@ -677,7 +766,11 @@ export const ProofOfClaimPage: FC = () => {
           Claim Verified &amp; Complete!
         </Typography>
         <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#64748b', mt: 1, px: 1, lineHeight: 1.5 }}>
-          Your handover for <strong>Keychron K2 V2</strong> is confirmed. <strong>+150 Eco-Points</strong> have been awarded to your resident profile.
+          Your handover for <strong>{itemTitle}</strong> is confirmed
+          {claimedDivertedKg !== null && claimedDivertedKg > 0
+            ? ` (${claimedDivertedKg} kg diverted)`
+            : ''}
+          . <strong>+150 Eco-Points</strong> have been awarded to your resident profile.
         </Typography>
 
         <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>

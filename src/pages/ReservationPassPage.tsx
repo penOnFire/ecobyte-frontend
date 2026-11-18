@@ -113,8 +113,11 @@ export const ReservationPassPage: FC = () => {
       .then((res) => {
         if (!active) return
         if (Array.isArray(res?.reservations) && res.reservations.length > 0) {
-          if (!paramCode) {
-            setReservation(res.reservations[0])
+          const matched = paramCode
+            ? res.reservations.find((r) => r.pickupCode === paramCode)
+            : res.reservations[0]
+          if (matched) {
+            setReservation(matched)
           }
         }
       })
@@ -553,7 +556,16 @@ export const ReservationPassPage: FC = () => {
           fullWidth
           variant="contained"
           size="large"
-          onClick={() => navigate('/proof-of-claim')}
+          onClick={() => {
+            const activeReservationId = reservation?.reservationId || searchParams.get('reservationId') || ''
+            const params = new URLSearchParams({
+              code: pickupCode,
+              title: itemTitle,
+              site: collectionPlace,
+            })
+            if (activeReservationId) params.set('reservationId', activeReservationId)
+            navigate(`/proof-of-claim?${params.toString()}`)
+          }}
           startIcon={<CameraAltRoundedIcon sx={{ fontSize: 20, color: '#abf06b' }} />}
           endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
           sx={{

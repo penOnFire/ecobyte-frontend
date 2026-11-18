@@ -25,6 +25,7 @@ export function clearStaleLocalRequests(): void {
   if (typeof window === 'undefined') return
   localStorage.removeItem('ecobyte_ongoing_requests')
   localStorage.removeItem('ecobyte_claimed_requests')
+  localStorage.removeItem('ecobyte_user_reservations')
 }
 
 export function setCachedUser(user: User | null): void {

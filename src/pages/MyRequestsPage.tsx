@@ -65,9 +65,15 @@ export const MyRequestsPage: FC = () => {
         if (!isMounted) return
         const localRes = getLocalReservations()
         const localClaimed = getLocalClaimed()
+        const apiReservations = data.reservations || []
+        const apiCompleted = data.completed || []
+        const seenCodes = new Set(apiReservations.map((r) => r.pickupCode))
+        const seenCompletedIds = new Set(apiCompleted.map((r) => r.requestId))
+        const dedupedLocalRes = localRes.filter((r) => !seenCodes.has(r.pickupCode))
+        const dedupedLocalClaimed = localClaimed.filter((r) => !seenCompletedIds.has(r.requestId))
         setOngoing(data.ongoing || [])
-        setCompleted([...localClaimed, ...(data.completed || [])])
-        setReservations([...localRes, ...(data.reservations || [])])
+        setCompleted([...apiCompleted, ...dedupedLocalClaimed])
+        setReservations([...apiReservations, ...dedupedLocalRes])
         setLoadError(null)
         setIsLoading(false)
       })
@@ -397,7 +403,11 @@ export const MyRequestsPage: FC = () => {
                       variant="outlined"
                       size="small"
                       startIcon={<QrCode2RoundedIcon sx={{ fontSize: 18 }} />}
-                      onClick={() => navigate('/reservation-code')}
+                      onClick={() =>
+                        navigate(
+                          `/reservation-code?code=${encodeURIComponent(res.pickupCode)}&title=${encodeURIComponent(res.itemTitle)}`
+                        )
+                      }
                       sx={{
                         borderColor: '#e2e8f0',
                         color: '#0f172a',
@@ -418,7 +428,15 @@ export const MyRequestsPage: FC = () => {
                       variant="contained"
                       size="small"
                       startIcon={<FileUploadOutlinedIcon sx={{ fontSize: 18, color: '#abf06b' }} />}
-                      onClick={() => navigate('/proof-of-claim')}
+                      onClick={() => {
+                        const params = new URLSearchParams({
+                          reservationId: res.reservationId,
+                          code: res.pickupCode,
+                          title: res.itemTitle,
+                          site: res.siteName,
+                        })
+                        navigate(`/proof-of-claim?${params.toString()}`)
+                      }}
                       sx={{
                         backgroundColor: '#0f172a',
                         color: '#ffffff',
@@ -486,7 +504,7 @@ export const MyRequestsPage: FC = () => {
                   }}
                   onClick={() => {
                     if (canReschedule) {
-                      navigate(`/schedule-dropoff?requestId=${encodeURIComponent(req.requestId)}`)
+                      navigate(`/dropoff-schedule?requestId=${encodeURIComponent(req.requestId)}`)
                     }
                   }}
                 >

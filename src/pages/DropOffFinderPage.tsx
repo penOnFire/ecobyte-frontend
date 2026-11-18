@@ -413,7 +413,7 @@ export const DropOffFinderPage: FC = () => {
                     size="small"
                     onClick={(e) => {
                       e.stopPropagation()
-                      navigate('/schedule-dropoff')
+                      navigate(`/dropoff-schedule?siteId=${encodeURIComponent(site.id)}`)
                     }}
                     startIcon={<CalendarMonthRoundedIcon sx={{ fontSize: 16 }} />}
                     sx={{

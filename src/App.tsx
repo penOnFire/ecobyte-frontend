@@ -46,6 +46,11 @@ const RequireAuth: FC<{ children: ReactNode; requireAdmin?: boolean }> = ({
   return <>{children}</>
 }
 
+const PreserveQueryRedirect: FC<{ to: string }> = ({ to }) => {
+  const location = useLocation()
+  return <Navigate to={`${to}${location.search}`} replace />
+}
+
 export const App: FC = () => {
   return (
     <BrowserRouter>
@@ -168,9 +173,9 @@ export const App: FC = () => {
             </RequireAuth>
           }
         />
-        <Route path="/dropoffs" element={<Navigate to="/drop-offs" replace />} />
-        <Route path="/drop-off" element={<Navigate to="/drop-offs" replace />} />
-        <Route path="/dropoff-finder" element={<Navigate to="/drop-offs" replace />} />
+        <Route path="/dropoffs" element={<PreserveQueryRedirect to="/drop-offs" />} />
+        <Route path="/drop-off" element={<PreserveQueryRedirect to="/drop-offs" />} />
+        <Route path="/dropoff-finder" element={<PreserveQueryRedirect to="/drop-offs" />} />
         <Route
           path="/dropoff-schedule"
           element={
@@ -181,9 +186,9 @@ export const App: FC = () => {
             </RequireAuth>
           }
         />
-        <Route path="/schedule-dropoff" element={<Navigate to="/dropoff-schedule" replace />} />
-        <Route path="/schedule-drop-off" element={<Navigate to="/dropoff-schedule" replace />} />
-        <Route path="/schedule" element={<Navigate to="/dropoff-schedule" replace />} />
+        <Route path="/schedule-dropoff" element={<PreserveQueryRedirect to="/dropoff-schedule" />} />
+        <Route path="/schedule-drop-off" element={<PreserveQueryRedirect to="/dropoff-schedule" />} />
+        <Route path="/schedule" element={<PreserveQueryRedirect to="/dropoff-schedule" />} />
         <Route
           path="/requests"
           element={

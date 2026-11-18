@@ -140,6 +140,12 @@ export interface AdminReuseInventoryItem {
   status: 'Available' | 'Reserved' | 'Claimed'
   condition: string
   createdAt?: string
+  claimId?: string
+  pickupCode?: string
+  reservedBy?: string
+  reservedByEmail?: string
+  reservedAt?: string
+  expiresAt?: string | null
 }
 
 export interface AdminDisposalLogItem {
