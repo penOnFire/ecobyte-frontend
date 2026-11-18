@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import type { FC } from 'react'
 import {
   Box,
@@ -24,7 +24,26 @@ import BookmarkAddRoundedIcon from '@mui/icons-material/BookmarkAddRounded'
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
 import { useNavigate, useParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { reuseApi } from '@/lib/api'
+import type { ReuseItem } from '@/types'
 import thinkpadDetailImg from '@/assets/ui/thinkpad_detail.jpeg'
+import galaxyImg from '@/assets/ui/galaxy_s10.jpeg'
+import chargerImg from '@/assets/ui/charger.jpeg'
+import ipadImg from '@/assets/ui/ipad.jpeg'
+import keychronImg from '@/assets/ui/keychron.jpeg'
+
+function resolveDetailImage(item: ReuseItem | null): string {
+  if (!item) return thinkpadDetailImg
+  if (item.imageUrl && !item.imageUrl.includes('placeholder') && !item.imageUrl.includes('unsplash')) {
+    return item.imageUrl
+  }
+  const lower = `${item.title} ${item.category}`.toLowerCase()
+  if (lower.includes('galaxy') || lower.includes('phone') || lower.includes('s10')) return galaxyImg
+  if (lower.includes('charger') || lower.includes('cable') || lower.includes('usb')) return chargerImg
+  if (lower.includes('ipad') || lower.includes('tablet')) return ipadImg
+  if (lower.includes('keyboard') || lower.includes('keychron')) return keychronImg
+  return thinkpadDetailImg
+}
 
 function getAvailableDates() {
   const dates = []
@@ -48,6 +67,32 @@ export const ReuseItemDetailPage: FC = () => {
   const [dateMenuAnchor, setDateMenuAnchor] = useState<null | HTMLElement>(null)
   const [selectedWindow, setSelectedWindow] = useState('01:00 PM')
   const [toastMsg, setToastMsg] = useState<string | null>(null)
+  const [liveItem, setLiveItem] = useState<ReuseItem | null>(null)
+
+  useEffect(() => {
+    if (!id) return
+    let active = true
+    reuseApi
+      .getItemById(id)
+      .then((item) => {
+        if (active && item) setLiveItem(item)
+      })
+      .catch(() => {
+        // Keep default display if backend item lookup is offline
+      })
+    return () => {
+      active = false
+    }
+  }, [id])
+
+  const displayTitle = liveItem?.title || 'Lenovo ThinkPad T480 - Core i5 8th Gen'
+  const displayCode = liveItem?.itemCode || 'CIR-84920'
+  const displayCondition = liveItem?.condition || 'Grade A Re-use'
+  const displayHubName = liveItem?.pickupHub?.name || 'Commonwealth Area 1 Eco-Hub - Barangay Commonwealth'
+  const displayHubAddress = liveItem?.pickupHub?.address || '1.2 km away • Closes 6:00 PM'
+  const displayDescription = liveItem?.specs?.description || 'Intel i5-8350U • 16GB RAM / 256GB SSD'
+  const displayWeight = liveItem?.specs?.weightKg ? `${liveItem.specs.weightKg} kg` : '1.65 kg'
+  const displayImage = resolveDetailImage(liveItem)
 
   const handleShare = async () => {
     const shareData = {
@@ -136,8 +181,8 @@ export const ReuseItemDetailPage: FC = () => {
       >
         <Box
           component="img"
-          src={thinkpadDetailImg}
-          alt="Lenovo ThinkPad T480"
+          src={displayImage}
+          alt={displayTitle}
           sx={{
             position: 'absolute',
             inset: 0,
@@ -191,7 +236,7 @@ export const ReuseItemDetailPage: FC = () => {
           >
             <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#abf06b' }} />
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem' }}>
-              Grade A Re-use
+              {displayCondition}
             </Typography>
           </Box>
         </Box>
@@ -202,22 +247,22 @@ export const ReuseItemDetailPage: FC = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
           <StatusBadge label="Available - First come, first served" variant="electric" size="sm" />
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
-            ID: CIR-84920
+            ID: {displayCode}
           </Typography>
         </Box>
 
         <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1.25rem', color: '#0f172a' }}>
-          Lenovo ThinkPad T480 - Core i5 8th Gen
+          {displayTitle}
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, mt: 0.5 }}>
           <LocationOnOutlinedIcon sx={{ fontSize: 16, color: '#0f172a' }} />
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.8125rem', color: '#0f172a' }}>
-            Commonwealth Area 1 Eco-Hub - Barangay Commonwealth
+            {displayHubName}
           </Typography>
         </Box>
         <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', ml: 2.75 }}>
-          1.2 km away • Closes 6:00 PM
+          {displayHubAddress}
         </Typography>
       </Box>
 
@@ -234,41 +279,52 @@ export const ReuseItemDetailPage: FC = () => {
         </Box>
 
         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
-          <Box sx={{ p: 1.25, backgroundColor: '#f8fafc', borderRadius: 1.25, border: '1px solid #e2e8f0' }}>
+          <Box sx={{ p: 1.25, backgroundColor: '#f8fafc', borderRadius: 1.25, border: '1px solid #e2e8f0', gridColumn: liveItem ? 'span 2' : 'auto' }}>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
-              Processor
+              {liveItem ? 'Condition & Specs' : 'Processor'}
             </Typography>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a', mt: 0.25 }}>
-              Intel i5-8350U
+              {liveItem ? displayDescription : 'Intel i5-8350U'}
             </Typography>
           </Box>
 
           <Box sx={{ p: 1.25, backgroundColor: '#f8fafc', borderRadius: 1.25, border: '1px solid #e2e8f0' }}>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
-              Memory &amp; Storage
+              {liveItem ? 'Category' : 'Memory & Storage'}
             </Typography>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a', mt: 0.25 }}>
-              16GB RAM / 256GB SSD
+              {liveItem?.category || '16GB RAM / 256GB SSD'}
             </Typography>
           </Box>
 
           <Box sx={{ p: 1.25, backgroundColor: '#f8fafc', borderRadius: 1.25, border: '1px solid #e2e8f0' }}>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
-              Screen Resolution
+              {liveItem ? 'Est. Unit Weight' : 'Screen Resolution'}
             </Typography>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a', mt: 0.25 }}>
-              14″ FHD (1920x1080)
+              {liveItem ? displayWeight : '14″ FHD (1920x1080)'}
             </Typography>
           </Box>
 
-          <Box sx={{ p: 1.25, backgroundColor: '#f8fafc', borderRadius: 1.25, border: '1px solid #e2e8f0' }}>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
-              OS Installed
-            </Typography>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a', mt: 0.25 }}>
-              Ubuntu LTS / Win11 Ready
-            </Typography>
-          </Box>
+          {liveItem ? (
+            <Box sx={{ p: 1.25, backgroundColor: '#f8fafc', borderRadius: 1.25, border: '1px solid #e2e8f0', gridColumn: 'span 2' }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
+                Locker Assignment
+              </Typography>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a', mt: 0.25 }}>
+                {liveItem.pickupHub?.lockerBay || 'Area 1 Bay, Eco-Hub Locker'}
+              </Typography>
+            </Box>
+          ) : (
+            <Box sx={{ p: 1.25, backgroundColor: '#f8fafc', borderRadius: 1.25, border: '1px solid #e2e8f0' }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
+                OS Installed
+              </Typography>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a', mt: 0.25 }}>
+                Ubuntu LTS / Win11 Ready
+              </Typography>
+            </Box>
+          )}
         </Box>
       </Card>
 

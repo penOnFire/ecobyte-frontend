@@ -1,8 +1,10 @@
-import { useMemo, useState, type FC } from 'react'
+import { useEffect, useMemo, useState, type FC } from 'react'
 import {
+  Alert,
   Box,
   Button,
   Card,
+  CircularProgress,
   IconButton,
   Typography,
 } from '@mui/material'
@@ -18,12 +20,22 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { reuseApi } from '@/lib/api'
 import thinkpadImg from '@/assets/ui/thinkpad.jpeg'
 import galaxyImg from '@/assets/ui/galaxy_s10.jpeg'
 import chargerImg from '@/assets/ui/charger.jpeg'
 import ipadImg from '@/assets/ui/ipad.jpeg'
 import keychronImg from '@/assets/ui/keychron.jpeg'
-import type { UserReservationItem } from '@/types'
+import type { ReuseItem } from '@/types'
+
+function resolveDeviceImage(title: string, category?: string): string {
+  const lower = `${title} ${category ?? ''}`.toLowerCase()
+  if (lower.includes('galaxy') || lower.includes('phone') || lower.includes('s10')) return galaxyImg
+  if (lower.includes('charger') || lower.includes('cable') || lower.includes('usb')) return chargerImg
+  if (lower.includes('ipad') || lower.includes('tablet')) return ipadImg
+  if (lower.includes('keyboard') || lower.includes('keychron')) return keychronImg
+  return thinkpadImg
+}
 
 const DEVICE_CATALOG: Record<
   string,
@@ -71,20 +83,52 @@ export const ConfirmReservationPage: FC = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
-  const itemId = searchParams.get('itemId') || 'reuse-302'
+  const itemId = searchParams.get('itemId') || '1'
   const paramDate = searchParams.get('date')
   const paramTime = searchParams.get('time') || '01:00 PM – 03:00 PM'
 
-  const activeDevice = useMemo(() => {
-    return (
-      DEVICE_CATALOG[itemId] || {
-        title: 'Refurbished Hardware Item',
-        image: thinkpadImg,
-        itemCode: 'CIR-84920',
-        defaultSlot: 'Tomorrow, 01:00 PM – 03:00 PM',
-      }
-    )
+  const [liveItem, setLiveItem] = useState<ReuseItem | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!itemId) return
+    let active = true
+    reuseApi
+      .getItemById(itemId)
+      .then((item) => {
+        if (active && item) setLiveItem(item)
+      })
+      .catch(() => {
+        // Fallback to catalog summary when offline
+      })
+    return () => {
+      active = false
+    }
   }, [itemId])
+
+  const activeDevice = useMemo(() => {
+    if (liveItem) {
+      return {
+        title: liveItem.title,
+        image: resolveDeviceImage(liveItem.title, liveItem.category),
+        itemCode: liveItem.itemCode || `CIR-${String(liveItem.id).padStart(5, '0')}`,
+        hubName: liveItem.pickupHub?.name || 'Commonwealth Eco-Hub (Area 1)',
+        hubAddress: liveItem.pickupHub?.address || 'Commonwealth Barangay Hall Complex, Quezon City',
+      }
+    }
+    const fallback = DEVICE_CATALOG[itemId] || {
+      title: 'Refurbished Hardware Item',
+      image: thinkpadImg,
+      itemCode: `CIR-${String(itemId).replace(/\D/g, '').padStart(5, '0') || '84920'}`,
+      defaultSlot: 'Tomorrow, 01:00 PM – 03:00 PM',
+    }
+    return {
+      ...fallback,
+      hubName: 'Commonwealth Eco-Hub (Area 1)',
+      hubAddress: 'Commonwealth Barangay Hall Complex, Quezon City',
+    }
+  }, [itemId, liveItem])
 
   const [fallbackDate] = useState(() => {
     const d = new Date()
@@ -93,31 +137,28 @@ export const ConfirmReservationPage: FC = () => {
   })
   const pickupDateDisplay = paramDate || fallbackDate
 
-  const handleConfirmReservation = () => {
-    const generatedCode = `ECO-${Math.floor(1000 + Math.random() * 9000)}`
-    const newReservation: UserReservationItem = {
-      reservationId: `RES-${Date.now().toString().slice(-4)}`,
-      itemTitle: activeDevice.title,
-      pickupCode: generatedCode,
-      siteName: 'Commonwealth Area 1 Eco-Hub (Base 1)',
-      expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
-      status: 'Reserved',
-    }
-
+  const handleConfirmReservation = async () => {
+    setSubmitError(null)
+    setIsSubmitting(true)
     try {
-      const existing = localStorage.getItem('ecobyte_user_reservations')
-      const parsed: UserReservationItem[] = existing ? JSON.parse(existing) : []
-      localStorage.setItem(
-        'ecobyte_user_reservations',
-        JSON.stringify([newReservation, ...parsed])
-      )
-    } catch (err) {
-      console.warn('Failed to persist user reservation:', err)
-    }
+      const booking = await reuseApi.createReservation({
+        itemId,
+        pickupDate: pickupDateDisplay,
+        pickupTime: paramTime,
+      })
 
-    navigate(
-      `/reservation-code?code=${encodeURIComponent(generatedCode)}&title=${encodeURIComponent(activeDevice.title)}&slot=${encodeURIComponent(paramTime)}&date=${encodeURIComponent(pickupDateDisplay)}`
-    )
+      navigate(
+        `/reservation-code?code=${encodeURIComponent(booking.pickupCode)}&title=${encodeURIComponent(activeDevice.title)}&slot=${encodeURIComponent(paramTime)}&date=${encodeURIComponent(pickupDateDisplay)}&reservationId=${encodeURIComponent(booking.reservationId)}`
+      )
+    } catch (err: any) {
+      if (err?.status === 401) {
+        setSubmitError('Please sign in to your resident account to reserve this item.')
+      } else {
+        setSubmitError(err?.message || 'Unable to confirm reservation. Please try again.')
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -328,13 +369,20 @@ export const ConfirmReservationPage: FC = () => {
       </Card>
 
       {/* ── Action Buttons ── */}
+      {submitError && (
+        <Alert severity="error" sx={{ borderRadius: 1.5, fontFamily: "'Quicksand', sans-serif", fontWeight: 600 }}>
+          {submitError}
+        </Alert>
+      )}
+
       <Box sx={{ mt: 0.5, mb: 2 }}>
         <Button
           fullWidth
           variant="contained"
           size="large"
+          disabled={isSubmitting}
           onClick={handleConfirmReservation}
-          endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
+          endIcon={isSubmitting ? <CircularProgress size={16} sx={{ color: '#ffffff' }} /> : <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
           sx={{
             py: 1.6,
             backgroundColor: '#0f172a',
@@ -345,7 +393,7 @@ export const ConfirmReservationPage: FC = () => {
             '&:hover': { backgroundColor: '#1e293b' },
           }}
         >
-          Confirm &amp; Get Pick-up Code
+          {isSubmitting ? 'Reserving item...' : 'Confirm & Get Pick-up Code'}
         </Button>
         <Box sx={{ textAlign: 'center', mt: 1.5 }}>
           <Typography

@@ -171,11 +171,19 @@ export interface ReuseItem {
   itemCode?: string
   condition: string
   subcondition: string
-  location: string
-  distance: string
-  price: string
-  status: 'Available' | 'Reserved' | 'Claimed'
-  imageUrl: string
+  location?: string
+  distance?: string
+  price?: string
+  status?: 'Available' | 'Reserved' | 'Claimed'
+  imageUrl?: string
+  guaranteeDays?: number
+  pickupHub?: {
+    id: string
+    name: string
+    address: string
+    operatingHours: string
+    lockerBay: string
+  }
   specs?: Record<string, string>
 }
 

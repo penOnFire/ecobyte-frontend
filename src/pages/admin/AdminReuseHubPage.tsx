@@ -28,6 +28,8 @@ interface HubItem {
   locker: string
   status: 'Available' | 'Reserved' | 'Claimed'
   pickupDate: string
+  reservedBy?: string
+  pickupCode?: string
   icon: typeof LaptopMacRoundedIcon
   colorBg: string
   colorText: string
@@ -44,6 +46,9 @@ function mapInventoryItem(item: AdminReuseInventoryItem): HubItem {
 
   const isAvail = item.status === 'Available'
   const isRes = item.status === 'Reserved'
+  const expiresLabel = item.expiresAt
+    ? `Hold until ${new Date(item.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+    : null
 
   return {
     id: item.id,
@@ -53,7 +58,9 @@ function mapInventoryItem(item: AdminReuseInventoryItem): HubItem {
     hub: item.hub || 'Commonwealth Area 1 Eco-Hub',
     locker: item.lockerBay,
     status: item.status,
-    pickupDate: item.createdAt || '—',
+    pickupDate: isRes && expiresLabel ? expiresLabel : item.createdAt || '—',
+    reservedBy: item.reservedBy,
+    pickupCode: item.pickupCode,
     icon,
     colorBg: isAvail ? '#ecfdf5' : isRes ? '#fef3c7' : '#f1f5f9',
     colorText: isAvail ? '#15803d' : isRes ? '#b45309' : '#475569',
@@ -442,9 +449,16 @@ export const AdminReuseHubPage: FC = () => {
                       {/* Pick-up date */}
                       <td style={{ padding: '12px 16px' }}>
                         {isReserved ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#b45309', fontWeight: 700 }}>
-                            <AccessTimeRoundedIcon sx={{ fontSize: 15 }} />
-                            <span>{item.pickupDate}</span>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#b45309', fontWeight: 700 }}>
+                              <AccessTimeRoundedIcon sx={{ fontSize: 15 }} />
+                              <span>{item.pickupDate}</span>
+                            </div>
+                            {(item.reservedBy || item.pickupCode) && (
+                              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>
+                                {[item.reservedBy, item.pickupCode].filter(Boolean).join(' • ')}
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <span style={{ color: isClaimed ? '#0f172a' : '#94a3b8', fontWeight: isClaimed ? 600 : 400 }}>
