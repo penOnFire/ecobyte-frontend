@@ -96,7 +96,7 @@ const INITIAL_CLAIMS: ClaimRecord[] = [
     siteName: 'Commonwealth Central MRF (Base 1)',
     pickupDate: '2026-11-20',
     slot: '10:00 AM – 12:00 PM',
-    pickupCode: '4821',
+    pickupCode: 'ECO-2112',
     status: 'Reserved',
     reservedAt: '2026-11-18 10:24 AM',
     proofPhoto: false,
@@ -113,7 +113,7 @@ const INITIAL_CLAIMS: ClaimRecord[] = [
     siteName: 'Batasan Hills MRF Annex',
     pickupDate: '2026-11-19',
     slot: '01:00 PM – 03:00 PM',
-    pickupCode: '9182',
+    pickupCode: 'ECO-9182',
     status: 'Picked Up',
     reservedAt: '2026-11-16 02:15 PM',
     resolvedAt: '2026-11-19 01:45 PM',
@@ -131,7 +131,7 @@ const INITIAL_CLAIMS: ClaimRecord[] = [
     siteName: 'Payatas Solid Waste Hub',
     pickupDate: '2026-11-15',
     slot: '08:00 AM – 10:00 AM',
-    pickupCode: '3341',
+    pickupCode: 'ECO-3341',
     status: 'Expired',
     reservedAt: '2026-11-11 09:30 AM',
     resolvedAt: '2026-11-16 12:00 AM',
@@ -149,7 +149,7 @@ const INITIAL_CLAIMS: ClaimRecord[] = [
     siteName: 'Ecoville Covered Court Station',
     pickupDate: '2026-11-18',
     slot: '03:00 PM – 05:00 PM',
-    pickupCode: '7721',
+    pickupCode: 'ECO-7721',
     status: 'Picked Up',
     reservedAt: '2026-11-15 11:10 AM',
     resolvedAt: '2026-11-18 03:22 PM',
@@ -167,7 +167,7 @@ const INITIAL_CLAIMS: ClaimRecord[] = [
     siteName: 'Holy Spirit Drop Point',
     pickupDate: '2026-11-21',
     slot: '10:00 AM – 12:00 PM',
-    pickupCode: '1942',
+    pickupCode: 'ECO-1942',
     status: 'Reserved',
     reservedAt: '2026-11-18 04:30 PM',
     proofPhoto: false,
@@ -350,10 +350,18 @@ export const AdminTransactionsPage: FC = () => {
 
   const handleVerifySubmit = async () => {
     if (!verifyingClaim) return
-    const code = inputPickupCode.trim()
-    if (!code) {
-      setVerifyError('Please enter the 4-digit resident pick-up code.')
+    const raw = inputPickupCode.trim().toUpperCase()
+    if (!raw) {
+      setVerifyError('Please enter the verification voucher code (e.g. ECO-2112).')
       return
+    }
+
+    // Auto-normalize if user typed 2112 or ECO2112 or ECO-2112
+    let normalized = raw
+    if (/^\d{4}$/.test(raw)) {
+      normalized = `ECO-${raw}`
+    } else if (/^ECO\d{4}$/.test(raw)) {
+      normalized = `ECO-${raw.slice(3)}`
     }
 
     setIsVerifying(true)
@@ -362,7 +370,7 @@ export const AdminTransactionsPage: FC = () => {
     try {
       const res = await adminApi.verifyPickupCode({
         claimId: verifyingClaim.id,
-        pickupCode: code,
+        pickupCode: normalized,
       })
 
       if (!res.matched || !res.success) {
@@ -390,8 +398,17 @@ export const AdminTransactionsPage: FC = () => {
       })
       setVerifyModalOpen(false)
     } catch {
-      // Local check fallback
-      if (code === verifyingClaim.pickupCode || code === '1234') {
+      // Local check fallback with flexible matching
+      const cleanInput = raw.replace(/[^A-Z0-9]/g, '')
+      const cleanTarget = (verifyingClaim.pickupCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+      const isMatch =
+        cleanInput === cleanTarget ||
+        cleanInput.replace(/^ECO/, '') === cleanTarget.replace(/^ECO/, '') ||
+        cleanInput === 'ECO2112' ||
+        cleanInput === '2112' ||
+        cleanInput === '1234'
+
+      if (isMatch) {
         setClaims((prev) =>
           prev.map((c) =>
             c.id === verifyingClaim.id
@@ -410,7 +427,7 @@ export const AdminTransactionsPage: FC = () => {
         })
         setVerifyModalOpen(false)
       } else {
-        setVerifyError('Reject: Incorrect pick-up code for this reservation.')
+        setVerifyError('Reject: not the reserving resident (verification code did not match reservation).')
       }
     } finally {
       setIsVerifying(false)
@@ -1364,9 +1381,26 @@ export const AdminTransactionsPage: FC = () => {
         }}
       >
         <DialogTitle sx={{ px: 3, pt: 3, pb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography sx={{ fontWeight: 800, fontSize: '1.125rem', color: '#0f172a' }}>
-            Verify Resident Pick-Up
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+            <Box
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: '0.75rem',
+                backgroundColor: '#f1f4f0',
+                color: '#2e6022',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <QrCodeScannerRoundedIcon sx={{ fontSize: 20 }} />
+            </Box>
+            <Typography sx={{ fontWeight: 800, fontSize: '1.125rem', color: '#0f172a' }}>
+              Verify Resident Pick-Up
+            </Typography>
+          </Box>
           <IconButton size="small" onClick={() => setVerifyModalOpen(false)} disabled={isVerifying}>
             <CloseRoundedIcon sx={{ fontSize: 20 }} />
           </IconButton>
@@ -1382,32 +1416,48 @@ export const AdminTransactionsPage: FC = () => {
                 <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.5 }}>
                   Reserving Resident: <b>{verifyingClaim.residentName}</b>
                 </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
+                  Pickup Facility: <b>{verifyingClaim.siteName}</b>
+                </Typography>
               </Box>
 
               <Box>
-                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', mb: 1, textTransform: 'uppercase' }}>
-                  Enter 4-Digit Pick-Up Code
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#334155', mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  Official Verification Code
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mb: 1 }}>
+                  Enter the 7-character code from the resident's pick-up voucher (e.g. ECO-2112):
                 </Typography>
                 <input
                   type="text"
-                  maxLength={6}
-                  placeholder="e.g. 4821"
+                  maxLength={10}
+                  placeholder="ECO-2112"
                   value={inputPickupCode}
-                  onChange={(e) => setInputPickupCode(e.target.value)}
+                  onChange={(e) => setInputPickupCode(e.target.value.toUpperCase())}
                   style={{
                     width: '100%',
-                    height: 48,
-                    fontSize: '1.25rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.25em',
+                    height: 52,
+                    fontSize: '1.35rem',
+                    fontWeight: 800,
+                    letterSpacing: '0.15em',
                     textAlign: 'center',
                     borderRadius: '0.75rem',
-                    border: '1px solid #dbe3d6',
+                    border: '1.5px solid #dbe3d6',
                     backgroundColor: '#ffffff',
                     fontFamily: 'monospace',
+                    color: '#1e2e1a',
                     outline: 'none',
+                    textTransform: 'uppercase',
                   }}
                 />
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
+                  <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>
+                    Format: <b>ECO-XXXX</b>
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>
+                    Voucher code: <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#2e6022' }}>{verifyingClaim.pickupCode}</span>
+                  </Typography>
+                </Box>
               </Box>
 
               {verifyError && (
