@@ -2,9 +2,13 @@ import { useState, type FC } from 'react'
 import {
   Alert,
   Box,
+  Button,
   Card,
   Divider,
+  FormControl,
   IconButton,
+  MenuItem,
+  Select,
   Snackbar,
   Typography,
 } from '@mui/material'
@@ -16,17 +20,33 @@ import BatteryAlertRoundedIcon from '@mui/icons-material/BatteryAlertRounded'
 import PhoneAndroidRoundedIcon from '@mui/icons-material/PhoneAndroidRounded'
 import CropFreeRoundedIcon from '@mui/icons-material/CropFreeRounded'
 import MemoryRoundedIcon from '@mui/icons-material/MemoryRounded'
-import RecyclingRoundedIcon from '@mui/icons-material/RecyclingRounded'
 import BuildOutlinedIcon from '@mui/icons-material/BuildOutlined'
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
 import EnergySavingsLeafRoundedIcon from '@mui/icons-material/EnergySavingsLeafRounded'
-import { useNavigate } from 'react-router-dom'
+import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded'
+import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import diagnosticImg from '@/assets/ui/diagnostic_view.jpeg'
 
+const MANUAL_CATEGORIES = [
+  'Mobile Phones & Tablets',
+  'Laptops & Desktop Computers',
+  'Small Household Appliances',
+  'Batteries, Cables & Adapters',
+  'Audio & Entertainment Devices',
+  'Unidentified / General Electronic Waste',
+]
+
 export const AiDiagnosticPage: FC = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const initialUnidentified = searchParams.get('unidentified') === 'true'
+  const [isUnidentified, setIsUnidentified] = useState(initialUnidentified)
+  const [manualCategory, setManualCategory] = useState(
+    searchParams.get('category') || MANUAL_CATEGORIES[0]
+  )
   const [toastMsg, setToastMsg] = useState<string | null>(null)
 
   const handleShare = async () => {
@@ -108,12 +128,42 @@ export const AiDiagnosticPage: FC = () => {
       {/* ── Session & Confidence Bar ── */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-          <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#abf06b', boxShadow: '0 0 6px #abf06b' }} />
+          <Box
+            sx={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              backgroundColor: isUnidentified ? '#f59e0b' : '#abf06b',
+              boxShadow: isUnidentified ? '0 0 6px #f59e0b' : '0 0 6px #abf06b',
+            }}
+          />
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>
             Session #SCAN-9042
           </Typography>
         </Box>
-        <StatusBadge label="Confidence 98.4%" variant="electric" size="sm" />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <StatusBadge
+            label={isUnidentified ? 'Low Confidence (Unidentified)' : 'Confidence 98.4%'}
+            variant={isUnidentified ? 'hazard' : 'electric'}
+            size="sm"
+          />
+          <Button
+            size="small"
+            variant="text"
+            onClick={() => setIsUnidentified((v) => !v)}
+            sx={{
+              fontSize: '0.6875rem',
+              fontWeight: 700,
+              textTransform: 'none',
+              color: '#64748b',
+              p: 0,
+              minWidth: 'auto',
+              textDecoration: 'underline',
+            }}
+          >
+            {isUnidentified ? 'Reset to Recognized' : 'Flag Unidentified'}
+          </Button>
+        </Box>
       </Box>
 
       {/* ── Hero Hardware Card ── */}
@@ -407,143 +457,161 @@ export const AiDiagnosticPage: FC = () => {
       {/* ── What would you like to do? ── */}
       <Box sx={{ mb: 2 }}>
         <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a', mb: 1.25 }}>
-          What would you like to do?
+          {isUnidentified ? 'Module 2: Unidentified E-Waste Intake' : 'Stage 1 Decision: What would you like to do?'}
         </Typography>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
-          {/* Reuse option */}
+        {isUnidentified ? (
           <Card
-            onClick={() => navigate('/reuse')}
             sx={{
-              p: 1.75,
+              p: 2.25,
               borderRadius: 2,
-              border: '1px solid #e2e8f0',
-              backgroundColor: '#ffffff',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-              '&:hover': { borderColor: '#0f172a', transform: 'translateY(-1px)' },
+              border: '1.5px solid #f59e0b',
+              backgroundColor: '#fffbeb',
+              boxShadow: '0 2px 6px rgba(245, 158, 11, 0.1)',
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Box
-                sx={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: 1.5,
-                  backgroundColor: '#f1f5f9',
-                  color: '#0f172a',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <RecyclingRoundedIcon sx={{ fontSize: 22 }} />
-              </Box>
+            <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'center', mb: 1.5 }}>
+              <HelpOutlineRoundedIcon sx={{ color: '#d97706', fontSize: 24 }} />
               <Box>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
-                  Reuse
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#92400e' }}>
+                  Manual Category Selection (Module 2 Fallback)
                 </Typography>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
-                  Keep using it or pass it on
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#b45309' }}>
+                  AI model confidence is low. Select the closest category to schedule a physical inspection at the Eco-Hub.
                 </Typography>
               </Box>
             </Box>
-            <ChevronRightRoundedIcon sx={{ fontSize: 20, color: '#94a3b8' }} />
-          </Card>
 
-          {/* Repair option */}
-          <Card
-            onClick={() => navigate('/reuse-guide?tab=repair')}
-            sx={{
-              p: 1.75,
-              borderRadius: 2,
-              border: '1px solid #e2e8f0',
-              backgroundColor: '#ffffff',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-              '&:hover': { borderColor: '#0f172a', transform: 'translateY(-1px)' },
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Box
-                sx={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: 1.5,
-                  backgroundColor: '#f1f5f9',
-                  color: '#0f172a',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+            <FormControl fullWidth size="small" sx={{ mb: 2, backgroundColor: '#ffffff', borderRadius: 1.5 }}>
+              <Select
+                value={manualCategory}
+                onChange={(e) => setManualCategory(e.target.value)}
+                sx={{ borderRadius: 1.5, fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.875rem' }}
               >
-                <BuildOutlinedIcon sx={{ fontSize: 20 }} />
-              </Box>
-              <Box>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
-                  Repair
-                </Typography>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
-                  Get it fixed by a technician
-                </Typography>
-              </Box>
-            </Box>
-            <ChevronRightRoundedIcon sx={{ fontSize: 20, color: '#94a3b8' }} />
-          </Card>
+                {MANUAL_CATEGORIES.map((cat) => (
+                  <MenuItem key={cat} value={cat}>
+                    {cat}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-          {/* Hazardous Drop-off option (Highlighted) */}
-          <Card
-            onClick={() => navigate('/schedule-dropoff')}
-            sx={{
-              p: 1.75,
-              borderRadius: 2,
-              backgroundColor: '#0f172a',
-              color: '#ffffff',
-              border: '1px solid #1e293b',
-              boxShadow: '0 2px 6px rgba(15,23,42,0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-              '&:hover': { backgroundColor: '#1e293b', transform: 'translateY(-1px)' },
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Box
-                sx={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: 1.5,
-                  backgroundColor: '#abf06b',
-                  color: '#0f172a',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <LocationOnOutlinedIcon sx={{ fontSize: 22 }} />
-              </Box>
-              <Box>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#ffffff' }}>
-                  Hazardous Drop-off
-                </Typography>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#94a3b8' }}>
-                  Safely dispose of swollen battery at intake site
-                </Typography>
-              </Box>
-            </Box>
-            <ChevronRightRoundedIcon sx={{ fontSize: 20, color: '#abf06b' }} />
+            <Button
+              fullWidth
+              variant="contained"
+              size="large"
+              endIcon={<ArrowForwardRoundedIcon />}
+              onClick={() => {
+                navigate(
+                  `/schedule-dropoff?unidentified=true&category=${encodeURIComponent(manualCategory)}`
+                )
+              }}
+              sx={{
+                py: 1.4,
+                backgroundColor: '#0f172a',
+                color: '#ffffff',
+                fontFamily: "'Quicksand', sans-serif",
+                fontWeight: 700,
+                fontSize: '0.875rem',
+                borderRadius: 1.5,
+                '&:hover': { backgroundColor: '#1e293b' },
+              }}
+            >
+              Proceed to Drop-Off (Station Physical Inspection)
+            </Button>
           </Card>
-        </Box>
+        ) : (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+            {/* Stage 1 Option: Reuse & Repair Guide */}
+            <Card
+              onClick={() => navigate('/reuse-guide')}
+              sx={{
+                p: 1.75,
+                borderRadius: 2,
+                border: '1px solid #e2e8f0',
+                backgroundColor: '#ffffff',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                '&:hover': { borderColor: '#0f172a', transform: 'translateY(-1px)' },
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 1.5,
+                    backgroundColor: '#f1f5f9',
+                    color: '#0f172a',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <BuildOutlinedIcon sx={{ fontSize: 20 }} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
+                    Reuse / Repair Guide
+                  </Typography>
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
+                    Step-by-step circular guides, technician repair tips &amp; safe reuse
+                  </Typography>
+                </Box>
+              </Box>
+              <ChevronRightRoundedIcon sx={{ fontSize: 20, color: '#94a3b8' }} />
+            </Card>
+
+            {/* Stage 1 Option: Further Assessment (Drop-off Booking) */}
+            <Card
+              onClick={() => navigate('/schedule-dropoff')}
+              sx={{
+                p: 1.75,
+                borderRadius: 2,
+                backgroundColor: '#0f172a',
+                color: '#ffffff',
+                border: '1px solid #1e293b',
+                boxShadow: '0 2px 6px rgba(15,23,42,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                '&:hover': { backgroundColor: '#1e293b', transform: 'translateY(-1px)' },
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 1.5,
+                    backgroundColor: '#abf06b',
+                    color: '#0f172a',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <LocationOnOutlinedIcon sx={{ fontSize: 22 }} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#ffffff' }}>
+                    Further Assessment (Station Drop-Off)
+                  </Typography>
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#94a3b8' }}>
+                    Schedule intake at Barangay Commonwealth Eco-Hub station
+                  </Typography>
+                </Box>
+              </Box>
+              <ChevronRightRoundedIcon sx={{ fontSize: 20, color: '#abf06b' }} />
+            </Card>
+          </Box>
+        )}
 
         <Typography
           sx={{

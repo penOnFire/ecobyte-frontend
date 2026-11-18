@@ -19,11 +19,14 @@ import { DropoffSchedulerPage } from '@/pages/DropoffSchedulerPage'
 import { MyRequestsPage } from '@/pages/MyRequestsPage'
 import { AdminShell } from '@/components/layout/AdminShell'
 import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage'
+import { AdminIncomingDropoffsPage } from '@/pages/admin/AdminIncomingDropoffsPage'
 import { AdminToInspectPage } from '@/pages/admin/AdminToInspectPage'
 import { AdminPhysicalInspectionPage } from '@/pages/admin/AdminPhysicalInspectionPage'
-import { AdminReuseHubPage } from '@/pages/admin/AdminReuseHubPage'
-import { AdminDisposalPage } from '@/pages/admin/AdminDisposalPage'
 import { AdminAccessPage } from '@/pages/admin/AdminAccessPage'
+import { AdminTransactionsPage } from '@/pages/admin/AdminTransactionsPage'
+import { AdminReportsPage } from '@/pages/admin/AdminReportsPage'
+import { AdminActivityLogsPage } from '@/pages/admin/AdminActivityLogsPage'
+import { AdminSignInPage } from '@/pages/admin/AdminSignInPage'
 
 const RequireAuth: FC<{ children: ReactNode; requireAdmin?: boolean }> = ({
   children,
@@ -34,6 +37,9 @@ const RequireAuth: FC<{ children: ReactNode; requireAdmin?: boolean }> = ({
     typeof window !== 'undefined' ? window.localStorage.getItem('ecobyte_token') : null
   if (!token) {
     const target = `${location.pathname}${location.search}`
+    if (requireAdmin) {
+      return <Navigate to={`/admin/signin?redirect=${encodeURIComponent(target)}`} replace />
+    }
     return <Navigate to={`/signin?redirect=${encodeURIComponent(target)}`} replace />
   }
   const role =
@@ -60,6 +66,10 @@ export const App: FC = () => {
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/login" element={<Navigate to="/signin" replace />} />
         <Route path="/register" element={<RegisterPage />} />
+
+        {/* Dedicated Admin & Official Auth Routes */}
+        <Route path="/admin/signin" element={<AdminSignInPage />} />
+        <Route path="/admin/login" element={<Navigate to="/admin/signin" replace />} />
 
         {/* Core Mobile Application Routes (Wrapped in RequireAuth + AppShell) */}
         <Route
@@ -222,6 +232,16 @@ export const App: FC = () => {
           }
         />
         <Route
+          path="/admin/incoming"
+          element={
+            <RequireAuth requireAdmin>
+              <AdminShell>
+                <AdminIncomingDropoffsPage />
+              </AdminShell>
+            </RequireAuth>
+          }
+        />
+        <Route
           path="/admin/to-inspect"
           element={
             <RequireAuth requireAdmin>
@@ -236,7 +256,7 @@ export const App: FC = () => {
           element={
             <RequireAuth requireAdmin>
               <AdminShell>
-                <AdminPhysicalInspectionPage />
+                <AdminToInspectPage />
               </AdminShell>
             </RequireAuth>
           }
@@ -253,23 +273,11 @@ export const App: FC = () => {
         />
         <Route
           path="/admin/reuse-hub"
-          element={
-            <RequireAuth requireAdmin>
-              <AdminShell>
-                <AdminReuseHubPage />
-              </AdminShell>
-            </RequireAuth>
-          }
+          element={<Navigate to="/admin/transactions?tab=reuse" replace />}
         />
         <Route
           path="/admin/disposal"
-          element={
-            <RequireAuth requireAdmin>
-              <AdminShell>
-                <AdminDisposalPage />
-              </AdminShell>
-            </RequireAuth>
-          }
+          element={<Navigate to="/admin/to-inspect?tab=disposal" replace />}
         />
         <Route
           path="/admin/access"
@@ -277,6 +285,36 @@ export const App: FC = () => {
             <RequireAuth requireAdmin>
               <AdminShell>
                 <AdminAccessPage />
+              </AdminShell>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/transactions"
+          element={
+            <RequireAuth requireAdmin>
+              <AdminShell>
+                <AdminTransactionsPage />
+              </AdminShell>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/reports"
+          element={
+            <RequireAuth requireAdmin>
+              <AdminShell>
+                <AdminReportsPage />
+              </AdminShell>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/activity-logs"
+          element={
+            <RequireAuth requireAdmin>
+              <AdminShell>
+                <AdminActivityLogsPage />
               </AdminShell>
             </RequireAuth>
           }

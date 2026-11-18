@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FC, FormEvent } from 'react'
 import {
   Box,
@@ -25,9 +25,49 @@ import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import LockRoundedIcon from '@mui/icons-material/LockRounded'
+import LockClockRoundedIcon from '@mui/icons-material/LockClockRounded'
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom'
 import ecobyteLogo from '@/assets/ui/ecobyte_logo.svg'
 import { authApi, clearStaleLocalRequests, setCachedUser } from '@/lib/api'
+
+const LOCKOUT_KEY = 'ecobyte_login_lockout'
+const MAX_FAILED_ATTEMPTS = 5
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000
+
+interface LockoutState {
+  attempts: number
+  lockedUntil: number | null
+}
+
+function getStoredLockout(): LockoutState {
+  try {
+    const raw = localStorage.getItem(LOCKOUT_KEY)
+    if (!raw) return { attempts: 0, lockedUntil: null }
+    const parsed = JSON.parse(raw)
+    if (parsed.lockedUntil && Number(parsed.lockedUntil) > Date.now()) {
+      return { attempts: parsed.attempts || MAX_FAILED_ATTEMPTS, lockedUntil: Number(parsed.lockedUntil) }
+    }
+    return { attempts: Number(parsed.attempts) || 0, lockedUntil: null }
+  } catch {
+    return { attempts: 0, lockedUntil: null }
+  }
+}
+
+function setStoredLockout(state: LockoutState): void {
+  try {
+    localStorage.setItem(LOCKOUT_KEY, JSON.stringify(state))
+  } catch {
+    // Ignore storage errors cleanly
+  }
+}
+
+function clearStoredLockout(): void {
+  try {
+    localStorage.removeItem(LOCKOUT_KEY)
+  } catch {
+    // Ignore
+  }
+}
 
 export const SignInPage: FC = () => {
   const navigate = useNavigate()
@@ -38,10 +78,38 @@ export const SignInPage: FC = () => {
   const [rememberMe, setRememberMe] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [lockoutState, setLockoutState] = useState<LockoutState>(getStoredLockout)
+  const [nowMs, setNowMs] = useState(() => Date.now())
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
   const [forgotEmail, setForgotEmail] = useState('')
   const [forgotSubmitted, setForgotSubmitted] = useState(false)
   const [privacyOpen, setPrivacyOpen] = useState(false)
+
+  // Countdown timer for 15-minute temporary lockout
+  useEffect(() => {
+    if (!lockoutState.lockedUntil || lockoutState.lockedUntil <= Date.now()) return
+    const timer = setInterval(() => {
+      const current = Date.now()
+      setNowMs(current)
+      if (lockoutState.lockedUntil && lockoutState.lockedUntil <= current) {
+        setLockoutState({ attempts: 0, lockedUntil: null })
+        clearStoredLockout()
+      }
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [lockoutState.lockedUntil])
+
+  const lockoutSecondsRemaining =
+    lockoutState.lockedUntil && lockoutState.lockedUntil > nowMs
+      ? Math.ceil((lockoutState.lockedUntil - nowMs) / 1000)
+      : 0
+  const isLockedOut = lockoutSecondsRemaining > 0
+
+  const formatLockoutTimer = (sec: number): string => {
+    const m = Math.floor(sec / 60)
+    const s = sec % 60
+    return `${m}:${s < 10 ? '0' : ''}${s}`
+  }
 
   const rawRedirect = searchParams.get('redirect')
   const safeRedirect =
@@ -52,6 +120,11 @@ export const SignInPage: FC = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setErrorMessage(null)
+
+    if (isLockedOut) {
+      setErrorMessage(`Account temporarily locked. Please wait ${formatLockoutTimer(lockoutSecondsRemaining)} before retrying.`)
+      return
+    }
 
     if (!email.trim() || !password.trim()) {
       setErrorMessage('Please enter both your email address and password.')
@@ -68,6 +141,9 @@ export const SignInPage: FC = () => {
       })
 
       clearStaleLocalRequests()
+      clearStoredLockout()
+      setLockoutState({ attempts: 0, lockedUntil: null })
+
       if (res?.accessToken) {
         localStorage.setItem('ecobyte_token', res.accessToken)
       }
@@ -107,6 +183,7 @@ export const SignInPage: FC = () => {
           email.toLowerCase().includes('ecobyte.gov') ||
           email.toLowerCase().includes('official')
 
+        clearStoredLockout()
         localStorage.setItem('ecobyte_token', `offline_mock_token_${isAdmin ? 'admin' : 'resident'}`)
         localStorage.setItem('ecobyte_user_role', isAdmin ? 'ADMIN' : 'RESIDENT')
 
@@ -121,9 +198,26 @@ export const SignInPage: FC = () => {
       }
 
       localStorage.removeItem('ecobyte_token')
-      setErrorMessage(
-        err?.message || 'Invalid email or password. Please verify your credentials and try again.'
-      )
+
+      // Record failed attempt
+      const nextAttempts = (lockoutState.attempts || 0) + 1
+      if (nextAttempts >= MAX_FAILED_ATTEMPTS || err?.message?.includes('locked')) {
+        const lockedUntil = Date.now() + LOCKOUT_DURATION_MS
+        const lockedState = { attempts: nextAttempts, lockedUntil }
+        setLockoutState(lockedState)
+        setStoredLockout(lockedState)
+        setErrorMessage(
+          'Account temporarily locked due to 5 consecutive failed login attempts. Please wait 15 minutes or contact Barangay Commonwealth IT.'
+        )
+      } else {
+        const updated = { attempts: nextAttempts, lockedUntil: null }
+        setLockoutState(updated)
+        setStoredLockout(updated)
+        const remaining = MAX_FAILED_ATTEMPTS - nextAttempts
+        setErrorMessage(
+          `Invalid email or password. Attempt ${nextAttempts} of ${MAX_FAILED_ATTEMPTS}. You have ${remaining} attempt${remaining === 1 ? '' : 's'} remaining before a 15-minute lock.`
+        )
+      }
     } finally {
       setIsLoading(false)
     }
@@ -312,13 +406,53 @@ export const SignInPage: FC = () => {
             Sign in to your circular tech account.
           </Typography>
 
-          {errorMessage && (
-            <Box sx={{ p: 1, mb: 1.5, backgroundColor: '#fef2f2', borderRadius: 1.5, border: '1px solid #fecaca' }}>
+          {isLockedOut ? (
+            <Box
+              sx={{
+                p: 1.75,
+                mb: 2,
+                backgroundColor: '#fff1f2',
+                borderRadius: 2,
+                border: '1.5px solid #fecdd3',
+                display: 'flex',
+                gap: 1.25,
+                alignItems: 'flex-start',
+              }}
+            >
+              <LockClockRoundedIcon sx={{ color: '#e11d48', fontSize: 22, mt: 0.25 }} />
+              <Box sx={{ flex: 1 }}>
+                <Typography sx={{ color: '#9f1239', fontSize: '0.8125rem', fontWeight: 800 }}>
+                  Account Temporarily Locked (15 Minutes)
+                </Typography>
+                <Typography sx={{ color: '#be123c', fontSize: '0.75rem', fontWeight: 600, mt: 0.25 }}>
+                  5 consecutive failed attempts detected. Login is locked for your protection.
+                </Typography>
+                <Box
+                  sx={{
+                    mt: 1,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    px: 1,
+                    py: 0.35,
+                    backgroundColor: '#e11d48',
+                    color: '#ffffff',
+                    borderRadius: 1,
+                    fontWeight: 700,
+                    fontSize: '0.75rem',
+                  }}
+                >
+                  Retrying available in: {formatLockoutTimer(lockoutSecondsRemaining)}
+                </Box>
+              </Box>
+            </Box>
+          ) : errorMessage ? (
+            <Box sx={{ p: 1.25, mb: 1.75, backgroundColor: '#fef2f2', borderRadius: 1.5, border: '1px solid #fecaca' }}>
               <Typography sx={{ color: '#b91c1c', fontSize: '0.75rem', fontWeight: 600 }}>
                 {errorMessage}
               </Typography>
             </Box>
-          )}
+          ) : null}
 
           <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {/* Email */}
@@ -340,6 +474,7 @@ export const SignInPage: FC = () => {
                 fullWidth
                 type="email"
                 value={email}
+                disabled={isLockedOut}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="alex.resident@ecobyte.ph"
                 inputProps={{ required: true }}
@@ -371,6 +506,7 @@ export const SignInPage: FC = () => {
                 fullWidth
                 type={showPassword ? 'text' : 'password'}
                 value={password}
+                disabled={isLockedOut}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password"
                 inputProps={{ required: true }}
@@ -452,20 +588,25 @@ export const SignInPage: FC = () => {
               type="submit"
               variant="contained"
               size="large"
-              disabled={isLoading}
+              disabled={isLoading || isLockedOut}
               sx={{
                 mt: 0.5,
                 py: 1.5,
                 fontSize: '0.9375rem',
                 display: 'flex',
                 gap: 1,
-                backgroundColor: '#0f172a',
+                backgroundColor: isLockedOut ? '#94a3b8' : '#0f172a',
                 color: '#ffffff',
-                '&:hover': { backgroundColor: '#1e293b' },
+                '&:hover': { backgroundColor: isLockedOut ? '#94a3b8' : '#1e293b' },
               }}
             >
               {isLoading ? (
                 <CircularProgress size={20} color="inherit" />
+              ) : isLockedOut ? (
+                <>
+                  <LockClockRoundedIcon sx={{ fontSize: 18 }} />
+                  Locked ({formatLockoutTimer(lockoutSecondsRemaining)})
+                </>
               ) : (
                 <>
                   Sign In
@@ -543,6 +684,33 @@ export const SignInPage: FC = () => {
               }}
             >
               Register
+            </Link>
+          </Typography>
+        </Box>
+
+        {/* Link to Official / Admin Portal */}
+        <Box sx={{ textAlign: 'center', mt: 1.5 }}>
+          <Typography
+            sx={{
+              fontFamily: "'Quicksand', sans-serif",
+              fontWeight: 500,
+              fontSize: '0.8125rem',
+              color: '#64748b',
+            }}
+          >
+            Barangay Official or Super Admin?{' '}
+            <Link
+              component={RouterLink}
+              to="/admin/signin"
+              sx={{
+                fontWeight: 700,
+                color: '#2e6022',
+                cursor: 'pointer',
+                textDecoration: 'none',
+                '&:hover': { textDecoration: 'underline' },
+              }}
+            >
+              Official Sign In &rarr;
             </Link>
           </Typography>
         </Box>

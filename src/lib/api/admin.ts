@@ -91,6 +91,84 @@ export interface AdminInspectionQueueItem {
   suggestion: string
 }
 
+export interface AdminTransactionItem {
+  id: string
+  rawId: string
+  transactionNumber: string
+  type: 'Drop-Off' | 'Reuse Pick-Up'
+  itemName: string
+  category: string
+  residentName: string
+  residentEmail: string
+  residentPhone?: string
+  siteName: string
+  dateSlot: string
+  status: string
+  displayStatus: string
+  pickupCode?: string
+  createdAt: string
+}
+
+export interface AdminReportsData {
+  totals: {
+    totalVolumeProcessed: number
+    totalWeightKg: number
+    divertedKgTotal: number
+    activeRequests: number
+    completedRequests: number
+    missedRequests: number
+    diversionRatePct: number
+  }
+  ewasteType: Array<{
+    name: string
+    units: number
+    weightKg: number
+    hazardUnits: number
+    reuseRatePercent: number
+  }>
+  requests: {
+    total: number
+    scheduled: number
+    underInspection: number
+    turnedOver: number
+    completed: number
+    missed: number
+    cancelled: number
+    fulfillmentRatePct: number
+  }
+  slotUsage: Array<{
+    facility: string
+    capacity: number
+    booked: number
+    available: number
+    utilizationPct: number
+  }>
+  reuseHub: {
+    totalListed: number
+    reserved: number
+    claimed: number
+    conversionRatePct: number
+    avgHoldDays: string
+  }
+}
+
+export interface AdminActivityLogItem {
+  id: string
+  entityType: string
+  entityId: string
+  oldStatus?: string | null
+  newStatus: string
+  action: string
+  operator: {
+    id: string
+    name: string
+    email: string
+    role: string
+  } | null
+  notes: string | null
+  timestamp: string
+}
+
 export interface AdminInspectionDetails {
   id: string
   deviceModel: string
@@ -687,5 +765,77 @@ export const adminApi = {
       }
       throw err
     }
+  },
+
+  markDropoffReceived: async (id: string) => {
+    return apiFetch<{
+      success: boolean
+      requestId: string
+      itemId: string
+      status: string
+      displayStatus: string
+      message: string
+    }>(`/admin/requests/${id}/receive`, {
+      method: 'POST',
+    })
+  },
+
+  markDropoffMissed: async (id: string) => {
+    return apiFetch<{
+      success: boolean
+      requestId: string
+      status: string
+      displayStatus: string
+      message: string
+    }>(`/admin/requests/${id}/missed`, {
+      method: 'POST',
+    })
+  },
+
+  verifyPickupCode: async (payload: {
+    listingId?: string
+    claimId?: string
+    pickupCode: string
+  }) => {
+    return apiFetch<{
+      success: boolean
+      matched: boolean
+      claimId?: string
+      status?: string
+      displayStatus?: string
+      message?: string
+      error?: string
+    }>('/admin/transactions/verify-pickup', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  },
+
+  getTransactions: async (params?: {
+    type?: 'all' | 'dropoff' | 'reuse'
+    search?: string
+  }) => {
+    const qs = new URLSearchParams()
+    if (params?.type && params.type !== 'all') qs.set('type', params.type)
+    if (params?.search?.trim()) qs.set('search', params.search.trim())
+    const queryStr = qs.toString() ? `?${qs.toString()}` : ''
+    return apiFetch<AdminTransactionItem[]>(`/admin/transactions${queryStr}`)
+  },
+
+  getReportsData: async () => {
+    return apiFetch<AdminReportsData>('/admin/reports')
+  },
+
+  getActivityLogs: async (params?: {
+    userId?: string
+    action?: string
+    search?: string
+  }) => {
+    const qs = new URLSearchParams()
+    if (params?.userId) qs.set('userId', params.userId)
+    if (params?.action) qs.set('action', params.action)
+    if (params?.search?.trim()) qs.set('search', params.search.trim())
+    const queryStr = qs.toString() ? `?${qs.toString()}` : ''
+    return apiFetch<AdminActivityLogItem[]>(`/admin/activity-logs${queryStr}`)
   },
 }

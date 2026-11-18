@@ -343,9 +343,10 @@ export const AdminReuseHubPage: FC = () => {
               overflow: 'hidden',
             }}
           >
-            <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#eff4ff', borderBottom: '1px solid #e2e8f0', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#475569' }}>
+            <Box sx={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', minWidth: 600 }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#eff4ff', borderBottom: '1px solid #e2e8f0', fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#475569' }}>
                   <th style={{ padding: '10px 16px', width: '38%' }}>Item</th>
                   <th style={{ padding: '10px 16px', width: '26%' }}>Drop-off</th>
                   <th style={{ padding: '10px 16px', width: '18%' }}>Status</th>
@@ -472,6 +473,7 @@ export const AdminReuseHubPage: FC = () => {
                 )}
               </tbody>
             </table>
+          </Box>
 
             {/* Pagination */}
             <Box

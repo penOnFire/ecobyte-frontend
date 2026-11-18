@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, type FC, type ChangeEvent } from 'react'
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -30,13 +31,14 @@ interface AngleConfig {
   id: 'front' | 'back' | 'left' | 'right'
   label: string
   prompt: string
+  required: boolean
 }
 
 const DEFAULT_ANGLES: AngleConfig[] = [
-  { id: 'front', label: 'Front', prompt: 'Align the front screen and bezel inside the frame' },
-  { id: 'back', label: 'Back', prompt: 'Show the back housing, model label, and camera module' },
-  { id: 'left', label: 'Left', prompt: 'Tilt slightly left to inspect side buttons and seams' },
-  { id: 'right', label: 'Right', prompt: 'Tilt slightly right to inspect ports and chassis edge' },
+  { id: 'front', label: 'Front', prompt: 'Align the front screen and bezel inside the frame', required: true },
+  { id: 'back', label: 'Back', prompt: 'Show the back housing, model label, and camera module', required: true },
+  { id: 'left', label: 'Left', prompt: 'Tilt slightly left to inspect side buttons and seams', required: false },
+  { id: 'right', label: 'Right', prompt: 'Tilt slightly right to inspect ports and chassis edge', required: false },
 ]
 
 export const ScanDevicePage: FC = () => {
@@ -47,6 +49,7 @@ export const ScanDevicePage: FC = () => {
   const [currentAngle, setCurrentAngle] = useState<AngleConfig['id']>('front')
   const [flashOn, setFlashOn] = useState(false)
   const [previewAngle, setPreviewAngle] = useState<AngleConfig['id'] | null>(null)
+  const [validationError, setValidationError] = useState<string | null>(null)
   const [capturedImages, setCapturedImages] = useState<Record<string, string>>(() => {
     try {
       const saved = sessionStorage.getItem(SCAN_ANGLES_STORAGE_KEY)
@@ -485,7 +488,7 @@ export const ScanDevicePage: FC = () => {
                     color: 'inherit',
                   }}
                 >
-                  {angle.label}
+                  {angle.label} {angle.required ? '• Req' : '• Opt'}
                 </Typography>
                 {isCompleted && (
                   <CheckRoundedIcon sx={{ fontSize: 15, color: isActive ? '#0f172a' : '#15803d' }} />
@@ -684,15 +687,33 @@ export const ScanDevicePage: FC = () => {
         </Box>
       </Box>
 
+      {validationError && (
+        <Alert
+          severity="warning"
+          onClose={() => setValidationError(null)}
+          sx={{ borderRadius: 2, fontWeight: 600, fontSize: '0.8125rem' }}
+        >
+          {validationError}
+        </Alert>
+      )}
+
       {/* ── Next CTA Button ── */}
       <Button
         fullWidth
         variant="contained"
         size="large"
-        onClick={() => navigate('/assess')}
+        onClick={() => {
+          const hasRequired = Boolean(capturedImages.front && capturedImages.back)
+          if (!hasRequired) {
+            setValidationError('Front and Back photos are required before proceeding to the condition checklist. Left and Right angles are optional.')
+            return
+          }
+          setValidationError(null)
+          navigate('/assess')
+        }}
         sx={{
           py: 1.6,
-          backgroundColor: '#0f172a',
+          backgroundColor: capturedImages.front && capturedImages.back ? '#0f172a' : '#64748b',
           color: '#ffffff',
           fontWeight: 700,
           fontSize: '0.9375rem',
@@ -701,11 +722,11 @@ export const ScanDevicePage: FC = () => {
           mb: 2,
           boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
           '&:hover': {
-            backgroundColor: '#1e293b',
+            backgroundColor: capturedImages.front && capturedImages.back ? '#1e293b' : '#475569',
           },
         }}
       >
-        Next: add details
+        {capturedImages.front && capturedImages.back ? 'Next: fill condition checklist' : 'Front & back photos required'}
         <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
       </Button>
 

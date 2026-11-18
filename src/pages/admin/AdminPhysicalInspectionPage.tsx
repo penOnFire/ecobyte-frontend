@@ -24,6 +24,7 @@ export const AdminPhysicalInspectionPage: FC = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [successMsg, setSuccessMsg] = useState<string | null>(null)
 
   const [bootState, setBootState] = useState<'yes' | 'no' | 'not_sure'>('yes')
   const [chassisCondition, setChassisCondition] = useState<'good' | 'damaged' | 'swollen'>('good')
@@ -88,9 +89,19 @@ export const AdminPhysicalInspectionPage: FC = () => {
         conditionGrade,
         benchNotes: notes,
       })
-      const target = confirmModal.type === 'reuse' ? '/admin/reuse-hub' : '/admin/disposal'
+      const target =
+        confirmModal.type === 'reuse'
+          ? '/admin/transactions?tab=reuse'
+          : '/admin/to-inspect?tab=disposal'
       setConfirmModal({ open: false, type: null })
-      navigate(target)
+      setSuccessMsg(
+        confirmModal.type === 'reuse'
+          ? 'Item listed in Reuse Hub as Available! Status updated to Turned Over and resident notified of outcome.'
+          : 'Disposal record auto-created! Status updated to Turned Over and resident notified of outcome.'
+      )
+      setTimeout(() => {
+        navigate(target)
+      }, 1200)
     } catch (err: any) {
       setErrorMsg(err?.message || 'Failed to submit physical inspection verdict.')
       setConfirmModal({ open: false, type: null })
@@ -1075,6 +1086,17 @@ export const AdminPhysicalInspectionPage: FC = () => {
       >
         <Alert severity="error" variant="filled" onClose={() => setErrorMsg(null)}>
           {errorMsg}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={Boolean(successMsg)}
+        autoHideDuration={4000}
+        onClose={() => setSuccessMsg(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="success" variant="filled" onClose={() => setSuccessMsg(null)}>
+          {successMsg}
         </Alert>
       </Snackbar>
     </Box>

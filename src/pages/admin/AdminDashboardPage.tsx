@@ -1,5 +1,6 @@
 import { useEffect, useState, type FC } from 'react'
 import { Box, ButtonBase, Typography, Snackbar, Alert } from '@mui/material'
+import { useNavigate } from 'react-router-dom'
 import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded'
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
 import HourglassTopRoundedIcon from '@mui/icons-material/HourglassTopRounded'
@@ -12,7 +13,15 @@ import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded'
 import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded'
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
-import { adminApi, type AdminDashboardOverview } from '@/lib/api'
+import MoveToInboxRoundedIcon from '@mui/icons-material/MoveToInboxRounded'
+import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined'
+import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded'
+import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined'
+import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded'
+import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
+import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined'
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
+import { adminApi, getCachedUser, type AdminDashboardOverview } from '@/lib/api'
 
 interface DateRangeData {
   totalProcessed: number
@@ -122,10 +131,15 @@ const EMPTY_OVERVIEW: AdminDashboardOverview = {
 }
 
 export const AdminDashboardPage: FC = () => {
+  const navigate = useNavigate()
   const [dateRange, setDateRange] = useState<'7d' | '30d' | 'q3' | 'custom'>('30d')
   const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart')
   const [exportSnackbar, setExportSnackbar] = useState(false)
   const [overview, setOverview] = useState<AdminDashboardOverview>(EMPTY_OVERVIEW)
+
+  const currentUser = getCachedUser()
+  const storedRole = typeof window !== 'undefined' ? localStorage.getItem('ecobyte_user_role') : ''
+  const isSuperAdmin = (currentUser?.role || storedRole || '').toUpperCase() === 'ADMIN'
 
   useEffect(() => {
     let active = true
@@ -297,6 +311,409 @@ export const AdminDashboardPage: FC = () => {
             <span>Export Log</span>
           </ButtonBase>
         </Box>
+      </Box>
+
+      {/* ── Role-Specific Operational Hub & Navigation (Module 6A vs Module 7) ── */}
+      <Box
+        sx={{
+          p: { xs: 2.5, sm: 3 },
+          borderRadius: '16px',
+          backgroundColor: '#ffffff',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between',
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            gap: 1,
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {isSuperAdmin ? (
+              <ShieldOutlinedIcon sx={{ fontSize: 20, color: '#2e6022' }} />
+            ) : (
+              <LocationOnOutlinedIcon sx={{ fontSize: 20, color: '#16a34a' }} />
+            )}
+            <Typography
+              sx={{
+                fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                fontSize: '0.8125rem',
+                fontWeight: 800,
+                color: isSuperAdmin ? '#1e2e1a' : '#166534',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+              }}
+            >
+              {isSuperAdmin
+                ? 'Super Admin Central Portal • System-Wide Oversight (All Barangays)'
+                : 'Barangay Official Station Dashboard • Commonwealth Central MRF (Read-Only)'}
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              px: 1.5,
+              py: 0.25,
+              borderRadius: '9999px',
+              backgroundColor: isSuperAdmin ? '#f1f4f0' : '#dcfce7',
+              border: `1px solid ${isSuperAdmin ? '#cbd5e1' : '#bbf7d0'}`,
+              color: isSuperAdmin ? '#334155' : '#15803d',
+              fontSize: '0.6875rem',
+              fontWeight: 700,
+            }}
+          >
+            {isSuperAdmin ? 'Module 7 Workflows' : 'Module 6A Workflows'}
+          </Box>
+        </Box>
+
+        {/* Action Grid */}
+        {!isSuperAdmin ? (
+          /* Official Actions: Incoming Drop-Offs, Inspection, Transactions */
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
+              gap: 2,
+            }}
+          >
+            <ButtonBase
+              onClick={() => navigate('/admin/incoming')}
+              sx={{
+                p: 2,
+                borderRadius: '12px',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                textAlign: 'left',
+                gap: 1,
+                transition: 'all 0.15s ease',
+                '&:hover': {
+                  borderColor: '#16a34a',
+                  backgroundColor: '#f0fdf4',
+                  boxShadow: '0 4px 12px rgba(22, 163, 74, 0.12)',
+                  transform: 'translateY(-1px)',
+                },
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '8px',
+                    backgroundColor: '#dcfce7',
+                    color: '#16a34a',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <MoveToInboxRoundedIcon sx={{ fontSize: 18 }} />
+                </Box>
+                <ArrowForwardRoundedIcon sx={{ fontSize: 16, color: '#94a3b8' }} />
+              </Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '0.9375rem', color: '#0f172a' }}>
+                Incoming Drop-Offs
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', lineHeight: 1.4 }}>
+                View scheduled devices, click 'Received' to move to inspection, or mark missed.
+              </Typography>
+            </ButtonBase>
+
+            <ButtonBase
+              onClick={() => navigate('/admin/to-inspect')}
+              sx={{
+                p: 2,
+                borderRadius: '12px',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                textAlign: 'left',
+                gap: 1,
+                transition: 'all 0.15s ease',
+                '&:hover': {
+                  borderColor: '#16a34a',
+                  backgroundColor: '#f0fdf4',
+                  boxShadow: '0 4px 12px rgba(22, 163, 74, 0.12)',
+                  transform: 'translateY(-1px)',
+                },
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '8px',
+                    backgroundColor: '#fef3c7',
+                    color: '#d97706',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <FactCheckOutlinedIcon sx={{ fontSize: 18 }} />
+                </Box>
+                <ArrowForwardRoundedIcon sx={{ fontSize: 16, color: '#94a3b8' }} />
+              </Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '0.9375rem', color: '#0f172a' }}>
+                Inspection &amp; Disposal
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', lineHeight: 1.4 }}>
+                Triage oldest-first. Auto-list items in Reuse Hub or auto-create disposal records.
+              </Typography>
+            </ButtonBase>
+
+            <ButtonBase
+              onClick={() => navigate('/admin/transactions')}
+              sx={{
+                p: 2,
+                borderRadius: '12px',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                textAlign: 'left',
+                gap: 1,
+                transition: 'all 0.15s ease',
+                '&:hover': {
+                  borderColor: '#16a34a',
+                  backgroundColor: '#f0fdf4',
+                  boxShadow: '0 4px 12px rgba(22, 163, 74, 0.12)',
+                  transform: 'translateY(-1px)',
+                },
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '8px',
+                    backgroundColor: '#e0f2fe',
+                    color: '#0284c7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <ReceiptLongRoundedIcon sx={{ fontSize: 18 }} />
+                </Box>
+                <ArrowForwardRoundedIcon sx={{ fontSize: 16, color: '#94a3b8' }} />
+              </Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '0.9375rem', color: '#0f172a' }}>
+                Transactions &amp; Pick-Up
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', lineHeight: 1.4 }}>
+                Review transaction ledger, verify resident pick-up passcodes, and confirm handoff.
+              </Typography>
+            </ButtonBase>
+          </Box>
+        ) : (
+          /* Super Admin Actions: Reports, Transactions, Manage Users, Activity Logs */
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(4, 1fr)' },
+              gap: 2,
+            }}
+          >
+            <ButtonBase
+              onClick={() => navigate('/admin/reports')}
+              sx={{
+                p: 2,
+                borderRadius: '12px',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                textAlign: 'left',
+                gap: 1,
+                transition: 'all 0.15s ease',
+                '&:hover': {
+                  borderColor: '#2e6022',
+                  backgroundColor: '#f1f4f0',
+                  boxShadow: '0 4px 12px rgba(46, 96, 34, 0.12)',
+                  transform: 'translateY(-1px)',
+                },
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '8px',
+                    backgroundColor: '#dcfce7',
+                    color: '#15803d',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <BarChartRoundedIcon sx={{ fontSize: 18 }} />
+                </Box>
+                <ArrowForwardRoundedIcon sx={{ fontSize: 16, color: '#94a3b8' }} />
+              </Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '0.9375rem', color: '#0f172a' }}>
+                System Reports
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', lineHeight: 1.4 }}>
+                Totals, e-waste classification, requests, station slot usage, and reuse hub.
+              </Typography>
+            </ButtonBase>
+
+            <ButtonBase
+              onClick={() => navigate('/admin/transactions')}
+              sx={{
+                p: 2,
+                borderRadius: '12px',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                textAlign: 'left',
+                gap: 1,
+                transition: 'all 0.15s ease',
+                '&:hover': {
+                  borderColor: '#2e6022',
+                  backgroundColor: '#f1f4f0',
+                  boxShadow: '0 4px 12px rgba(46, 96, 34, 0.12)',
+                  transform: 'translateY(-1px)',
+                },
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '8px',
+                    backgroundColor: '#e0f2fe',
+                    color: '#0284c7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <ReceiptLongRoundedIcon sx={{ fontSize: 18 }} />
+                </Box>
+                <ArrowForwardRoundedIcon sx={{ fontSize: 16, color: '#94a3b8' }} />
+              </Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '0.9375rem', color: '#0f172a' }}>
+                Transactions &amp; Reuse
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', lineHeight: 1.4 }}>
+                System-wide transactions ledger across all stations and active reuse inventory.
+              </Typography>
+            </ButtonBase>
+
+            <ButtonBase
+              onClick={() => navigate('/admin/access')}
+              sx={{
+                p: 2,
+                borderRadius: '12px',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                textAlign: 'left',
+                gap: 1,
+                transition: 'all 0.15s ease',
+                '&:hover': {
+                  borderColor: '#2e6022',
+                  backgroundColor: '#f1f4f0',
+                  boxShadow: '0 4px 12px rgba(46, 96, 34, 0.12)',
+                  transform: 'translateY(-1px)',
+                },
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '8px',
+                    backgroundColor: '#f1f5f9',
+                    color: '#334155',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <AdminPanelSettingsOutlinedIcon sx={{ fontSize: 18 }} />
+                </Box>
+                <ArrowForwardRoundedIcon sx={{ fontSize: 16, color: '#94a3b8' }} />
+              </Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '0.9375rem', color: '#0f172a' }}>
+                Manage Users
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', lineHeight: 1.4 }}>
+                Provision officials, assign stations, manage roles, and toggle account access.
+              </Typography>
+            </ButtonBase>
+
+            <ButtonBase
+              onClick={() => navigate('/admin/activity-logs')}
+              sx={{
+                p: 2,
+                borderRadius: '12px',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                textAlign: 'left',
+                gap: 1,
+                transition: 'all 0.15s ease',
+                '&:hover': {
+                  borderColor: '#2e6022',
+                  backgroundColor: '#f1f4f0',
+                  boxShadow: '0 4px 12px rgba(46, 96, 34, 0.12)',
+                  transform: 'translateY(-1px)',
+                },
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '8px',
+                    backgroundColor: '#fef3c7',
+                    color: '#d97706',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <HistoryRoundedIcon sx={{ fontSize: 18 }} />
+                </Box>
+                <ArrowForwardRoundedIcon sx={{ fontSize: 16, color: '#94a3b8' }} />
+              </Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '0.9375rem', color: '#0f172a' }}>
+                Activity Logs
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', lineHeight: 1.4 }}>
+                System-wide immutable audit trail: user actions, role changes, and timestamps.
+              </Typography>
+            </ButtonBase>
+          </Box>
+        )}
       </Box>
 
       {/* ── 5-Metric Strip ── */}

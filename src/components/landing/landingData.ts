@@ -126,6 +126,9 @@ export function getAuthHref(targetRoute: string): string {
   if (hasActiveSession()) {
     return targetRoute
   }
+  if (targetRoute.startsWith('/admin')) {
+    return `/admin/signin?redirect=${encodeURIComponent(targetRoute)}`
+  }
   return `/signin?redirect=${encodeURIComponent(targetRoute)}`
 }
 

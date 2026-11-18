@@ -9,14 +9,13 @@ import {
   DialogActions,
   IconButton,
   Button,
+  Drawer,
 } from '@mui/material'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { adminApi, authApi, getCachedUser } from '@/lib/api'
 import type { User } from '@/types'
 import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded'
 import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined'
-import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
-import DeleteSweepOutlinedIcon from '@mui/icons-material/DeleteSweepOutlined'
 import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined'
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded'
 import SmartphoneRoundedIcon from '@mui/icons-material/SmartphoneRounded'
@@ -27,6 +26,11 @@ import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined'
 import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined'
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined'
+import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded'
+import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded'
+import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded'
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded'
+import MoveToInboxRoundedIcon from '@mui/icons-material/MoveToInboxRounded'
 
 interface AdminShellProps {
   children: ReactNode
@@ -39,14 +43,6 @@ interface NavItem {
   badge?: number
 }
 
-const BASE_NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', path: '/admin', icon: GridViewRoundedIcon },
-  { label: 'To inspect', path: '/admin/to-inspect', icon: FactCheckOutlinedIcon },
-  { label: 'Reuse Hub', path: '/admin/reuse-hub', icon: Inventory2OutlinedIcon },
-  { label: 'Disposal', path: '/admin/disposal', icon: DeleteSweepOutlinedIcon },
-  { label: 'Access', path: '/admin/access', icon: AdminPanelSettingsOutlinedIcon },
-]
-
 export const AdminShell: FC<AdminShellProps> = ({ children }) => {
   const navigate = useNavigate()
   const location = useLocation()
@@ -54,7 +50,9 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
 
   const [profileOpen, setProfileOpen] = useState(false)
   const [logoutOpen, setLogoutOpen] = useState(false)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [toInspectBadge, setToInspectBadge] = useState<number>(0)
+  const [incomingBadge, setIncomingBadge] = useState<number>(0)
   const [currentUser, setCurrentUser] = useState<User | null>(() => getCachedUser())
 
   useEffect(() => {
@@ -75,11 +73,12 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
       adminApi.getInspectionQueue('waiting').catch(() => []),
     ]).then(([requests, waitingItems]) => {
       if (!active) return
-      const activeRequestsCount = requests.filter((r) => {
+      const scheduledCount = requests.filter((r) => {
         const s = (r.status || '').toLowerCase()
-        return s === 'pending_review' || s === 'scheduled' || s === 'collected'
+        return s === 'pending_review' || s === 'scheduled'
       }).length
-      setToInspectBadge(activeRequestsCount + waitingItems.length)
+      setIncomingBadge(scheduledCount)
+      setToInspectBadge(waitingItems.length)
     })
 
     return () => {
@@ -87,20 +86,45 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
     }
   }, [path])
 
-  const navItems: NavItem[] = BASE_NAV_ITEMS.map((item) =>
-    item.path === '/admin/to-inspect' && toInspectBadge > 0
-      ? { ...item, badge: toInspectBadge }
-      : item
-  )
+  const staffRoleUpper = (
+    currentUser?.role ||
+    (typeof window !== 'undefined' ? localStorage.getItem('ecobyte_user_role') : '') ||
+    ''
+  ).toUpperCase()
+  const isSuperAdmin = staffRoleUpper === 'ADMIN'
+  const staffRoleLabel = isSuperAdmin ? 'Super Admin' : 'Barangay Official'
+  const staffFullName =
+    currentUser?.fullName?.trim() || (isSuperAdmin ? 'Elena Vance' : 'Captain Mateo Cruz')
+  const staffEmail =
+    currentUser?.email || (isSuperAdmin ? 'admin@ecobyte.gov' : 'official@barangay.gov.ph')
+  const staffArea = currentUser?.barangay?.name || 'Commonwealth Central MRF (Base 1)'
 
-  const staffRoleUpper = (currentUser?.role || '').toUpperCase()
-  const staffRoleLabel =
-    staffRoleUpper === 'BARANGAY_OFFICIAL' || staffRoleUpper === 'OFFICIAL'
-      ? 'Official'
-      : 'Admin'
-  const staffFullName = currentUser?.fullName?.trim() || 'Barangay Staff'
-  const staffEmail = currentUser?.email || 'staff@ecobyte.gov.ph'
-  const staffArea = currentUser?.barangay?.name || 'Barangay Commonwealth MRF'
+  const officialNavItems: NavItem[] = [
+    { label: 'Dashboard', path: '/admin', icon: GridViewRoundedIcon },
+    { label: 'Incoming Drop-Offs', path: '/admin/incoming', icon: MoveToInboxRoundedIcon },
+    { label: 'Inspection', path: '/admin/to-inspect', icon: FactCheckOutlinedIcon },
+    { label: 'Transactions', path: '/admin/transactions', icon: ReceiptLongRoundedIcon },
+  ]
+
+  const adminNavItems: NavItem[] = [
+    { label: 'Dashboard', path: '/admin', icon: GridViewRoundedIcon },
+    { label: 'Reports', path: '/admin/reports', icon: BarChartRoundedIcon },
+    { label: 'Transactions', path: '/admin/transactions', icon: ReceiptLongRoundedIcon },
+    { label: 'Manage Users', path: '/admin/access', icon: AdminPanelSettingsOutlinedIcon },
+    { label: 'Activity Logs', path: '/admin/activity-logs', icon: HistoryRoundedIcon },
+  ]
+
+  const baseItems = isSuperAdmin ? adminNavItems : officialNavItems
+
+  const navItems: NavItem[] = baseItems.map((item) => {
+    if (item.path === '/admin/incoming' && incomingBadge > 0) {
+      return { ...item, badge: incomingBadge }
+    }
+    if (item.path === '/admin/to-inspect' && toInspectBadge > 0) {
+      return { ...item, badge: toInspectBadge }
+    }
+    return item
+  })
 
   const isCurrentActive = (itemPath: string) => {
     if (itemPath === '/admin') {
@@ -109,41 +133,24 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
     return path.startsWith(itemPath)
   }
 
-  return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        backgroundColor: '#f8f9ff',
-        fontFamily: "'Rethink Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-        color: '#0b1c30',
-      }}
-    >
-      {/* ── Fixed Left Sidebar (w-64 / 256px) ── */}
-      <Box
-        component="aside"
-        sx={{
-          position: 'fixed',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: 256,
-          backgroundColor: '#ffffff',
-          borderRight: '1px solid #e2e8f0',
-          zIndex: 50,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          py: 3,
-          px: 2,
-          boxShadow: '0 1px 8px rgba(0,0,0,0.04)',
-        }}
-      >
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {/* Brand Header */}
+  const renderSidebarContent = (isMobile = false) => (
+    <>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {/* Brand Header */}
+        <Box
+          sx={{
+            px: 1.5,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
           <Box
-            onClick={() => navigate('/admin')}
+            onClick={() => {
+              navigate('/admin')
+              if (isMobile) setMobileNavOpen(false)
+            }}
             sx={{
-              px: 1.5,
               display: 'flex',
               alignItems: 'center',
               gap: 1.5,
@@ -192,147 +199,239 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
               </Typography>
             </Box>
           </Box>
-
-          {/* Navigation Links */}
-          <Box component="nav" sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-            {navItems.map((item) => {
-              const active = isCurrentActive(item.path)
-              const Icon = item.icon
-
-              return (
-                <ButtonBase
-                  key={item.path}
-                  onClick={() => navigate(item.path)}
-                  sx={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    px: 1.75,
-                    py: 1.15,
-                    borderRadius: '9999px',
-                    transition: 'all 0.15s ease',
-                    backgroundColor: active ? '#16a34a' : 'transparent',
-                    color: active ? '#ffffff' : '#3f4944',
-                    fontWeight: active ? 700 : 600,
-                    fontSize: '0.875rem',
-                    boxShadow: active ? '0 2px 8px rgba(22, 163, 74, 0.28)' : 'none',
-                    '&:hover': {
-                      backgroundColor: active ? '#15803d' : '#eff4ff',
-                      color: active ? '#ffffff' : '#0b1c30',
-                    },
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Icon
-                      sx={{
-                        fontSize: 19,
-                        color: active ? '#ffffff' : '#475569',
-                      }}
-                    />
-                    <span style={{ fontFamily: "'Rethink Sans', 'Inter', sans-serif" }}>
-                      {item.label}
-                    </span>
-                  </Box>
-                  {item.badge && !active && (
-                    <Box
-                      sx={{
-                        px: 1,
-                        py: 0.15,
-                        borderRadius: '9999px',
-                        backgroundColor: '#eff4ff',
-                        color: '#16a34a',
-                        fontWeight: 700,
-                        fontSize: '0.6875rem',
-                        border: '1px solid #dce9ff',
-                      }}
-                    >
-                      {item.badge}
-                    </Box>
-                  )}
-                </ButtonBase>
-              )
-            })}
-          </Box>
+          {isMobile && (
+            <IconButton
+              size="small"
+              onClick={() => setMobileNavOpen(false)}
+              sx={{ color: '#64748b' }}
+            >
+              <CloseRoundedIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          )}
         </Box>
 
-        {/* Bottom Utility Links */}
-        <Box sx={{ pt: 2, borderTop: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-          {/* Switch to Resident Portal */}
-          <ButtonBase
-            onClick={() => navigate('/')}
-            sx={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1.5,
-              px: 1.75,
-              py: 1,
-              borderRadius: '9999px',
-              color: '#3f4944',
-              fontSize: '0.8125rem',
-              fontWeight: 600,
-              '&:hover': {
-                backgroundColor: '#eff4ff',
-                color: '#0b1c30',
-              },
-            }}
-          >
-            <SmartphoneRoundedIcon sx={{ fontSize: 18, color: '#475569' }} />
-            <span style={{ fontFamily: "'Rethink Sans', 'Inter', sans-serif" }}>Resident View (Mobile)</span>
-          </ButtonBase>
+        {/* Navigation Links */}
+        <Box component="nav" sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+          {navItems.map((item) => {
+            const active = isCurrentActive(item.path)
+            const Icon = item.icon
 
-          {/* Log Out */}
-          <ButtonBase
-            onClick={() => setLogoutOpen(true)}
-            sx={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1.5,
-              px: 1.75,
-              py: 1,
-              borderRadius: '9999px',
-              color: '#dc2626',
-              fontSize: '0.8125rem',
-              fontWeight: 600,
-              '&:hover': {
-                backgroundColor: '#fee2e2',
-                color: '#b91c1c',
-              },
-            }}
-          >
-            <LogoutRoundedIcon sx={{ fontSize: 18 }} />
-            <span style={{ fontFamily: "'Rethink Sans', 'Inter', sans-serif" }}>Log out</span>
-          </ButtonBase>
+            return (
+              <ButtonBase
+                key={item.path}
+                onClick={() => {
+                  navigate(item.path)
+                  if (isMobile) setMobileNavOpen(false)
+                }}
+                sx={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  px: 1.75,
+                  py: 1.15,
+                  borderRadius: '9999px',
+                  transition: 'all 0.15s ease',
+                  backgroundColor: active ? '#16a34a' : 'transparent',
+                  color: active ? '#ffffff' : '#3f4944',
+                  fontWeight: active ? 700 : 600,
+                  fontSize: '0.875rem',
+                  boxShadow: active ? '0 2px 8px rgba(22, 163, 74, 0.28)' : 'none',
+                  '&:hover': {
+                    backgroundColor: active ? '#15803d' : '#eff4ff',
+                    color: active ? '#ffffff' : '#0b1c30',
+                  },
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Icon
+                    sx={{
+                      fontSize: 19,
+                      color: active ? '#ffffff' : '#475569',
+                    }}
+                  />
+                  <span style={{ fontFamily: "'Rethink Sans', 'Inter', sans-serif" }}>
+                    {item.label}
+                  </span>
+                </Box>
+                {item.badge && !active && (
+                  <Box
+                    sx={{
+                      px: 1,
+                      py: 0.15,
+                      borderRadius: '9999px',
+                      backgroundColor: '#eff4ff',
+                      color: '#16a34a',
+                      fontWeight: 700,
+                      fontSize: '0.6875rem',
+                      border: '1px solid #dce9ff',
+                    }}
+                  >
+                    {item.badge}
+                  </Box>
+                )}
+              </ButtonBase>
+            )
+          })}
         </Box>
       </Box>
 
-      {/* ── Fixed Top Header (h-16 / 64px) ── */}
+      {/* Bottom Utility Links */}
+      <Box sx={{ pt: 2, borderTop: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+        {/* Switch to Resident Portal */}
+        <ButtonBase
+          onClick={() => {
+            navigate('/')
+            if (isMobile) setMobileNavOpen(false)
+          }}
+          sx={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            px: 1.75,
+            py: 1,
+            borderRadius: '9999px',
+            color: '#3f4944',
+            fontSize: '0.8125rem',
+            fontWeight: 600,
+            '&:hover': {
+              backgroundColor: '#eff4ff',
+              color: '#0b1c30',
+            },
+          }}
+        >
+          <SmartphoneRoundedIcon sx={{ fontSize: 18, color: '#475569' }} />
+          <span style={{ fontFamily: "'Rethink Sans', 'Inter', sans-serif" }}>Resident View (Mobile)</span>
+        </ButtonBase>
+
+        {/* Log Out */}
+        <ButtonBase
+          onClick={() => {
+            setLogoutOpen(true)
+            if (isMobile) setMobileNavOpen(false)
+          }}
+          sx={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            px: 1.75,
+            py: 1,
+            borderRadius: '9999px',
+            color: '#dc2626',
+            fontSize: '0.8125rem',
+            fontWeight: 600,
+            '&:hover': {
+              backgroundColor: '#fee2e2',
+              color: '#b91c1c',
+            },
+          }}
+        >
+          <LogoutRoundedIcon sx={{ fontSize: 18 }} />
+          <span style={{ fontFamily: "'Rethink Sans', 'Inter', sans-serif" }}>Log out</span>
+        </ButtonBase>
+      </Box>
+    </>
+  )
+
+  return (
+    <Box
+      sx={{
+        minHeight: '100vh',
+        backgroundColor: '#f8f9ff',
+        fontFamily: "'Rethink Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+        color: '#0b1c30',
+      }}
+    >
+      {/* ── Desktop Permanent Sidebar (w-64 / 256px, visible lg and up) ── */}
+      <Box
+        component="aside"
+        sx={{
+          display: { xs: 'none', lg: 'flex' },
+          position: 'fixed',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: 256,
+          backgroundColor: '#ffffff',
+          borderRight: '1px solid #e2e8f0',
+          zIndex: 50,
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          py: 3,
+          px: 2,
+          boxShadow: '0 1px 8px rgba(0,0,0,0.04)',
+        }}
+      >
+        {renderSidebarContent(false)}
+      </Box>
+
+      {/* ── Mobile & Tablet Drawer (temporary overlay) ── */}
+      <Drawer
+        anchor="left"
+        open={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+        sx={{
+          display: { xs: 'block', lg: 'none' },
+          '& .MuiDrawer-paper': {
+            width: 280,
+            boxSizing: 'border-box',
+            backgroundColor: '#ffffff',
+            py: 3,
+            px: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            boxShadow: '4px 0 24px rgba(0,0,0,0.15)',
+          },
+        }}
+      >
+        {renderSidebarContent(true)}
+      </Drawer>
+
+      {/* ── Fixed Top Header (h-16 / 64px, adaptive left offset) ── */}
       <Box
         component="header"
         sx={{
           position: 'fixed',
           top: 0,
-          left: 256,
+          left: { xs: 0, lg: 256 },
           right: 0,
           height: 64,
-          backgroundColor: 'rgba(248, 249, 255, 0.85)',
+          backgroundColor: 'rgba(248, 249, 255, 0.92)',
           backdropFilter: 'blur(16px)',
           borderBottom: '1px solid #e2e8f0',
           zIndex: 40,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          px: { xs: 3, md: 4 },
+          px: { xs: 2, sm: 3, md: 4 },
           boxShadow: '0 1px 6px rgba(0,0,0,0.02)',
+          transition: 'left 0.2s ease',
         }}
       >
-        {/* Left Telemetry Pill */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        {/* Left: Hamburger Toggle + Telemetry / Brand Pill */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.25, sm: 2 } }}>
+          <IconButton
+            onClick={() => setMobileNavOpen(true)}
+            sx={{
+              display: { xs: 'inline-flex', lg: 'none' },
+              p: 0.75,
+              borderRadius: '8px',
+              backgroundColor: '#ffffff',
+              border: '1px solid #e2e8f0',
+              color: '#0f172a',
+            }}
+            aria-label="Open navigation menu"
+          >
+            <MenuRoundedIcon sx={{ fontSize: 22 }} />
+          </IconButton>
+
+          {/* Telemetry pill (visible on sm and up) */}
           <Box
             sx={{
-              display: 'flex',
+              display: { xs: 'none', sm: 'flex' },
               alignItems: 'center',
               gap: 1.25,
               px: 1.75,
@@ -363,10 +462,23 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
               Node: <strong style={{ color: '#0f172a' }}>Central-Depot-01</strong> • Status: Online
             </Typography>
           </Box>
+
+          {/* Compact brand text on small mobile screens */}
+          <Typography
+            sx={{
+              display: { xs: 'block', sm: 'none' },
+              fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+              fontWeight: 800,
+              fontSize: '1rem',
+              color: '#0b1c30',
+            }}
+          >
+            EcoByte Admin
+          </Typography>
         </Box>
 
         {/* Right Admin Profile */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Box
             sx={{
               display: 'inline-flex',
@@ -415,21 +527,22 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
         </Box>
       </Box>
 
-      {/* ── Main Content Area ── */}
+      {/* ── Main Content Area (Adaptive left padding) ── */}
       <Box
         component="main"
         sx={{
-          pl: '256px',
+          pl: { xs: 0, lg: '256px' },
           pt: '64px',
           minHeight: '100vh',
           backgroundColor: '#f8f9ff',
+          transition: 'padding-left 0.2s ease',
         }}
       >
         <Box
           sx={{
             maxWidth: 1600,
             mx: 'auto',
-            p: { xs: 3, md: 4 },
+            p: { xs: 2, sm: 3, md: 4 },
           }}
         >
           {children}
@@ -517,7 +630,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
                 </Box>
               </Box>
               <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
-                {staffRoleLabel === 'Admin' ? 'Super Administrator' : 'Barangay Official'} • {staffRoleLabel} Access
+                {isSuperAdmin ? 'Super Administrator' : 'Barangay Official'} • {staffRoleLabel} Access
               </Typography>
             </Box>
           </Box>
@@ -648,7 +761,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
             onClick={() => {
               authApi.logout()
               setLogoutOpen(false)
-              navigate('/signin')
+              navigate('/admin/signin')
             }}
             variant="contained"
             color="error"
