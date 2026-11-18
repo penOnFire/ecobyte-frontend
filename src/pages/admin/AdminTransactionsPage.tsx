@@ -27,6 +27,7 @@ import BatteryChargingFullRoundedIcon from '@mui/icons-material/BatteryChargingF
 import CableRoundedIcon from '@mui/icons-material/CableRounded'
 import KitchenRoundedIcon from '@mui/icons-material/KitchenRounded'
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded'
+import DeleteForeverRoundedIcon from '@mui/icons-material/DeleteForeverRounded'
 import { adminApi, getCachedUser, type AdminTransactionItem } from '@/lib/api'
 
 type TxTab = 'claims' | 'listings' | 'disposals'
@@ -82,6 +83,8 @@ const BARANGAYS = [
   { id: 'holyspirit', name: 'Holy Spirit' },
   { id: 'bagongsilangan', name: 'Bagong Silangan' },
 ]
+
+const TODAY_STR = new Date().toISOString().slice(0, 10)
 
 const INITIAL_CLAIMS: ClaimRecord[] = [
   {
@@ -527,178 +530,311 @@ export const AdminTransactionsPage: FC = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5, pb: 6, fontFamily: "'Quicksand', sans-serif" }}>
-      {/* ── 4 KPI Summary Cards matching Prototype ── */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', xl: 'repeat(4, 1fr)' },
-          gap: 2.5,
-        }}
-      >
-        {/* KPI 1: Transactions */}
+      {/* ── KPI Summary Cards matching Prototype ── */}
+      {isSuperAdmin ? (
         <Box
           sx={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #dbe3d6',
-            borderRadius: '1.25rem',
-            p: 2.5,
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 2,
-            boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', xl: 'repeat(4, 1fr)' },
+            gap: 2.5,
           }}
         >
+          {/* KPI 1: Transactions */}
           <Box
             sx={{
-              width: 44,
-              height: 44,
-              borderRadius: '1rem',
-              backgroundColor: '#f1f5f9',
-              color: '#475569',
+              backgroundColor: '#ffffff',
+              border: '1px solid #dbe3d6',
+              borderRadius: '1.25rem',
+              p: 2.5,
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
+              alignItems: 'flex-start',
+              gap: 2,
+              boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
             }}
           >
-            <ReceiptLongRoundedIcon sx={{ fontSize: 22 }} />
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: '1rem',
+                backgroundColor: '#f1f5f9',
+                color: '#475569',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <ReceiptLongRoundedIcon sx={{ fontSize: 22 }} />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
+                Transactions
+              </Typography>
+              <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
+                {totalClaimsCount}
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
+                All barangays
+              </Typography>
+            </Box>
           </Box>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
-              Transactions
-            </Typography>
-            <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
-              {totalClaimsCount}
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
-              All barangays
-            </Typography>
-          </Box>
-        </Box>
 
-        {/* KPI 2: Reserved */}
-        <Box
-          sx={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #dbe3d6',
-            borderRadius: '1.25rem',
-            p: 2.5,
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 2,
-            boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
-          }}
-        >
+          {/* KPI 2: Reserved */}
           <Box
             sx={{
-              width: 44,
-              height: 44,
-              borderRadius: '1rem',
-              backgroundColor: '#f0f9ff',
-              color: '#0369a1',
+              backgroundColor: '#ffffff',
+              border: '1px solid #dbe3d6',
+              borderRadius: '1.25rem',
+              p: 2.5,
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
+              alignItems: 'flex-start',
+              gap: 2,
+              boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
             }}
           >
-            <ScheduleRoundedIcon sx={{ fontSize: 22 }} />
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: '1rem',
+                backgroundColor: '#f0f9ff',
+                color: '#0369a1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <ScheduleRoundedIcon sx={{ fontSize: 22 }} />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
+                Reserved
+              </Typography>
+              <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
+                {reservedCount}
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
+                Awaiting pick-up
+              </Typography>
+            </Box>
           </Box>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
-              Reserved
-            </Typography>
-            <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
-              {reservedCount}
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
-              Awaiting pick-up
-            </Typography>
-          </Box>
-        </Box>
 
-        {/* KPI 3: Picked up */}
-        <Box
-          sx={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #dbe3d6',
-            borderRadius: '1.25rem',
-            p: 2.5,
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 2,
-            boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
-          }}
-        >
+          {/* KPI 3: Picked up */}
           <Box
             sx={{
-              width: 44,
-              height: 44,
-              borderRadius: '1rem',
-              backgroundColor: '#f1f4f0',
-              color: '#2e6022',
+              backgroundColor: '#ffffff',
+              border: '1px solid #dbe3d6',
+              borderRadius: '1.25rem',
+              p: 2.5,
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
+              alignItems: 'flex-start',
+              gap: 2,
+              boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
             }}
           >
-            <HandshakeRoundedIcon sx={{ fontSize: 22 }} />
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: '1rem',
+                backgroundColor: '#f1f4f0',
+                color: '#2e6022',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <HandshakeRoundedIcon sx={{ fontSize: 22 }} />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
+                Picked Up
+              </Typography>
+              <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
+                {pickedUpCount}
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
+                Verified by officials
+              </Typography>
+            </Box>
           </Box>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
-              Picked Up
-            </Typography>
-            <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
-              {pickedUpCount}
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
-              Verified by officials
-            </Typography>
-          </Box>
-        </Box>
 
-        {/* KPI 4: Expired */}
-        <Box
-          sx={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #dbe3d6',
-            borderRadius: '1.25rem',
-            p: 2.5,
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 2,
-            boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
-          }}
-        >
+          {/* KPI 4: Expired */}
           <Box
             sx={{
-              width: 44,
-              height: 44,
-              borderRadius: '1rem',
-              backgroundColor: '#fff1f2',
-              color: '#be123c',
+              backgroundColor: '#ffffff',
+              border: '1px solid #dbe3d6',
+              borderRadius: '1.25rem',
+              p: 2.5,
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
+              alignItems: 'flex-start',
+              gap: 2,
+              boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
             }}
           >
-            <TimerOffRoundedIcon sx={{ fontSize: 22 }} />
-          </Box>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
-              Expired
-            </Typography>
-            <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
-              {expiredCount}
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
-              Unclaimed reservations
-            </Typography>
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: '1rem',
+                backgroundColor: '#fff1f2',
+                color: '#be123c',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <TimerOffRoundedIcon sx={{ fontSize: 22 }} />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
+                Expired
+              </Typography>
+              <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
+                {expiredCount}
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
+                Unclaimed reservations
+              </Typography>
+            </Box>
           </Box>
         </Box>
-      </Box>
+      ) : (
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+            gap: 2.5,
+          }}
+        >
+          {/* KPI 1: Awaiting pick-up (Sky) */}
+          <Box
+            sx={{
+              backgroundColor: '#ffffff',
+              border: '1px solid #dbe3d6',
+              borderRadius: '1.25rem',
+              p: 2.5,
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 2,
+              boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
+            }}
+          >
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: '1rem',
+                backgroundColor: '#f0f9ff',
+                color: '#0369a1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <ScheduleRoundedIcon sx={{ fontSize: 22 }} />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
+                Awaiting pick-up
+              </Typography>
+              <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
+                {reservedCount}
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
+                {claims.filter((c) => c.status === 'Reserved' && c.pickupDate === TODAY_STR).length} scheduled today
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* KPI 2: Picked up (Leaf) */}
+          <Box
+            sx={{
+              backgroundColor: '#ffffff',
+              border: '1px solid #dbe3d6',
+              borderRadius: '1.25rem',
+              p: 2.5,
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 2,
+              boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
+            }}
+          >
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: '1rem',
+                backgroundColor: '#f1f4f0',
+                color: '#2e6022',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <HandshakeRoundedIcon sx={{ fontSize: 22 }} />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
+                Picked Up
+              </Typography>
+              <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
+                {pickedUpCount}
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
+                Verified with pick-up code
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* KPI 3: Disposal records (Amber) */}
+          <Box
+            sx={{
+              backgroundColor: '#ffffff',
+              border: '1px solid #dbe3d6',
+              borderRadius: '1.25rem',
+              p: 2.5,
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 2,
+              boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
+            }}
+          >
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: '1rem',
+                backgroundColor: '#fef3c7',
+                color: '#d97706',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <DeleteForeverRoundedIcon sx={{ fontSize: 22 }} />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
+                Disposal records
+              </Typography>
+              <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
+                {disposals.length}
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
+                ≈ {disposals.reduce((a, d) => a + d.kg, 0).toFixed(1)} kg
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      )}
 
       {/* ── Main Transactions Card with 3 Tabs and Filters ── */}
       <Box

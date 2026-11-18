@@ -148,37 +148,39 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
 
   const getHeaderMeta = () => {
     if (path.startsWith('/admin/reports')) {
-      return { title: 'Reports & Data', subtitle: 'City-wide e-waste trends, diversion rates, and barangay performance' }
+      return { title: 'Reports & Data', subtitle: 'Totals, e-waste types, slot usage, and Reuse Hub metrics' }
     }
     if (path.startsWith('/admin/transactions')) {
       return {
         title: isSuperAdmin ? 'Overall Transactions' : 'Transactions',
-        subtitle: 'Complete audit log of pick-ups, reuse claims, and disposals',
+        subtitle: isSuperAdmin
+          ? 'Reuse Hub reservations across all barangays'
+          : 'Reuse Hub pick-ups, listings, and disposal records',
       }
     }
     if (path.startsWith('/admin/access')) {
       return {
         title: 'Manage Users',
-        subtitle: 'Directory and access control for system administrators, officials, and residents',
+        subtitle: 'Create official accounts, change roles, deactivate or reactivate',
       }
     }
     if (path.startsWith('/admin/activity-logs')) {
       return {
-        title: 'System Activity Logs',
-        subtitle: 'Immutable audit trail of all staff, resident, and automated system actions',
+        title: 'Activity Logs',
+        subtitle: 'Filter by user, action, and barangay',
       }
     }
     if (path.startsWith('/admin/incoming')) {
-      return { title: 'Incoming Drop-Offs', subtitle: 'Scheduled drop-offs from residents at your assigned facility' }
+      return { title: 'Incoming Drop-Offs', subtitle: 'Mark scheduled drop-offs as Received or Missed' }
     }
-    if (path.startsWith('/admin/to-inspect')) {
-      return { title: 'Inspection Queue', subtitle: 'Physical intake verification, component grading, and safety triage' }
+    if (path.startsWith('/admin/to-inspect') || path.startsWith('/admin/inspect')) {
+      return { title: 'Inspection Queue', subtitle: 'Physically inspect devices — oldest first' }
     }
     return {
-      title: isSuperAdmin ? 'All-Barangay Overview' : 'Barangay Overview',
+      title: isSuperAdmin ? 'All-Barangay Overview' : 'Dashboard',
       subtitle: isSuperAdmin
-        ? 'City-wide metrics across all 5 covered barangays'
-        : 'Local drop-off intake, inspections, and reuse hub statistics',
+        ? 'System-wide monitoring · view-only'
+        : 'Own barangay metrics · read-only',
     }
   }
 
