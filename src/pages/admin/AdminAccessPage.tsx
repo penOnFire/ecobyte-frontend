@@ -1,5 +1,5 @@
 import { useEffect, useState, type FC } from 'react'
-import { Box, ButtonBase, Typography } from '@mui/material'
+import { Box, ButtonBase, Drawer, Typography } from '@mui/material'
 import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded'
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
 import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded'
@@ -28,6 +28,7 @@ export const AdminAccessPage: FC = () => {
   const [search, setSearch] = useState('')
   const [filterRole, setFilterRole] = useState<AccessRoleFilter>('all')
   const [isSaving, setIsSaving] = useState(false)
+  const [isEnrollmentDrawerOpen, setIsEnrollmentDrawerOpen] = useState(false)
 
   // Form Fields State
   const [formFirstName, setFormFirstName] = useState('')
@@ -115,6 +116,12 @@ export const AdminAccessPage: FC = () => {
     setFormConfirmPassword('')
     setValidationErrors({})
     setFeedbackBanner(null)
+    setIsEnrollmentDrawerOpen(true)
+  }
+
+  const handleOpenAddUser = () => {
+    resetFormFields(true)
+    setIsEnrollmentDrawerOpen(true)
   }
 
   const handleGeneratePassword = () => {
@@ -694,15 +701,8 @@ export const AdminAccessPage: FC = () => {
         </Box>
       )}
 
-      {/* Primary Workspace: Two-Panel Grid */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', lg: '7fr 6fr' },
-          gap: 3,
-          alignItems: 'start',
-        }}
-      >
+      {/* Primary Workspace: Full Width Access Directory */}
+      <Box sx={{ width: '100%' }}>
         <AdminAccessDirectoryPanel
           users={users}
           filteredUsers={filteredUsers}
@@ -712,8 +712,31 @@ export const AdminAccessPage: FC = () => {
           onSearchChange={setSearch}
           onFilterRoleChange={setFilterRole}
           onSelectUser={handleSelectUser}
+          onAddUser={handleOpenAddUser}
         />
+      </Box>
 
+      {/* Credential Enrollment / Identity Modification Drawer (Slides from Right) */}
+      <Drawer
+        anchor="right"
+        open={isEnrollmentDrawerOpen}
+        onClose={() => {
+          setIsEnrollmentDrawerOpen(false)
+          setSelectedUser(null)
+        }}
+        slotProps={{
+          paper: {
+            sx: {
+              width: { xs: '100%', sm: 540, md: 620 },
+              maxWidth: '100vw',
+              p: { xs: 1.5, sm: 2.5 },
+              backgroundColor: '#f8fafc',
+              boxShadow: '-8px 0 32px rgba(15, 23, 42, 0.15)',
+              borderLeft: '1px solid #e2e8f0',
+            },
+          },
+        }}
+      >
         <AdminAccessEditorPanel
           selectedUser={selectedUser}
           isSaving={isSaving}
@@ -735,6 +758,10 @@ export const AdminAccessPage: FC = () => {
           showConfirmPassword={showConfirmPassword}
           formNotes={formNotes}
           validationErrors={validationErrors}
+          onClose={() => {
+            setIsEnrollmentDrawerOpen(false)
+            setSelectedUser(null)
+          }}
           onResetForm={() => resetFormFields(true)}
           onFirstNameChange={(val) => {
             setFormFirstName(val)
@@ -785,11 +812,20 @@ export const AdminAccessPage: FC = () => {
           onMustChangePasswordChange={setFormMustChangePassword}
           onTwoFactorChange={setFormTwoFactor}
           onNotesChange={setFormNotes}
-          onSave={handleSave}
-          onDeactivate={handleDeactivate}
-          onReactivate={handleReactivate}
+          onSave={async () => {
+            await handleSave()
+            setIsEnrollmentDrawerOpen(false)
+          }}
+          onDeactivate={async () => {
+            await handleDeactivate()
+            setIsEnrollmentDrawerOpen(false)
+          }}
+          onReactivate={async () => {
+            await handleReactivate()
+            setIsEnrollmentDrawerOpen(false)
+          }}
         />
-      </Box>
+      </Drawer>
     </Box>
   )
 }

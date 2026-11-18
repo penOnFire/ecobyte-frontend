@@ -1,9 +1,10 @@
 import type { FC } from 'react'
-import { Box, ButtonBase, Typography } from '@mui/material'
+import { Box, Button, ButtonBase, Typography } from '@mui/material'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded'
 import PolicyOutlinedIcon from '@mui/icons-material/PolicyOutlined'
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined'
+import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded'
 import type { OfficialUser } from '@/components/admin/adminAccessData'
 
 export type AccessRoleFilter = 'all' | 'admin' | 'official' | 'deactivated'
@@ -17,6 +18,7 @@ interface AdminAccessDirectoryPanelProps {
   onSearchChange: (value: string) => void
   onFilterRoleChange: (filter: AccessRoleFilter) => void
   onSelectUser: (user: OfficialUser) => void
+  onAddUser?: () => void
 }
 
 export const AdminAccessDirectoryPanel: FC<AdminAccessDirectoryPanelProps> = ({
@@ -28,6 +30,7 @@ export const AdminAccessDirectoryPanel: FC<AdminAccessDirectoryPanelProps> = ({
   onSearchChange,
   onFilterRoleChange,
   onSelectUser,
+  onAddUser,
 }) => {
   const handleExportDirectory = () => {
     const dataStr =
@@ -64,6 +67,8 @@ export const AdminAccessDirectoryPanel: FC<AdminAccessDirectoryPanelProps> = ({
           justifyContent: 'space-between',
           pb: 1.5,
           borderBottom: '1px solid #e2e8f0',
+          flexWrap: 'wrap',
+          gap: 1.5,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -72,9 +77,36 @@ export const AdminAccessDirectoryPanel: FC<AdminAccessDirectoryPanelProps> = ({
             Access Directory
           </Typography>
         </Box>
-        <Typography sx={{ fontSize: '0.6875rem', fontFamily: 'monospace', color: '#64748b' }}>
-          {users.length} IDENTITIES REGISTERED
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Typography sx={{ fontSize: '0.6875rem', fontFamily: 'monospace', color: '#64748b' }}>
+            {users.length} IDENTITIES REGISTERED
+          </Typography>
+          {onAddUser && (
+            <Button
+              variant="contained"
+              size="small"
+              onClick={onAddUser}
+              startIcon={<PersonAddRoundedIcon sx={{ fontSize: 18 }} />}
+              sx={{
+                backgroundColor: '#16a34a',
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: '0.8125rem',
+                textTransform: 'none',
+                borderRadius: '8px',
+                px: 2,
+                py: 0.7,
+                boxShadow: '0 2px 6px rgba(22, 163, 74, 0.25)',
+                '&:hover': {
+                  backgroundColor: '#15803d',
+                  boxShadow: '0 4px 10px rgba(22, 163, 74, 0.35)',
+                },
+              }}
+            >
+              Add User
+            </Button>
+          )}
+        </Box>
       </Box>
 
       {/* Search Input */}
@@ -170,16 +202,18 @@ export const AdminAccessDirectoryPanel: FC<AdminAccessDirectoryPanelProps> = ({
                 color: '#475569',
               }}
             >
-              <th style={{ padding: '10px 14px' }}>User &amp; Credential</th>
-              <th style={{ padding: '10px 14px', textAlign: 'right' }}>Role &amp; Status</th>
+              <th style={{ padding: '12px 16px' }}>User &amp; Credential</th>
+              <th style={{ padding: '12px 16px' }}>Badge &amp; Contact</th>
+              <th style={{ padding: '12px 16px' }}>Facility / Unit</th>
+              <th style={{ padding: '12px 16px', textAlign: 'right' }}>Role &amp; Status</th>
             </tr>
           </thead>
           <tbody style={{ fontSize: '0.8125rem', color: '#0f172a' }}>
             {filteredUsers.length === 0 ? (
               <tr>
                 <td
-                  colSpan={2}
-                  style={{ padding: '24px 16px', textAlign: 'center', color: '#64748b' }}
+                  colSpan={4}
+                  style={{ padding: '32px 16px', textAlign: 'center', color: '#64748b' }}
                 >
                   No officials match your search query.
                 </td>
@@ -210,7 +244,7 @@ export const AdminAccessDirectoryPanel: FC<AdminAccessDirectoryPanelProps> = ({
                       transition: 'background-color 0.15s ease',
                     }}
                   >
-                    <td style={{ padding: '12px 14px' }}>
+                    <td style={{ padding: '12px 16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div
                           style={{
@@ -284,30 +318,31 @@ export const AdminAccessDirectoryPanel: FC<AdminAccessDirectoryPanelProps> = ({
                             )}
                           </div>
                           <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>
-                            {user.email} •{' '}
-                            <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>
-                              {user.idCode}
-                            </span>
-                          </div>
-                          <div
-                            style={{
-                              fontSize: '0.6875rem',
-                              color: '#94a3b8',
-                              marginTop: 2,
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 6,
-                            }}
-                          >
-                            <span>{user.phone}</span>
-                            <span>•</span>
-                            <span style={{ color: '#475569' }}>{user.department}</span>
+                            {user.email}
                           </div>
                         </div>
                       </div>
                     </td>
 
-                    <td style={{ padding: '12px 14px', textAlign: 'right', verticalAlign: 'top' }}>
+                    <td style={{ padding: '12px 16px' }}>
+                      <div style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f172a', fontSize: '0.8125rem' }}>
+                        {user.idCode}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>
+                        {user.phone}
+                      </div>
+                    </td>
+
+                    <td style={{ padding: '12px 16px' }}>
+                      <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#334155' }}>
+                        {user.department}
+                      </div>
+                      <div style={{ fontSize: '0.6875rem', color: '#94a3b8', marginTop: 2 }}>
+                        Commonwealth Hub
+                      </div>
+                    </td>
+
+                    <td style={{ padding: '12px 16px', textAlign: 'right', verticalAlign: 'middle' }}>
                       <span
                         style={{
                           display: 'inline-block',
