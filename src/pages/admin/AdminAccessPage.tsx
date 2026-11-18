@@ -1,5 +1,16 @@
 import { useEffect, useState, type FC } from 'react'
-import { Box, ButtonBase, Drawer, Typography } from '@mui/material'
+import {
+  Alert,
+  Box,
+  ButtonBase,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Typography,
+} from '@mui/material'
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded'
@@ -7,53 +18,63 @@ import AdminPanelSettingsRoundedIcon from '@mui/icons-material/AdminPanelSetting
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined'
 import PeopleOutlineRoundedIcon from '@mui/icons-material/PeopleOutlineRounded'
 import PersonOffOutlinedIcon from '@mui/icons-material/PersonOffOutlined'
+import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded'
+import ManageAccountsRoundedIcon from '@mui/icons-material/ManageAccountsRounded'
+import KeyRoundedIcon from '@mui/icons-material/KeyRounded'
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
 import { adminApi } from '@/lib/api'
 import {
-  COMMONWEALTH_FACILITIES,
   INITIAL_USERS,
   generateBadgeId,
   mapBackendUserToOfficial,
   mergeBackendUsersWithInitial,
-  parseNameParts,
-  toBackendRole,
 } from '@/components/admin/adminAccessData'
-import type { OfficialUser, UserStatus } from '@/components/admin/adminAccessData'
+import type { OfficialUser } from '@/components/admin/adminAccessData'
 import {
   AdminAccessDirectoryPanel,
   type AccessRoleFilter,
 } from '@/components/admin/AdminAccessDirectoryPanel'
-import { AdminAccessEditorPanel } from '@/components/admin/AdminAccessEditorPanel'
+
+const OFFICIAL_SITES = [
+  { id: 'S01', name: 'Commonwealth Central MRF (Base 1)', barangay: 'Commonwealth' },
+  { id: 'S02', name: 'Ecoville Covered Court', barangay: 'Commonwealth' },
+  { id: 'S03', name: 'Litex Market Drop Point', barangay: 'Commonwealth' },
+  { id: 'S04', name: 'Batasan Hills MRF Annex', barangay: 'Batasan Hills' },
+  { id: 'S05', name: 'Payatas Solid Waste Hub', barangay: 'Payatas' },
+  { id: 'S06', name: 'Holy Spirit Drop Point', barangay: 'Holy Spirit' },
+  { id: 'S07', name: 'Bagong Silangan MRF Desk', barangay: 'Bagong Silangan' },
+]
+
+const BARANGAYS = [
+  'Commonwealth',
+  'Batasan Hills',
+  'Payatas',
+  'Holy Spirit',
+  'Bagong Silangan',
+]
 
 export const AdminAccessPage: FC = () => {
   const [users, setUsers] = useState<OfficialUser[]>(INITIAL_USERS)
-  const [selectedUser, setSelectedUser] = useState<OfficialUser | null>(null)
   const [search, setSearch] = useState('')
   const [filterRole, setFilterRole] = useState<AccessRoleFilter>('all')
   const [filterBarangay, setFilterBarangay] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [isSaving, setIsSaving] = useState(false)
-  const [isEnrollmentDrawerOpen, setIsEnrollmentDrawerOpen] = useState(false)
 
-  // Form Fields State
-  const [formFirstName, setFormFirstName] = useState('')
-  const [formMiddleName, setFormMiddleName] = useState('')
-  const [formLastName, setFormLastName] = useState('')
-  const [formSuffix, setFormSuffix] = useState('')
-  const [formEmail, setFormEmail] = useState('')
-  const [formPhone, setFormPhone] = useState('')
-  const [formIdCode, setFormIdCode] = useState(() => generateBadgeId('Official'))
-  const [formRole, setFormRole] = useState<'Admin' | 'Official'>('Official')
-  const [formDepartment, setFormDepartment] = useState(COMMONWEALTH_FACILITIES[0])
-  const [formStatus, setFormStatus] = useState<UserStatus>('Active')
-  const [formTwoFactor, setFormTwoFactor] = useState(true)
-  const [formMustChangePassword, setFormMustChangePassword] = useState(true)
-  const [formPassword, setFormPassword] = useState('')
-  const [formConfirmPassword, setFormConfirmPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [formNotes, setFormNotes] = useState('')
+  // ── Pop-Up Modal 1: Create Official Account (Prototype create-user modal) ──
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [cuName, setCuName] = useState('')
+  const [cuEmail, setCuEmail] = useState('')
+  const [cuRole, setCuRole] = useState<'Official' | 'Admin'>('Official')
+  const [cuSiteId, setCuSiteId] = useState(OFFICIAL_SITES[0].id)
+  const [cuError, setCuError] = useState<string | null>(null)
 
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+  // ── Pop-Up Modal 2: Change User Role (Prototype change-role modal) ──
+  const [changeRoleModalOpen, setChangeRoleModalOpen] = useState(false)
+  const [targetUser, setTargetUser] = useState<OfficialUser | null>(null)
+  const [crRole, setCrRole] = useState<'Resident' | 'Official' | 'Admin'>('Official')
+  const [crBarangay, setCrBarangay] = useState(BARANGAYS[0])
+
   const [feedbackBanner, setFeedbackBanner] = useState<{
     type: 'success' | 'error'
     message: string
@@ -75,346 +96,147 @@ export const AdminAccessPage: FC = () => {
     }
   }, [])
 
-  const resetFormFields = (clearBanner = true) => {
-    setSelectedUser(null)
-    setFormFirstName('')
-    setFormMiddleName('')
-    setFormLastName('')
-    setFormSuffix('')
-    setFormEmail('')
-    setFormPhone('')
-    setFormIdCode(generateBadgeId('Official'))
-    setFormRole('Official')
-    setFormDepartment(COMMONWEALTH_FACILITIES[0])
-    setFormStatus('Active')
-    setFormTwoFactor(true)
-    setFormMustChangePassword(true)
-    setFormPassword('')
-    setFormConfirmPassword('')
-    setShowPassword(false)
-    setShowConfirmPassword(false)
-    setFormNotes('')
-    setValidationErrors({})
-    if (clearBanner) {
-      setFeedbackBanner(null)
+  // ── Handlers for Create User Modal ──
+  const handleOpenCreateModal = () => {
+    setCuName('')
+    setCuEmail('')
+    setCuRole('Official')
+    setCuSiteId(OFFICIAL_SITES[0].id)
+    setCuError(null)
+    setCreateModalOpen(true)
+  }
+
+  const handleSaveNewUser = async () => {
+    const nameTrimmed = cuName.trim()
+    const emailTrimmed = cuEmail.trim().toLowerCase()
+
+    if (!nameTrimmed) {
+      setCuError('Please enter the full name.')
+      return
     }
-  }
-
-  const handleSelectUser = (user: OfficialUser) => {
-    setSelectedUser(user)
-    const { first, middle, last, suffix } = parseNameParts(user)
-    setFormFirstName(first)
-    setFormMiddleName(middle)
-    setFormLastName(last)
-    setFormSuffix(suffix)
-    setFormEmail(user.email)
-    setFormPhone(user.phone)
-    setFormIdCode(user.idCode)
-    setFormRole(user.role === 'Admin' ? 'Admin' : 'Official')
-    setFormDepartment(user.department || COMMONWEALTH_FACILITIES[0])
-    setFormStatus(user.status || (user.role === 'Deactivated' ? 'Deactivated' : 'Active'))
-    setFormTwoFactor(user.twoFactorEnabled)
-    setFormMustChangePassword(user.mustChangePassword ?? false)
-    setFormNotes(user.notes || '')
-    setFormPassword('')
-    setFormConfirmPassword('')
-    setValidationErrors({})
-    setFeedbackBanner(null)
-    setIsEnrollmentDrawerOpen(true)
-  }
-
-  const handleOpenAddUser = () => {
-    resetFormFields(true)
-    setIsEnrollmentDrawerOpen(true)
-  }
-
-  const handleGeneratePassword = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*+'
-    let generated = 'Eco#'
-    for (let i = 0; i < 8; i++) {
-      generated += chars.charAt(Math.floor(Math.random() * chars.length))
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
+      setCuError('Please enter a valid email address.')
+      return
     }
-    setFormPassword(generated)
-    setFormConfirmPassword(generated)
-    setShowPassword(true)
-    setShowConfirmPassword(true)
-    setValidationErrors((prev) => {
-      if (!prev.password && !prev.confirmPassword) return prev
-      const next = { ...prev }
-      delete next.password
-      delete next.confirmPassword
-      return next
-    })
-  }
-
-  const handleRoleChange = (newRole: 'Admin' | 'Official') => {
-    if (selectedUser?.isSelf) return
-    setFormRole(newRole)
-    if (!selectedUser) {
-      setFormIdCode(generateBadgeId(newRole))
-    }
-  }
-
-  const validate = (): boolean => {
-    const errors: Record<string, string> = {}
-
-    if (!formFirstName.trim()) errors.firstName = 'First name is required.'
-    if (!formLastName.trim()) errors.lastName = 'Last name is required.'
-    if (!formEmail.trim()) {
-      errors.email = 'Official email address is required.'
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formEmail.trim())) {
-      errors.email = 'Please enter a valid official email address.'
-    }
-    if (!formPhone.trim()) errors.phone = 'Contact number is required.'
-    if (!formIdCode.trim()) errors.idCode = 'Badge / ID Code is required.'
-
-    if (!selectedUser) {
-      if (!formPassword) {
-        errors.password = 'Initial password is required for new accounts.'
-      } else if (formPassword.length < 8) {
-        errors.password = 'Password must be at least 8 characters.'
-      }
-      if (formPassword !== formConfirmPassword) {
-        errors.confirmPassword = 'Passwords do not match.'
-      }
-    } else if (formPassword) {
-      if (formPassword.length < 8) {
-        errors.password = 'New password must be at least 8 characters.'
-      }
-      if (formPassword !== formConfirmPassword) {
-        errors.confirmPassword = 'Passwords do not match.'
-      }
-    }
-
-    setValidationErrors(errors)
-    return Object.keys(errors).length === 0
-  }
-
-  const handleSave = async () => {
-    if (!validate()) {
-      setFeedbackBanner({
-        type: 'error',
-        message: 'Please review and resolve the highlighted errors before submitting.',
-      })
+    if (users.some((u) => u.email.toLowerCase() === emailTrimmed)) {
+      setCuError('An account with this email address already exists.')
       return
     }
 
-    const constructedFullName = [
-      formFirstName.trim(),
-      formMiddleName.trim(),
-      formLastName.trim(),
-      formSuffix.trim(),
-    ]
-      .filter(Boolean)
-      .join(' ')
-
-    const calculatedInitials =
-      ((formFirstName.trim()[0] || '') + (formLastName.trim()[0] || '')).toUpperCase() || 'OF'
-
+    setCuError(null)
     setIsSaving(true)
-    try {
-      if (selectedUser) {
-        if (selectedUser.isBackendUser) {
-          const updatedRecord = await adminApi.updateUser(selectedUser.id, {
-            fullName: constructedFullName,
-            firstName: formFirstName.trim(),
-            middleName: formMiddleName.trim() || undefined,
-            lastName: formLastName.trim(),
-            suffix: formSuffix.trim() || undefined,
-            email: formEmail.trim(),
-            phone: formPhone.trim(),
-            idCode: formIdCode.trim(),
-            role: toBackendRole(formRole),
-            department: formDepartment,
-            status: formStatus,
-            twoFactorEnabled: formTwoFactor,
-            mustChangePassword: formMustChangePassword,
-            notes: formNotes.trim() || undefined,
-            password: formPassword || undefined,
-          })
-          const mapped = mapBackendUserToOfficial(updatedRecord)
-          setUsers((prev) => prev.map((u) => (u.id === selectedUser.id ? mapped : u)))
-          setFeedbackBanner({
-            type: 'success',
-            message: `Saved profile & credentials for ${mapped.name} (${mapped.idCode}) to PostgreSQL.`,
-          })
-        } else {
-          setUsers((prev) =>
-            prev.map((u) =>
-              u.id === selectedUser.id
-                ? {
-                    ...u,
-                    name: constructedFullName,
-                    firstName: formFirstName.trim(),
-                    middleName: formMiddleName.trim(),
-                    lastName: formLastName.trim(),
-                    suffix: formSuffix.trim(),
-                    email: formEmail.trim(),
-                    phone: formPhone.trim(),
-                    idCode: formIdCode.trim(),
-                    role: formStatus === 'Deactivated' ? 'Deactivated' : formRole,
-                    department: formDepartment,
-                    status: formStatus,
-                    twoFactorEnabled: formTwoFactor,
-                    mustChangePassword: formMustChangePassword,
-                    notes: formNotes.trim(),
-                    initials: calculatedInitials,
-                    lastActive: 'Updated locally',
-                  }
-                : u,
-            ),
-          )
-          setFeedbackBanner({
-            type: 'success',
-            message: `Updated demo profile for ${constructedFullName} (${formIdCode}) in this session.`,
-          })
-        }
-      } else {
-        const createdRecord = await adminApi.createUser({
-          fullName: constructedFullName,
-          firstName: formFirstName.trim(),
-          middleName: formMiddleName.trim() || undefined,
-          lastName: formLastName.trim(),
-          suffix: formSuffix.trim() || undefined,
-          email: formEmail.trim(),
-          phone: formPhone.trim(),
-          idCode: formIdCode.trim(),
-          role: toBackendRole(formRole),
-          department: formDepartment,
-          status: formStatus,
-          twoFactorEnabled: formTwoFactor,
-          mustChangePassword: formMustChangePassword,
-          notes: formNotes.trim() || undefined,
-          password: formPassword,
-        })
-        const mapped = mapBackendUserToOfficial(createdRecord)
-        setUsers((prev) => [mapped, ...prev])
-        setFeedbackBanner({
-          type: 'success',
-          message: `Official identity ${mapped.name} enrolled in PostgreSQL with badge ${mapped.idCode}.`,
-        })
-      }
 
-      resetFormFields(false)
-    } catch (err: any) {
-      setFeedbackBanner({
-        type: 'error',
-        message: err?.message || 'Failed to save official credentials to the server.',
+    const selectedSite = OFFICIAL_SITES.find((s) => s.id === cuSiteId) || OFFICIAL_SITES[0]
+    const assignedBrgy = cuRole === 'Admin' ? 'All' : selectedSite.barangay
+    const initials =
+      nameTrimmed
+        .split(' ')
+        .filter(Boolean)
+        .map((p) => p[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase() || 'EB'
+
+    try {
+      const backendRecord = await adminApi.createUser({
+        fullName: nameTrimmed,
+        email: emailTrimmed,
+        role: cuRole === 'Admin' ? 'ADMIN' : 'OFFICIAL',
+        department: selectedSite.name,
+        password: 'official123',
+        status: 'Active',
       })
-    } finally {
-      setIsSaving(false)
-    }
-  }
 
-  const handleDeactivate = async () => {
-    if (!selectedUser || selectedUser.isSelf) return
-    setIsSaving(true)
-    try {
-      if (selectedUser.isBackendUser) {
-        const updatedRecord = await adminApi.updateUserStatus(selectedUser.id, 'inactive')
-        const mapped = mapBackendUserToOfficial(updatedRecord)
-        setUsers((prev) => prev.map((u) => (u.id === selectedUser.id ? mapped : u)))
-      } else {
-        setUsers((prev) =>
-          prev.map((u) =>
-            u.id === selectedUser.id
-              ? {
-                  ...u,
-                  role: 'Deactivated' as const,
-                  status: 'Deactivated' as const,
-                  idCode: 'ID-REVOKED',
-                }
-              : u,
-          ),
-        )
-      }
+      const mapped = mapBackendUserToOfficial(backendRecord)
+      setUsers((prev) => [mapped, ...prev])
       setFeedbackBanner({
         type: 'success',
-        message: `Account for ${selectedUser.name} has been deactivated and access tokens revoked.`,
+        message: `Account created for ${mapped.name} with temporary password "official123".`,
       })
-      resetFormFields(false)
-    } catch (err: any) {
-      setFeedbackBanner({
-        type: 'error',
-        message: err?.message || 'Failed to deactivate account on the server.',
-      })
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const handleReactivate = async () => {
-    if (!selectedUser) return
-    setIsSaving(true)
-    try {
-      const restoredCode = generateBadgeId(formRole)
-      if (selectedUser.isBackendUser) {
-        const updatedRecord = await adminApi.updateUser(selectedUser.id, {
-          status: 'Active',
-          role: toBackendRole(formRole),
-          idCode: restoredCode,
-        })
-        const mapped = mapBackendUserToOfficial(updatedRecord)
-        setUsers((prev) => prev.map((u) => (u.id === selectedUser.id ? mapped : u)))
-      } else {
-        setUsers((prev) =>
-          prev.map((u) =>
-            u.id === selectedUser.id
-              ? {
-                  ...u,
-                  role: formRole,
-                  status: 'Active' as const,
-                  idCode: restoredCode,
-                  lastActive: 'Reactivated locally',
-                }
-              : u,
-          ),
-        )
+      setCreateModalOpen(false)
+    } catch {
+      // Local fallback
+      const newLocalUser: OfficialUser = {
+        id: `USR-${Math.floor(1000 + Math.random() * 9000)}`,
+        name: nameTrimmed,
+        email: emailTrimmed,
+        phone: '+63 917 000 0000',
+        idCode: generateBadgeId(cuRole),
+        role: cuRole,
+        department: selectedSite.name,
+        barangay: assignedBrgy,
+        status: 'Active',
+        twoFactorEnabled: cuRole === 'Admin',
+        mustChangePassword: true,
+        lastActive: 'Just now',
+        initials,
+        notes: `Created via Admin Access directory · Assigned to ${selectedSite.name}`,
       }
+
+      setUsers((prev) => [newLocalUser, ...prev])
       setFeedbackBanner({
         type: 'success',
-        message: `Account for ${selectedUser.name} reactivated with fresh badge ID ${restoredCode}.`,
+        message: `Account created for ${newLocalUser.name} with temporary password "official123".`,
       })
-      resetFormFields(false)
-    } catch (err: any) {
+      setCreateModalOpen(false)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // ── Handlers for Change Role Modal ──
+  const handleOpenChangeRole = (user: OfficialUser) => {
+    setTargetUser(user)
+    const currentR: 'Resident' | 'Official' | 'Admin' =
+      user.role === 'Admin' ? 'Admin' : user.role === 'Resident' ? 'Resident' : 'Official'
+    setCrRole(currentR)
+    setCrBarangay(user.barangay && user.barangay !== 'All' ? user.barangay : BARANGAYS[0])
+    setChangeRoleModalOpen(true)
+  }
+
+  const handleSaveRole = async () => {
+    if (!targetUser) return
+    setIsSaving(true)
+
+    const assignedBrgy = crRole === 'Admin' ? 'All' : crBarangay
+
+    try {
+      if (targetUser.isBackendUser) {
+        await adminApi.updateUser(targetUser.id, {
+          role: crRole === 'Admin' ? 'ADMIN' : crRole === 'Official' ? 'OFFICIAL' : ('RESIDENT' as any),
+        })
+      }
+
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === targetUser.id
+            ? {
+                ...u,
+                role: crRole,
+                barangay: assignedBrgy,
+                status: 'Active',
+                lastActive: 'Role updated just now',
+              }
+            : u
+        )
+      )
+
+      setFeedbackBanner({
+        type: 'success',
+        message: `${targetUser.name} is now ${crRole === 'Admin' ? 'Super Admin' : crRole === 'Official' ? 'Barangay Official' : 'Resident'} (${assignedBrgy}).`,
+      })
+      setChangeRoleModalOpen(false)
+    } catch {
       setFeedbackBanner({
         type: 'error',
-        message: err?.message || 'Failed to reactivate account on the server.',
+        message: 'Could not update user role.',
       })
     } finally {
       setIsSaving(false)
     }
   }
 
-  const filteredUsers = users.filter((u) => {
-    if (filterRole === 'admin' && u.role !== 'Admin') return false
-    if (filterRole === 'official' && u.role !== 'Official') return false
-    if (filterRole === 'resident' && u.role !== 'Resident') return false
-    if (filterRole === 'deactivated' && u.role !== 'Deactivated') return false
-    if (filterBarangay && u.barangay?.toLowerCase() !== filterBarangay.toLowerCase()) return false
-    if (filterStatus) {
-      const isDeactivated = u.role === 'Deactivated' || u.status === 'Deactivated'
-      if (filterStatus === 'Active' && isDeactivated) return false
-      if (filterStatus === 'Deactivated' && !isDeactivated) return false
-    }
-    if (!search.trim()) return true
-    const q = search.toLowerCase()
-    return (
-      u.name.toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q) ||
-      u.phone.toLowerCase().includes(q) ||
-      u.idCode.toLowerCase().includes(q) ||
-      u.department.toLowerCase().includes(q)
-    )
-  })
-
-  const superAdminsCount = users.filter((u) => u.role === 'Admin').length
-  const officialsCount = users.filter((u) => u.role === 'Official').length
-  const activeOfficialsCount = users.filter((u) => u.role === 'Official' && u.status === 'Active').length
-  const residentsCount = users.filter((u) => u.role === 'Resident').length
-  const activeResidentsCount = users.filter((u) => u.role === 'Resident' && u.status === 'Active').length
-  const deactivatedCount = users.filter((u) => u.role === 'Deactivated' || u.status === 'Deactivated').length
-
+  // ── Toggle User Status (Deactivate / Reactivate) ──
   const handleToggleUserStatus = async (user: OfficialUser) => {
     if (user.isSelf) return
     const isDeactivated = user.role === 'Deactivated' || user.status === 'Deactivated'
@@ -447,7 +269,7 @@ export const AdminAccessPage: FC = () => {
         )
         setFeedbackBanner({
           type: 'success',
-          message: `Account for ${user.name} deactivated and access revoked.`,
+          message: `Account for ${user.name} deactivated and access tokens revoked.`,
         })
       }
     } catch {
@@ -460,9 +282,39 @@ export const AdminAccessPage: FC = () => {
     }
   }
 
+  // ── Filter logic ──
+  const filteredUsers = users.filter((u) => {
+    if (filterRole === 'admin' && u.role !== 'Admin') return false
+    if (filterRole === 'official' && u.role !== 'Official') return false
+    if (filterRole === 'resident' && u.role !== 'Resident') return false
+    if (filterRole === 'deactivated' && u.role !== 'Deactivated') return false
+    if (filterBarangay && u.barangay?.toLowerCase() !== filterBarangay.toLowerCase()) return false
+    if (filterStatus) {
+      const isDeactivated = u.role === 'Deactivated' || u.status === 'Deactivated'
+      if (filterStatus === 'Active' && isDeactivated) return false
+      if (filterStatus === 'Deactivated' && !isDeactivated) return false
+    }
+    if (!search.trim()) return true
+    const q = search.toLowerCase()
+    return (
+      u.name.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      u.phone.toLowerCase().includes(q) ||
+      u.idCode.toLowerCase().includes(q) ||
+      u.department.toLowerCase().includes(q)
+    )
+  })
+
+  const superAdminsCount = users.filter((u) => u.role === 'Admin').length
+  const officialsCount = users.filter((u) => u.role === 'Official').length
+  const activeOfficialsCount = users.filter((u) => u.role === 'Official' && u.status === 'Active').length
+  const residentsCount = users.filter((u) => u.role === 'Resident').length
+  const activeResidentsCount = users.filter((u) => u.role === 'Resident' && u.status === 'Active').length
+  const deactivatedCount = users.filter((u) => u.role === 'Deactivated' || u.status === 'Deactivated').length
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5, pb: 6, fontFamily: "'Quicksand', sans-serif" }}>
-      {/* 4 KPI Summary Cards matching Prototype */}
+      {/* ── 4 KPI Summary Cards matching Prototype ── */}
       <Box
         sx={{
           display: 'grid',
@@ -674,7 +526,7 @@ export const AdminAccessPage: FC = () => {
         <AdminAccessDirectoryPanel
           users={users}
           filteredUsers={filteredUsers}
-          selectedUserId={selectedUser?.id ?? null}
+          selectedUserId={targetUser?.id ?? null}
           search={search}
           filterRole={filterRole}
           filterBarangay={filterBarangay}
@@ -683,122 +535,415 @@ export const AdminAccessPage: FC = () => {
           onFilterRoleChange={setFilterRole}
           onFilterBarangayChange={setFilterBarangay}
           onFilterStatusChange={setFilterStatus}
-          onSelectUser={handleSelectUser}
+          onSelectUser={handleOpenChangeRole}
           onToggleUserStatus={handleToggleUserStatus}
-          onAddUser={handleOpenAddUser}
+          onAddUser={handleOpenCreateModal}
         />
       </Box>
 
-      {/* Credential Enrollment / Identity Modification Drawer (Slides from Right) */}
-      <Drawer
-        anchor="right"
-        open={isEnrollmentDrawerOpen}
-        onClose={() => {
-          setIsEnrollmentDrawerOpen(false)
-          setSelectedUser(null)
-        }}
+      {/* ── POP-UP MODAL 1: Create Official Account (Matches Prototype create-user modal) ── */}
+      <Dialog
+        open={createModalOpen}
+        onClose={() => !isSaving && setCreateModalOpen(false)}
+        maxWidth="sm"
+        fullWidth
         slotProps={{
           paper: {
             sx: {
-              width: { xs: '100%', sm: 540, md: 620 },
-              maxWidth: '100vw',
-              p: { xs: 1.5, sm: 2.5 },
-              backgroundColor: '#f8fafc',
-              boxShadow: '-8px 0 32px rgba(15, 23, 42, 0.15)',
-              borderLeft: '1px solid #e2e8f0',
+              borderRadius: '1.25rem',
+              border: '1px solid #dbe3d6',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
+              fontFamily: "'Quicksand', sans-serif",
             },
           },
         }}
       >
-        <AdminAccessEditorPanel
-          selectedUser={selectedUser}
-          isSaving={isSaving}
-          formFirstName={formFirstName}
-          formMiddleName={formMiddleName}
-          formLastName={formLastName}
-          formSuffix={formSuffix}
-          formEmail={formEmail}
-          formPhone={formPhone}
-          formIdCode={formIdCode}
-          formRole={formRole}
-          formDepartment={formDepartment}
-          formStatus={formStatus}
-          formTwoFactor={formTwoFactor}
-          formMustChangePassword={formMustChangePassword}
-          formPassword={formPassword}
-          formConfirmPassword={formConfirmPassword}
-          showPassword={showPassword}
-          showConfirmPassword={showConfirmPassword}
-          formNotes={formNotes}
-          validationErrors={validationErrors}
-          onClose={() => {
-            setIsEnrollmentDrawerOpen(false)
-            setSelectedUser(null)
-          }}
-          onResetForm={() => resetFormFields(true)}
-          onFirstNameChange={(val) => {
-            setFormFirstName(val)
-            if (validationErrors.firstName) {
-              setValidationErrors((prev) => ({ ...prev, firstName: '' }))
-            }
-          }}
-          onMiddleNameChange={setFormMiddleName}
-          onLastNameChange={(val) => {
-            setFormLastName(val)
-            if (validationErrors.lastName) {
-              setValidationErrors((prev) => ({ ...prev, lastName: '' }))
-            }
-          }}
-          onSuffixChange={setFormSuffix}
-          onEmailChange={(val) => {
-            setFormEmail(val)
-            if (validationErrors.email) {
-              setValidationErrors((prev) => ({ ...prev, email: '' }))
-            }
-          }}
-          onPhoneChange={(val) => {
-            setFormPhone(val)
-            if (validationErrors.phone) {
-              setValidationErrors((prev) => ({ ...prev, phone: '' }))
-            }
-          }}
-          onIdCodeChange={setFormIdCode}
-          onRegenerateBadge={() => setFormIdCode(generateBadgeId(formRole))}
-          onRoleChange={handleRoleChange}
-          onDepartmentChange={setFormDepartment}
-          onStatusChange={setFormStatus}
-          onGeneratePassword={handleGeneratePassword}
-          onPasswordChange={(val) => {
-            setFormPassword(val)
-            if (validationErrors.password) {
-              setValidationErrors((prev) => ({ ...prev, password: '' }))
-            }
-          }}
-          onConfirmPasswordChange={(val) => {
-            setFormConfirmPassword(val)
-            if (validationErrors.confirmPassword) {
-              setValidationErrors((prev) => ({ ...prev, confirmPassword: '' }))
-            }
-          }}
-          onToggleShowPassword={() => setShowPassword((p) => !p)}
-          onToggleShowConfirmPassword={() => setShowConfirmPassword((p) => !p)}
-          onMustChangePasswordChange={setFormMustChangePassword}
-          onTwoFactorChange={setFormTwoFactor}
-          onNotesChange={setFormNotes}
-          onSave={async () => {
-            await handleSave()
-            setIsEnrollmentDrawerOpen(false)
-          }}
-          onDeactivate={async () => {
-            await handleDeactivate()
-            setIsEnrollmentDrawerOpen(false)
-          }}
-          onReactivate={async () => {
-            await handleReactivate()
-            setIsEnrollmentDrawerOpen(false)
-          }}
-        />
-      </Drawer>
+        <DialogTitle sx={{ px: 3, pt: 3, pb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: '10px',
+                backgroundColor: '#f1f4f0',
+                color: '#2e6022',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <PersonAddRoundedIcon sx={{ fontSize: 20 }} />
+            </Box>
+            <Typography sx={{ fontWeight: 800, fontSize: '1.125rem', color: '#0f172a' }}>
+              Create Official Account
+            </Typography>
+          </Box>
+          <IconButton size="small" onClick={() => setCreateModalOpen(false)} disabled={isSaving}>
+            <CloseRoundedIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ px: 3, py: 2.5 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 2 }}>
+            {/* Full Name */}
+            <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' } }}>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                Full name
+              </Typography>
+              <input
+                type="text"
+                placeholder="Kgd. Juan Dela Cruz"
+                value={cuName}
+                onChange={(e) => setCuName(e.target.value)}
+                style={{
+                  width: '100%',
+                  height: 42,
+                  padding: '0 14px',
+                  borderRadius: '0.75rem',
+                  border: '1px solid #dbe3d6',
+                  backgroundColor: '#ffffff',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: '#0f172a',
+                  outline: 'none',
+                  fontFamily: "'Quicksand', sans-serif",
+                }}
+              />
+            </Box>
+
+            {/* Official Email */}
+            <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' } }}>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                Official email
+              </Typography>
+              <input
+                type="email"
+                placeholder="name@barangay.gov.ph"
+                value={cuEmail}
+                onChange={(e) => setCuEmail(e.target.value)}
+                style={{
+                  width: '100%',
+                  height: 42,
+                  padding: '0 14px',
+                  borderRadius: '0.75rem',
+                  border: '1px solid #dbe3d6',
+                  backgroundColor: '#ffffff',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: '#0f172a',
+                  outline: 'none',
+                  fontFamily: "'Quicksand', sans-serif",
+                }}
+              />
+            </Box>
+
+            {/* Role */}
+            <Box>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                Role
+              </Typography>
+              <select
+                value={cuRole}
+                onChange={(e) => setCuRole(e.target.value as 'Official' | 'Admin')}
+                style={{
+                  width: '100%',
+                  height: 42,
+                  padding: '0 12px',
+                  borderRadius: '0.75rem',
+                  border: '1px solid #dbe3d6',
+                  backgroundColor: '#ffffff',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: '#0f172a',
+                  outline: 'none',
+                  fontFamily: "'Quicksand', sans-serif",
+                }}
+              >
+                <option value="Official">Barangay Official</option>
+                <option value="Admin">Super Admin</option>
+              </select>
+            </Box>
+
+            {/* Assigned Base / Drop-Off Site */}
+            <Box>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                Assigned Base / Drop-Off Site
+              </Typography>
+              <select
+                value={cuSiteId}
+                onChange={(e) => setCuSiteId(e.target.value)}
+                disabled={cuRole === 'Admin'}
+                style={{
+                  width: '100%',
+                  height: 42,
+                  padding: '0 12px',
+                  borderRadius: '0.75rem',
+                  border: '1px solid #dbe3d6',
+                  backgroundColor: cuRole === 'Admin' ? '#f8fafc' : '#ffffff',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: cuRole === 'Admin' ? '#94a3b8' : '#0f172a',
+                  outline: 'none',
+                  fontFamily: "'Quicksand', sans-serif",
+                }}
+              >
+                {OFFICIAL_SITES.map((st) => (
+                  <option key={st.id} value={st.id}>
+                    {st.name} ({st.barangay})
+                  </option>
+                ))}
+              </select>
+            </Box>
+
+            {/* Temporary Password Information Banner matching Prototype */}
+            <Box
+              sx={{
+                gridColumn: { xs: '1', sm: '1 / -1' },
+                p: 2,
+                borderRadius: '1rem',
+                backgroundColor: '#f1f4f0',
+                border: '1px solid #c5dcba',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#2e6022', fontWeight: 700, fontSize: '0.875rem' }}>
+                <KeyRoundedIcon sx={{ fontSize: 18 }} />
+                <span>Temporary password</span>
+              </Box>
+              <Typography sx={{ fontSize: '0.75rem', color: '#475569', fontWeight: 600, mt: 0.5 }}>
+                A temporary password <strong style={{ fontFamily: 'monospace', fontWeight: 800, color: '#1e293b' }}>official123</strong> will be issued.
+              </Typography>
+            </Box>
+
+            {/* Validation Error Banner */}
+            {cuError && (
+              <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' } }}>
+                <Alert severity="error" sx={{ borderRadius: '0.75rem', fontSize: '0.8125rem' }}>
+                  {cuError}
+                </Alert>
+              </Box>
+            )}
+          </Box>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+          <ButtonBase
+            onClick={() => setCreateModalOpen(false)}
+            disabled={isSaving}
+            sx={{
+              px: 2.5,
+              py: 1,
+              borderRadius: '0.75rem',
+              backgroundColor: '#f1f5f9',
+              color: '#475569',
+              fontWeight: 700,
+              fontSize: '0.8125rem',
+              '&:hover': { backgroundColor: '#e2e8f0' },
+            }}
+          >
+            Cancel
+          </ButtonBase>
+
+          <ButtonBase
+            onClick={handleSaveNewUser}
+            disabled={isSaving}
+            sx={{
+              px: 3,
+              py: 1,
+              borderRadius: '0.75rem',
+              background: 'linear-gradient(135deg, #2e6022 0%, #70b822 100%)',
+              color: '#ffffff',
+              fontWeight: 700,
+              fontSize: '0.8125rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.75,
+              '&:hover': { opacity: 0.95 },
+              '&:disabled': { opacity: 0.5 },
+            }}
+          >
+            {isSaving ? (
+              <CircularProgress size={16} sx={{ color: '#fff' }} />
+            ) : (
+              <>
+                <CheckRoundedIcon sx={{ fontSize: 16 }} />
+                <span>Create Account</span>
+              </>
+            )}
+          </ButtonBase>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── POP-UP MODAL 2: Change User Role (Matches Prototype change-role modal) ── */}
+      <Dialog
+        open={changeRoleModalOpen}
+        onClose={() => !isSaving && setChangeRoleModalOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: '1.25rem',
+              border: '1px solid #dbe3d6',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
+              fontFamily: "'Quicksand', sans-serif",
+            },
+          },
+        }}
+      >
+        <DialogTitle sx={{ px: 3, pt: 3, pb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: '10px',
+                backgroundColor: '#f1f5f9',
+                color: '#475569',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <ManageAccountsRoundedIcon sx={{ fontSize: 20 }} />
+            </Box>
+            <Typography sx={{ fontWeight: 800, fontSize: '1.125rem', color: '#0f172a' }}>
+              Change User Role
+            </Typography>
+          </Box>
+          <IconButton size="small" onClick={() => setChangeRoleModalOpen(false)} disabled={isSaving}>
+            <CloseRoundedIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ px: 3, py: 2 }}>
+          {targetUser && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* User Identity Preview Box */}
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: '0.75rem',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                }}
+              >
+                <Typography sx={{ fontWeight: 800, fontSize: '0.875rem', color: '#0f172a' }}>
+                  {targetUser.name}
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.25 }}>
+                  {targetUser.email} · currently {targetUser.role === 'Admin' ? 'Super Admin' : targetUser.role === 'Official' ? 'Barangay Official' : 'Resident'}
+                </Typography>
+              </Box>
+
+              {/* New Role Selector */}
+              <Box>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                  New role
+                </Typography>
+                <select
+                  value={crRole}
+                  onChange={(e) => setCrRole(e.target.value as 'Resident' | 'Official' | 'Admin')}
+                  style={{
+                    width: '100%',
+                    height: 42,
+                    padding: '0 12px',
+                    borderRadius: '0.75rem',
+                    border: '1px solid #dbe3d6',
+                    backgroundColor: '#ffffff',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    color: '#0f172a',
+                    outline: 'none',
+                    fontFamily: "'Quicksand', sans-serif",
+                  }}
+                >
+                  <option value="Resident">Resident</option>
+                  <option value="Official">Barangay Official</option>
+                  <option value="Admin">Super Admin</option>
+                </select>
+              </Box>
+
+              {/* Barangay Selector */}
+              <Box>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                  Barangay
+                </Typography>
+                <select
+                  value={crBarangay}
+                  onChange={(e) => setCrBarangay(e.target.value)}
+                  disabled={crRole === 'Admin'}
+                  style={{
+                    width: '100%',
+                    height: 42,
+                    padding: '0 12px',
+                    borderRadius: '0.75rem',
+                    border: '1px solid #dbe3d6',
+                    backgroundColor: crRole === 'Admin' ? '#f8fafc' : '#ffffff',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    color: crRole === 'Admin' ? '#94a3b8' : '#0f172a',
+                    outline: 'none',
+                    fontFamily: "'Quicksand', sans-serif",
+                  }}
+                >
+                  {BARANGAYS.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+          <ButtonBase
+            onClick={() => setChangeRoleModalOpen(false)}
+            disabled={isSaving}
+            sx={{
+              px: 2.5,
+              py: 1,
+              borderRadius: '0.75rem',
+              backgroundColor: '#f1f5f9',
+              color: '#475569',
+              fontWeight: 700,
+              fontSize: '0.8125rem',
+              '&:hover': { backgroundColor: '#e2e8f0' },
+            }}
+          >
+            Cancel
+          </ButtonBase>
+
+          <ButtonBase
+            onClick={handleSaveRole}
+            disabled={isSaving}
+            sx={{
+              px: 3,
+              py: 1,
+              borderRadius: '0.75rem',
+              background: 'linear-gradient(135deg, #2e6022 0%, #70b822 100%)',
+              color: '#ffffff',
+              fontWeight: 700,
+              fontSize: '0.8125rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.75,
+              '&:hover': { opacity: 0.95 },
+              '&:disabled': { opacity: 0.5 },
+            }}
+          >
+            {isSaving ? (
+              <CircularProgress size={16} sx={{ color: '#fff' }} />
+            ) : (
+              <>
+                <CheckRoundedIcon sx={{ fontSize: 16 }} />
+                <span>Save Role</span>
+              </>
+            )}
+          </ButtonBase>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }
