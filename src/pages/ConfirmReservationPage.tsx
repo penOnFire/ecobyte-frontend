@@ -1,4 +1,4 @@
-import type { FC } from 'react'
+import { useMemo, useState, type FC } from 'react'
 import {
   Box,
   Button,
@@ -16,12 +16,109 @@ import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 import HourglassEmptyRoundedIcon from '@mui/icons-material/HourglassEmptyRounded'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import thinkpadImg from '@/assets/ui/thinkpad.jpeg'
+import galaxyImg from '@/assets/ui/galaxy_s10.jpeg'
+import chargerImg from '@/assets/ui/charger.jpeg'
+import ipadImg from '@/assets/ui/ipad.jpeg'
+import keychronImg from '@/assets/ui/keychron.jpeg'
+import type { UserReservationItem } from '@/types'
+
+const DEVICE_CATALOG: Record<
+  string,
+  { title: string; image: string; itemCode: string; defaultSlot: string }
+> = {
+  'reuse-301': {
+    title: 'Dell UltraSharp U2719D 27" Monitor',
+    image: thinkpadImg,
+    itemCode: 'CIR-55120',
+    defaultSlot: 'Tomorrow, 01:00 PM – 03:00 PM',
+  },
+  'reuse-302': {
+    title: 'Lenovo ThinkPad T480 (Core i5, 16GB)',
+    image: thinkpadImg,
+    itemCode: 'CIR-84920',
+    defaultSlot: 'Tomorrow, 01:00 PM – 03:00 PM',
+  },
+  'reuse-303': {
+    title: 'Keychron K2 Wireless Mechanical Keyboard',
+    image: keychronImg,
+    itemCode: 'CIR-48210',
+    defaultSlot: 'Tomorrow, 01:00 PM – 03:00 PM',
+  },
+  'reuse-304': {
+    title: 'Apple iPad 8th Gen 32GB Wi-Fi',
+    image: ipadImg,
+    itemCode: 'CIR-91040',
+    defaultSlot: 'Tomorrow, 01:00 PM – 03:00 PM',
+  },
+  'phone-01': {
+    title: 'Samsung Galaxy S10 (Prism White)',
+    image: galaxyImg,
+    itemCode: 'CIR-77210',
+    defaultSlot: 'Tomorrow, 01:00 PM – 03:00 PM',
+  },
+  'charger-01': {
+    title: '65W GaN Fast Charger & USB-C Cable',
+    image: chargerImg,
+    itemCode: 'CIR-33290',
+    defaultSlot: 'Tomorrow, 01:00 PM – 03:00 PM',
+  },
+}
 
 export const ConfirmReservationPage: FC = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  const itemId = searchParams.get('itemId') || 'reuse-302'
+  const paramDate = searchParams.get('date')
+  const paramTime = searchParams.get('time') || '01:00 PM – 03:00 PM'
+
+  const activeDevice = useMemo(() => {
+    return (
+      DEVICE_CATALOG[itemId] || {
+        title: 'Refurbished Hardware Item',
+        image: thinkpadImg,
+        itemCode: 'CIR-84920',
+        defaultSlot: 'Tomorrow, 01:00 PM – 03:00 PM',
+      }
+    )
+  }, [itemId])
+
+  const [fallbackDate] = useState(() => {
+    const d = new Date()
+    d.setDate(d.getDate() + 1)
+    return `Tomorrow, ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+  })
+  const pickupDateDisplay = paramDate || fallbackDate
+
+  const handleConfirmReservation = () => {
+    const generatedCode = `ECO-${Math.floor(1000 + Math.random() * 9000)}`
+    const newReservation: UserReservationItem = {
+      reservationId: `RES-${Date.now().toString().slice(-4)}`,
+      itemTitle: activeDevice.title,
+      pickupCode: generatedCode,
+      siteName: 'Commonwealth Area 1 Eco-Hub (Base 1)',
+      expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+      status: 'Reserved',
+    }
+
+    try {
+      const existing = localStorage.getItem('ecobyte_user_reservations')
+      const parsed: UserReservationItem[] = existing ? JSON.parse(existing) : []
+      localStorage.setItem(
+        'ecobyte_user_reservations',
+        JSON.stringify([newReservation, ...parsed])
+      )
+    } catch (err) {
+      console.warn('Failed to persist user reservation:', err)
+    }
+
+    navigate(
+      `/reservation-code?code=${encodeURIComponent(generatedCode)}&title=${encodeURIComponent(activeDevice.title)}&slot=${encodeURIComponent(paramTime)}&date=${encodeURIComponent(pickupDateDisplay)}`
+    )
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5 }}>
@@ -89,8 +186,8 @@ export const ConfirmReservationPage: FC = () => {
           >
             <Box
               component="img"
-              src={thinkpadImg}
-              alt="Lenovo ThinkPad T480"
+              src={activeDevice.image}
+              alt={activeDevice.title}
               sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           </Box>
@@ -98,11 +195,11 @@ export const ConfirmReservationPage: FC = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
               <StatusBadge label="Refurbished" variant="electric" size="sm" />
               <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
-                ID: CIR-84920
+                ID: {activeDevice.itemCode}
               </Typography>
             </Box>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1rem', color: '#0f172a', mt: 0.25 }}>
-              Lenovo ThinkPad T480
+              {activeDevice.title}
             </Typography>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
               Held for 2 days upon confirmation
@@ -188,7 +285,7 @@ export const ConfirmReservationPage: FC = () => {
               </Typography>
             </Box>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#0f172a', fontWeight: 700 }}>
-              Tomorrow, Oct 25, 2024
+              {pickupDateDisplay}
             </Typography>
           </Box>
 
@@ -201,7 +298,7 @@ export const ConfirmReservationPage: FC = () => {
               </Typography>
             </Box>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#0f172a', fontWeight: 700 }}>
-              01:00 PM – 03:00 PM
+              {paramTime}
             </Typography>
           </Box>
 
@@ -214,7 +311,7 @@ export const ConfirmReservationPage: FC = () => {
               </Typography>
             </Box>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#b45309', fontWeight: 700 }}>
-              Held for 2 Days (Oct 27, 5:00 PM)
+              Held for 48 Hours upon booking
             </Typography>
           </Box>
         </Box>
@@ -225,7 +322,7 @@ export const ConfirmReservationPage: FC = () => {
         <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'flex-start' }}>
           <InfoOutlinedIcon sx={{ fontSize: 18, color: '#b45309', mt: 0.15 }} />
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#92400e', lineHeight: 1.5, fontWeight: 500 }}>
-            After confirming, you will receive a <strong>Pick-up Code (ECO-4821)</strong> and this will be saved to <strong>My Requests</strong> where you can review details or upload your proof of claim.
+            After confirming, you will receive your personal <strong>Pick-up Pass voucher</strong> and this will be saved to <strong>My Requests</strong> where you can review details or upload your proof of claim.
           </Typography>
         </Box>
       </Card>
@@ -236,7 +333,7 @@ export const ConfirmReservationPage: FC = () => {
           fullWidth
           variant="contained"
           size="large"
-          onClick={() => navigate('/reservation-code')}
+          onClick={handleConfirmReservation}
           endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
           sx={{
             py: 1.6,

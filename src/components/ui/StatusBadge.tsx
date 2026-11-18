@@ -23,19 +23,19 @@ interface StatusBadgeProps {
 }
 
 const VARIANT_STYLES: Record<BadgeVariant, { bg: string; color: string; dot?: string; border?: string }> = {
-  live: { bg: '#e8f0e6', color: '#1e293b', dot: '#abf06b', border: '#c4d9c0' },
-  active: { bg: '#ebf2eb', color: '#384735', border: '#d5e0d2' },
-  'in-transit': { bg: '#abf06b', color: '#0f172a', dot: '#0f172a' },
-  available: { bg: '#e8ffbf', color: '#1a3311', border: '#bde59e' },
-  pending: { bg: '#fef3c7', color: '#92400e', border: '#fde68a' },
-  grade: { bg: '#f1f5f9', color: '#0f172a', border: '#e2e8f0' },
+  live: { bg: '#FF0004', color: '#ffffff', dot: '#ffffff' },
+  active: { bg: '#ABF06B', color: '#264E11' },
+  'in-transit': { bg: '#E8F0E6', color: '#4F5F4B', border: 'rgba(220, 207, 192, 0.6)' },
+  available: { bg: '#CEEBC4', color: '#266317' },
+  pending: { bg: '#E8F0E6', color: '#596556', border: 'rgba(220, 207, 192, 0.6)' },
+  grade: { bg: '#f1f5f9', color: '#1F2937', border: '#DCCFC0' },
   warning: { bg: '#fef3c7', color: '#b45309', border: '#fde68a' },
-  error: { bg: '#fee2e2', color: '#991b1b', border: '#fecaca' },
-  muted: { bg: '#f1f5f9', color: '#64748b', border: '#e2e8f0' },
-  'green-pill': { bg: '#e8f0e6', color: '#2d3e2c', border: '#c4d9c0' },
-  electric: { bg: '#abf06b', color: '#0f172a', dot: '#1e293b', border: '#8fc25f' },
-  hazard: { bg: '#fef3c7', color: '#b45309', dot: '#dc2626', border: '#fde68a' },
-  slate: { bg: '#0f172a', color: '#ffffff', border: '#1e293b' },
+  error: { bg: '#FFCBCB', color: '#A91111', border: '#fecaca' },
+  muted: { bg: '#f1f5f9', color: '#596556', border: '#DCCFC0' },
+  'green-pill': { bg: '#CEEBC4', color: '#266317' },
+  electric: { bg: '#ABF06B', color: '#264E11', dot: '#264E11', border: '#8fc25f' },
+  hazard: { bg: '#FFCBCB', color: '#A91111', dot: '#FF0505', border: '#fca5a5' },
+  slate: { bg: '#1F2937', color: '#ffffff', border: '#4F5F4B' },
 }
 
 export const StatusBadge: FC<StatusBadgeProps> = ({ label, variant = 'active', size = 'md' }) => {

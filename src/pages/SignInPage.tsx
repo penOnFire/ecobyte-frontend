@@ -7,7 +7,10 @@ import {
   Checkbox,
   CircularProgress,
   Container,
-  Divider,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControlLabel,
   IconButton,
   InputAdornment,
@@ -22,8 +25,6 @@ import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import LockRoundedIcon from '@mui/icons-material/LockRounded'
-import AppleIcon from '@mui/icons-material/Apple'
-import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined'
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom'
 import ecobyteLogo from '@/assets/ui/ecobyte_logo.svg'
 import { authApi, clearStaleLocalRequests, setCachedUser } from '@/lib/api'
@@ -37,6 +38,10 @@ export const SignInPage: FC = () => {
   const [rememberMe, setRememberMe] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotSubmitted, setForgotSubmitted] = useState(false)
+  const [privacyOpen, setPrivacyOpen] = useState(false)
 
   const rawRedirect = searchParams.get('redirect')
   const safeRedirect =
@@ -420,13 +425,20 @@ export const SignInPage: FC = () => {
                 }
               />
               <Link
-                href="#"
+                component="button"
+                type="button"
+                onClick={() => {
+                  setForgotEmail(email)
+                  setForgotSubmitted(false)
+                  setForgotPasswordOpen(true)
+                }}
                 underline="none"
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 700,
                   fontSize: '0.8125rem',
                   color: '#0f172a',
+                  cursor: 'pointer',
                   '&:hover': { textDecoration: 'underline' },
                 }}
               >
@@ -507,61 +519,6 @@ export const SignInPage: FC = () => {
               </Button>
             </Box>
           </Box>
-
-          {/* Divider */}
-          <Divider sx={{ my: 2.5 }}>
-            <Typography
-              sx={{
-                fontFamily: "'Quicksand', sans-serif",
-                fontWeight: 700,
-                fontSize: '0.6875rem',
-                letterSpacing: '0.07em',
-                color: '#94a3b8',
-                textTransform: 'uppercase',
-              }}
-            >
-              Or continue with
-            </Typography>
-          </Divider>
-
-          {/* Social Buttons */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.25 }}>
-            {[
-              {
-                label: 'Google',
-                icon: (
-                  <Box
-                    sx={{
-                      fontFamily: 'Arial, sans-serif',
-                      fontWeight: 700,
-                      fontSize: '1.1rem',
-                      color: '#4285f4',
-                    }}
-                  >
-                    G
-                  </Box>
-                ),
-              },
-              { label: 'Apple', icon: <AppleIcon sx={{ fontSize: 20, color: '#0f172a' }} /> },
-              { label: 'SSO', icon: <BadgeOutlinedIcon sx={{ fontSize: 20, color: '#64748b' }} /> },
-            ].map(({ label, icon }) => (
-              <Button
-                key={label}
-                variant="outlined"
-                aria-label={label}
-                sx={{
-                  py: 1.25,
-                  borderRadius: 1.5,
-                  borderColor: '#e2e8f0',
-                  backgroundColor: '#ffffff',
-                  minWidth: 0,
-                  '&:hover': { borderColor: '#cbd5e1', backgroundColor: '#f8fafc' },
-                }}
-              >
-                {icon}
-              </Button>
-            ))}
-          </Box>
         </Card>
 
         {/* Don't have account */}
@@ -611,12 +568,135 @@ export const SignInPage: FC = () => {
             }}
           >
             Protected with end-to-end encryption •{' '}
-            <Link href="#" underline="hover" sx={{ color: 'inherit' }}>
+            <Link
+              component="button"
+              type="button"
+              onClick={() => setPrivacyOpen(true)}
+              underline="hover"
+              sx={{ color: 'inherit', cursor: 'pointer', fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', fontWeight: 600 }}
+            >
               Privacy Policy
             </Link>
           </Typography>
         </Box>
       </Container>
+
+      {/* ── Forgot Password Dialog ── */}
+      <Dialog
+        open={forgotPasswordOpen}
+        onClose={() => setForgotPasswordOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: '16px',
+              p: 1.5,
+              fontFamily: "'Quicksand', sans-serif",
+            },
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, fontSize: '1.125rem', color: '#0f172a' }}>
+          Reset Password
+        </DialogTitle>
+        <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+          {forgotSubmitted ? (
+            <Box sx={{ py: 2, textAlign: 'center' }}>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.9375rem', color: '#16a34a' }}>
+                Password Reset Instructions Sent!
+              </Typography>
+              <Typography sx={{ fontSize: '0.8125rem', color: '#64748b', mt: 1 }}>
+                If an account exists for <strong>{forgotEmail}</strong>, instructions and a verification token have been dispatched. You can also visit Barangay Commonwealth IT help desk.
+              </Typography>
+            </Box>
+          ) : (
+            <>
+              <Typography sx={{ fontSize: '0.8125rem', color: '#64748b', lineHeight: 1.5 }}>
+                Enter your registered resident or staff email address. We will verify your account and provide a reset link.
+              </Typography>
+              <OutlinedInput
+                fullWidth
+                size="small"
+                placeholder="name@example.com"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                sx={{ borderRadius: 1.5, fontFamily: "'Quicksand', sans-serif" }}
+              />
+            </>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          {forgotSubmitted ? (
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={() => setForgotPasswordOpen(false)}
+              sx={{ backgroundColor: '#0f172a', color: '#ffffff', borderRadius: 1.5, textTransform: 'none', fontWeight: 700 }}
+            >
+              Return to Sign In
+            </Button>
+          ) : (
+            <>
+              <Button
+                onClick={() => setForgotPasswordOpen(false)}
+                sx={{ color: '#64748b', textTransform: 'none', fontWeight: 600 }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                disabled={!forgotEmail.includes('@')}
+                onClick={() => setForgotSubmitted(true)}
+                sx={{ backgroundColor: '#0f172a', color: '#ffffff', borderRadius: 1.5, textTransform: 'none', fontWeight: 700 }}
+              >
+                Send Recovery Code
+              </Button>
+            </>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Privacy Policy Dialog ── */}
+      <Dialog
+        open={privacyOpen}
+        onClose={() => setPrivacyOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: '16px',
+              p: 1.5,
+              fontFamily: "'Quicksand', sans-serif",
+            },
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, fontSize: '1.125rem', color: '#0f172a' }}>
+          Barangay Commonwealth Data Privacy Notice
+        </DialogTitle>
+        <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 2, fontSize: '0.8125rem', color: '#475569', lineHeight: 1.6 }}>
+          <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: '0.875rem' }}>
+            Republic Act No. 10173 (Data Privacy Act of 2012) Compliance
+          </Typography>
+          <Typography sx={{ fontSize: '0.8125rem' }}>
+            EcoByte Barangay Commonwealth collects resident contact details (name, phone, area) solely for scheduling e-waste drop-offs, circular refurbishing vouchers, and environmental recycling certificates.
+          </Typography>
+          <Typography sx={{ fontSize: '0.8125rem' }}>
+            All e-waste data and diagnostic photos uploaded are processed strictly for hardware lifecycle triage and hazardous material isolation. We do not sell or disclose resident personal data to third parties.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button
+            variant="contained"
+            onClick={() => setPrivacyOpen(false)}
+            sx={{ backgroundColor: '#0f172a', color: '#ffffff', borderRadius: 1.5, textTransform: 'none', fontWeight: 700 }}
+          >
+            I Understand
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }
