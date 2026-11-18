@@ -1,16 +1,22 @@
 import { useEffect, useState, type MouseEvent } from 'react'
 import type { FC } from 'react'
 import {
+  Alert,
   Box,
   Button,
   Card,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   LinearProgress,
   ListItemIcon,
   ListItemText,
   Menu,
   MenuItem,
+  Snackbar,
   Typography,
 } from '@mui/material'
 import QrCode2RoundedIcon from '@mui/icons-material/QrCode2Rounded'
@@ -20,6 +26,10 @@ import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded'
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined'
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded'
+import EventBusyRoundedIcon from '@mui/icons-material/EventBusyRounded'
+import EditCalendarRoundedIcon from '@mui/icons-material/EditCalendarRounded'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { dropoffsApi } from '@/lib/api'
@@ -37,6 +47,29 @@ export const MyRequestsPage: FC = () => {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [filterAnchor, setFilterAnchor] = useState<null | HTMLElement>(null)
   const [statusFilter, setStatusFilter] = useState<'all' | 'scheduled' | 'review'>('all')
+  const [selectedRequest, setSelectedRequest] = useState<EwasteRequestItem | null>(null)
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
+  const [actionToast, setActionToast] = useState<string | null>(null)
+  const [nowMs] = useState(() => Date.now())
+
+  const handleCancelRequest = async () => {
+    if (!selectedRequest) return
+    setIsCancelling(true)
+    try {
+      await dropoffsApi.cancelIntake(selectedRequest.requestId)
+      // Update ongoing list by removing the cancelled request
+      setOngoing((prev) => prev.filter((r) => r.requestId !== selectedRequest.requestId))
+      setCancelConfirmOpen(false)
+      setSelectedRequest(null)
+      setActionToast(`Drop-off request #${selectedRequest.requestId} has been cancelled and your slot released.`)
+    } catch (err: any) {
+      console.error('Failed to cancel request:', err)
+      setActionToast(err?.message || 'Unable to cancel drop-off request. Please try again.')
+    } finally {
+      setIsCancelling(false)
+    }
+  }
 
   useEffect(() => {
     let isMounted = true
@@ -335,14 +368,16 @@ export const MyRequestsPage: FC = () => {
                 </Button>
               </Card>
             ) : (
-              reservations.map((res) => (
+              reservations.map((res) => {
+                const isResExpired = res.expiresAt ? new Date(res.expiresAt).getTime() < nowMs : false
+                return (
                 <Card
                   key={res.reservationId}
                   sx={{
                     p: 2,
                     borderRadius: 2,
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e2e8f0',
+                    backgroundColor: isResExpired ? '#fff1f2' : '#ffffff',
+                    border: isResExpired ? '1.5px solid #fecaca' : '1px solid #e2e8f0',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
                   }}
                 >
@@ -362,22 +397,24 @@ export const MyRequestsPage: FC = () => {
                         sx={{
                           fontFamily: "'Quicksand', sans-serif",
                           fontSize: '0.75rem',
-                          color: '#64748b',
-                          fontWeight: 500,
+                          color: isResExpired ? '#dc2626' : '#64748b',
+                          fontWeight: isResExpired ? 700 : 500,
                           mt: 0.5,
                           lineHeight: 1.45,
                         }}
                       >
-                        {res.expiresAt
-                          ? `Hold expires ${new Date(res.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-                          : 'Held for 48 hours'}
+                        {isResExpired
+                          ? 'Hold expired • Unclaimed item returned to Reuse Hub'
+                          : res.expiresAt
+                            ? `Hold expires ${new Date(res.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                            : 'Held for 48 hours'}
                         <br />
                         ({res.siteName})
                       </Typography>
                     </Box>
                     <Box
                       sx={{
-                        backgroundColor: '#0f172a',
+                        backgroundColor: isResExpired ? '#ef4444' : '#0f172a',
                         px: 1,
                         py: 0.3,
                         borderRadius: 9999,
@@ -389,70 +426,93 @@ export const MyRequestsPage: FC = () => {
                           fontFamily: "'Quicksand', sans-serif",
                           fontWeight: 700,
                           fontSize: '0.6875rem',
-                          color: '#abf06b',
+                          color: isResExpired ? '#ffffff' : '#abf06b',
                         }}
                       >
-                        Code: {res.pickupCode}
+                        {isResExpired ? 'EXPIRED' : `Code: ${res.pickupCode}`}
                       </Typography>
                     </Box>
                   </Box>
 
                   {/* Action Buttons */}
-                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mt: 2, pt: 1.5, borderTop: '1px solid #f1f5f9' }}>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<QrCode2RoundedIcon sx={{ fontSize: 18 }} />}
-                      onClick={() =>
-                        navigate(
-                          `/reservation-code?code=${encodeURIComponent(res.pickupCode)}&title=${encodeURIComponent(res.itemTitle)}`
-                        )
-                      }
-                      sx={{
-                        borderColor: '#e2e8f0',
-                        color: '#0f172a',
-                        fontWeight: 700,
-                        fontSize: '0.75rem',
-                        borderRadius: 9999,
-                        py: 0.8,
-                        '&:hover': {
-                          backgroundColor: '#f8fafc',
-                          borderColor: '#cbd5e1',
-                        },
-                      }}
-                    >
-                      View Code
-                    </Button>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: isResExpired ? '1fr' : '1fr 1fr', gap: 1, mt: 2, pt: 1.5, borderTop: '1px solid #f1f5f9' }}>
+                    {isResExpired ? (
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        size="small"
+                        onClick={() => navigate('/reuse')}
+                        sx={{
+                          backgroundColor: '#0f172a',
+                          color: '#ffffff',
+                          fontWeight: 700,
+                          fontSize: '0.75rem',
+                          borderRadius: 9999,
+                          py: 0.8,
+                          '&:hover': { backgroundColor: '#1e293b' },
+                        }}
+                      >
+                        Browse Available Refurbished Equipment
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<QrCode2RoundedIcon sx={{ fontSize: 18 }} />}
+                          onClick={() =>
+                            navigate(
+                              `/reservation-code?code=${encodeURIComponent(res.pickupCode)}&title=${encodeURIComponent(res.itemTitle)}`
+                            )
+                          }
+                          sx={{
+                            borderColor: '#e2e8f0',
+                            color: '#0f172a',
+                            fontWeight: 700,
+                            fontSize: '0.75rem',
+                            borderRadius: 9999,
+                            py: 0.8,
+                            '&:hover': {
+                              backgroundColor: '#f8fafc',
+                              borderColor: '#cbd5e1',
+                            },
+                          }}
+                        >
+                          View Code
+                        </Button>
 
-                    <Button
-                      variant="contained"
-                      size="small"
-                      startIcon={<FileUploadOutlinedIcon sx={{ fontSize: 18, color: '#abf06b' }} />}
-                      onClick={() => {
-                        const params = new URLSearchParams({
-                          reservationId: res.reservationId,
-                          code: res.pickupCode,
-                          title: res.itemTitle,
-                          site: res.siteName,
-                        })
-                        navigate(`/proof-of-claim?${params.toString()}`)
-                      }}
-                      sx={{
-                        backgroundColor: '#0f172a',
-                        color: '#ffffff',
-                        fontWeight: 700,
-                        fontSize: '0.75rem',
-                        borderRadius: 9999,
-                        py: 0.8,
-                        boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
-                        '&:hover': { backgroundColor: '#1e293b' },
-                      }}
-                    >
-                      Upload Proof
-                    </Button>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          startIcon={<FileUploadOutlinedIcon sx={{ fontSize: 18, color: '#abf06b' }} />}
+                          onClick={() => {
+                            const params = new URLSearchParams({
+                              reservationId: res.reservationId,
+                              code: res.pickupCode,
+                              title: res.itemTitle,
+                              site: res.siteName,
+                            })
+                            navigate(`/proof-of-claim?${params.toString()}`)
+                          }}
+                          sx={{
+                            backgroundColor: '#0f172a',
+                            color: '#ffffff',
+                            fontWeight: 700,
+                            fontSize: '0.75rem',
+                            borderRadius: 9999,
+                            py: 0.8,
+                            boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
+                            '&:hover': { backgroundColor: '#1e293b' },
+                          }}
+                        >
+                          Upload Proof
+                        </Button>
+                      </>
+                    )}
                   </Box>
                 </Card>
-              ))
+                )
+              })
             )}
           </Box>
 
@@ -498,15 +558,11 @@ export const MyRequestsPage: FC = () => {
                     border: '1px solid #e2e8f0',
                     backgroundColor: '#ffffff',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                    cursor: canReschedule ? 'pointer' : 'default',
+                    cursor: 'pointer',
                     transition: 'all 0.15s ease',
-                    '&:hover': canReschedule ? { borderColor: '#0f172a' } : {},
+                    '&:hover': { borderColor: '#0f172a' },
                   }}
-                  onClick={() => {
-                    if (canReschedule) {
-                      navigate(`/dropoff-schedule?requestId=${encodeURIComponent(req.requestId)}`)
-                    }
-                  }}
+                  onClick={() => setSelectedRequest(req)}
                 >
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
                     <Box>
@@ -600,7 +656,7 @@ export const MyRequestsPage: FC = () => {
                           flexShrink: 0,
                         }}
                       >
-                        Change date &gt;
+                        Manage request &gt;
                       </Typography>
                     )}
                   </Box>
@@ -677,6 +733,227 @@ export const MyRequestsPage: FC = () => {
           )}
         </Box>
       )}
+
+      {/* ── Request Details Modal (Module 4) ── */}
+      <Dialog
+        open={Boolean(selectedRequest && !cancelConfirmOpen)}
+        onClose={() => setSelectedRequest(null)}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 2.5,
+              p: 1,
+              fontFamily: "'Quicksand', sans-serif",
+            },
+          },
+        }}
+      >
+        {selectedRequest && (
+          <>
+            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+              <Box>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1.0625rem', color: '#0f172a' }}>
+                  Request #{selectedRequest.requestId}
+                </Typography>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
+                  {selectedRequest.deviceTitle}
+                </Typography>
+              </Box>
+              <IconButton size="small" onClick={() => setSelectedRequest(null)} aria-label="Close details">
+                <CloseRoundedIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </DialogTitle>
+
+            <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2, py: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: '#64748b' }}>
+                  Current Status
+                </Typography>
+                <StatusBadge
+                  label={selectedRequest.status}
+                  variant={selectedRequest.status === 'Scheduled' ? 'electric' : 'hazard'}
+                  size="sm"
+                />
+              </Box>
+
+              <Box sx={{ p: 1.5, backgroundColor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0' }}>
+                <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', mb: 0.5 }}>
+                  Drop-Off Location &amp; Window
+                </Typography>
+                <Typography sx={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a' }}>
+                  {selectedRequest.siteName}
+                </Typography>
+                <Typography sx={{ fontSize: '0.8125rem', color: '#475569', mt: 0.25 }}>
+                  {selectedRequest.scheduledSlot}
+                </Typography>
+              </Box>
+
+              <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.75 }}>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#0f172a', fontWeight: 700 }}>
+                    {selectedRequest.statusStage}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>
+                    Step {selectedRequest.progressStep}
+                  </Typography>
+                </Box>
+                <LinearProgress
+                  variant="determinate"
+                  value={selectedRequest.progressPercent}
+                  sx={{
+                    height: 6,
+                    borderRadius: 9999,
+                    backgroundColor: selectedRequest.status === 'Scheduled' ? '#e2e8f0' : '#fef3c7',
+                    '& .MuiLinearProgress-bar': {
+                      backgroundColor: selectedRequest.status === 'Scheduled' ? '#0f172a' : '#f59e0b',
+                    },
+                  }}
+                />
+              </Box>
+
+              {selectedRequest.status === 'Scheduled' ? (
+                <Box sx={{ p: 1.25, backgroundColor: '#f0fdf4', borderRadius: 1.5, border: '1px solid #bbf7d0' }}>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#166534', fontWeight: 600 }}>
+                    Your drop-off slot is active and confirmed. You may reschedule to another day or cancel to release your slot.
+                  </Typography>
+                </Box>
+              ) : (
+                <Box sx={{ p: 1.25, backgroundColor: '#f8fafc', borderRadius: 1.5, border: '1px solid #e2e8f0' }}>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                    This intake request is currently being processed by station personnel and cannot be modified.
+                  </Typography>
+                </Box>
+              )}
+            </DialogContent>
+
+            <DialogActions sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {selectedRequest.status === 'Scheduled' ? (
+                <>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<EditCalendarRoundedIcon />}
+                    onClick={() => {
+                      const id = selectedRequest.requestId
+                      setSelectedRequest(null)
+                      navigate(`/dropoff-schedule?requestId=${encodeURIComponent(id)}`)
+                    }}
+                    sx={{
+                      backgroundColor: '#0f172a',
+                      color: '#ffffff',
+                      fontWeight: 700,
+                      borderRadius: 1.5,
+                      textTransform: 'none',
+                      py: 1.1,
+                      '&:hover': { backgroundColor: '#1e293b' },
+                    }}
+                  >
+                    Reschedule Drop-Off
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="error"
+                    startIcon={<EventBusyRoundedIcon />}
+                    onClick={() => setCancelConfirmOpen(true)}
+                    sx={{
+                      borderColor: '#fca5a5',
+                      color: '#dc2626',
+                      fontWeight: 700,
+                      borderRadius: 1.5,
+                      textTransform: 'none',
+                      py: 1,
+                      '&:hover': { backgroundColor: '#fef2f2', borderColor: '#ef4444' },
+                    }}
+                  >
+                    Cancel Booking (Release Slot)
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  onClick={() => setSelectedRequest(null)}
+                  sx={{ color: '#0f172a', borderColor: '#cbd5e1', fontWeight: 700, borderRadius: 1.5 }}
+                >
+                  Close
+                </Button>
+              )}
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+
+      {/* ── Cancel Confirmation Modal ── */}
+      <Dialog
+        open={cancelConfirmOpen}
+        onClose={() => !isCancelling && setCancelConfirmOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 2.5,
+              p: 1,
+              fontFamily: "'Quicksand', sans-serif",
+            },
+          },
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 1 }}>
+          <WarningAmberRoundedIcon sx={{ color: '#dc2626', fontSize: 24 }} />
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1.0625rem', color: '#0f172a' }}>
+            Cancel Drop-Off Request?
+          </Typography>
+        </DialogTitle>
+        <DialogContent dividers sx={{ py: 2 }}>
+          <Typography sx={{ fontSize: '0.8125rem', color: '#475569', lineHeight: 1.5 }}>
+            Are you sure you want to cancel Drop-off Request <strong>#{selectedRequest?.requestId}</strong>?
+          </Typography>
+          <Typography sx={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 600, mt: 1 }}>
+            Your intake reservation at {selectedRequest?.siteName} will be released immediately and removed from incoming queue.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, display: 'flex', gap: 1 }}>
+          <Button
+            onClick={() => setCancelConfirmOpen(false)}
+            disabled={isCancelling}
+            sx={{ flex: 1, color: '#64748b', fontWeight: 600, textTransform: 'none' }}
+          >
+            Keep Booking
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleCancelRequest}
+            disabled={isCancelling}
+            sx={{
+              flex: 1.2,
+              backgroundColor: '#dc2626',
+              fontWeight: 700,
+              textTransform: 'none',
+              borderRadius: 1.5,
+              '&:hover': { backgroundColor: '#b91c1c' },
+            }}
+          >
+            {isCancelling ? <CircularProgress size={20} color="inherit" /> : 'Yes, Cancel Request'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Action Snackbar ── */}
+      <Snackbar
+        open={Boolean(actionToast)}
+        autoHideDuration={4000}
+        onClose={() => setActionToast(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="success" sx={{ width: '100%', fontWeight: 600, borderRadius: 2 }}>
+          {actionToast}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

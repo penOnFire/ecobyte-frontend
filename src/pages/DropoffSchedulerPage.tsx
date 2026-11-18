@@ -159,6 +159,11 @@ export const DropoffSchedulerPage: FC = () => {
   const requestedSiteParam = searchParams.get('siteId') || ''
   const requestIdParam = searchParams.get('requestId') || ''
   const isRescheduling = Boolean(requestIdParam)
+  const isUnidentified = searchParams.get('unidentified') === 'true'
+  const categoryParam = searchParams.get('category') || ''
+  const displayDeviceTitle = isUnidentified
+    ? `Unidentified Device (${categoryParam || 'General E-Waste'})`
+    : 'Samsung Galaxy S10 (Intake Inspection)'
 
   const [todayInfo] = useState(() => getTodayIso())
   const [viewedMonth, setViewedMonth] = useState(() => ({
@@ -375,8 +380,8 @@ export const DropoffSchedulerPage: FC = () => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 0.5,
-                backgroundColor: '#fee2e2',
-                color: '#dc2626',
+                backgroundColor: isUnidentified ? '#fef3c7' : '#fee2e2',
+                color: isUnidentified ? '#b45309' : '#dc2626',
                 px: 1,
                 py: 0.25,
                 borderRadius: 9999,
@@ -385,15 +390,17 @@ export const DropoffSchedulerPage: FC = () => {
             >
               <WarningAmberRoundedIcon sx={{ fontSize: 13 }} />
               <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.625rem' }}>
-                Hazardous E-Waste Intake Required
+                {isUnidentified ? 'Unidentified E-Waste Intake' : 'Hazardous E-Waste Intake Required'}
               </Typography>
             </Box>
 
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1.125rem', color: '#0f172a' }}>
-              iPhone 11 Pro
+              {displayDeviceTitle}
             </Typography>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem', color: '#dc2626' }}>
-              ⚡ Degraded Swollen Battery • Internal Degassing Stress
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem', color: isUnidentified ? '#b45309' : '#dc2626' }}>
+              {isUnidentified
+                ? '🔍 Physical Inspection Required at Station (Module 2 Low-Confidence Route)'
+                : '⚡ Degraded Swollen Battery • Internal Degassing Stress'}
             </Typography>
           </Box>
 

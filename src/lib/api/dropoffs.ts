@@ -38,6 +38,14 @@ export const dropoffsApi = {
       }
     ),
 
+  cancelIntake: (requestId: string) =>
+    apiFetch<{ requestId: string; status: string; message: string }>(
+      `/dropoffs/schedule/${requestId}/cancel`,
+      {
+        method: 'PATCH',
+      }
+    ),
+
   getMyRequests: () =>
     apiFetch<{
       ongoing: EwasteRequestItem[]

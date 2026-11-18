@@ -26,6 +26,7 @@ import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined'
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded'
 import NavigationRoundedIcon from '@mui/icons-material/NavigationRounded'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import keychronImg from '@/assets/ui/keychron.jpeg'
@@ -57,16 +58,18 @@ function formatVoucherSchedule(expiresIso: string | null | undefined, fallbackMs
     minute: '2-digit',
   }).format(validExpiry)
 
+  const isExpired = validExpiry.getTime() <= fallbackMs
   const hoursRemaining = Math.max(
-    1,
+    0,
     Math.ceil((validExpiry.getTime() - fallbackMs) / (1000 * 60 * 60))
   )
-  const remainingLabel =
-    hoursRemaining >= 24
+  const remainingLabel = isExpired
+    ? 'Expired'
+    : hoursRemaining >= 24
       ? `${Math.ceil(hoursRemaining / 24)} days remaining`
       : `${hoursRemaining}h remaining`
 
-  return { pickupDateLabel, heldUntilLabel, remainingLabel }
+  return { pickupDateLabel, heldUntilLabel, remainingLabel, isExpired }
 }
 
 export const ReservationPassPage: FC = () => {
@@ -135,7 +138,7 @@ export const ReservationPassPage: FC = () => {
   const collectionPlace = reservation?.siteName || 'Commonwealth Area 1 Eco-Hub'
   const desk = 'E-Waste Hub Desk 2'
   const statusLabel = reservation?.status ? `${reservation.status} (Active)` : 'Reserved (Active)'
-  const { pickupDateLabel, heldUntilLabel, remainingLabel } = formatVoucherSchedule(
+  const { pickupDateLabel, heldUntilLabel, remainingLabel, isExpired } = formatVoucherSchedule(
     reservation?.expiresAt,
     mountedAtMs
   )
@@ -540,58 +543,101 @@ export const ReservationPassPage: FC = () => {
         </Box>
       </Card>
 
-      {/* ── Instruction Subcard ── */}
-      <Card sx={{ p: 1.75, borderRadius: 1.5, backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
-        <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'flex-start' }}>
-          <InfoOutlinedIcon sx={{ fontSize: 18, color: '#0f172a', mt: 0.2 }} />
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#0f172a', lineHeight: 1.5, fontWeight: 500 }}>
-            <strong>Next step:</strong> When receiving the item at the hub, take a quick proof photo to complete your claim.
-          </Typography>
-        </Box>
-      </Card>
+      {/* ── Instruction Subcard / Expired Warning ── */}
+      {isExpired ? (
+        <Card sx={{ p: 2, borderRadius: 2, border: '1.5px solid #fecaca', backgroundColor: '#fff1f2' }}>
+          <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'center', mb: 1.5 }}>
+            <WarningAmberRoundedIcon sx={{ color: '#dc2626', fontSize: 24 }} />
+            <Box>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#9f1239' }}>
+                Reservation Pass Expired (Module 5)
+              </Typography>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#be123c' }}>
+                This hold expired and the device has been automatically released back to the Reuse Hub as Available.
+              </Typography>
+            </Box>
+          </Box>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={() => {
+              try {
+                const stored = localStorage.getItem('ecobyte_user_reservations')
+                if (stored) {
+                  const list = JSON.parse(stored).filter((r: any) => r.pickupCode !== pickupCode)
+                  localStorage.setItem('ecobyte_user_reservations', JSON.stringify(list))
+                }
+              } catch {}
+              navigate('/reuse')
+            }}
+            sx={{
+              backgroundColor: '#0f172a',
+              color: '#ffffff',
+              fontWeight: 700,
+              borderRadius: 1.5,
+              textTransform: 'none',
+              py: 1.2,
+              '&:hover': { backgroundColor: '#1e293b' },
+            }}
+          >
+            Browse Available Refurbished Items
+          </Button>
+        </Card>
+      ) : (
+        <>
+          <Card sx={{ p: 1.75, borderRadius: 1.5, backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+            <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'flex-start' }}>
+              <InfoOutlinedIcon sx={{ fontSize: 18, color: '#0f172a', mt: 0.2 }} />
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#0f172a', lineHeight: 1.5, fontWeight: 500 }}>
+                <strong>Next step:</strong> When receiving the item at the hub, take a quick proof photo to complete your claim.
+              </Typography>
+            </Box>
+          </Card>
 
-      {/* ── Action CTA Button ── */}
-      <Box sx={{ mt: 0.5, mb: 2 }}>
-        <Button
-          fullWidth
-          variant="contained"
-          size="large"
-          onClick={() => {
-            const activeReservationId = reservation?.reservationId || searchParams.get('reservationId') || ''
-            const params = new URLSearchParams({
-              code: pickupCode,
-              title: itemTitle,
-              site: collectionPlace,
-            })
-            if (activeReservationId) params.set('reservationId', activeReservationId)
-            navigate(`/proof-of-claim?${params.toString()}`)
-          }}
-          startIcon={<CameraAltRoundedIcon sx={{ fontSize: 20, color: '#abf06b' }} />}
-          endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
-          sx={{
-            py: 1.6,
-            backgroundColor: '#0f172a',
-            color: '#ffffff',
-            fontWeight: 700,
-            fontSize: '0.9375rem',
-            boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
-            '&:hover': { backgroundColor: '#1e293b' },
-          }}
-        >
-          Upload Proof Photo
-        </Button>
-        <Typography
-          sx={{
-            fontFamily: "'Quicksand', sans-serif",
-            fontSize: '0.6875rem',
-            color: '#64748b',
-            textAlign: 'center',
-            mt: 1,
-          }}
-        >
-          🕒 Unclaimed items are released automatically after 48 hours.
-        </Typography>
-      </Box>
+          {/* ── Action CTA Button ── */}
+          <Box sx={{ mt: 0.5, mb: 2 }}>
+            <Button
+              fullWidth
+              variant="contained"
+              size="large"
+              onClick={() => {
+                const activeReservationId = reservation?.reservationId || searchParams.get('reservationId') || ''
+                const params = new URLSearchParams({
+                  code: pickupCode,
+                  title: itemTitle,
+                  site: collectionPlace,
+                })
+                if (activeReservationId) params.set('reservationId', activeReservationId)
+                navigate(`/proof-of-claim?${params.toString()}`)
+              }}
+              startIcon={<CameraAltRoundedIcon sx={{ fontSize: 20, color: '#abf06b' }} />}
+              endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
+              sx={{
+                py: 1.6,
+                backgroundColor: '#0f172a',
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: '0.9375rem',
+                boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
+                '&:hover': { backgroundColor: '#1e293b' },
+              }}
+            >
+              Upload Proof Photo
+            </Button>
+            <Typography
+              sx={{
+                fontFamily: "'Quicksand', sans-serif",
+                fontSize: '0.6875rem',
+                color: '#64748b',
+                textAlign: 'center',
+                mt: 1,
+              }}
+            >
+              🕒 Unclaimed items are released automatically after 48 hours.
+            </Typography>
+          </Box>
+        </>
+      )}
 
       {/* Toast Feedback */}
       <Snackbar

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FC } from 'react'
 import { Alert, Box, ButtonBase, CircularProgress, Snackbar, Typography } from '@mui/material'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import PendingActionsRoundedIcon from '@mui/icons-material/PendingActionsRounded'
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
@@ -15,6 +15,9 @@ import SchemaRoundedIcon from '@mui/icons-material/SchemaRounded'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
+import DeleteSweepOutlinedIcon from '@mui/icons-material/DeleteSweepOutlined'
+import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined'
+import { AdminDisposalPage } from '@/pages/admin/AdminDisposalPage'
 import {
   adminApi,
   type AdminCollectionRequest,
@@ -38,6 +41,16 @@ function resolveCategoryIcon(category?: string, name?: string) {
 
 export const AdminToInspectPage: FC = () => {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeTab = searchParams.get('tab') === 'disposal' ? 'disposal' : 'queue'
+  const setActiveTab = (tab: 'queue' | 'disposal') => {
+    if (tab === 'disposal') {
+      setSearchParams({ tab: 'disposal' })
+    } else {
+      setSearchParams({})
+    }
+  }
+
   const [filter, setFilter] = useState<'waiting' | 'inspected' | 'all'>('waiting')
   const [search, setSearch] = useState('')
   const [requests, setRequests] = useState<AdminCollectionRequest[]>([])
@@ -135,18 +148,37 @@ export const AdminToInspectPage: FC = () => {
     )
   })
 
-  const handleMarkCollected = async (req: AdminCollectionRequest) => {
+  const handleMarkReceived = async (req: AdminCollectionRequest) => {
     setBusyRequestId(req.id)
     try {
-      await adminApi.updateRequestStatus(req.id, 'collected')
+      await adminApi.markDropoffReceived(req.id)
       setToast({
-        message: `${req.requestCode} marked as Collected at Barangay Hub.`,
+        message: `${req.requestCode} received! Device moved to Under Inspection queue.`,
         severity: 'success',
       })
       await loadData()
     } catch (err: any) {
       setToast({
-        message: err?.message || 'Failed to update request status.',
+        message: err?.message || 'Failed to mark device as received.',
+        severity: 'error',
+      })
+    } finally {
+      setBusyRequestId(null)
+    }
+  }
+
+  const handleMarkMissed = async (req: AdminCollectionRequest) => {
+    setBusyRequestId(req.id)
+    try {
+      await adminApi.markDropoffMissed(req.id)
+      setToast({
+        message: `${req.requestCode} marked as Missed. Booking capacity slot has been released.`,
+        severity: 'success',
+      })
+      await loadData()
+    } catch (err: any) {
+      setToast({
+        message: err?.message || 'Failed to mark drop-off as missed.',
         severity: 'error',
       })
     } finally {
@@ -205,7 +237,7 @@ export const AdminToInspectPage: FC = () => {
                 letterSpacing: '0.06em',
               }}
             >
-              Triage &amp; Intake Ledger
+              Module 6B • Device Triage &amp; Disposal Routing
             </Typography>
           </Box>
           <Typography
@@ -218,7 +250,7 @@ export const AdminToInspectPage: FC = () => {
               letterSpacing: '-0.025em',
             }}
           >
-            To inspect
+            Inspection &amp; Disposal
           </Typography>
         </Box>
 
@@ -239,7 +271,7 @@ export const AdminToInspectPage: FC = () => {
           >
             <PendingActionsRoundedIcon sx={{ fontSize: 18, color: '#16a34a' }} />
             <Typography sx={{ fontSize: '0.75rem', color: '#475569', fontWeight: 600 }}>
-              Pending queue:
+              Inspection queue:
             </Typography>
             <Typography sx={{ fontSize: '0.8125rem', fontWeight: 800, color: '#0f172a' }}>
               {totalWaitingCount} {totalWaitingCount === 1 ? 'Item' : 'Items'}
@@ -267,8 +299,78 @@ export const AdminToInspectPage: FC = () => {
         </Box>
       </Box>
 
-      {/* ── Primary 2-Column Responsive Workspace Grid ── */}
+      {/* ── Inspection Module Tabs (Disposal is inside Inspection!) ── */}
       <Box
+        sx={{
+          display: 'flex',
+          gap: 1.5,
+          borderBottom: '1px solid #e2e8f0',
+          pb: 1.5,
+          flexWrap: 'wrap',
+        }}
+      >
+        <ButtonBase
+          onClick={() => {
+            setActiveTab('queue')
+            setSearchParams({})
+          }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            px: 2.25,
+            py: 1,
+            borderRadius: '9999px',
+            backgroundColor: activeTab === 'queue' ? '#16a34a' : '#ffffff',
+            color: activeTab === 'queue' ? '#ffffff' : '#475569',
+            border: `1px solid ${activeTab === 'queue' ? '#16a34a' : '#cbd5e1'}`,
+            fontSize: '0.8125rem',
+            fontWeight: 800,
+            boxShadow: activeTab === 'queue' ? '0 2px 6px rgba(22, 163, 74, 0.25)' : 'none',
+            transition: 'all 0.15s ease',
+            '&:hover': {
+              backgroundColor: activeTab === 'queue' ? '#15803d' : '#f8fafc',
+            },
+          }}
+        >
+          <FactCheckOutlinedIcon sx={{ fontSize: 18 }} />
+          <span>To Inspect Queue ({totalWaitingCount})</span>
+        </ButtonBase>
+
+        <ButtonBase
+          onClick={() => {
+            setActiveTab('disposal')
+            setSearchParams({ tab: 'disposal' })
+          }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            px: 2.25,
+            py: 1,
+            borderRadius: '9999px',
+            backgroundColor: activeTab === 'disposal' ? '#dc2626' : '#ffffff',
+            color: activeTab === 'disposal' ? '#ffffff' : '#475569',
+            border: `1px solid ${activeTab === 'disposal' ? '#dc2626' : '#cbd5e1'}`,
+            fontSize: '0.8125rem',
+            fontWeight: 800,
+            boxShadow: activeTab === 'disposal' ? '0 2px 6px rgba(220, 38, 38, 0.25)' : 'none',
+            transition: 'all 0.15s ease',
+            '&:hover': {
+              backgroundColor: activeTab === 'disposal' ? '#b91c1c' : '#f8fafc',
+            },
+          }}
+        >
+          <DeleteSweepOutlinedIcon sx={{ fontSize: 18 }} />
+          <span>Disposal &amp; Hazardous Records</span>
+        </ButtonBase>
+      </Box>
+
+      {activeTab === 'disposal' ? (
+        <AdminDisposalPage />
+      ) : (
+        /* ── Primary 2-Column Responsive Workspace Grid ── */
+        <Box
         sx={{
           display: 'grid',
           gridTemplateColumns: { xs: '1fr', lg: '8fr 4fr' },
@@ -584,23 +686,42 @@ export const AdminToInspectPage: FC = () => {
 
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
                         {canCollect && (
-                          <ButtonBase
-                            disabled={isBusy}
-                            onClick={() => void handleMarkCollected(req)}
-                            sx={{
-                              height: 32,
-                              px: 1.5,
-                              borderRadius: '8px',
-                              backgroundColor: '#eff4ff',
-                              border: '1px solid #bfdbfe',
-                              color: '#1d4ed8',
-                              fontSize: '0.75rem',
-                              fontWeight: 700,
-                              '&:hover': { backgroundColor: '#dbeafe' },
-                            }}
-                          >
-                            Mark Collected
-                          </ButtonBase>
+                          <>
+                            <ButtonBase
+                              disabled={isBusy}
+                              onClick={() => void handleMarkReceived(req)}
+                              sx={{
+                                height: 32,
+                                px: 1.5,
+                                borderRadius: '8px',
+                                backgroundColor: '#dcfce7',
+                                border: '1px solid #86efac',
+                                color: '#15803d',
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                '&:hover': { backgroundColor: '#bbf7d0' },
+                              }}
+                            >
+                              Received
+                            </ButtonBase>
+                            <ButtonBase
+                              disabled={isBusy}
+                              onClick={() => void handleMarkMissed(req)}
+                              sx={{
+                                height: 32,
+                                px: 1.25,
+                                borderRadius: '8px',
+                                backgroundColor: '#fff1f2',
+                                border: '1px solid #fecdd3',
+                                color: '#be123c',
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                '&:hover': { backgroundColor: '#ffe4e6' },
+                              }}
+                            >
+                              Mark Missed
+                            </ButtonBase>
+                          </>
                         )}
                         {canInspect && (
                           <ButtonBase
@@ -1181,6 +1302,7 @@ export const AdminToInspectPage: FC = () => {
           </Box>
         </Box>
       </Box>
+      )}
 
       <Snackbar
         open={Boolean(toast)}
