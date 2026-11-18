@@ -455,9 +455,9 @@ export const AdminReuseHubPage: FC = () => {
                               <AccessTimeRoundedIcon sx={{ fontSize: 15 }} />
                               <span>{item.pickupDate}</span>
                             </div>
-                            {(item.reservedBy || item.pickupCode) && (
+                            {item.reservedBy && (
                               <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>
-                                {[item.reservedBy, item.pickupCode].filter(Boolean).join(' • ')}
+                                {item.reservedBy}
                               </div>
                             )}
                           </div>

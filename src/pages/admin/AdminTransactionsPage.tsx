@@ -418,21 +418,14 @@ export const AdminTransactionsPage: FC = () => {
       )
     })
 
-    if (matchingOtherClaim) {
-      setVerifyError(
-        `Reject: This pick-up code belongs to another reservation (${matchingOtherClaim.itemName} reserved by ${matchingOtherClaim.residentName}). Each reservation code works only for its own reservation.`
-      )
-      return
-    }
-
     const isTargetMatch =
       Boolean(cleanTarget) &&
       (cleanInput === cleanTarget ||
         (cleanInput.length === 4 && targetDigits === cleanInput) ||
         (inputDigits.length === 4 && targetDigits === inputDigits))
 
-    if (!isTargetMatch) {
-      setVerifyError('Reject: Verification code does not match this reservation. Each reservation code works only for its own reservation.')
+    if (matchingOtherClaim || !isTargetMatch) {
+      setVerifyError('Reject: Verification code does not match this reservation.')
       return
     }
 
@@ -525,7 +518,7 @@ export const AdminTransactionsPage: FC = () => {
         })
         setVerifyModalOpen(false)
       } else {
-        setVerifyError('Reject: Verification code does not match this reservation. Each reservation code works only for its own reservation.')
+        setVerifyError('Reject: Verification code does not match this reservation.')
       }
     } finally {
       setIsVerifying(false)
@@ -1389,24 +1382,37 @@ export const AdminTransactionsPage: FC = () => {
                   { label: 'Reserved On', value: selectedClaim.reservedAt },
                   {
                     label: 'Pick-up Code',
-                    value: isSuperAdmin ? (
-                      <span key="code-admin" style={{ fontFamily: 'monospace', letterSpacing: '0.15em', color: '#94a3b8' }}>••••</span>
-                    ) : (
-                      <span
-                        key="code-resident"
-                        style={{
-                          fontFamily: 'monospace',
-                          letterSpacing: '0.15em',
-                          padding: '2px 8px',
-                          borderRadius: 4,
-                          backgroundColor: '#f1f4f0',
-                          color: '#2e6022',
-                          fontWeight: 700,
-                        }}
-                      >
-                        {selectedClaim.pickupCode}
-                      </span>
-                    ),
+                    value:
+                      selectedClaim.status === 'Picked Up' ? (
+                        <span
+                          key="code-verified"
+                          style={{
+                            fontFamily: 'monospace',
+                            letterSpacing: '0.12em',
+                            padding: '3px 8px',
+                            borderRadius: 6,
+                            backgroundColor: '#f1f4f0',
+                            color: '#2e6022',
+                            fontWeight: 700,
+                            fontSize: '0.8125rem',
+                          }}
+                        >
+                          {selectedClaim.pickupCode || 'VERIFIED'}
+                        </span>
+                      ) : (
+                        <span
+                          key="code-hidden"
+                          style={{
+                            fontFamily: 'monospace',
+                            letterSpacing: '0.18em',
+                            color: '#94a3b8',
+                            fontWeight: 700,
+                            fontSize: '0.8125rem',
+                          }}
+                        >
+                          •••••••
+                        </span>
+                      ),
                   },
                   ...(selectedClaim.resolvedAt ? [{ label: 'Resolved On', value: selectedClaim.resolvedAt }] : []),
                   {
