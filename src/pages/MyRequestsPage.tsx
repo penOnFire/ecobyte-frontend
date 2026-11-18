@@ -377,7 +377,7 @@ export const MyRequestsPage: FC = () => {
                   }}
                   onClick={() => {
                     if (canReschedule) {
-                      navigate(`/schedule-dropoff?requestId=${encodeURIComponent(req.requestId)}`)
+                      navigate(`/dropoff-schedule?requestId=${encodeURIComponent(req.requestId)}`)
                     }
                   }}
                 >

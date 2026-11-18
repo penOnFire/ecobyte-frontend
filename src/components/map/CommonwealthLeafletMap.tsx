@@ -804,7 +804,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
               size="small"
               variant="contained"
               startIcon={<CalendarMonthRoundedIcon sx={{ fontSize: 14 }} />}
-              onClick={() => navigate(`/schedule-dropoff?siteId=${selectedSite.id}`)}
+              onClick={() => navigate(`/dropoff-schedule?siteId=${encodeURIComponent(selectedSite.id)}`)}
               sx={{
                 fontSize: '0.6875rem',
                 fontWeight: 700,
