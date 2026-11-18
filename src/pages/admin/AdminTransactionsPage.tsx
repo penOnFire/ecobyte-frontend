@@ -401,6 +401,41 @@ export const AdminTransactionsPage: FC = () => {
       normalized = `ECO-${raw.slice(3)}`
     }
 
+    const cleanInput = raw.replace(/[^A-Z0-9]/g, '')
+    const cleanTarget = (verifyingClaim.pickupCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+    const inputDigits = cleanInput.replace(/^ECO/, '')
+    const targetDigits = cleanTarget.replace(/^ECO/, '')
+
+    // Check if the input code matches another reservation in the system
+    const matchingOtherClaim = claims.find((c) => {
+      if (c.id === verifyingClaim.id || !c.pickupCode) return false
+      const cClean = c.pickupCode.toUpperCase().replace(/[^A-Z0-9]/g, '')
+      const cDigits = cClean.replace(/^ECO/, '')
+      return (
+        cClean === cleanInput ||
+        (cleanInput.length === 4 && cDigits === cleanInput) ||
+        (cDigits.length === 4 && inputDigits === cDigits)
+      )
+    })
+
+    if (matchingOtherClaim) {
+      setVerifyError(
+        `Reject: This pick-up code belongs to another reservation (${matchingOtherClaim.itemName} reserved by ${matchingOtherClaim.residentName}). Each reservation code works only for its own reservation.`
+      )
+      return
+    }
+
+    const isTargetMatch =
+      Boolean(cleanTarget) &&
+      (cleanInput === cleanTarget ||
+        (cleanInput.length === 4 && targetDigits === cleanInput) ||
+        (inputDigits.length === 4 && targetDigits === inputDigits))
+
+    if (!isTargetMatch) {
+      setVerifyError('Reject: Verification code does not match this reservation. Each reservation code works only for its own reservation.')
+      return
+    }
+
     setIsVerifying(true)
     setVerifyError(null)
 
@@ -411,7 +446,7 @@ export const AdminTransactionsPage: FC = () => {
       })
 
       if (!res.matched || !res.success) {
-        setVerifyError(res.error || 'Reject: Code did not match the reservation record.')
+        setVerifyError(res.error || 'Reject: Verification code does not match this reservation.')
         setIsVerifying(false)
         return
       }
@@ -429,20 +464,31 @@ export const AdminTransactionsPage: FC = () => {
         )
       )
 
+      try {
+        const stored = localStorage.getItem('ecobyte_user_reservations')
+        if (stored) {
+          const list = JSON.parse(stored)
+          const updated = list.map((r: any) =>
+            r.pickupCode === verifyingClaim.pickupCode ||
+            r.id === verifyingClaim.listingId ||
+            `CLAIM-${r.id}` === verifyingClaim.id
+              ? { ...r, status: 'CLAIMED' }
+              : r
+          )
+          localStorage.setItem('ecobyte_user_reservations', JSON.stringify(updated))
+        }
+      } catch {
+        // Ignore local storage errors
+      }
+
       setToast({
         message: `Pick-up verified for ${verifyingClaim.itemName}! Status updated to Picked Up.`,
         severity: 'success',
       })
       setVerifyModalOpen(false)
     } catch {
-      // Local check fallback strictly comparing with the actual pick up code of this claim
-      const cleanInput = raw.replace(/[^A-Z0-9]/g, '')
-      const cleanTarget = (verifyingClaim.pickupCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
-      const isMatch =
-        Boolean(cleanTarget) &&
-        (cleanInput === cleanTarget || cleanInput.replace(/^ECO/, '') === cleanTarget.replace(/^ECO/, ''))
-
-      if (isMatch) {
+      // Local check fallback
+      if (isTargetMatch) {
         setClaims((prev) =>
           prev.map((c) =>
             c.id === verifyingClaim.id
@@ -479,7 +525,7 @@ export const AdminTransactionsPage: FC = () => {
         })
         setVerifyModalOpen(false)
       } else {
-        setVerifyError('Reject: not the reserving resident (verification code did not match reservation).')
+        setVerifyError('Reject: Verification code does not match this reservation. Each reservation code works only for its own reservation.')
       }
     } finally {
       setIsVerifying(false)
