@@ -123,16 +123,49 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
 
     tileLayerRef.current = tileLayer
 
-    // Solid Inverted World Mask (100% Opaque matching page background #faf8f5)
-    // Rendered via GPU-synchronized SVG overlay inside mapPane.
+    // Inverted World Mask with Dark Background & Dark Green Dots outside Commonwealth
+    // Rendered via GPU-synchronized SVG overlay inside mapPane with noClip: true.
     // Zero outside tiles visible, zero edge leakage, zero main-thread JS calculations on drag.
-    L.polygon([WORLD_MASK_RING, COMMONWEALTH_BOUNDARY], {
-      fillColor: '#faf8f5',
+    const maskPolygon = L.polygon([WORLD_MASK_RING, COMMONWEALTH_BOUNDARY], {
+      className: 'commonwealth-outside-mask',
+      fillColor: 'url(#darkGreenDotsPattern)',
       fillOpacity: 1.0,
       stroke: false,
       interactive: false,
+      noClip: true,
       renderer: wideMaskRenderer,
     }).addTo(map)
+
+    // Ensure pattern is injected and applied to the SVG path immediately upon renderer creation
+    const applySvgPattern = () => {
+      const svgElement = mapContainerRef.current?.querySelector('svg.leaflet-zoom-animated') as SVGSVGElement | null
+      if (svgElement) {
+        if (!svgElement.querySelector('#darkGreenDotsPattern')) {
+          const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+          defs.innerHTML = `
+            <pattern id="darkGreenDotsPattern" width="16" height="16" patternUnits="userSpaceOnUse">
+              <rect width="16" height="16" fill="#071209" />
+              <circle cx="8" cy="8" r="1.8" fill="#1b4d27" opacity="0.95" />
+              <circle cx="0" cy="0" r="1.3" fill="#143d1e" opacity="0.85" />
+              <circle cx="16" cy="0" r="1.3" fill="#143d1e" opacity="0.85" />
+              <circle cx="0" cy="16" r="1.3" fill="#143d1e" opacity="0.85" />
+              <circle cx="16" cy="16" r="1.3" fill="#143d1e" opacity="0.85" />
+            </pattern>
+          `
+          svgElement.insertBefore(defs, svgElement.firstChild)
+        }
+
+        const maskPath = (maskPolygon as unknown as { _path?: SVGPathElement })._path
+        if (maskPath) {
+          maskPath.setAttribute('fill', 'url(#darkGreenDotsPattern)')
+          maskPath.setAttribute('fill-opacity', '1')
+          maskPath.setAttribute('style', 'fill: url(#darkGreenDotsPattern) !important; fill-opacity: 1 !important;')
+        }
+      }
+    }
+
+    applySvgPattern()
+    map.on('zoomend moveend viewreset', applySvgPattern)
 
     // Render the 9 Base Partitions (Clean lines strictly within boundary — Zero green highlight)
     COMMONWEALTH_PARTITIONS.forEach((partition: CommonwealthPartition) => {
@@ -219,7 +252,18 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
       labelMarkersRef.current[partition.id] = labelMarker
     })
 
-    // Accurate, Clean & Bold Outer Outline of Barangay Commonwealth
+    // 1. Subtle Outer Border Glow around Barangay Commonwealth boundary
+    L.polygon(COMMONWEALTH_BOUNDARY, {
+      className: 'commonwealth-boundary-glow',
+      color: '#ABF06B',
+      weight: 8,
+      opacity: 0.6,
+      fill: false,
+      interactive: false,
+      renderer: wideMaskRenderer,
+    }).addTo(map)
+
+    // 2. Accurate, Clean & Crisp Outer Border of Barangay Commonwealth
     L.polygon(COMMONWEALTH_BOUNDARY, {
       color: '#0f172a',
       weight: 3.5,
@@ -405,6 +449,30 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
           box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
           color: #0f172a !important;
         }
+        /* Keep Leaflet internal pane z-indices strictly below AppShell fixed navbars */
+        .leaflet-pane,
+        .leaflet-top,
+        .leaflet-bottom,
+        .leaflet-control {
+          z-index: 10 !important;
+        }
+        .leaflet-control-container {
+          position: relative;
+          z-index: 10;
+        }
+
+        /* Dotted Dark Green Outside Boundary Mask */
+        .commonwealth-outside-mask {
+          fill: url(#darkGreenDotsPattern) !important;
+          fill-opacity: 1 !important;
+        }
+
+        /* Luminous Border Glow on Commonwealth Boundary */
+        .commonwealth-boundary-glow {
+          filter: drop-shadow(0 0 6px rgba(171, 240, 107, 0.75)) drop-shadow(0 0 12px rgba(38, 99, 23, 0.45));
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
       `}</style>
 
       {/* ── 1. Top Control Bar (OUTSIDE the map) ── */}
@@ -567,17 +635,22 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
         </Box>
       </Box>
 
-      {/* ── 2. The Map Frame: 60fps Native Leaflet, Zero Outside Leak, Perfectly Framed ── */}
+      {/* ── 2. The Map Frame: 60fps Native Leaflet, Zero Outside Leak, Perfectly Framed with Ambient Glow ── */}
       <Box
         sx={{
           position: 'relative',
+          zIndex: 1,
           width: '100%',
           height,
           borderRadius: 3,
           overflow: 'hidden',
           border: '2px solid #0f172a',
           backgroundColor: '#faf8f5',
-          boxShadow: '0 4px 16px rgba(15,23,42,0.08)',
+          boxShadow: '0 8px 30px rgba(38, 99, 23, 0.18), 0 2px 10px rgba(15, 23, 42, 0.12)',
+          transition: 'box-shadow 0.3s ease',
+          '&:hover': {
+            boxShadow: '0 10px 36px rgba(171, 240, 107, 0.28), 0 4px 14px rgba(15, 23, 42, 0.16)',
+          },
         }}
       >
         <Box

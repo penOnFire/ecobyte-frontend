@@ -61,11 +61,7 @@ export const AdminToInspectPage: FC = () => {
       setRequests(reqs)
       setQueueItems(items)
     } catch (err: any) {
-      console.error('Failed to load admin intake queue:', err)
-      setToast({
-        message: err?.message || 'Unable to load intake requests from the backend.',
-        severity: 'error',
-      })
+      console.warn('Could not load admin intake queue from backend, keeping cached queue:', err)
     } finally {
       setIsLoading(false)
     }
@@ -81,11 +77,7 @@ export const AdminToInspectPage: FC = () => {
       })
       .catch((err: any) => {
         if (!active) return
-        console.error('Failed to load admin intake queue:', err)
-        setToast({
-          message: err?.message || 'Unable to load intake requests from the backend.',
-          severity: 'error',
-        })
+        console.warn('Could not load admin intake queue from backend, keeping cached queue:', err)
       })
       .finally(() => {
         if (active) setIsLoading(false)

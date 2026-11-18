@@ -78,7 +78,7 @@ export const AdminReuseHubPage: FC = () => {
       })
       .catch((err: any) => {
         if (!active) return
-        setErrorMsg(err?.message || 'Unable to load Reuse Hub inventory from backend.')
+        console.warn('Could not load Reuse Hub inventory from backend, keeping cached items:', err)
       })
       .finally(() => {
         if (active) setIsLoading(false)

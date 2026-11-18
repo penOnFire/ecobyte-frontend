@@ -31,22 +31,22 @@ export const StepperTracker: FC<StepperTrackerProps> = ({ steps, currentStep }) 
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: done ? '#4f5f4b' : active ? '#ffffff' : '#ffffff',
-                border: done ? 'none' : active ? '2.5px solid #4f5f4b' : '1.5px solid #d6cfc5',
-                boxShadow: active ? '0 0 0 3px rgba(79,95,75,0.12)' : 'none',
+                backgroundColor: done ? '#000000' : active ? '#D5F5C3' : '#FFFFFF',
+                border: done ? 'none' : active ? '2px solid #BEEB64' : '1.5px solid rgba(220, 207, 192, 0.7)',
+                transition: 'all 0.2s ease',
               }}
             >
               {done ? (
                 <CheckRoundedIcon sx={{ fontSize: 14, color: '#ffffff' }} />
               ) : active ? (
-                <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#4f5f4b' }} />
+                <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#8FC25F' }} />
               ) : (
                 <Typography
                   sx={{
                     fontFamily: "'Quicksand', sans-serif",
                     fontWeight: 700,
                     fontSize: '0.625rem',
-                    color: '#a8a29e',
+                    color: '#7F897D',
                   }}
                 >
                   {step.id}
@@ -56,9 +56,9 @@ export const StepperTracker: FC<StepperTrackerProps> = ({ steps, currentStep }) 
             <Typography
               sx={{
                 fontFamily: "'Quicksand', sans-serif",
-                fontWeight: done || active ? 700 : 600,
+                fontWeight: done || active ? 700 : 500,
                 fontSize: '0.625rem',
-                color: done || active ? '#292524' : '#a8a29e',
+                color: done || active ? '#1F2937' : '#596556',
                 mt: 0.6,
                 textAlign: 'center',
                 lineHeight: 1.2,
@@ -74,9 +74,10 @@ export const StepperTracker: FC<StepperTrackerProps> = ({ steps, currentStep }) 
               sx={{
                 flex: 1,
                 height: 2,
-                mt: '12px',
-                backgroundColor: done ? '#4f5f4b' : '#ede8e1',
+                mt: '13px',
+                backgroundColor: done ? '#4F5F4B' : 'rgba(220, 207, 192, 0.5)',
                 mx: 0.25,
+                borderRadius: 1,
               }}
             />
           )}

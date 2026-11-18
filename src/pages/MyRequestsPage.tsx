@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import type { FC } from 'react'
 import {
   Box,
@@ -7,6 +7,10 @@ import {
   CircularProgress,
   IconButton,
   LinearProgress,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   Typography,
 } from '@mui/material'
 import QrCode2RoundedIcon from '@mui/icons-material/QrCode2Rounded'
@@ -14,6 +18,7 @@ import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined'
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded'
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -30,29 +35,51 @@ export const MyRequestsPage: FC = () => {
   const [reservations, setReservations] = useState<UserReservationItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [filterAnchor, setFilterAnchor] = useState<null | HTMLElement>(null)
+  const [statusFilter, setStatusFilter] = useState<'all' | 'scheduled' | 'review'>('all')
 
   useEffect(() => {
     let isMounted = true
-    localStorage.removeItem('ecobyte_ongoing_requests')
-    localStorage.removeItem('ecobyte_claimed_requests')
+
+    const getLocalReservations = (): UserReservationItem[] => {
+      try {
+        const stored = localStorage.getItem('ecobyte_user_reservations')
+        return stored ? JSON.parse(stored) : []
+      } catch {
+        return []
+      }
+    }
+
+    const getLocalClaimed = (): EwasteRequestItem[] => {
+      try {
+        const stored = localStorage.getItem('ecobyte_claimed_requests')
+        return stored ? JSON.parse(stored) : []
+      } catch {
+        return []
+      }
+    }
 
     dropoffsApi
       .getMyRequests()
       .then((data) => {
         if (!isMounted) return
+        const localRes = getLocalReservations()
+        const localClaimed = getLocalClaimed()
         setOngoing(data.ongoing || [])
-        setCompleted(data.completed || [])
-        setReservations(data.reservations || [])
+        setCompleted([...localClaimed, ...(data.completed || [])])
+        setReservations([...localRes, ...(data.reservations || [])])
         setLoadError(null)
         setIsLoading(false)
       })
       .catch((err) => {
         console.error('Failed to load user requests from backend:', err)
         if (isMounted) {
+          const localRes = getLocalReservations()
+          const localClaimed = getLocalClaimed()
           setOngoing([])
-          setCompleted([])
-          setReservations([])
-          setLoadError('Unable to load requests from the server right now.')
+          setCompleted(localClaimed)
+          setReservations(localRes)
+          setLoadError(null)
           setIsLoading(false)
         }
       })
@@ -61,6 +88,12 @@ export const MyRequestsPage: FC = () => {
       isMounted = false
     }
   }, [])
+
+  const filteredOngoing = ongoing.filter((r) => {
+    if (statusFilter === 'scheduled') return r.status === 'Scheduled'
+    if (statusFilter === 'review') return r.status === 'Under review' || (r.status as string) === 'pending_review'
+    return true
+  })
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5, pb: 4 }}>
@@ -112,12 +145,14 @@ export const MyRequestsPage: FC = () => {
         <IconButton
           size="small"
           aria-label="Filter"
+          onClick={(e: MouseEvent<HTMLElement>) => setFilterAnchor(e.currentTarget)}
           sx={{
             width: 38,
             height: 38,
             borderRadius: '50%',
-            backgroundColor: '#ffffff',
-            border: '1px solid #e2e8f0',
+            backgroundColor: statusFilter !== 'all' ? '#f1f5f9' : '#ffffff',
+            border: '1px solid',
+            borderColor: statusFilter !== 'all' ? '#0f172a' : '#e2e8f0',
             color: '#0f172a',
             boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
             '&:hover': { backgroundColor: '#f8fafc' },
@@ -125,6 +160,80 @@ export const MyRequestsPage: FC = () => {
         >
           <TuneRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
+
+        <Menu
+          anchorEl={filterAnchor}
+          open={Boolean(filterAnchor)}
+          onClose={() => setFilterAnchor(null)}
+          slotProps={{
+            paper: {
+              sx: {
+                borderRadius: 2,
+                minWidth: 200,
+                boxShadow: '0 8px 24px rgba(15,23,42,0.12)',
+                fontFamily: "'Quicksand', sans-serif",
+              },
+            },
+          }}
+        >
+          <MenuItem
+            onClick={() => {
+              setStatusFilter('all')
+              setFilterAnchor(null)
+            }}
+            selected={statusFilter === 'all'}
+            sx={{ py: 1 }}
+          >
+            <ListItemIcon>
+              {statusFilter === 'all' ? <CheckRoundedIcon sx={{ fontSize: 18, color: '#16a34a' }} /> : <Box sx={{ width: 18 }} />}
+            </ListItemIcon>
+            <ListItemText
+              primary={
+                <Typography sx={{ fontWeight: statusFilter === 'all' ? 700 : 500, fontSize: '0.8125rem', color: '#0f172a' }}>
+                  All Requests
+                </Typography>
+              }
+            />
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              setStatusFilter('scheduled')
+              setFilterAnchor(null)
+            }}
+            selected={statusFilter === 'scheduled'}
+            sx={{ py: 1 }}
+          >
+            <ListItemIcon>
+              {statusFilter === 'scheduled' ? <CheckRoundedIcon sx={{ fontSize: 18, color: '#16a34a' }} /> : <Box sx={{ width: 18 }} />}
+            </ListItemIcon>
+            <ListItemText
+              primary={
+                <Typography sx={{ fontWeight: statusFilter === 'scheduled' ? 700 : 500, fontSize: '0.8125rem', color: '#0f172a' }}>
+                  Scheduled Only
+                </Typography>
+              }
+            />
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              setStatusFilter('review')
+              setFilterAnchor(null)
+            }}
+            selected={statusFilter === 'review'}
+            sx={{ py: 1 }}
+          >
+            <ListItemIcon>
+              {statusFilter === 'review' ? <CheckRoundedIcon sx={{ fontSize: 18, color: '#16a34a' }} /> : <Box sx={{ width: 18 }} />}
+            </ListItemIcon>
+            <ListItemText
+              primary={
+                <Typography sx={{ fontWeight: statusFilter === 'review' ? 700 : 500, fontSize: '0.8125rem', color: '#0f172a' }}>
+                  Under Review
+                </Typography>
+              }
+            />
+          </MenuItem>
+        </Menu>
       </Box>
 
       {/* Segmented Pill Tabs */}
@@ -288,7 +397,11 @@ export const MyRequestsPage: FC = () => {
                       variant="outlined"
                       size="small"
                       startIcon={<QrCode2RoundedIcon sx={{ fontSize: 18 }} />}
-                      onClick={() => navigate('/reservation-code')}
+                      onClick={() =>
+                        navigate(
+                          `/reservation-code?code=${encodeURIComponent(res.pickupCode)}&title=${encodeURIComponent(res.itemTitle)}`
+                        )
+                      }
                       sx={{
                         borderColor: '#e2e8f0',
                         color: '#0f172a',
@@ -346,21 +459,21 @@ export const MyRequestsPage: FC = () => {
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
                 <CircularProgress size={24} sx={{ color: '#0f172a' }} />
               </Box>
-            ) : ongoing.length === 0 ? (
+            ) : filteredOngoing.length === 0 ? (
               <Card sx={{ p: 2.5, textAlign: 'center', borderRadius: 2, border: '1px dashed #cbd5e1' }}>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
                   No ongoing drop-offs
                 </Typography>
                 <Button
                   size="small"
-                  onClick={() => navigate('/dropoffs')}
+                  onClick={() => navigate('/drop-offs')}
                   sx={{ mt: 1, color: '#0f172a', fontWeight: 700, textDecoration: 'underline' }}
                 >
                   Find a drop-off hub
                 </Button>
               </Card>
             ) : (
-              ongoing.map((req) => {
+              filteredOngoing.map((req) => {
                 const canReschedule = req.status === 'Scheduled' || req.status === 'Under review'
                 return (
                 <Card

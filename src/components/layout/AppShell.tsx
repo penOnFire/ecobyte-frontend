@@ -12,10 +12,15 @@ import {
   DialogActions,
   Drawer,
   Button,
+  OutlinedInput,
+  Switch,
+  FormControlLabel,
+  Snackbar,
+  Alert,
 } from '@mui/material'
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded'
 import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded'
-import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded'
+import MapRoundedIcon from '@mui/icons-material/MapRounded'
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded'
 import RecyclingRoundedIcon from '@mui/icons-material/RecyclingRounded'
 import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded'
@@ -27,12 +32,16 @@ import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
 import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined'
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded'
 import StarRoundedIcon from '@mui/icons-material/StarRounded'
+import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined'
+import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined'
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
   authApi,
   dropoffsApi,
   extractFirstName,
   getCachedUser,
+  setCachedUser,
   type DashboardSummary,
 } from '@/lib/api'
 import type { User } from '@/types'
@@ -71,6 +80,10 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
   const [logoutOpen, setLogoutOpen] = useState(false)
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS)
   const [currentUser, setCurrentUser] = useState<User | null>(() => getCachedUser())
+  const [editProfileOpen, setEditProfileOpen] = useState(false)
+  const [editPhone, setEditPhone] = useState(() => getCachedUser()?.phone || '')
+  const [smsAlerts, setSmsAlerts] = useState(true)
+  const [settingsSavedToast, setSettingsSavedToast] = useState(false)
   const [summary, setSummary] = useState<DashboardSummary>({
     activeRequestsCount: 0,
     assessedCount: 0,
@@ -151,9 +164,10 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
   }
 
   const isActive = (p: string) => (p === '/' ? path === '/' : path.startsWith(p))
+  const isDashboard = path === '/' || path === '/dashboard'
 
   return (
-    <Box sx={{ minHeight: '100dvh', backgroundColor: '#faf8f5', display: 'flex', justifyContent: 'center' }}>
+    <Box sx={{ minHeight: '100dvh', backgroundColor: '#F0ECE6', display: 'flex', justifyContent: 'center' }}>
       <Container
         maxWidth="xs"
         disableGutters
@@ -162,62 +176,86 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
-          backgroundColor: '#faf8f5',
+          backgroundColor: '#F0ECE6',
         }}
       >
         {/* ── Top Header ── */}
         <Box
           component="header"
           sx={{
-            position: 'sticky',
+            position: isDashboard ? 'absolute' : 'sticky',
             top: 0,
-            zIndex: 100,
-            backgroundColor: 'rgba(250, 248, 245, 0.95)',
-            backdropFilter: 'blur(8px)',
+            left: 0,
+            right: 0,
+            zIndex: 50,
+            backgroundColor: isDashboard ? 'transparent' : 'rgba(240, 236, 230, 0.95)',
+            backdropFilter: isDashboard ? 'none' : 'blur(8px)',
             px: 2.5,
             pt: 1.5,
             pb: 1.25,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: '1px solid #e2e8f0',
+            borderBottom: isDashboard ? 'none' : '1px solid rgba(220, 207, 192, 0.6)',
           }}
         >
           <Box
             onClick={() => navigate('/dashboard')}
             sx={{ display: 'flex', alignItems: 'center', gap: 0.75, cursor: 'pointer' }}
           >
-            <LocationOnRoundedIcon sx={{ color: '#4f5f4b', fontSize: 20 }} />
+            <LocationOnRoundedIcon sx={{ color: isDashboard ? '#ABF06B' : '#4F5F4B', fontSize: 20 }} />
             <Box>
               <Typography
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
-                  fontWeight: 700,
+                  fontWeight: 800,
                   fontSize: '0.9375rem',
-                  color: '#0f172a',
+                  color: isDashboard ? '#ABF06B' : '#1F2937',
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
                   lineHeight: 1.2,
                 }}
               >
                 EcoByte
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.1 }}>
-                <Typography
-                  sx={{
-                    fontFamily: "'Quicksand', sans-serif",
-                    fontWeight: 600,
-                    fontSize: '0.75rem',
-                    color: '#64748b',
-                    lineHeight: 1,
-                  }}
-                >
-                  {areaLabel}
-                </Typography>
-                <KeyboardArrowDownRoundedIcon sx={{ fontSize: 15, color: '#64748b' }} />
-              </Box>
+              <Typography
+                sx={{
+                  fontFamily: "'Quicksand', sans-serif",
+                  fontWeight: 600,
+                  fontSize: '0.75rem',
+                  color: isDashboard ? 'rgba(255, 255, 255, 0.9)' : '#596556',
+                  lineHeight: 1,
+                }}
+              >
+                {areaLabel}
+              </Typography>
             </Box>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {!isDashboard && (
+              <IconButton
+                size="small"
+                aria-label="Drop-off Locations Map"
+                onClick={() => navigate('/drop-offs')}
+                title="View 9 Drop-off Locations"
+                sx={{
+                  width: 36,
+                  height: 36,
+                  backgroundColor: '#ffffff',
+                  border: '1px solid rgba(220, 207, 192, 0.6)',
+                  borderRadius: '50%',
+                  transition: 'transform 0.15s ease, background-color 0.15s ease',
+                  '&:hover': {
+                    transform: 'scale(1.05)',
+                    backgroundColor: '#F8F6F2',
+                  },
+                }}
+              >
+                <MapRoundedIcon sx={{ color: '#266317', fontSize: 18 }} />
+              </IconButton>
+            )}
+
             <IconButton
               size="small"
               aria-label="notifications"
@@ -226,7 +264,8 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                 width: 36,
                 height: 36,
                 backgroundColor: '#ffffff',
-                border: '1px solid #e2e8f0',
+                border: isDashboard ? 'none' : '1px solid rgba(220, 207, 192, 0.6)',
+                boxShadow: isDashboard ? '0 2px 8px rgba(0,0,0,0.25)' : 'none',
                 borderRadius: '50%',
               }}
             >
@@ -234,7 +273,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                 variant={unreadCount > 0 ? 'dot' : undefined}
                 sx={{
                   '& .MuiBadge-badge': {
-                    backgroundColor: '#dc2626',
+                    backgroundColor: '#D9534F',
                     minWidth: 7,
                     height: 7,
                     right: 1,
@@ -242,7 +281,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                   },
                 }}
               >
-                <NotificationsNoneRoundedIcon sx={{ color: '#0f172a', fontSize: 18 }} />
+                <NotificationsNoneRoundedIcon sx={{ color: '#1F2937', fontSize: 18 }} />
               </Badge>
             </IconButton>
 
@@ -251,13 +290,13 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               sx={{
                 width: 34,
                 height: 34,
-                backgroundColor: '#0f172a',
-                color: '#abf06b',
+                backgroundColor: '#000000',
+                color: '#ABF06B',
                 fontFamily: "'Quicksand', sans-serif",
                 fontWeight: 700,
                 fontSize: '0.875rem',
                 cursor: 'pointer',
-                border: '2px solid #abf06b',
+                border: '2px solid #ABF06B',
                 transition: 'transform 0.15s ease',
                 '&:hover': { transform: 'scale(1.05)' },
               }}
@@ -268,7 +307,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
         </Box>
 
         {/* ── Page Content ── */}
-        <Box component="main" sx={{ flex: 1, px: 2.5, pb: 11, overflowX: 'hidden' }}>
+        <Box component="main" sx={{ flex: 1, px: isDashboard ? 0 : 2.5, pb: 11, overflowX: 'hidden' }}>
           {children}
         </Box>
 
@@ -282,7 +321,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             transform: 'translateX(-50%)',
             width: '100%',
             maxWidth: 444,
-            zIndex: 200,
+            zIndex: 100,
             pointerEvents: 'none',
           }}
         >
@@ -290,7 +329,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             sx={{
               backgroundColor: 'rgba(255, 255, 255, 0.98)',
               backdropFilter: 'blur(10px)',
-              borderTop: '1px solid #e2e8f0',
+              borderTop: '1px solid rgba(220, 207, 192, 0.6)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-around',
@@ -316,7 +355,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               onClick={() => navigate('/reuse')}
             />
 
-            {/* Scan – center elevated */}
+            {/* Scan – center elevated black circle */}
             <Box
               onClick={() => navigate('/scan')}
               sx={{
@@ -329,28 +368,27 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             >
               <Box
                 sx={{
-                  width: 54,
-                  height: 54,
+                  width: 50,
+                  height: 50,
                   borderRadius: '50%',
-                  backgroundColor: '#0f172a',
-                  color: '#abf06b',
-                  border: '2px solid #abf06b',
+                  backgroundColor: '#000000',
+                  color: '#ffffff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 4px 16px rgba(15, 23, 42, 0.35)',
+                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)',
                   transition: 'transform 0.15s ease',
                   '&:active': { transform: 'scale(0.95)' },
                 }}
               >
-                <CameraAltRoundedIcon sx={{ fontSize: 26 }} />
+                <CameraAltRoundedIcon sx={{ fontSize: 24 }} />
               </Box>
               <Typography
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 700,
                   fontSize: '0.6875rem',
-                  color: isActive('/scan') ? '#0f172a' : '#64748b',
+                  color: '#1F2937',
                   mt: 0.4,
                 }}
               >
@@ -368,7 +406,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
 
             {/* Account */}
             <NavItem
-              icon={<PersonOutlineRoundedIcon sx={{ fontSize: 24 }} />}
+              icon={<PersonOutlineRoundedIcon sx={{ fontSize: 22 }} />}
               label="Account"
               active={profileOpen}
               onClick={() => setProfileOpen(true)}
@@ -382,16 +420,24 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
           open={profileOpen}
           onClose={() => setProfileOpen(false)}
           slotProps={{
+            root: {
+              sx: {
+                zIndex: 1400,
+              },
+            },
             paper: {
               sx: {
                 borderTopLeftRadius: '20px',
                 borderTopRightRadius: '20px',
                 maxWidth: 444,
                 mx: 'auto',
+                maxHeight: '90vh',
+                overflowY: 'auto',
                 p: 2.5,
-                pb: 4,
+                pb: 'calc(env(safe-area-inset-bottom, 16px) + 24px)',
                 backgroundColor: '#ffffff',
                 fontFamily: "'Quicksand', sans-serif",
+                boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.25)',
               },
             },
           }}
@@ -501,6 +547,28 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
 
           {/* Quick Actions */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Button
+              onClick={() => {
+                setProfileOpen(false)
+                setEditPhone(currentUser?.phone || '')
+                setEditProfileOpen(true)
+              }}
+              variant="outlined"
+              startIcon={<ManageAccountsOutlinedIcon />}
+              sx={{
+                justifyContent: 'flex-start',
+                py: 1.25,
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 700,
+                color: '#334155',
+                borderColor: '#cbd5e1',
+                '&:hover': { borderColor: '#94a3b8', backgroundColor: '#f8fafc' },
+              }}
+            >
+              Account Preferences &amp; Contact
+            </Button>
+
             {isStaff && (
               <Button
                 onClick={() => {
@@ -554,16 +622,24 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
           open={notificationsOpen}
           onClose={() => setNotificationsOpen(false)}
           slotProps={{
+            root: {
+              sx: {
+                zIndex: 1400,
+              },
+            },
             paper: {
               sx: {
                 borderTopLeftRadius: '20px',
                 borderTopRightRadius: '20px',
                 maxWidth: 444,
                 mx: 'auto',
+                maxHeight: '85vh',
+                overflowY: 'auto',
                 p: 2.5,
-                pb: 4,
+                pb: 'calc(env(safe-area-inset-bottom, 16px) + 24px)',
                 backgroundColor: '#ffffff',
                 fontFamily: "'Quicksand', sans-serif",
+                boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.25)',
               },
             },
           }}
@@ -749,6 +825,144 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* ── Resident Preferences & Contact Modal ── */}
+        <Dialog
+          open={editProfileOpen}
+          onClose={() => setEditProfileOpen(false)}
+          maxWidth="xs"
+          fullWidth
+          slotProps={{
+            paper: {
+              sx: {
+                borderRadius: '16px',
+                p: 1.5,
+                fontFamily: "'Quicksand', sans-serif",
+              },
+            },
+          }}
+        >
+          <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+            <Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '1.0625rem', color: '#0f172a' }}>
+                Account Preferences
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
+                Resident contact &amp; SMS alerts
+              </Typography>
+            </Box>
+            <IconButton size="small" onClick={() => setEditProfileOpen(false)}>
+              <CloseRoundedIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2, py: 2 }}>
+            <Box>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', mb: 0.5 }}>
+                Full Name
+              </Typography>
+              <OutlinedInput
+                fullWidth
+                size="small"
+                value={fullName}
+                disabled
+                sx={{ backgroundColor: '#f8fafc', borderRadius: 1.5, fontSize: '0.875rem' }}
+              />
+            </Box>
+
+            <Box>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', mb: 0.5 }}>
+                Verified Email
+              </Typography>
+              <OutlinedInput
+                fullWidth
+                size="small"
+                value={userEmail}
+                disabled
+                startAdornment={<EmailOutlinedIcon sx={{ fontSize: 18, color: '#94a3b8', mr: 1 }} />}
+                sx={{ backgroundColor: '#f8fafc', borderRadius: 1.5, fontSize: '0.875rem' }}
+              />
+            </Box>
+
+            <Box>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', mb: 0.5 }}>
+                Mobile Contact (for Drop-off SMS)
+              </Typography>
+              <OutlinedInput
+                fullWidth
+                size="small"
+                value={editPhone}
+                onChange={(e) => setEditPhone(e.target.value)}
+                startAdornment={<PhoneOutlinedIcon sx={{ fontSize: 18, color: '#94a3b8', mr: 1 }} />}
+                placeholder="+63 9XX XXX XXXX"
+                sx={{ borderRadius: 1.5, fontSize: '0.875rem' }}
+              />
+            </Box>
+
+            <Box sx={{ pt: 1, borderTop: '1px solid #f1f5f9' }}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={smsAlerts}
+                    onChange={(e) => setSmsAlerts(e.target.checked)}
+                    color="success"
+                  />
+                }
+                label={
+                  <Box>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>
+                      SMS &amp; Booking Updates
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>
+                      Receive drop-off verification codes and voucher notifications
+                    </Typography>
+                  </Box>
+                }
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ p: 2, gap: 1 }}>
+            <Button
+              onClick={() => setEditProfileOpen(false)}
+              sx={{ color: '#64748b', textTransform: 'none', fontWeight: 600 }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => {
+                if (currentUser) {
+                  const updated: User = { ...currentUser, phone: editPhone }
+                  setCurrentUser(updated)
+                  setCachedUser(updated)
+                }
+                setEditProfileOpen(false)
+                setSettingsSavedToast(true)
+              }}
+              sx={{
+                backgroundColor: '#0f172a',
+                color: '#ffffff',
+                textTransform: 'none',
+                fontWeight: 700,
+                borderRadius: 1.5,
+                '&:hover': { backgroundColor: '#1e293b' },
+              }}
+            >
+              Save Preferences
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* ── Preferences Saved Toast ── */}
+        <Snackbar
+          open={settingsSavedToast}
+          autoHideDuration={3000}
+          onClose={() => setSettingsSavedToast(false)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert severity="success" variant="filled" onClose={() => setSettingsSavedToast(false)}>
+            Preferences updated successfully!
+          </Alert>
+        </Snackbar>
       </Container>
     </Box>
   )
@@ -771,7 +985,7 @@ const NavItem: FC<NavItemProps> = ({ icon, label, active, onClick }) => (
       cursor: 'pointer',
       px: 1.5,
       py: 0.75,
-      color: active ? '#0f172a' : '#64748b',
+      color: active ? '#4F5F4B' : '#596556',
       minWidth: 52,
       position: 'relative',
       '&::after': active ? {
@@ -780,7 +994,7 @@ const NavItem: FC<NavItemProps> = ({ icon, label, active, onClick }) => (
         bottom: 2,
         width: 16,
         height: 2.5,
-        backgroundColor: '#abf06b',
+        backgroundColor: '#ABF06B',
         borderRadius: 9999,
       } : {},
     }}
