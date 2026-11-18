@@ -603,6 +603,87 @@ export const SignInPage: FC = () => {
             )
           })()}
 
+          {/* Dynamic Account Type Detection Badge */}
+          {(() => {
+            const detected = detectAccountType(email)
+            if (detected === 'admin') {
+              return (
+                <Box
+                  sx={{
+                    mb: 2,
+                    p: 1.25,
+                    borderRadius: '10px',
+                    backgroundColor: '#f0fdf4',
+                    border: '1px solid #86efac',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                  }}
+                >
+                  <ShieldOutlinedIcon sx={{ fontSize: 18, color: '#15803d' }} />
+                  <Box>
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#14532d', lineHeight: 1.2 }}>
+                      Super Admin Central Account
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.6875rem', color: '#166534', fontWeight: 600 }}>
+                      Auto-redirects to Central System-Wide Oversight (/admin)
+                    </Typography>
+                  </Box>
+                </Box>
+              )
+            }
+            if (detected === 'official') {
+              return (
+                <Box
+                  sx={{
+                    mb: 2,
+                    p: 1.25,
+                    borderRadius: '10px',
+                    backgroundColor: '#f0fdf4',
+                    border: '1px solid #86efac',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                  }}
+                >
+                  <LocationOnOutlinedIcon sx={{ fontSize: 18, color: '#16a34a' }} />
+                  <Box>
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#14532d', lineHeight: 1.2 }}>
+                      Barangay Official Account
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.6875rem', color: '#166534', fontWeight: 600 }}>
+                      Auto-redirects to Station Operations Portal (/admin)
+                    </Typography>
+                  </Box>
+                </Box>
+              )
+            }
+            return (
+              <Box
+                sx={{
+                  mb: 2,
+                  p: 1.25,
+                  borderRadius: '10px',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                }}
+              >
+                <YardOutlinedIcon sx={{ fontSize: 18, color: '#0f172a' }} />
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
+                    Resident Account
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
+                    Auto-redirects to Circular E-Waste Portal (/dashboard)
+                  </Typography>
+                </Box>
+              </Box>
+            )
+          })()}
+
           <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {/* Email */}
             <Box>
@@ -876,33 +957,6 @@ export const SignInPage: FC = () => {
               }}
             >
               Register
-            </Link>
-          </Typography>
-        </Box>
-
-        {/* Link to Official / Admin Portal */}
-        <Box sx={{ textAlign: 'center', mt: 1.5 }}>
-          <Typography
-            sx={{
-              fontFamily: "'Quicksand', sans-serif",
-              fontWeight: 500,
-              fontSize: '0.8125rem',
-              color: '#64748b',
-            }}
-          >
-            Barangay Official or Super Admin?{' '}
-            <Link
-              component={RouterLink}
-              to="/admin/signin"
-              sx={{
-                fontWeight: 700,
-                color: '#2e6022',
-                cursor: 'pointer',
-                textDecoration: 'none',
-                '&:hover': { textDecoration: 'underline' },
-              }}
-            >
-              Official Sign In &rarr;
             </Link>
           </Typography>
         </Box>
