@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { FC } from 'react'
 import {
   Alert,
@@ -29,12 +29,52 @@ import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded'
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined'
 import NavigationRoundedIcon from '@mui/icons-material/NavigationRounded'
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { dropoffsApi } from '@/lib/api'
-import type { DropOffSite } from '@/types'
+import { dropoffsApi, getCachedUser } from '@/lib/api'
+import type { DropOffSite, User } from '@/types'
 import { CommonwealthLeafletMap } from '@/components/map/CommonwealthLeafletMap'
-import { COMMONWEALTH_FALLBACK_SITES, findPartitionForSite } from '@/components/map/commonwealthData'
+import {
+  COMMONWEALTH_FALLBACK_SITES,
+  COMMONWEALTH_PARTITIONS,
+  findPartitionForSite,
+  resolveSiteBaseNumber,
+} from '@/components/map/commonwealthData'
+
+function resolveUserBase(user: User | null): number {
+  if (!user) return 1
+  if (user.barangay?.id) {
+    const idNum = parseInt(user.barangay.id, 10)
+    if (!isNaN(idNum) && idNum >= 1 && idNum <= 9) return idNum
+    const match = /(?:base|area)[\s_-]*(\d+)/i.exec(user.barangay.id)
+    if (match) return parseInt(match[1], 10)
+  }
+  if (user.barangay?.name) {
+    const match = /(?:base|area)[\s_-]*(\d+)/i.exec(user.barangay.name)
+    if (match) return parseInt(match[1], 10)
+  }
+  return 1
+}
+
+function calculateHaversineDistanceKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const R = 6371
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLon = ((lon2 - lon1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return Number((R * c).toFixed(1))
+}
 
 function formatIsoDate(year: number, monthIndex: number, day: number): string {
   const mm = String(monthIndex + 1).padStart(2, '0')
@@ -166,6 +206,17 @@ export const DropoffSchedulerPage: FC = () => {
     : 'Samsung Galaxy S10 (Intake Inspection)'
 
   const [todayInfo] = useState(() => getTodayIso())
+  const [currentUser] = useState<User | null>(() => getCachedUser())
+  const userBaseNum = resolveUserBase(currentUser)
+  const userBasePartition =
+    COMMONWEALTH_PARTITIONS.find((p) => p.num === userBaseNum) ||
+    COMMONWEALTH_PARTITIONS[0]
+
+  const initialBaseSite =
+    COMMONWEALTH_FALLBACK_SITES.find(
+      (s) => resolveSiteBaseNumber(s.id, s.name) === userBaseNum
+    ) || COMMONWEALTH_FALLBACK_SITES[0]
+
   const [viewedMonth, setViewedMonth] = useState(() => ({
     year: todayInfo.year,
     month: todayInfo.month,
@@ -173,7 +224,7 @@ export const DropoffSchedulerPage: FC = () => {
   const [selectedDateStr, setSelectedDateStr] = useState(() => todayInfo.iso)
   const [selectedWindow, setSelectedWindow] = useState('afternoon')
   const [selectedHub, setSelectedHub] = useState<string>(
-    () => requestedSiteParam || 'site_commonwealth_area1'
+    () => requestedSiteParam || initialBaseSite.id
   )
   const [sites, setSites] = useState<DropOffSite[]>(COMMONWEALTH_FALLBACK_SITES)
   const [isLoadingSites, setIsLoadingSites] = useState(false)
@@ -207,10 +258,11 @@ export const DropoffSchedulerPage: FC = () => {
             if (requestedSiteParam && enriched.some((s) => s.id === requestedSiteParam)) {
               return requestedSiteParam
             }
-            if (enriched.some((s) => s.id === prev)) {
+            if (prev && prev !== initialBaseSite.id && enriched.some((s) => s.id === prev)) {
               return prev
             }
-            return enriched[0].id
+            const match = enriched.find((s) => resolveSiteBaseNumber(s.id, s.name) === userBaseNum)
+            return match?.id || enriched[0]?.id || prev
           })
         }
       })
@@ -224,7 +276,37 @@ export const DropoffSchedulerPage: FC = () => {
     return () => {
       isMounted = false
     }
-  }, [requestedSiteParam])
+  }, [requestedSiteParam, initialBaseSite.id, userBaseNum])
+
+  const referencePoint = userLocation || {
+    lat: userBasePartition.center[0],
+    lng: userBasePartition.center[1],
+  }
+
+  const suggestedSite = useMemo(() => {
+    if (sites.length === 0) return initialBaseSite
+    if (userLocation) {
+      let closest = sites[0]
+      let minD = Infinity
+      for (const s of sites) {
+        if (s.coordinates) {
+          const d = calculateHaversineDistanceKm(
+            userLocation.lat,
+            userLocation.lng,
+            s.coordinates.lat,
+            s.coordinates.lng
+          )
+          if (d < minD) {
+            minD = d
+            closest = s
+          }
+        }
+      }
+      return closest
+    }
+    const match = sites.find((s) => resolveSiteBaseNumber(s.id, s.name) === userBaseNum)
+    return match || sites[0] || initialBaseSite
+  }, [sites, userLocation, userBaseNum, initialBaseSite])
 
   const isAtCurrentMonth =
     viewedMonth.year === todayInfo.year && viewedMonth.month === todayInfo.month
@@ -452,6 +534,85 @@ export const DropoffSchedulerPage: FC = () => {
           </Typography>
         </Box>
 
+        {/* ── Nearest Base Suggestion Callout Banner ── */}
+        <Card
+          sx={{
+            p: 1.75,
+            borderRadius: 2,
+            backgroundColor: '#f0fdf4',
+            border: '1.5px solid #86efac',
+            boxShadow: '0 2px 8px rgba(34,197,94,0.08)',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 1.5,
+          }}
+        >
+          <Box
+            sx={{
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              backgroundColor: '#16a34a',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              mt: 0.25,
+              boxShadow: '0 2px 6px rgba(22,163,74,0.3)',
+            }}
+          >
+            <AutoAwesomeRoundedIcon sx={{ fontSize: 20 }} />
+          </Box>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#14532d' }}>
+                Suggested Station: {suggestedSite.name}
+              </Typography>
+              <Chip
+                size="small"
+                label={`Nearest to Base Area ${userBaseNum}`}
+                sx={{
+                  height: 22,
+                  fontSize: '0.6875rem',
+                  fontWeight: 800,
+                  backgroundColor: '#bbf7d0',
+                  color: '#14532d',
+                  border: '1px solid #86efac',
+                }}
+              />
+            </Box>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#166534', mt: 0.5, lineHeight: 1.45 }}>
+              {userLocation
+                ? 'GPS synced: Pre-selected as the closest station to your current live location.'
+                : `Pre-selected as the closest drop-off station to your registered residence (${currentUser?.barangay?.name || `Base Area ${userBaseNum}`}).`}
+              {' '}You have full freedom to choose any of the 9 accredited stations below.
+            </Typography>
+            {selectedHub !== suggestedSite.id && (
+              <Box sx={{ mt: 1.25, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Button
+                  size="small"
+                  onClick={() => setSelectedHub(suggestedSite.id)}
+                  sx={{
+                    textTransform: 'none',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    py: 0.35,
+                    px: 1.25,
+                    borderRadius: 1.5,
+                    backgroundColor: '#15803d',
+                    color: '#ffffff',
+                    boxShadow: '0 1px 3px rgba(21,128,61,0.2)',
+                    '&:hover': { backgroundColor: '#14532d' },
+                  }}
+                >
+                  Reset to Suggested Station ({suggestedSite.name.split('(')[0].trim()})
+                </Button>
+              </Box>
+            )}
+          </Box>
+        </Card>
+
         {/* Selected Hub Highlight Banner */}
         <Card
           sx={{
@@ -470,7 +631,7 @@ export const DropoffSchedulerPage: FC = () => {
                 width: 36,
                 height: 36,
                 borderRadius: 1.25,
-                backgroundColor: '#abf06b',
+                backgroundColor: currentSite.id === suggestedSite.id ? '#22c55e' : '#abf06b',
                 color: '#0f172a',
                 display: 'flex',
                 alignItems: 'center',
@@ -514,17 +675,31 @@ export const DropoffSchedulerPage: FC = () => {
           </Box>
 
           <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', flexShrink: 0 }}>
-            <Chip
-              size="small"
-              label="Selected Base"
-              sx={{
-                height: 22,
-                fontSize: '0.6875rem',
-                fontWeight: 800,
-                backgroundColor: '#abf06b',
-                color: '#0f172a',
-              }}
-            />
+            {currentSite.id === suggestedSite.id ? (
+              <Chip
+                size="small"
+                label="🌟 Nearest to Your Base"
+                sx={{
+                  height: 22,
+                  fontSize: '0.6875rem',
+                  fontWeight: 800,
+                  backgroundColor: '#22c55e',
+                  color: '#ffffff',
+                }}
+              />
+            ) : (
+              <Chip
+                size="small"
+                label="Selected Base (Custom Choice)"
+                sx={{
+                  height: 22,
+                  fontSize: '0.6875rem',
+                  fontWeight: 800,
+                  backgroundColor: '#abf06b',
+                  color: '#0f172a',
+                }}
+              />
+            )}
             <IconButton
               size="small"
               onClick={() => handleGetDirections(currentSite)}
@@ -566,6 +741,15 @@ export const DropoffSchedulerPage: FC = () => {
           ) : (
             sites.map((hub, idx) => {
               const isSelected = selectedHub === hub.id
+              const isSuggested = hub.id === suggestedSite.id
+              const distKm = hub.coordinates
+                ? calculateHaversineDistanceKm(
+                    referencePoint.lat,
+                    referencePoint.lng,
+                    hub.coordinates.lat,
+                    hub.coordinates.lng
+                  )
+                : hub.distanceKm || 0.8
               return (
                 <Card
                   key={hub.id}
@@ -573,15 +757,27 @@ export const DropoffSchedulerPage: FC = () => {
                   sx={{
                     p: 1.5,
                     borderRadius: 1.75,
-                    border: isSelected ? '2px solid #0f172a' : '1px solid #e2e8f0',
-                    backgroundColor: isSelected ? '#f8fafc' : '#ffffff',
+                    border: isSelected
+                      ? isSuggested
+                        ? '2px solid #16a34a'
+                        : '2px solid #0f172a'
+                      : isSuggested
+                      ? '1.5px dashed #86efac'
+                      : '1px solid #e2e8f0',
+                    backgroundColor: isSelected
+                      ? isSuggested
+                        ? '#f0fdf4'
+                        : '#f8fafc'
+                      : isSuggested
+                      ? '#fcfdfc'
+                      : '#ffffff',
                     boxShadow: isSelected ? '0 2px 8px rgba(15,23,42,0.12)' : '0 1px 2px rgba(0,0,0,0.03)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
-                    '&:hover': { borderColor: '#0f172a' },
+                    '&:hover': { borderColor: isSuggested ? '#16a34a' : '#0f172a' },
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
@@ -590,8 +786,18 @@ export const DropoffSchedulerPage: FC = () => {
                         width: 28,
                         height: 28,
                         borderRadius: '50%',
-                        backgroundColor: isSelected ? '#0f172a' : '#f1f5f9',
-                        color: isSelected ? '#ffffff' : '#475569',
+                        backgroundColor: isSelected
+                          ? isSuggested
+                            ? '#16a34a'
+                            : '#0f172a'
+                          : isSuggested
+                          ? '#dcfce7'
+                          : '#f1f5f9',
+                        color: isSelected
+                          ? '#ffffff'
+                          : isSuggested
+                          ? '#15803d'
+                          : '#475569',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -607,6 +813,20 @@ export const DropoffSchedulerPage: FC = () => {
                         <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.875rem', color: '#0f172a' }}>
                           {hub.name}
                         </Typography>
+                        {isSuggested && (
+                          <Chip
+                            size="small"
+                            label={`🌟 Nearest to Base Area ${userBaseNum}`}
+                            sx={{
+                              height: 18,
+                              fontSize: '0.5625rem',
+                              fontWeight: 800,
+                              backgroundColor: '#dcfce7',
+                              color: '#15803d',
+                              border: '1px solid #86efac',
+                            }}
+                          />
+                        )}
                         {hub.hazmatAccredited && (
                           <Chip
                             size="small"
@@ -628,11 +848,11 @@ export const DropoffSchedulerPage: FC = () => {
                   </Box>
 
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", color: '#0f172a', fontWeight: 800, fontSize: '0.75rem' }}>
-                      {hub.distance || `${hub.distanceKm || 0.8} km`}
+                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", color: isSuggested ? '#16a34a' : '#0f172a', fontWeight: 800, fontSize: '0.75rem' }}>
+                      ~{distKm} km
                     </Typography>
                     {isSelected ? (
-                      <RadioButtonCheckedRoundedIcon sx={{ color: '#0f172a', fontSize: 20 }} />
+                      <RadioButtonCheckedRoundedIcon sx={{ color: isSuggested ? '#16a34a' : '#0f172a', fontSize: 20 }} />
                     ) : (
                       <RadioButtonUncheckedRoundedIcon sx={{ color: '#cbd5e1', fontSize: 20 }} />
                     )}
