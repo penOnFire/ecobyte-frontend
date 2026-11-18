@@ -190,9 +190,45 @@ const INITIAL_DISPOSALS: DisposalRecord[] = [
   { id: 'DSP-0039', itemName: 'Burnt Microwave Transformer', type: 'Small Appliance', requestId: 'REQ-0194', hazard: 'Medium', reason: 'Insulation breakdown & short circuit', by: 'Kgd. Maria Santos', barangay: 'Commonwealth', at: '2026-11-15', kg: 5.4 },
 ]
 
+const getInitialClaims = (): ClaimRecord[] => {
+  let mappedLocalReservations: ClaimRecord[] = []
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('ecobyte_user_reservations')
+      if (stored) {
+        const list = JSON.parse(stored)
+        if (Array.isArray(list)) {
+          mappedLocalReservations = list.map((r: any) => ({
+            id: `CLAIM-${r.id || '001'}`,
+            listingId: r.itemId || 'RH-LIVE',
+            itemName: r.itemTitle || 'Reserved Device',
+            type: 'Electronics',
+            condition: 'Refurbished',
+            residentName: localStorage.getItem('ecobyte_user_name') || 'Resident User',
+            residentEmail: 'resident@ecobyte.ph',
+            barangay: 'Commonwealth',
+            siteName: r.pickupLocation?.name || 'Commonwealth Area 1 Eco-Hub',
+            pickupDate: r.pickupDate || new Date().toISOString().slice(0, 10),
+            slot: r.pickupSlot || '10:00 AM – 12:00 PM',
+            pickupCode: r.pickupCode || '',
+            status: r.status === 'CLAIMED' ? 'Picked Up' : r.status === 'EXPIRED' ? 'Expired' : 'Reserved',
+            reservedAt: 'Recent',
+            resolvedAt: r.status === 'CLAIMED' ? 'Verified' : null,
+            proofPhoto: r.status === 'CLAIMED',
+          }))
+        }
+      }
+    } catch {
+      // Ignore
+    }
+  }
+  const localIds = new Set(mappedLocalReservations.map((m) => m.id))
+  return [...mappedLocalReservations, ...INITIAL_CLAIMS.filter((p) => !localIds.has(p.id))]
+}
+
 export const AdminTransactionsPage: FC = () => {
   const [tab, setTab] = useState<TxTab>('claims')
-  const [claims, setClaims] = useState<ClaimRecord[]>(INITIAL_CLAIMS)
+  const [claims, setClaims] = useState<ClaimRecord[]>(getInitialClaims)
   const [listings] = useState<ListingRecord[]>(INITIAL_LISTINGS)
   const [disposals] = useState<DisposalRecord[]>(INITIAL_DISPOSALS)
 
@@ -220,6 +256,7 @@ export const AdminTransactionsPage: FC = () => {
   // Load live transactions from backend if available
   useEffect(() => {
     let active = true
+
     adminApi
       .getTransactions({ search })
       .then((data: AdminTransactionItem[]) => {
@@ -236,7 +273,7 @@ export const AdminTransactionsPage: FC = () => {
           siteName: d.siteName,
           pickupDate: d.dateSlot?.split(' ')[0] || new Date().toISOString().slice(0, 10),
           slot: d.dateSlot?.split(' ').slice(1).join(' ') || '10:00 AM – 12:00 PM',
-          pickupCode: d.pickupCode || '••••',
+          pickupCode: d.pickupCode || '',
           status:
             (d.status || '').toLowerCase() === 'completed'
               ? 'Picked Up'
@@ -248,7 +285,7 @@ export const AdminTransactionsPage: FC = () => {
           proofPhoto: (d.status || '').toLowerCase() === 'completed',
         }))
 
-        // Merge with initial prototype data
+        // Merge live claims with local and initial prototype data
         setClaims((prev) => {
           const ids = new Set(mappedLiveClaims.map((m) => m.id))
           return [...mappedLiveClaims, ...prev.filter((p) => !ids.has(p.id))]
@@ -352,11 +389,11 @@ export const AdminTransactionsPage: FC = () => {
     if (!verifyingClaim) return
     const raw = inputPickupCode.trim().toUpperCase()
     if (!raw) {
-      setVerifyError('Please enter the verification voucher code (e.g. ECO-2112).')
+      setVerifyError('Please enter the verification code.')
       return
     }
 
-    // Auto-normalize if user typed 2112 or ECO2112 or ECO-2112
+    // Auto-normalize if user typed without hyphen or only digits
     let normalized = raw
     if (/^\d{4}$/.test(raw)) {
       normalized = `ECO-${raw}`
@@ -398,15 +435,12 @@ export const AdminTransactionsPage: FC = () => {
       })
       setVerifyModalOpen(false)
     } catch {
-      // Local check fallback with flexible matching
+      // Local check fallback strictly comparing with the actual pick up code of this claim
       const cleanInput = raw.replace(/[^A-Z0-9]/g, '')
       const cleanTarget = (verifyingClaim.pickupCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
       const isMatch =
-        cleanInput === cleanTarget ||
-        cleanInput.replace(/^ECO/, '') === cleanTarget.replace(/^ECO/, '') ||
-        cleanInput === 'ECO2112' ||
-        cleanInput === '2112' ||
-        cleanInput === '1234'
+        Boolean(cleanTarget) &&
+        (cleanInput === cleanTarget || cleanInput.replace(/^ECO/, '') === cleanTarget.replace(/^ECO/, ''))
 
       if (isMatch) {
         setClaims((prev) =>
@@ -421,6 +455,24 @@ export const AdminTransactionsPage: FC = () => {
               : c
           )
         )
+
+        try {
+          const stored = localStorage.getItem('ecobyte_user_reservations')
+          if (stored) {
+            const list = JSON.parse(stored)
+            const updated = list.map((r: any) =>
+              r.pickupCode === verifyingClaim.pickupCode ||
+              r.id === verifyingClaim.listingId ||
+              `CLAIM-${r.id}` === verifyingClaim.id
+                ? { ...r, status: 'CLAIMED' }
+                : r
+            )
+            localStorage.setItem('ecobyte_user_reservations', JSON.stringify(updated))
+          }
+        } catch {
+          // Ignore local storage errors
+        }
+
         setToast({
           message: `Pick-up verified for ${verifyingClaim.itemName}! Status updated to Picked Up.`,
           severity: 'success',
@@ -1425,13 +1477,13 @@ export const AdminTransactionsPage: FC = () => {
                 <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#334155', mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Official Verification Code
                 </Typography>
-                <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mb: 1 }}>
-                  Enter the 7-character code from the resident's pick-up voucher (e.g. ECO-2112):
+                <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mb: 1.25 }}>
+                  Enter the pick-up code presented by the resident:
                 </Typography>
                 <input
                   type="text"
                   maxLength={10}
-                  placeholder="ECO-2112"
+                  placeholder="ECO-XXXX"
                   value={inputPickupCode}
                   onChange={(e) => setInputPickupCode(e.target.value.toUpperCase())}
                   style={{
@@ -1450,14 +1502,6 @@ export const AdminTransactionsPage: FC = () => {
                     textTransform: 'uppercase',
                   }}
                 />
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
-                  <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>
-                    Format: <b>ECO-XXXX</b>
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>
-                    Voucher code: <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#2e6022' }}>{verifyingClaim.pickupCode}</span>
-                  </Typography>
-                </Box>
               </Box>
 
               {verifyError && (

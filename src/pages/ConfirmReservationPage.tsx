@@ -147,6 +147,34 @@ export const ConfirmReservationPage: FC = () => {
         pickupTime: paramTime,
       })
 
+      // Store in local storage so the actual pick up code is instantly accessible everywhere
+      try {
+        const stored = localStorage.getItem('ecobyte_user_reservations')
+        const currentList = stored ? JSON.parse(stored) : []
+        const newReservation = {
+          id: booking.reservationId,
+          itemId,
+          itemTitle: activeDevice.title,
+          pickupDate: pickupDateDisplay,
+          pickupSlot: paramTime,
+          pickupCode: booking.pickupCode,
+          status: 'RESERVED',
+          expiresAt: booking.expiresAt,
+          hoursRemaining: booking.hoursRemaining || 48,
+          pickupLocation: booking.pickupLocation || {
+            name: activeDevice.hubName,
+            address: activeDevice.hubAddress,
+            desk: 'E-Waste Hub Desk 2',
+          },
+        }
+        localStorage.setItem(
+          'ecobyte_user_reservations',
+          JSON.stringify([newReservation, ...(Array.isArray(currentList) ? currentList.filter((r: any) => r.id !== booking.reservationId) : [])])
+        )
+      } catch {
+        // Ignore local storage quota errors
+      }
+
       navigate(
         `/reservation-code?code=${encodeURIComponent(booking.pickupCode)}&title=${encodeURIComponent(activeDevice.title)}&slot=${encodeURIComponent(paramTime)}&date=${encodeURIComponent(pickupDateDisplay)}&reservationId=${encodeURIComponent(booking.reservationId)}`
       )
