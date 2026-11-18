@@ -169,15 +169,80 @@ export interface AdminActivityLogItem {
   timestamp: string
 }
 
+export type InspectionRoutingAction =
+  | 'REUSE'
+  | 'REPAIR'
+  | 'DISPOSAL'
+  | 'HAZARDOUS'
+  | 'PENDING_INSPECTION'
+
+export interface InspectorAssessmentPayload {
+  actualCondition?: string
+  matchesDescription?: 'yes' | 'partially' | 'no'
+  observedDamage?: string[]
+  missingComponents?: string[]
+  batterySafety?: 'safe' | 'swollen' | 'leaking' | 'missing' | 'not_applicable'
+  inspectorPhotos?: string[]
+  remarks?: string
+}
+
 export interface AdminInspectionDetails {
   id: string
   deviceModel: string
+  category?: string
   serialNumber: string
   intakeDate: string
+  currentStatus?: string
   resident: {
     name: string
+    email?: string
+    phone?: string
     barangay: string
   }
+  requestInfo?: {
+    requestId: string | null
+    requestCode: string | null
+    dropOffSite: string
+    scheduledSlot: string
+    requestStatus: string
+    collectionStatus: string
+    collectedAt?: string | null
+    deviceCategory: string
+  }
+  residentAssessment?: {
+    workingStatus: 'yes' | 'no' | 'not_sure'
+    powersOn: boolean
+    displayIntact: boolean
+    portsWorking: boolean
+    visibleDamage: string[]
+    otherDamage?: string
+    missingParts: string[]
+    otherMissing?: string
+    notes: string
+    recommendedRoute: string
+    hazardLevel: string
+    photos: Array<{
+      id: string
+      angleLabel: string
+      imageUrl: string
+    }>
+  }
+  previousInspection?: {
+    inspectionId: string
+    finalDecision: string
+    inspectedAt: string
+    inspectorName?: string
+    action?: InspectionRoutingAction
+    actualCondition?: string
+    matchesDescription?: 'yes' | 'partially' | 'no'
+    observedDamage?: string[]
+    missingComponents?: string[]
+    batterySafety?: 'safe' | 'swollen' | 'leaking' | 'missing' | 'not_applicable'
+    inspectorPhotos?: string[]
+    remarks?: string
+    conditionGrade?: string
+    benchNotes?: string
+  } | null
   reportedCondition: {
     powersOn: boolean
     displayIntact: boolean
@@ -708,16 +773,30 @@ export const adminApi = {
     }
   },
 
+  uploadInspectionPhoto: async (id: string, file: File): Promise<{ url: string }> => {
+    const formData = new FormData()
+    formData.append('photo', file)
+    return await apiFetch<{ url: string }>(`/admin/inspections/${id}/photos`, {
+      method: 'POST',
+      body: formData,
+    })
+  },
+
   submitInspectionVerdict: async (
     id: string,
-    payload: { action: 'REUSE' | 'DISPOSAL'; conditionGrade?: string; benchNotes?: string }
+    payload: {
+      action: InspectionRoutingAction
+      conditionGrade?: string
+      benchNotes?: string
+      inspectorAssessment?: InspectorAssessmentPayload
+    }
   ) => {
     try {
       return await apiFetch<{
         success: boolean
         inspectionId: string
         itemId: string
-        action: 'REUSE' | 'DISPOSAL'
+        action: InspectionRoutingAction
         routedTo: string
         processedAt: string
       }>(`/admin/inspections/${id}/verdict`, {
@@ -732,10 +811,7 @@ export const adminApi = {
           inspectionId: `insp-${Date.now()}`,
           itemId: id,
           action: payload.action,
-          routedTo:
-            payload.action === 'REUSE'
-              ? 'Refurbished Reuse Hub Inventory'
-              : 'Certified Recycler Hazardous Disposal Queue',
+          routedTo: payload.action,
           processedAt: new Date().toISOString(),
         }
       }

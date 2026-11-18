@@ -107,12 +107,43 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
         // Keep cached user when offline or unauthenticated
       })
 
-    dropoffsApi
-      .getDashboardSummary()
-      .then((data) => {
+    Promise.all([
+      dropoffsApi.getDashboardSummary(),
+      dropoffsApi.getNotifications().catch(() => []),
+    ])
+      .then(([data, apiNotifications]) => {
         if (!active || !data) return
         setSummary(data)
         const dynamicNotifications: NotificationItem[] = []
+        if (Array.isArray(apiNotifications)) {
+          for (const n of apiNotifications) {
+            const title =
+              n.type === 'INSPECTION_RESULT'
+                ? 'Inspection Outcome Update'
+                : n.type === 'DROPOFF_MISSED'
+                  ? 'Drop-off Slot Update'
+                  : n.type === 'PICKUP_CONFIRMED'
+                    ? 'Claim Verified'
+                    : 'EcoByte Notification'
+            const createdDate = new Date(n.createdAt)
+            const timeLabel = Number.isNaN(createdDate.getTime())
+              ? 'Recent'
+              : createdDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            dynamicNotifications.push({
+              id: `db-${n.id}`,
+              title,
+              desc: n.message,
+              time: timeLabel,
+              read: n.isRead,
+              type:
+                n.type === 'PICKUP_CONFIRMED'
+                  ? 'points'
+                  : n.type === 'INSPECTION_RESULT' || n.type === 'DROPOFF_MISSED'
+                    ? 'alert'
+                    : 'community',
+            })
+          }
+        }
         if (data.ecoPoints > 0) {
           dynamicNotifications.push({
             id: 'eco-points-earned',
@@ -157,10 +188,12 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
 
   const handleMarkAllRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+    dropoffsApi.markAllNotificationsRead().catch(() => {})
   }
 
   const handleClearNotifications = () => {
     setNotifications([])
+    dropoffsApi.markAllNotificationsRead().catch(() => {})
   }
 
   const isActive = (p: string) => (p === '/' ? path === '/' : path.startsWith(p))
@@ -693,6 +726,16 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               notifications.map((n) => (
                 <Box
                   key={n.id}
+                  onClick={() => {
+                    if (!n.read) {
+                      setNotifications((prev) =>
+                        prev.map((item) => (item.id === n.id ? { ...item, read: true } : item))
+                      )
+                      if (n.id.startsWith('db-')) {
+                        dropoffsApi.markNotificationRead(n.id.slice(3)).catch(() => {})
+                      }
+                    }
+                  }}
                   sx={{
                     p: 1.5,
                     borderRadius: '12px',
@@ -701,6 +744,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                     borderColor: n.read ? '#e2e8f0' : '#bbf7d0',
                     display: 'flex',
                     gap: 1.5,
+                    cursor: !n.read ? 'pointer' : 'default',
                   }}
                 >
                   <Box

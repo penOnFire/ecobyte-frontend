@@ -2,6 +2,7 @@ import { apiFetch } from './client'
 import type {
   DropOffSite,
   EwasteRequestItem,
+  ResidentNotificationItem,
   ScheduleBookingPayload,
   UserReservationItem,
 } from '@/types'
@@ -55,5 +56,18 @@ export const dropoffsApi = {
 
   getDashboardSummary: () =>
     apiFetch<DashboardSummary>('/requests/dashboard-summary'),
+
+  getNotifications: () =>
+    apiFetch<ResidentNotificationItem[]>('/requests/notifications'),
+
+  markNotificationRead: (id: string) =>
+    apiFetch<{ id: string; isRead: boolean }>(`/requests/notifications/${id}/read`, {
+      method: 'PATCH',
+    }),
+
+  markAllNotificationsRead: () =>
+    apiFetch<{ success: boolean }>('/requests/notifications/read-all', {
+      method: 'PATCH',
+    }),
 }
 

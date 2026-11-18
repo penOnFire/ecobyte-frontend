@@ -813,10 +813,12 @@ export const MyRequestsPage: FC = () => {
                 />
               </Box>
 
-              {selectedRequest.status === 'Scheduled' ? (
+              {selectedRequest.status === 'Scheduled' || selectedRequest.status === 'Under review' ? (
                 <Box sx={{ p: 1.25, backgroundColor: '#f0fdf4', borderRadius: 1.5, border: '1px solid #bbf7d0' }}>
                   <Typography sx={{ fontSize: '0.75rem', color: '#166534', fontWeight: 600 }}>
-                    Your drop-off slot is active and confirmed. You may reschedule to another day or cancel to release your slot.
+                    {selectedRequest.status === 'Scheduled'
+                      ? 'Your drop-off slot is active and confirmed. You may update the drop-off hub/date or cancel to release your slot.'
+                      : 'Your intake request is pending station confirmation. You may update your preferred drop-off hub/date or cancel it.'}
                   </Typography>
                 </Box>
               ) : (
@@ -829,7 +831,7 @@ export const MyRequestsPage: FC = () => {
             </DialogContent>
 
             <DialogActions sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {selectedRequest.status === 'Scheduled' ? (
+              {selectedRequest.status === 'Scheduled' || selectedRequest.status === 'Under review' ? (
                 <>
                   <Button
                     fullWidth

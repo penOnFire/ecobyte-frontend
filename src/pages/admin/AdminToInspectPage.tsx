@@ -1,6 +1,18 @@
 import { useCallback, useEffect, useState, type FC } from 'react'
-import { Alert, Box, ButtonBase, CircularProgress, Snackbar, Typography } from '@mui/material'
+import {
+  Alert,
+  Box,
+  ButtonBase,
+  CircularProgress,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Snackbar,
+  Typography,
+} from '@mui/material'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import PendingActionsRoundedIcon from '@mui/icons-material/PendingActionsRounded'
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
@@ -18,6 +30,7 @@ import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined
 import DeleteSweepOutlinedIcon from '@mui/icons-material/DeleteSweepOutlined'
 import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined'
 import { AdminDisposalPage } from '@/pages/admin/AdminDisposalPage'
+import { InspectionWorkbench } from '@/components/admin/InspectionWorkbench'
 import {
   adminApi,
   type AdminCollectionRequest,
@@ -57,6 +70,7 @@ export const AdminToInspectPage: FC = () => {
   const [queueItems, setQueueItems] = useState<AdminInspectionQueueItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [busyRequestId, setBusyRequestId] = useState<string | null>(null)
+  const [inspectModalItemId, setInspectModalItemId] = useState<string | null>(null)
   const [toast, setToast] = useState<{ message: string; severity: 'success' | 'error' } | null>(null)
 
   const fetchIntakeQueue = useCallback(async () => {
@@ -188,18 +202,19 @@ export const AdminToInspectPage: FC = () => {
 
   const handleInspectRequest = async (req: AdminCollectionRequest) => {
     if (req.linkedItemId) {
-      navigate(`/admin/inspect?item=${req.linkedItemId}`)
+      setInspectModalItemId(req.linkedItemId)
       return
     }
     setBusyRequestId(req.id)
     try {
       const res = await adminApi.startRequestInspection(req.id)
-      navigate(`/admin/inspect?item=${res.itemId}`)
+      setInspectModalItemId(res.itemId)
     } catch (err: any) {
       setToast({
         message: err?.message || 'Unable to start physical inspection for this request.',
         severity: 'error',
       })
+    } finally {
       setBusyRequestId(null)
     }
   }
@@ -947,7 +962,7 @@ export const AdminToInspectPage: FC = () => {
                       {/* Inspect Button */}
                       <Box sx={{ textAlign: 'right' }}>
                         <ButtonBase
-                          onClick={() => navigate(`/admin/inspect?item=${item.id}`)}
+                          onClick={() => setInspectModalItemId(item.id)}
                           sx={{
                             height: 32,
                             px: 1.75,
@@ -1303,6 +1318,92 @@ export const AdminToInspectPage: FC = () => {
         </Box>
       </Box>
       )}
+
+      {/* ── Resident Request & Physical Inspection Modal ── */}
+      <Dialog
+        open={Boolean(inspectModalItemId)}
+        onClose={() => setInspectModalItemId(null)}
+        maxWidth="lg"
+        fullWidth
+        scroll="paper"
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: '16px',
+              backgroundColor: '#f8fafc',
+            },
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            backgroundColor: '#ffffff',
+            borderBottom: '1px solid #e2e8f0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            py: 1.75,
+            px: 3,
+          }}
+        >
+          <Box>
+            <Typography sx={{ fontWeight: 800, fontSize: '1.125rem', color: '#0b1c30' }}>
+              Resident Request &amp; Physical Inspection Form
+            </Typography>
+            <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
+              Review resident assessment, record physical findings, and assign final routing decision
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {inspectModalItemId && (
+              <ButtonBase
+                onClick={() => {
+                  const targetId = inspectModalItemId
+                  setInspectModalItemId(null)
+                  navigate(`/admin/inspect?item=${targetId}`)
+                }}
+                sx={{
+                  px: 1.5,
+                  py: 0.6,
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: '#334155',
+                  backgroundColor: '#f8fafc',
+                  '&:hover': { backgroundColor: '#f1f5f9' },
+                }}
+              >
+                Open Full Page
+              </ButtonBase>
+            )}
+            <IconButton
+              size="small"
+              aria-label="Close inspection modal"
+              onClick={() => setInspectModalItemId(null)}
+            >
+              <CloseRoundedIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          {inspectModalItemId && (
+            <InspectionWorkbench
+              itemId={inspectModalItemId}
+              isModal
+              onClose={() => setInspectModalItemId(null)}
+              onSubmitted={async (_action, routedTo) => {
+                setInspectModalItemId(null)
+                setToast({
+                  message: `Saved decision (${routedTo}) and sent resident notification.`,
+                  severity: 'success',
+                })
+                await loadData()
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Snackbar
         open={Boolean(toast)}

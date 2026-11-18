@@ -300,12 +300,19 @@ export const DropoffSchedulerPage: FC = () => {
           courierOrSelf: 'SELF_DROPOFF',
         })
       } else {
+        const storedAssessmentId =
+          searchParams.get('assessmentId') ||
+          sessionStorage.getItem('ecobyte_last_assessment_id') ||
+          undefined
         await dropoffsApi.scheduleIntake({
+          assessmentId: storedAssessmentId,
           siteId: siteToBook.id,
           scheduledDate: selectedDateStr,
           timeSlot: selectedWindow,
           courierOrSelf: 'SELF_DROPOFF',
         })
+        sessionStorage.removeItem('ecobyte_last_assessment_id')
+        sessionStorage.removeItem('ecobyte_scan_angles')
       }
       localStorage.removeItem('ecobyte_ongoing_requests')
       navigate('/requests?tab=ongoing')

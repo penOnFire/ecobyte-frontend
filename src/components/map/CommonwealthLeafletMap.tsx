@@ -15,7 +15,7 @@ import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined'
 import CropFreeRoundedIcon from '@mui/icons-material/CropFreeRounded'
 import NavigationRoundedIcon from '@mui/icons-material/NavigationRounded'
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import type { DropOffSite } from '@/types'
 import {
   COMMONWEALTH_BOUNDARY,
@@ -39,6 +39,7 @@ interface CommonwealthLeafletMapProps {
   userLocation?: { lat: number; lng: number } | null
   onLocateUser?: () => void
   height?: number | string
+  hideScheduleButton?: boolean
 }
 
 export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
@@ -49,8 +50,12 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
   userLocation,
   onLocateUser,
   height = 360,
+  hideScheduleButton = false,
 }) => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const isOnSchedulerPage = location.pathname.startsWith('/dropoff-schedule')
+  const showScheduleButton = !hideScheduleButton && !isOnSchedulerPage
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
   const markersRef = useRef<Record<string, L.Marker>>({})
@@ -873,25 +878,31 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
             >
               Directions
             </Button>
-            <Button
-              size="small"
-              variant="contained"
-              startIcon={<CalendarMonthRoundedIcon sx={{ fontSize: 14 }} />}
-              onClick={() => navigate(`/dropoff-schedule?siteId=${encodeURIComponent(selectedSite.id)}`)}
-              sx={{
-                fontSize: '0.6875rem',
-                fontWeight: 700,
-                py: 0.4,
-                px: 1,
-                borderRadius: 1.75,
-                textTransform: 'none',
-                backgroundColor: '#0f172a',
-                color: '#abf06b',
-                '&:hover': { backgroundColor: '#1e293b' },
-              }}
-            >
-              Schedule
-            </Button>
+            {showScheduleButton && (
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={<CalendarMonthRoundedIcon sx={{ fontSize: 14 }} />}
+                onClick={() => {
+                  const params = new URLSearchParams(location.search)
+                  params.set('siteId', selectedSite.id)
+                  navigate(`/dropoff-schedule?${params.toString()}`)
+                }}
+                sx={{
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  py: 0.4,
+                  px: 1,
+                  borderRadius: 1.75,
+                  textTransform: 'none',
+                  backgroundColor: '#0f172a',
+                  color: '#abf06b',
+                  '&:hover': { backgroundColor: '#1e293b' },
+                }}
+              >
+                Schedule
+              </Button>
+            )}
           </Box>
         </Box>
       )}

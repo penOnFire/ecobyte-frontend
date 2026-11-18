@@ -23,7 +23,7 @@ import MyLocationRoundedIcon from '@mui/icons-material/MyLocationRounded'
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { dropoffsApi } from '@/lib/api'
 import type { DropOffSite } from '@/types'
@@ -71,6 +71,7 @@ function calculateHaversineDistanceKm(
 
 export const DropOffFinderPage: FC = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [activeFilter, setActiveFilter] = useState('All Sites (9)')
   const [sites, setSites] = useState<DropOffSite[]>(COMMONWEALTH_FALLBACK_SITES)
   const [isLoading, setIsLoading] = useState(true)
@@ -413,7 +414,9 @@ export const DropOffFinderPage: FC = () => {
                     size="small"
                     onClick={(e) => {
                       e.stopPropagation()
-                      navigate(`/dropoff-schedule?siteId=${encodeURIComponent(site.id)}`)
+                      const nextParams = new URLSearchParams(searchParams)
+                      nextParams.set('siteId', site.id)
+                      navigate(`/dropoff-schedule?${nextParams.toString()}`)
                     }}
                     startIcon={<CalendarMonthRoundedIcon sx={{ fontSize: 16 }} />}
                     sx={{

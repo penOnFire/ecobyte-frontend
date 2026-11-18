@@ -2,6 +2,22 @@ import type { ApiResponse } from '@/types'
 
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) || '/api/v1'
 
+export function resolveMediaUrl(url?: string | null): string {
+  if (!url) return ''
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+    return url
+  }
+  if (BASE_URL.startsWith('http://') || BASE_URL.startsWith('https://')) {
+    try {
+      const origin = new URL(BASE_URL).origin
+      return `${origin}${url.startsWith('/') ? url : `/${url}`}`
+    } catch {
+      return url
+    }
+  }
+  return url
+}
+
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>
 }

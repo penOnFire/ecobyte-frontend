@@ -76,12 +76,25 @@ export interface AngleUploadResult {
 
 export interface DamageAssessmentPayload {
   sessionId: string
+  deviceModel?: string
+  category?: string
+  workingStatus?: 'yes' | 'no' | 'not_sure'
   powersOn: boolean
   displayIntact: boolean
   portsWorking: boolean
   visibleDamage: string[]
+  otherDamage?: string
   missingParts: string[]
+  otherMissing?: string
   notes?: string
+}
+
+export interface ResidentNotificationItem {
+  id: string
+  type: string
+  message: string
+  isRead: boolean
+  createdAt: string
 }
 
 export interface SubsystemHealth {
