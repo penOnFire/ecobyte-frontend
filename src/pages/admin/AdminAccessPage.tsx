@@ -22,6 +22,8 @@ import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded'
 import ManageAccountsRoundedIcon from '@mui/icons-material/ManageAccountsRounded'
 import KeyRoundedIcon from '@mui/icons-material/KeyRounded'
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
+import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded'
+import EmailRoundedIcon from '@mui/icons-material/EmailRounded'
 import { adminApi } from '@/lib/api'
 import {
   INITIAL_USERS,
@@ -53,6 +55,8 @@ const BARANGAYS = [
   'Bagong Silangan',
 ]
 
+const SUFFIX_OPTIONS = ['None', 'Jr.', 'Sr.', 'II', 'III', 'IV', 'V']
+
 export const AdminAccessPage: FC = () => {
   const [users, setUsers] = useState<OfficialUser[]>(INITIAL_USERS)
   const [search, setSearch] = useState('')
@@ -61,12 +65,23 @@ export const AdminAccessPage: FC = () => {
   const [filterStatus, setFilterStatus] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
-  // ── Pop-Up Modal 1: Create Official Account (Prototype create-user modal) ──
+  // ── Pop-Up Modal 1: Account Registration (Proper structured official/admin registration) ──
   const [createModalOpen, setCreateModalOpen] = useState(false)
-  const [cuName, setCuName] = useState('')
+  const [cuFirstName, setCuFirstName] = useState('')
+  const [cuMiddleName, setCuMiddleName] = useState('')
+  const [cuLastName, setCuLastName] = useState('')
+  const [cuSuffix, setCuSuffix] = useState('None')
   const [cuEmail, setCuEmail] = useState('')
+  const [cuPhone, setCuPhone] = useState('+63 9')
+  const [cuBadgeId, setCuBadgeId] = useState(() => generateBadgeId('Official'))
   const [cuRole, setCuRole] = useState<'Official' | 'Admin'>('Official')
+  const [cuBarangay, setCuBarangay] = useState('Commonwealth')
   const [cuSiteId, setCuSiteId] = useState(OFFICIAL_SITES[0].id)
+  const [cuDepartment, setCuDepartment] = useState('Intake & Drop-Off Station')
+  const [cuPassword, setCuPassword] = useState('official123')
+  const [cuMustChangePassword, setCuMustChangePassword] = useState(true)
+  const [cuTwoFactorEnabled, setCuTwoFactorEnabled] = useState(false)
+  const [cuNotes, setCuNotes] = useState('')
   const [cuError, setCuError] = useState<string | null>(null)
 
   // ── Pop-Up Modal 2: Change User Role (Prototype change-role modal) ──
@@ -98,52 +113,109 @@ export const AdminAccessPage: FC = () => {
 
   // ── Handlers for Create User Modal ──
   const handleOpenCreateModal = () => {
-    setCuName('')
+    setCuFirstName('')
+    setCuMiddleName('')
+    setCuLastName('')
+    setCuSuffix('None')
     setCuEmail('')
+    setCuPhone('+63 9')
+    setCuBadgeId(generateBadgeId('Official'))
     setCuRole('Official')
+    setCuBarangay('Commonwealth')
     setCuSiteId(OFFICIAL_SITES[0].id)
+    setCuDepartment('Intake & Drop-Off Station')
+    setCuPassword('official123')
+    setCuMustChangePassword(true)
+    setCuTwoFactorEnabled(false)
+    setCuNotes('')
     setCuError(null)
     setCreateModalOpen(true)
   }
 
-  const handleSaveNewUser = async () => {
-    const nameTrimmed = cuName.trim()
-    const emailTrimmed = cuEmail.trim().toLowerCase()
+  const handleRoleChange = (newRole: 'Official' | 'Admin') => {
+    setCuRole(newRole)
+    setCuBadgeId(generateBadgeId(newRole))
+    if (newRole === 'Admin') {
+      setCuTwoFactorEnabled(true)
+      setCuBarangay('All')
+      setCuDepartment('Central Administration Office')
+    } else {
+      setCuTwoFactorEnabled(false)
+      setCuBarangay('Commonwealth')
+      setCuSiteId(OFFICIAL_SITES[0].id)
+      setCuDepartment('Intake & Drop-Off Station')
+    }
+  }
 
-    if (!nameTrimmed) {
-      setCuError('Please enter the full name.')
+  const handleBarangayChange = (newBarangay: string) => {
+    setCuBarangay(newBarangay)
+    const matchingSites = OFFICIAL_SITES.filter((s) => s.barangay === newBarangay)
+    if (matchingSites.length > 0) {
+      setCuSiteId(matchingSites[0].id)
+    }
+  }
+
+  const handleSaveNewUser = async () => {
+    const fn = cuFirstName.trim()
+    const mn = cuMiddleName.trim()
+    const ln = cuLastName.trim()
+    const sfx = cuSuffix.trim() === 'None' ? '' : cuSuffix.trim()
+    const emailTrimmed = cuEmail.trim().toLowerCase()
+    const phoneTrimmed = cuPhone.trim()
+    const badgeTrimmed = cuBadgeId.trim()
+
+    if (!fn) {
+      setCuError('Please enter the first name.')
       return
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
-      setCuError('Please enter a valid email address.')
+    if (!ln) {
+      setCuError('Please enter the last name.')
+      return
+    }
+    if (!emailTrimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
+      setCuError('Please enter a valid official email address.')
       return
     }
     if (users.some((u) => u.email.toLowerCase() === emailTrimmed)) {
       setCuError('An account with this email address already exists.')
       return
     }
+    if (!phoneTrimmed || phoneTrimmed === '+63' || phoneTrimmed.length < 10) {
+      setCuError('Please enter a valid contact phone number (e.g. +63 917 123 4567).')
+      return
+    }
+    if (!badgeTrimmed) {
+      setCuError('Please specify an Employee / Badge ID.')
+      return
+    }
 
     setCuError(null)
     setIsSaving(true)
 
+    const nameParts = [fn, mn, ln, sfx].filter(Boolean)
+    const fullName = nameParts.join(' ')
     const selectedSite = OFFICIAL_SITES.find((s) => s.id === cuSiteId) || OFFICIAL_SITES[0]
-    const assignedBrgy = cuRole === 'Admin' ? 'All' : selectedSite.barangay
-    const initials =
-      nameTrimmed
-        .split(' ')
-        .filter(Boolean)
-        .map((p) => p[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase() || 'EB'
+    const assignedBrgy = cuRole === 'Admin' ? 'All' : cuBarangay
+    const assignedDept =
+      cuDepartment.trim() || (cuRole === 'Admin' ? 'Central Administration Office' : `${selectedSite.name} Desk`)
+    const initials = `${fn[0] || ''}${ln[0] || ''}`.toUpperCase() || 'EB'
 
     try {
       const backendRecord = await adminApi.createUser({
-        fullName: nameTrimmed,
+        firstName: fn,
+        middleName: mn || undefined,
+        lastName: ln,
+        suffix: sfx || undefined,
+        fullName,
         email: emailTrimmed,
+        phone: phoneTrimmed,
+        idCode: badgeTrimmed,
         role: cuRole === 'Admin' ? 'ADMIN' : 'OFFICIAL',
-        department: selectedSite.name,
-        password: 'official123',
+        department: assignedDept,
+        password: cuPassword || 'official123',
+        mustChangePassword: cuMustChangePassword,
+        twoFactorEnabled: cuTwoFactorEnabled,
+        notes: cuNotes.trim() || undefined,
         status: 'Active',
       })
 
@@ -151,32 +223,36 @@ export const AdminAccessPage: FC = () => {
       setUsers((prev) => [mapped, ...prev])
       setFeedbackBanner({
         type: 'success',
-        message: `Account created for ${mapped.name} with temporary password "official123".`,
+        message: `Account registered successfully for ${mapped.name} (${mapped.idCode}) with temporary password "${cuPassword || 'official123'}".`,
       })
       setCreateModalOpen(false)
     } catch {
       // Local fallback
       const newLocalUser: OfficialUser = {
         id: `USR-${Math.floor(1000 + Math.random() * 9000)}`,
-        name: nameTrimmed,
+        name: fullName,
+        firstName: fn,
+        middleName: mn || undefined,
+        lastName: ln,
+        suffix: sfx || undefined,
         email: emailTrimmed,
-        phone: '+63 917 000 0000',
-        idCode: generateBadgeId(cuRole),
+        phone: phoneTrimmed,
+        idCode: badgeTrimmed,
         role: cuRole,
-        department: selectedSite.name,
+        department: assignedDept,
         barangay: assignedBrgy,
         status: 'Active',
-        twoFactorEnabled: cuRole === 'Admin',
-        mustChangePassword: true,
+        twoFactorEnabled: cuTwoFactorEnabled,
+        mustChangePassword: cuMustChangePassword,
         lastActive: 'Just now',
         initials,
-        notes: `Created via Admin Access directory · Assigned to ${selectedSite.name}`,
+        notes: cuNotes.trim() || `Registered via Admin Access directory · Assigned to ${assignedDept}`,
       }
 
       setUsers((prev) => [newLocalUser, ...prev])
       setFeedbackBanner({
         type: 'success',
-        message: `Account created for ${newLocalUser.name} with temporary password "official123".`,
+        message: `Account registered successfully for ${newLocalUser.name} (${newLocalUser.idCode}) with temporary password "${cuPassword || 'official123'}".`,
       })
       setCreateModalOpen(false)
     } finally {
@@ -541,197 +617,630 @@ export const AdminAccessPage: FC = () => {
         />
       </Box>
 
-      {/* ── POP-UP MODAL 1: Create Official Account (Matches Prototype create-user modal) ── */}
+      {/* ── POP-UP MODAL 1: Account Registration (Proper structured official/admin registration) ── */}
       <Dialog
         open={createModalOpen}
         onClose={() => !isSaving && setCreateModalOpen(false)}
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
         slotProps={{
           paper: {
             sx: {
               borderRadius: '1.25rem',
               border: '1px solid #dbe3d6',
-              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.22)',
               fontFamily: "'Quicksand', sans-serif",
+              maxHeight: '92vh',
             },
           },
         }}
       >
-        <DialogTitle sx={{ px: 3, pt: 3, pb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <DialogTitle
+          sx={{
+            px: { xs: 2.5, sm: 3.5 },
+            pt: 3,
+            pb: 2,
+            borderBottom: '1px solid #eef2ed',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Box
               sx={{
-                width: 36,
-                height: 36,
-                borderRadius: '10px',
+                width: 40,
+                height: 40,
+                borderRadius: '0.75rem',
                 backgroundColor: '#f1f4f0',
                 color: '#2e6022',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                flexShrink: 0,
               }}
             >
-              <PersonAddRoundedIcon sx={{ fontSize: 20 }} />
+              <PersonAddRoundedIcon sx={{ fontSize: 22 }} />
             </Box>
-            <Typography sx={{ fontWeight: 800, fontSize: '1.125rem', color: '#0f172a' }}>
-              Create Official Account
-            </Typography>
+            <Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '1.125rem', color: '#0f172a', lineHeight: 1.2 }}>
+                Account Registration
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', mt: 0.25 }}>
+                Register and provision verified credentials for Barangay Staff or Super Admin
+              </Typography>
+            </Box>
           </Box>
           <IconButton size="small" onClick={() => setCreateModalOpen(false)} disabled={isSaving}>
             <CloseRoundedIcon sx={{ fontSize: 20 }} />
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ px: 3, py: 2.5 }}>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 2 }}>
-            {/* Full Name */}
-            <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' } }}>
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
-                Full name
-              </Typography>
-              <input
-                type="text"
-                placeholder="Kgd. Juan Dela Cruz"
-                value={cuName}
-                onChange={(e) => setCuName(e.target.value)}
-                style={{
-                  width: '100%',
-                  height: 42,
-                  padding: '0 14px',
-                  borderRadius: '0.75rem',
-                  border: '1px solid #dbe3d6',
-                  backgroundColor: '#ffffff',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  color: '#0f172a',
-                  outline: 'none',
-                  fontFamily: "'Quicksand', sans-serif",
-                }}
-              />
-            </Box>
-
-            {/* Official Email */}
-            <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' } }}>
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
-                Official email
-              </Typography>
-              <input
-                type="email"
-                placeholder="name@barangay.gov.ph"
-                value={cuEmail}
-                onChange={(e) => setCuEmail(e.target.value)}
-                style={{
-                  width: '100%',
-                  height: 42,
-                  padding: '0 14px',
-                  borderRadius: '0.75rem',
-                  border: '1px solid #dbe3d6',
-                  backgroundColor: '#ffffff',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  color: '#0f172a',
-                  outline: 'none',
-                  fontFamily: "'Quicksand', sans-serif",
-                }}
-              />
-            </Box>
-
-            {/* Role */}
+        <DialogContent sx={{ px: { xs: 2.5, sm: 3.5 }, py: 3, overflowY: 'auto' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5 }}>
+            {/* ── Section 1: Personal Information ── */}
             <Box>
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
-                Role
-              </Typography>
-              <select
-                value={cuRole}
-                onChange={(e) => setCuRole(e.target.value as 'Official' | 'Admin')}
-                style={{
-                  width: '100%',
-                  height: 42,
-                  padding: '0 12px',
-                  borderRadius: '0.75rem',
-                  border: '1px solid #dbe3d6',
-                  backgroundColor: '#ffffff',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  color: '#0f172a',
-                  outline: 'none',
-                  fontFamily: "'Quicksand', sans-serif",
-                }}
-              >
-                <option value="Official">Barangay Official</option>
-                <option value="Admin">Super Admin</option>
-              </select>
-            </Box>
-
-            {/* Assigned Base / Drop-Off Site */}
-            <Box>
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
-                Assigned Base / Drop-Off Site
-              </Typography>
-              <select
-                value={cuSiteId}
-                onChange={(e) => setCuSiteId(e.target.value)}
-                disabled={cuRole === 'Admin'}
-                style={{
-                  width: '100%',
-                  height: 42,
-                  padding: '0 12px',
-                  borderRadius: '0.75rem',
-                  border: '1px solid #dbe3d6',
-                  backgroundColor: cuRole === 'Admin' ? '#f8fafc' : '#ffffff',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  color: cuRole === 'Admin' ? '#94a3b8' : '#0f172a',
-                  outline: 'none',
-                  fontFamily: "'Quicksand', sans-serif",
-                }}
-              >
-                {OFFICIAL_SITES.map((st) => (
-                  <option key={st.id} value={st.id}>
-                    {st.name} ({st.barangay})
-                  </option>
-                ))}
-              </select>
-            </Box>
-
-            {/* Temporary Password Information Banner matching Prototype */}
-            <Box
-              sx={{
-                gridColumn: { xs: '1', sm: '1 / -1' },
-                p: 2,
-                borderRadius: '1rem',
-                backgroundColor: '#f1f4f0',
-                border: '1px solid #c5dcba',
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#2e6022', fontWeight: 700, fontSize: '0.875rem' }}>
-                <KeyRoundedIcon sx={{ fontSize: 18 }} />
-                <span>Temporary password</span>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <BadgeOutlinedIcon sx={{ fontSize: 18, color: '#2e6022' }} />
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#334155' }}>
+                  1. Personal Details
+                </Typography>
               </Box>
-              <Typography sx={{ fontSize: '0.75rem', color: '#475569', fontWeight: 600, mt: 0.5 }}>
-                A temporary password <strong style={{ fontFamily: 'monospace', fontWeight: 800, color: '#1e293b' }}>official123</strong> will be issued.
-              </Typography>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '2fr 1.5fr 2fr 1fr' }, gap: 1.75 }}>
+                {/* First Name */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    First Name <span style={{ color: '#e11d48' }}>*</span>
+                  </Typography>
+                  <input
+                    type="text"
+                    placeholder="e.g. Juan"
+                    value={cuFirstName}
+                    onChange={(e) => setCuFirstName(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#ffffff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                    }}
+                  />
+                </Box>
+
+                {/* Middle Name */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    Middle Name <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>(Optional)</span>
+                  </Typography>
+                  <input
+                    type="text"
+                    placeholder="e.g. Silang"
+                    value={cuMiddleName}
+                    onChange={(e) => setCuMiddleName(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#ffffff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                    }}
+                  />
+                </Box>
+
+                {/* Last Name */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    Last Name <span style={{ color: '#e11d48' }}>*</span>
+                  </Typography>
+                  <input
+                    type="text"
+                    placeholder="e.g. Dela Cruz"
+                    value={cuLastName}
+                    onChange={(e) => setCuLastName(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#ffffff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                    }}
+                  />
+                </Box>
+
+                {/* Suffix */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    Suffix
+                  </Typography>
+                  <select
+                    value={cuSuffix}
+                    onChange={(e) => setCuSuffix(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 10px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#ffffff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                    }}
+                  >
+                    {SUFFIX_OPTIONS.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </Box>
+              </Box>
+            </Box>
+
+            {/* ── Section 2: Contact & Identification ── */}
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <EmailRoundedIcon sx={{ fontSize: 18, color: '#2e6022' }} />
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#334155' }}>
+                  2. Contact & Identification
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '2fr 1.5fr 1.5fr' }, gap: 1.75 }}>
+                {/* Official Email */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    Official Email <span style={{ color: '#e11d48' }}>*</span>
+                  </Typography>
+                  <input
+                    type="email"
+                    placeholder="jdelacruz@barangay.gov.ph"
+                    value={cuEmail}
+                    onChange={(e) => setCuEmail(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#ffffff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                    }}
+                  />
+                </Box>
+
+                {/* Contact Number */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    Contact Number <span style={{ color: '#e11d48' }}>*</span>
+                  </Typography>
+                  <input
+                    type="tel"
+                    placeholder="+63 917 123 4567"
+                    value={cuPhone}
+                    onChange={(e) => setCuPhone(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#ffffff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                    }}
+                  />
+                </Box>
+
+                {/* Employee / Badge ID with Regenerate Button */}
+                <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569' }}>
+                      Badge ID <span style={{ color: '#e11d48' }}>*</span>
+                    </Typography>
+                    <ButtonBase
+                      onClick={() => setCuBadgeId(generateBadgeId(cuRole))}
+                      sx={{
+                        fontSize: '0.6875rem',
+                        fontWeight: 700,
+                        color: '#2e6022',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.35,
+                        '&:hover': { textDecoration: 'underline' },
+                      }}
+                    >
+                      <AutorenewRoundedIcon sx={{ fontSize: 13 }} />
+                      <span>Regen</span>
+                    </ButtonBase>
+                  </Box>
+                  <input
+                    type="text"
+                    value={cuBadgeId}
+                    onChange={(e) => setCuBadgeId(e.target.value.toUpperCase())}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#f8fafc',
+                      fontSize: '0.875rem',
+                      fontWeight: 700,
+                      color: '#1e293b',
+                      fontFamily: 'monospace',
+                      outline: 'none',
+                    }}
+                  />
+                </Box>
+              </Box>
+            </Box>
+
+            {/* ── Section 3: Role & Organizational Assignment ── */}
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <AdminPanelSettingsRoundedIcon sx={{ fontSize: 18, color: '#2e6022' }} />
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#334155' }}>
+                  3. Role & Organizational Assignment
+                </Typography>
+              </Box>
+
+              {/* Role Radio Cards */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5, mb: 2 }}>
+                {/* Official Role Card */}
+                <Box
+                  onClick={() => handleRoleChange('Official')}
+                  sx={{
+                    p: 2,
+                    borderRadius: '1rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    border: '2px solid',
+                    borderColor: cuRole === 'Official' ? '#70b822' : '#dbe3d6',
+                    backgroundColor: cuRole === 'Official' ? '#f4f9ec' : '#ffffff',
+                    boxShadow: cuRole === 'Official' ? '0 0 0 3px rgba(132, 204, 22, 0.15)' : 'none',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 1.5,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: '50%',
+                      border: '2px solid',
+                      borderColor: cuRole === 'Official' ? '#4f8a24' : '#94a3b8',
+                      backgroundColor: cuRole === 'Official' ? '#4f8a24' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mt: 0.25,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {cuRole === 'Official' && (
+                      <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#ffffff' }} />
+                    )}
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.875rem', color: '#0f172a' }}>
+                      Barangay Official
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.25 }}>
+                      Drop-off intake verification, resident inspection triage & facility records.
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Super Admin Role Card */}
+                <Box
+                  onClick={() => handleRoleChange('Admin')}
+                  sx={{
+                    p: 2,
+                    borderRadius: '1rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    border: '2px solid',
+                    borderColor: cuRole === 'Admin' ? '#7c3aed' : '#dbe3d6',
+                    backgroundColor: cuRole === 'Admin' ? '#f5f3ff' : '#ffffff',
+                    boxShadow: cuRole === 'Admin' ? '0 0 0 3px rgba(124, 58, 237, 0.15)' : 'none',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 1.5,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: '50%',
+                      border: '2px solid',
+                      borderColor: cuRole === 'Admin' ? '#7c3aed' : '#94a3b8',
+                      backgroundColor: cuRole === 'Admin' ? '#7c3aed' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mt: 0.25,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {cuRole === 'Admin' && (
+                      <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#ffffff' }} />
+                    )}
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.875rem', color: '#0f172a' }}>
+                      Super Admin
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.25 }}>
+                      All-barangay governance, reports & analytics, user directory & system audit.
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* Assignment Selectors */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1.5fr 1.5fr' }, gap: 1.75 }}>
+                {/* Barangay */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    Assigned Barangay
+                  </Typography>
+                  <select
+                    value={cuRole === 'Admin' ? 'All' : cuBarangay}
+                    onChange={(e) => handleBarangayChange(e.target.value)}
+                    disabled={cuRole === 'Admin'}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: cuRole === 'Admin' ? '#f8fafc' : '#ffffff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: cuRole === 'Admin' ? '#94a3b8' : '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                    }}
+                  >
+                    {cuRole === 'Admin' ? (
+                      <option value="All">All Sites & Barangays</option>
+                    ) : (
+                      BARANGAYS.map((b) => (
+                        <option key={b} value={b}>
+                          {b}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </Box>
+
+                {/* Assigned Drop-Off Facility */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    Drop-Off Facility / Base
+                  </Typography>
+                  <select
+                    value={cuRole === 'Admin' ? 'CENTRAL' : cuSiteId}
+                    onChange={(e) => setCuSiteId(e.target.value)}
+                    disabled={cuRole === 'Admin'}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: cuRole === 'Admin' ? '#f8fafc' : '#ffffff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: cuRole === 'Admin' ? '#94a3b8' : '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                    }}
+                  >
+                    {cuRole === 'Admin' ? (
+                      <option value="CENTRAL">Central Governance Depot</option>
+                    ) : (
+                      OFFICIAL_SITES.filter((s) => s.barangay.toLowerCase() === cuBarangay.toLowerCase()).map((st) => (
+                        <option key={st.id} value={st.id}>
+                          {st.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </Box>
+
+                {/* Desk / Division Assignment */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    Division / Operations Desk
+                  </Typography>
+                  <input
+                    type="text"
+                    placeholder="e.g. Intake & Inspection Desk"
+                    value={cuDepartment}
+                    onChange={(e) => setCuDepartment(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#ffffff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                    }}
+                  />
+                </Box>
+              </Box>
+            </Box>
+
+            {/* ── Section 4: Security Credentials & Policy ── */}
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <KeyRoundedIcon sx={{ fontSize: 18, color: '#2e6022' }} />
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#334155' }}>
+                  4. Security Credentials & Access Policy
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                {/* Temporary Password Card */}
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: '1rem',
+                    backgroundColor: '#f1f4f0',
+                    border: '1px solid #c5dcba',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <Box>
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#2e6022' }}>
+                      Initial Temporary Password
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.6875rem', color: '#475569', fontWeight: 600, mt: 0.25 }}>
+                      Issued to the official for initial setup.
+                    </Typography>
+                  </Box>
+                  <input
+                    type="text"
+                    value={cuPassword}
+                    onChange={(e) => setCuPassword(e.target.value)}
+                    style={{
+                      marginTop: 10,
+                      width: '100%',
+                      height: 36,
+                      padding: '0 12px',
+                      borderRadius: '0.5rem',
+                      border: '1px solid #c5dcba',
+                      backgroundColor: '#ffffff',
+                      fontFamily: 'monospace',
+                      fontWeight: 700,
+                      fontSize: '0.875rem',
+                      color: '#1e2e1a',
+                      outline: 'none',
+                    }}
+                  />
+                </Box>
+
+                {/* Checkboxes Policy Card */}
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: '1rem',
+                    border: '1px solid #dbe3d6',
+                    backgroundColor: '#ffffff',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1.25,
+                    justifyContent: 'center',
+                  }}
+                >
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
+                    <input
+                      type="checkbox"
+                      checked={cuMustChangePassword}
+                      onChange={(e) => setCuMustChangePassword(e.target.checked)}
+                      style={{ width: 16, height: 16, accentColor: '#70b822' }}
+                    />
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1e293b' }}>
+                      Require password reset upon first sign-in
+                    </span>
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
+                    <input
+                      type="checkbox"
+                      checked={cuTwoFactorEnabled}
+                      onChange={(e) => setCuTwoFactorEnabled(e.target.checked)}
+                      style={{ width: 16, height: 16, accentColor: '#70b822' }}
+                    />
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1e293b' }}>
+                      Enforce Two-Factor Authentication (2FA)
+                    </span>
+                  </label>
+                </Box>
+
+                {/* Administrative Notes */}
+                <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' } }}>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    Administrative Remarks <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>(Optional)</span>
+                  </Typography>
+                  <textarea
+                    rows={2}
+                    placeholder="e.g. Onboarded for Barangay Commonwealth MRF intake desk shift rotation."
+                    value={cuNotes}
+                    onChange={(e) => setCuNotes(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#ffffff',
+                      fontSize: '0.8125rem',
+                      fontWeight: 500,
+                      color: '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                      resize: 'none',
+                    }}
+                  />
+                </Box>
+              </Box>
             </Box>
 
             {/* Validation Error Banner */}
             {cuError && (
-              <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' } }}>
-                <Alert severity="error" sx={{ borderRadius: '0.75rem', fontSize: '0.8125rem' }}>
-                  {cuError}
-                </Alert>
-              </Box>
+              <Alert severity="error" sx={{ borderRadius: '0.75rem', fontSize: '0.8125rem', fontWeight: 600 }}>
+                {cuError}
+              </Alert>
             )}
           </Box>
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+        <DialogActions sx={{ px: { xs: 2.5, sm: 3.5 }, pb: 3, pt: 1.5, borderTop: '1px solid #eef2ed', gap: 1 }}>
           <ButtonBase
             onClick={() => setCreateModalOpen(false)}
             disabled={isSaving}
             sx={{
               px: 2.5,
-              py: 1,
+              py: 1.1,
               borderRadius: '0.75rem',
               backgroundColor: '#f1f5f9',
               color: '#475569',
@@ -748,7 +1257,7 @@ export const AdminAccessPage: FC = () => {
             disabled={isSaving}
             sx={{
               px: 3,
-              py: 1,
+              py: 1.1,
               borderRadius: '0.75rem',
               background: 'linear-gradient(135deg, #2e6022 0%, #70b822 100%)',
               color: '#ffffff',
@@ -757,6 +1266,7 @@ export const AdminAccessPage: FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: 0.75,
+              boxShadow: '0 2px 8px rgba(112, 184, 34, 0.35)',
               '&:hover': { opacity: 0.95 },
               '&:disabled': { opacity: 0.5 },
             }}
@@ -765,8 +1275,8 @@ export const AdminAccessPage: FC = () => {
               <CircularProgress size={16} sx={{ color: '#fff' }} />
             ) : (
               <>
-                <CheckRoundedIcon sx={{ fontSize: 16 }} />
-                <span>Create Account</span>
+                <PersonAddRoundedIcon sx={{ fontSize: 18 }} />
+                <span>Register Account</span>
               </>
             )}
           </ButtonBase>
