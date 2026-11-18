@@ -26,6 +26,7 @@ import { AdminAccessPage } from '@/pages/admin/AdminAccessPage'
 import { AdminTransactionsPage } from '@/pages/admin/AdminTransactionsPage'
 import { AdminReportsPage } from '@/pages/admin/AdminReportsPage'
 import { AdminActivityLogsPage } from '@/pages/admin/AdminActivityLogsPage'
+import { AdminSignInPage } from '@/pages/admin/AdminSignInPage'
 
 const RequireAuth: FC<{ children: ReactNode; requireAdmin?: boolean }> = ({
   children,
@@ -36,6 +37,9 @@ const RequireAuth: FC<{ children: ReactNode; requireAdmin?: boolean }> = ({
     typeof window !== 'undefined' ? window.localStorage.getItem('ecobyte_token') : null
   if (!token) {
     const target = `${location.pathname}${location.search}`
+    if (requireAdmin) {
+      return <Navigate to={`/admin/signin?redirect=${encodeURIComponent(target)}`} replace />
+    }
     return <Navigate to={`/signin?redirect=${encodeURIComponent(target)}`} replace />
   }
   const role =
@@ -63,9 +67,9 @@ export const App: FC = () => {
         <Route path="/login" element={<Navigate to="/signin" replace />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* Legacy Admin Auth Redirects -> unified /signin */}
-        <Route path="/admin/signin" element={<Navigate to="/signin" replace />} />
-        <Route path="/admin/login" element={<Navigate to="/signin" replace />} />
+        {/* Dedicated Admin & Official Auth Routes */}
+        <Route path="/admin/signin" element={<AdminSignInPage />} />
+        <Route path="/admin/login" element={<Navigate to="/admin/signin" replace />} />
 
         {/* Core Mobile Application Routes (Wrapped in RequireAuth + AppShell) */}
         <Route

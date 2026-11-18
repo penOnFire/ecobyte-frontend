@@ -522,7 +522,6 @@ export const SignInPage: FC = () => {
               </Typography>
             </Box>
           ) : null}
-
           {/* Dynamic Account Type Detection Badge */}
           {(() => {
             const detected = detectAccountType(email)
@@ -877,6 +876,33 @@ export const SignInPage: FC = () => {
               }}
             >
               Register
+            </Link>
+          </Typography>
+        </Box>
+
+        {/* Link to Official / Admin Portal */}
+        <Box sx={{ textAlign: 'center', mt: 1.5 }}>
+          <Typography
+            sx={{
+              fontFamily: "'Quicksand', sans-serif",
+              fontWeight: 500,
+              fontSize: '0.8125rem',
+              color: '#64748b',
+            }}
+          >
+            Barangay Official or Super Admin?{' '}
+            <Link
+              component={RouterLink}
+              to="/admin/signin"
+              sx={{
+                fontWeight: 700,
+                color: '#2e6022',
+                cursor: 'pointer',
+                textDecoration: 'none',
+                '&:hover': { textDecoration: 'underline' },
+              }}
+            >
+              Official Sign In &rarr;
             </Link>
           </Typography>
         </Box>

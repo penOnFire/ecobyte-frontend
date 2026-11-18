@@ -761,7 +761,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
             onClick={() => {
               authApi.logout()
               setLogoutOpen(false)
-              navigate('/signin')
+              navigate('/admin/signin')
             }}
             variant="contained"
             color="error"
