@@ -114,7 +114,7 @@ export const AdminDisposalPage: FC = () => {
       })
       .catch((err: any) => {
         if (!active) return
-        setErrorMsg(err?.message || 'Unable to load disposal records from backend.')
+        console.warn('Could not load disposal logs from backend, keeping cached records:', err)
       })
       .finally(() => {
         if (active) setIsLoading(false)

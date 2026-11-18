@@ -59,6 +59,7 @@ export const RegisterPage: FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successModalOpen, setSuccessModalOpen] = useState(false)
+  const [privacyOpen, setPrivacyOpen] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -824,7 +825,13 @@ export const RegisterPage: FC = () => {
             }}
           >
             Protected with end-to-end encryption •{' '}
-            <Link href="#" underline="hover" sx={{ color: 'inherit' }}>
+            <Link
+              component="button"
+              type="button"
+              onClick={() => setPrivacyOpen(true)}
+              underline="hover"
+              sx={{ color: 'inherit', cursor: 'pointer', fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', fontWeight: 600 }}
+            >
               Privacy Policy
             </Link>
           </Typography>
@@ -912,6 +919,47 @@ export const RegisterPage: FC = () => {
               }}
             >
               Proceed to Sign In
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* ── Privacy Policy Dialog ── */}
+        <Dialog
+          open={privacyOpen}
+          onClose={() => setPrivacyOpen(false)}
+          maxWidth="sm"
+          fullWidth
+          slotProps={{
+            paper: {
+              sx: {
+                borderRadius: '16px',
+                p: 1.5,
+                fontFamily: "'Quicksand', sans-serif",
+              },
+            },
+          }}
+        >
+          <DialogTitle sx={{ fontWeight: 800, fontSize: '1.125rem', color: '#0f172a' }}>
+            Barangay Commonwealth Data Privacy Notice
+          </DialogTitle>
+          <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 2, fontSize: '0.8125rem', color: '#475569', lineHeight: 1.6 }}>
+            <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: '0.875rem' }}>
+              Republic Act No. 10173 (Data Privacy Act of 2012) Compliance
+            </Typography>
+            <Typography sx={{ fontSize: '0.8125rem' }}>
+              EcoByte Barangay Commonwealth collects resident contact details (name, phone, area) solely for scheduling e-waste drop-offs, circular refurbishing vouchers, and environmental recycling certificates.
+            </Typography>
+            <Typography sx={{ fontSize: '0.8125rem' }}>
+              All e-waste data and diagnostic photos uploaded are processed strictly for hardware lifecycle triage and hazardous material isolation. We do not sell or disclose resident personal data to third parties.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ p: 2 }}>
+            <Button
+              variant="contained"
+              onClick={() => setPrivacyOpen(false)}
+              sx={{ backgroundColor: '#0f172a', color: '#ffffff', borderRadius: 1.5, textTransform: 'none', fontWeight: 700 }}
+            >
+              I Understand
             </Button>
           </DialogActions>
         </Dialog>

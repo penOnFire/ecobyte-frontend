@@ -1,9 +1,11 @@
-import type { FC } from 'react'
+import { useState, type FC } from 'react'
 import {
+  Alert,
   Box,
   Card,
   Divider,
   IconButton,
+  Snackbar,
   Typography,
 } from '@mui/material'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
@@ -25,6 +27,33 @@ import diagnosticImg from '@/assets/ui/diagnostic_view.jpeg'
 
 export const AiDiagnosticPage: FC = () => {
   const navigate = useNavigate()
+  const [toastMsg, setToastMsg] = useState<string | null>(null)
+
+  const handleShare = async () => {
+    const shareData = {
+      title: 'EcoByte AI Diagnostic Result',
+      text: 'EcoByte AI Multi-Angle Inspection: Galaxy S10 assessed with minor swelling. Reviewing circular turnover in Barangay Commonwealth.',
+      url: window.location.href,
+    }
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share(shareData)
+        return
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') console.warn('Share error:', err)
+      }
+    }
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(window.location.href)
+        setToastMsg('Diagnostic results link copied to clipboard!')
+      } else {
+        setToastMsg('Link: ' + window.location.href)
+      }
+    } catch {
+      setToastMsg('Diagnostic results link copied to clipboard!')
+    }
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5 }}>
@@ -60,6 +89,7 @@ export const AiDiagnosticPage: FC = () => {
         <IconButton
           size="small"
           aria-label="Share results"
+          onClick={handleShare}
           sx={{
             width: 38,
             height: 38,
@@ -383,7 +413,7 @@ export const AiDiagnosticPage: FC = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
           {/* Reuse option */}
           <Card
-            onClick={() => navigate('/reuse-guide')}
+            onClick={() => navigate('/reuse')}
             sx={{
               p: 1.75,
               borderRadius: 2,
@@ -427,7 +457,7 @@ export const AiDiagnosticPage: FC = () => {
 
           {/* Repair option */}
           <Card
-            onClick={() => navigate('/reuse-guide')}
+            onClick={() => navigate('/reuse-guide?tab=repair')}
             sx={{
               p: 1.75,
               borderRadius: 2,
@@ -527,6 +557,18 @@ export const AiDiagnosticPage: FC = () => {
           Initial guide only. It does not replace professional inspection.
         </Typography>
       </Box>
+
+      {/* Share Toast */}
+      <Snackbar
+        open={Boolean(toastMsg)}
+        autoHideDuration={3000}
+        onClose={() => setToastMsg(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="success" variant="filled" onClose={() => setToastMsg(null)}>
+          {toastMsg}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

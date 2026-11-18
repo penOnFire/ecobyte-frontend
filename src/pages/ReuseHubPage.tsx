@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import type { FC } from 'react'
 import {
   Box,
@@ -7,12 +7,17 @@ import {
   Chip,
   CircularProgress,
   InputAdornment,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   OutlinedInput,
   Typography,
 } from '@mui/material'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import MicRoundedIcon from '@mui/icons-material/MicRounded'
 import FilterListRoundedIcon from '@mui/icons-material/FilterListRounded'
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
 import EnergySavingsLeafOutlinedIcon from '@mui/icons-material/EnergySavingsLeafOutlined'
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
 import VolunteerActivismOutlinedIcon from '@mui/icons-material/VolunteerActivismOutlined'
@@ -118,6 +123,8 @@ export const ReuseHubPage: FC = () => {
   const [items, setItems] = useState<UIReuseItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [stats, setStats] = useState({ totalVerified: 48, divertedKgThisWeek: 18.5 })
+  const [filterAnchor, setFilterAnchor] = useState<null | HTMLElement>(null)
+  const [filterMode, setFilterMode] = useState<'all' | 'available' | 'nearest'>('all')
 
   useEffect(() => {
     let isMounted = true
@@ -162,6 +169,20 @@ export const ReuseHubPage: FC = () => {
       isMounted = false
     }
   }, [selectedCategory, searchQuery])
+
+  const displayedItems = items
+    .filter((it) => {
+      if (filterMode === 'available') return it.status === 'Available'
+      return true
+    })
+    .sort((a, b) => {
+      if (filterMode === 'nearest') {
+        const distA = parseFloat(a.distance) || 99
+        const distB = parseFloat(b.distance) || 99
+        return distA - distB
+      }
+      return 0
+    })
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 1, pb: 4 }}>
@@ -224,15 +245,16 @@ export const ReuseHubPage: FC = () => {
         <Button
           variant="outlined"
           aria-label="Filter"
+          onClick={(e: MouseEvent<HTMLElement>) => setFilterAnchor(e.currentTarget)}
           sx={{
             minWidth: 46,
             width: 46,
             borderRadius: 1.5,
-            borderColor: '#e2e8f0',
+            borderColor: filterMode !== 'all' ? '#0f172a' : '#e2e8f0',
             color: '#0f172a',
             p: 1.25,
             flexShrink: 0,
-            backgroundColor: '#ffffff',
+            backgroundColor: filterMode !== 'all' ? '#f1f5f9' : '#ffffff',
             boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
             '&:hover': {
               backgroundColor: '#f8fafc',
@@ -242,6 +264,80 @@ export const ReuseHubPage: FC = () => {
         >
           <FilterListRoundedIcon sx={{ fontSize: 20 }} />
         </Button>
+
+        <Menu
+          anchorEl={filterAnchor}
+          open={Boolean(filterAnchor)}
+          onClose={() => setFilterAnchor(null)}
+          slotProps={{
+            paper: {
+              sx: {
+                borderRadius: 2,
+                minWidth: 220,
+                boxShadow: '0 8px 24px rgba(15,23,42,0.12)',
+                fontFamily: "'Quicksand', sans-serif",
+              },
+            },
+          }}
+        >
+          <MenuItem
+            onClick={() => {
+              setFilterMode('all')
+              setFilterAnchor(null)
+            }}
+            selected={filterMode === 'all'}
+            sx={{ py: 1 }}
+          >
+            <ListItemIcon>
+              {filterMode === 'all' ? <CheckRoundedIcon sx={{ fontSize: 18, color: '#16a34a' }} /> : <Box sx={{ width: 18 }} />}
+            </ListItemIcon>
+            <ListItemText
+              primary={
+                <Typography sx={{ fontWeight: filterMode === 'all' ? 700 : 500, fontSize: '0.8125rem', color: '#0f172a' }}>
+                  Show All Refurbished
+                </Typography>
+              }
+            />
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              setFilterMode('available')
+              setFilterAnchor(null)
+            }}
+            selected={filterMode === 'available'}
+            sx={{ py: 1 }}
+          >
+            <ListItemIcon>
+              {filterMode === 'available' ? <CheckRoundedIcon sx={{ fontSize: 18, color: '#16a34a' }} /> : <Box sx={{ width: 18 }} />}
+            </ListItemIcon>
+            <ListItemText
+              primary={
+                <Typography sx={{ fontWeight: filterMode === 'available' ? 700 : 500, fontSize: '0.8125rem', color: '#0f172a' }}>
+                  Available to Claim Only
+                </Typography>
+              }
+            />
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              setFilterMode('nearest')
+              setFilterAnchor(null)
+            }}
+            selected={filterMode === 'nearest'}
+            sx={{ py: 1 }}
+          >
+            <ListItemIcon>
+              {filterMode === 'nearest' ? <CheckRoundedIcon sx={{ fontSize: 18, color: '#16a34a' }} /> : <Box sx={{ width: 18 }} />}
+            </ListItemIcon>
+            <ListItemText
+              primary={
+                <Typography sx={{ fontWeight: filterMode === 'nearest' ? 700 : 500, fontSize: '0.8125rem', color: '#0f172a' }}>
+                  Nearest Base Hub First
+                </Typography>
+              }
+            />
+          </MenuItem>
+        </Menu>
       </Box>
 
       {/* Category Filter Chips */}
@@ -328,7 +424,7 @@ export const ReuseHubPage: FC = () => {
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress size={28} sx={{ color: '#0f172a' }} />
           </Box>
-        ) : items.length === 0 ? (
+        ) : displayedItems.length === 0 ? (
           <Card sx={{ p: 3, textAlign: 'center', borderRadius: 2, border: '1px dashed #cbd5e1' }}>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
               No items available in this category yet
@@ -338,7 +434,7 @@ export const ReuseHubPage: FC = () => {
             </Typography>
           </Card>
         ) : (
-          items.map((item) => (
+          displayedItems.map((item) => (
             <Card
               key={item.id}
               sx={{

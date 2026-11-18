@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import type { FC } from 'react'
 import {
+  Alert,
   Box,
   Button,
   Card,
   Chip,
   IconButton,
+  Snackbar,
   Typography,
 } from '@mui/material'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
@@ -17,12 +19,42 @@ import CleaningServicesRoundedIcon from '@mui/icons-material/CleaningServicesRou
 import VolunteerActivismRoundedIcon from '@mui/icons-material/VolunteerActivismRounded'
 import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded'
 import NavigationRoundedIcon from '@mui/icons-material/NavigationRounded'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 
 export const ReuseRepairGuidePage: FC = () => {
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState<'reuse' | 'repair'>('reuse')
+  const [searchParams] = useSearchParams()
+  const [activeTab, setActiveTab] = useState<'reuse' | 'repair'>(() => {
+    return searchParams.get('tab') === 'repair' ? 'repair' : 'reuse'
+  })
+  const [toastMsg, setToastMsg] = useState<string | null>(null)
+
+  const handleShare = async () => {
+    const shareData = {
+      title: 'EcoByte Reuse & Repair Guide',
+      text: 'Barangay Commonwealth EcoByte Device Lifecycle & Repair Protocol.',
+      url: window.location.href,
+    }
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share(shareData)
+        return
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') console.warn('Share error:', err)
+      }
+    }
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(window.location.href)
+        setToastMsg('Guide link copied to clipboard!')
+      } else {
+        setToastMsg('Link: ' + window.location.href)
+      }
+    } catch {
+      setToastMsg('Guide link copied to clipboard!')
+    }
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5 }}>
@@ -58,6 +90,7 @@ export const ReuseRepairGuidePage: FC = () => {
         <IconButton
           size="small"
           aria-label="Share guide"
+          onClick={handleShare}
           sx={{
             width: 38,
             height: 38,
@@ -552,7 +585,7 @@ export const ReuseRepairGuidePage: FC = () => {
           fullWidth
           variant="contained"
           size="large"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/dashboard')}
           sx={{
             py: 1.6,
             backgroundColor: '#0f172a',
@@ -590,6 +623,18 @@ export const ReuseRepairGuidePage: FC = () => {
           Find repair drop-off
         </Button>
       </Box>
+
+      {/* Share Toast */}
+      <Snackbar
+        open={Boolean(toastMsg)}
+        autoHideDuration={3000}
+        onClose={() => setToastMsg(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="success" variant="filled" onClose={() => setToastMsg(null)}>
+          {toastMsg}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

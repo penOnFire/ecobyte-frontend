@@ -1,10 +1,14 @@
-import { useState } from 'react'
+import { useState, type MouseEvent } from 'react'
 import type { FC } from 'react'
 import {
   Box,
   Button,
   Card,
   IconButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   Typography,
   Snackbar,
   Alert,
@@ -17,12 +21,31 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded'
 import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded'
 import BookmarkAddRoundedIcon from '@mui/icons-material/BookmarkAddRounded'
-import { useNavigate } from 'react-router-dom'
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
+import { useNavigate, useParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import thinkpadDetailImg from '@/assets/ui/thinkpad_detail.jpeg'
 
+function getAvailableDates() {
+  const dates = []
+  const now = new Date()
+  for (let i = 1; i <= 4; i++) {
+    const d = new Date(now.getTime() + i * 24 * 60 * 60 * 1000)
+    const label =
+      i === 1
+        ? `Tomorrow, ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+        : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+    dates.push(label)
+  }
+  return dates
+}
+
 export const ReuseItemDetailPage: FC = () => {
   const navigate = useNavigate()
+  const { id } = useParams<{ id?: string }>()
+  const availableDates = getAvailableDates()
+  const [selectedDate, setSelectedDate] = useState(availableDates[0])
+  const [dateMenuAnchor, setDateMenuAnchor] = useState<null | HTMLElement>(null)
   const [selectedWindow, setSelectedWindow] = useState('01:00 PM')
   const [toastMsg, setToastMsg] = useState<string | null>(null)
 
@@ -301,15 +324,59 @@ export const ReuseItemDetailPage: FC = () => {
                   Selected Pick-up Date
                 </Typography>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>
-                  Tomorrow, Oct 25, 2024
+                  {selectedDate}
                 </Typography>
               </Box>
             </Box>
-            <Button size="small" sx={{ color: '#0f172a', fontWeight: 700, fontSize: '0.75rem' }}>
+            <Button
+              size="small"
+              onClick={(e: MouseEvent<HTMLElement>) => setDateMenuAnchor(e.currentTarget)}
+              sx={{ color: '#0f172a', fontWeight: 700, fontSize: '0.75rem', textTransform: 'none' }}
+            >
               Change
             </Button>
           </Box>
         </Card>
+
+        {/* Date Selection Menu */}
+        <Menu
+          anchorEl={dateMenuAnchor}
+          open={Boolean(dateMenuAnchor)}
+          onClose={() => setDateMenuAnchor(null)}
+          slotProps={{
+            paper: {
+              sx: {
+                borderRadius: 2,
+                minWidth: 260,
+                boxShadow: '0 8px 24px rgba(15,23,42,0.12)',
+                fontFamily: "'Quicksand', sans-serif",
+              },
+            },
+          }}
+        >
+          {availableDates.map((d) => (
+            <MenuItem
+              key={d}
+              onClick={() => {
+                setSelectedDate(d)
+                setDateMenuAnchor(null)
+              }}
+              selected={selectedDate === d}
+              sx={{ py: 1 }}
+            >
+              <ListItemIcon>
+                {selectedDate === d ? <CheckRoundedIcon sx={{ fontSize: 18, color: '#16a34a' }} /> : <Box sx={{ width: 18 }} />}
+              </ListItemIcon>
+              <ListItemText
+                primary={
+                  <Typography sx={{ fontWeight: selectedDate === d ? 700 : 500, fontSize: '0.8125rem', color: '#0f172a' }}>
+                    {d}
+                  </Typography>
+                }
+              />
+            </MenuItem>
+          ))}
+        </Menu>
 
         {/* Pick-up Windows */}
         <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#64748b', mb: 0.75 }}>
@@ -368,7 +435,12 @@ export const ReuseItemDetailPage: FC = () => {
           fullWidth
           variant="contained"
           size="large"
-          onClick={() => navigate('/confirm-reservation')}
+          onClick={() => {
+            const targetItemId = id || 'reuse-302'
+            navigate(
+              `/confirm-reservation?itemId=${encodeURIComponent(targetItemId)}&date=${encodeURIComponent(selectedDate)}&time=${encodeURIComponent(selectedWindow)}`
+            )
+          }}
           startIcon={<BookmarkAddRoundedIcon sx={{ fontSize: 20 }} />}
           sx={{
             py: 1.6,

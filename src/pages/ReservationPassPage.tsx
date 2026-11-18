@@ -26,7 +26,7 @@ import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined'
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded'
 import NavigationRoundedIcon from '@mui/icons-material/NavigationRounded'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import keychronImg from '@/assets/ui/keychron.jpeg'
 import { authApi, dropoffsApi, getCachedUser } from '@/lib/api'
@@ -71,11 +71,32 @@ function formatVoucherSchedule(expiresIso: string | null | undefined, fallbackMs
 
 export const ReservationPassPage: FC = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const paramCode = searchParams.get('code')
+  const paramTitle = searchParams.get('title')
+
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
   const [toastMsg, setToastMsg] = useState<string | null>(null)
   const [mountedAtMs] = useState(() => Date.now())
   const [currentUser, setCurrentUser] = useState<User | null>(() => getCachedUser())
-  const [reservation, setReservation] = useState<UserReservationItem | null>(null)
+  const [reservation, setReservation] = useState<UserReservationItem | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const local = localStorage.getItem('ecobyte_user_reservations')
+        if (local) {
+          const list: UserReservationItem[] = JSON.parse(local)
+          if (Array.isArray(list) && list.length > 0) {
+            if (paramCode) {
+              const found = list.find((r) => r.pickupCode === paramCode)
+              if (found) return found
+            }
+            return list[0]
+          }
+        }
+      } catch {}
+    }
+    return null
+  })
 
   useEffect(() => {
     let active = true
@@ -90,8 +111,11 @@ export const ReservationPassPage: FC = () => {
     dropoffsApi
       .getMyRequests()
       .then((res) => {
-        if (active && Array.isArray(res?.reservations) && res.reservations.length > 0) {
-          setReservation(res.reservations[0])
+        if (!active) return
+        if (Array.isArray(res?.reservations) && res.reservations.length > 0) {
+          if (!paramCode) {
+            setReservation(res.reservations[0])
+          }
         }
       })
       .catch(() => {
@@ -100,10 +124,10 @@ export const ReservationPassPage: FC = () => {
     return () => {
       active = false
     }
-  }, [])
+  }, [paramCode])
 
-  const pickupCode = reservation?.pickupCode || 'ECO-4821'
-  const itemTitle = reservation?.itemTitle || 'Keychron K2 V2'
+  const pickupCode = paramCode || reservation?.pickupCode || 'ECO-4821'
+  const itemTitle = paramTitle || reservation?.itemTitle || 'Keychron K2 V2'
   const claimantName = currentUser?.fullName?.trim() || 'Resident Claimant'
   const collectionPlace = reservation?.siteName || 'Commonwealth Area 1 Eco-Hub'
   const desk = 'E-Waste Hub Desk 2'

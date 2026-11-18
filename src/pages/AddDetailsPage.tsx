@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type MouseEvent } from 'react'
 import type { FC } from 'react'
 import {
   Alert,
@@ -6,6 +6,10 @@ import {
   Button,
   Card,
   IconButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   OutlinedInput,
   Typography,
 } from '@mui/material'
@@ -22,6 +26,9 @@ import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded'
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded'
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
 import EditNoteRoundedIcon from '@mui/icons-material/EditNoteRounded'
+import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded'
+import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded'
+import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded'
 import { useNavigate } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 
@@ -52,6 +59,34 @@ export const AddDetailsPage: FC = () => {
   const [otherMissingText, setOtherMissingText] = useState('')
   const [notes, setNotes] = useState('')
   const [validationError, setValidationError] = useState<string | null>(null)
+  const [tuneMenuAnchor, setTuneMenuAnchor] = useState<null | HTMLElement>(null)
+
+  const handleApplyPreset = (preset: 'clean' | 'hazard' | 'clear') => {
+    setValidationError(null)
+    setTuneMenuAnchor(null)
+    if (preset === 'clean') {
+      setWorkingStatus('yes')
+      setVisibleDamage(['none'])
+      setOtherDamageText('')
+      setMissingParts(['none'])
+      setOtherMissingText('')
+      setNotes('Device boots and display is intact. Standard wear on outer shell.')
+    } else if (preset === 'hazard') {
+      setWorkingStatus('no')
+      setVisibleDamage(['swollen'])
+      setOtherDamageText('')
+      setMissingParts(['none'])
+      setOtherMissingText('')
+      setNotes('Battery exhibits bulging or casing distortion. Flagged for hazardous isolation.')
+    } else {
+      setWorkingStatus('no')
+      setVisibleDamage(['none'])
+      setOtherDamageText('')
+      setMissingParts(['none'])
+      setOtherMissingText('')
+      setNotes('')
+    }
+  }
 
   const readyAnglesCount = FOUR_ANGLES.filter((a) => Boolean(capturedAngles[a.id])).length
 
@@ -158,6 +193,7 @@ export const AddDetailsPage: FC = () => {
         <IconButton
           size="small"
           aria-label="Tune assessment options"
+          onClick={(e: MouseEvent<HTMLElement>) => setTuneMenuAnchor(e.currentTarget)}
           sx={{
             width: 38,
             height: 38,
@@ -171,6 +207,65 @@ export const AddDetailsPage: FC = () => {
         >
           <TuneRoundedIcon sx={{ fontSize: 18 }} />
         </IconButton>
+
+        <Menu
+          anchorEl={tuneMenuAnchor}
+          open={Boolean(tuneMenuAnchor)}
+          onClose={() => setTuneMenuAnchor(null)}
+          slotProps={{
+            paper: {
+              sx: {
+                borderRadius: 2,
+                minWidth: 240,
+                boxShadow: '0 8px 24px rgba(15,23,42,0.12)',
+                fontFamily: "'Quicksand', sans-serif",
+              },
+            },
+          }}
+        >
+          <MenuItem onClick={() => handleApplyPreset('clean')} sx={{ py: 1.25 }}>
+            <ListItemIcon>
+              <AutoFixHighRoundedIcon sx={{ color: '#16a34a', fontSize: 20 }} />
+            </ListItemIcon>
+            <ListItemText
+              primary={<Typography sx={{ fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>Preset: Working Unit</Typography>}
+              secondary={<Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>Powers on, clean chassis</Typography>}
+            />
+          </MenuItem>
+          <MenuItem onClick={() => handleApplyPreset('hazard')} sx={{ py: 1.25 }}>
+            <ListItemIcon>
+              <BatteryAlertRoundedIcon sx={{ color: '#dc2626', fontSize: 20 }} />
+            </ListItemIcon>
+            <ListItemText
+              primary={<Typography sx={{ fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>Preset: Swollen Battery</Typography>}
+              secondary={<Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>Flags hazardous disposal</Typography>}
+            />
+          </MenuItem>
+          <MenuItem onClick={() => handleApplyPreset('clear')} sx={{ py: 1.25 }}>
+            <ListItemIcon>
+              <RestartAltRoundedIcon sx={{ color: '#64748b', fontSize: 20 }} />
+            </ListItemIcon>
+            <ListItemText
+              primary={<Typography sx={{ fontWeight: 600, fontSize: '0.8125rem', color: '#0f172a' }}>Reset Form Fields</Typography>}
+              secondary={<Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>Clear all selections</Typography>}
+            />
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              setTuneMenuAnchor(null)
+              navigate('/scan')
+            }}
+            sx={{ py: 1.25, borderTop: '1px solid #f1f5f9' }}
+          >
+            <ListItemIcon>
+              <CameraAltRoundedIcon sx={{ color: '#0f172a', fontSize: 20 }} />
+            </ListItemIcon>
+            <ListItemText
+              primary={<Typography sx={{ fontWeight: 600, fontSize: '0.8125rem', color: '#0f172a' }}>Retake Angle Photos</Typography>}
+              secondary={<Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>Return to camera scanner</Typography>}
+            />
+          </MenuItem>
+        </Menu>
       </Box>
 
       {/* ── Card 1: Photos captured ── */}
