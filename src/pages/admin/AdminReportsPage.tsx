@@ -26,55 +26,88 @@ const BARANGAYS = [
   { id: 'bagongsilangan', name: 'Bagong Silangan' },
 ]
 
-const FALLBACK_REPORTS: AdminReportsData = {
-  totals: {
-    totalVolumeProcessed: 320,
-    totalWeightKg: 485.5,
-    divertedKgTotal: 312.2,
-    activeRequests: 42,
-    completedRequests: 268,
-    missedRequests: 10,
-    diversionRatePct: 64,
-  },
-  ewasteType: [
-    { name: 'Mobile Phone', units: 110, weightKg: 22.0, hazardUnits: 8, reuseRatePercent: 72 },
-    { name: 'Laptop', units: 85, weightKg: 187.0, hazardUnits: 14, reuseRatePercent: 68 },
-    { name: 'Battery / Power Bank', units: 55, weightKg: 19.25, hazardUnits: 25, reuseRatePercent: 20 },
-    { name: 'Monitor / TV', units: 45, weightKg: 247.5, hazardUnits: 12, reuseRatePercent: 50 },
-    { name: 'Charger & Cables', units: 40, weightKg: 12.0, hazardUnits: 2, reuseRatePercent: 60 },
-    { name: 'Small Appliance', units: 25, weightKg: 50.0, hazardUnits: 1, reuseRatePercent: 65 },
-  ],
-  requests: {
-    total: 360,
-    scheduled: 28,
-    underInspection: 14,
-    turnedOver: 245,
-    completed: 45,
-    missed: 18,
-    cancelled: 10,
-    fulfillmentRatePct: 84,
-  },
-  slotUsage: [
-    { facility: 'Barangay Hall Drop-Off (Commonwealth)', capacity: 42, booked: 34, available: 8, utilizationPct: 81 },
-    { facility: 'Ecoville Covered Court', capacity: 28, booked: 21, available: 7, utilizationPct: 75 },
-    { facility: 'Litex Market MRF', capacity: 35, booked: 22, available: 13, utilizationPct: 63 },
-    { facility: 'Batasan Hills Barangay Hall', capacity: 35, booked: 24, available: 11, utilizationPct: 68 },
-    { facility: 'Payatas MRF Station', capacity: 35, booked: 19, available: 16, utilizationPct: 54 },
-  ],
-  reuseHub: {
-    totalListed: 148,
-    reserved: 22,
-    claimed: 115,
-    conversionRatePct: 78,
-    avgHoldDays: '3.2 days',
-  },
+const getInitialReportsData = (): AdminReportsData => {
+  const localRequests: any[] = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('ecobyte_dropoff_requests') || '[]')
+    } catch {
+      return []
+    }
+  })()
+  const localListings: any[] = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('ecobyte_reuse_listings') || '[]')
+    } catch {
+      return []
+    }
+  })()
+  const localClaims: any[] = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('ecobyte_user_reservations') || '[]')
+    } catch {
+      return []
+    }
+  })()
+
+  const scheduled = localRequests.filter((r) => (r.status || '').toLowerCase() === 'scheduled').length
+  const underInspection = localRequests.filter((r) => (r.status || '').toLowerCase().includes('inspect')).length
+  const turnedOver = localRequests.filter((r) => (r.status || '').toLowerCase().includes('turned')).length
+  const missed = localRequests.filter((r) => (r.status || '').toLowerCase() === 'missed').length
+  const completed = turnedOver
+
+  const reservedClaims = localClaims.filter((c) => c.status === 'RESERVED' || c.status === 'Reserved').length
+  const pickedUpClaims = localClaims.filter((c) => c.status === 'CLAIMED' || c.status === 'Picked Up').length
+
+  return {
+    totals: {
+      totalVolumeProcessed: localRequests.length,
+      totalWeightKg: localRequests.length * 2.0,
+      divertedKgTotal: turnedOver * 2.0,
+      activeRequests: scheduled + underInspection,
+      completedRequests: completed,
+      missedRequests: missed,
+      diversionRatePct: localRequests.length > 0 ? Math.round((completed / localRequests.length) * 100) : 0,
+    },
+    ewasteType: [
+      { name: 'Mobile Phone', units: 0, weightKg: 0, hazardUnits: 0, reuseRatePercent: 0 },
+      { name: 'Laptop', units: 0, weightKg: 0, hazardUnits: 0, reuseRatePercent: 0 },
+      { name: 'Battery / Power Bank', units: 0, weightKg: 0, hazardUnits: 0, reuseRatePercent: 0 },
+      { name: 'Monitor / TV', units: 0, weightKg: 0, hazardUnits: 0, reuseRatePercent: 0 },
+      { name: 'Charger & Cables', units: 0, weightKg: 0, hazardUnits: 0, reuseRatePercent: 0 },
+      { name: 'Small Appliance', units: 0, weightKg: 0, hazardUnits: 0, reuseRatePercent: 0 },
+    ],
+    requests: {
+      total: localRequests.length,
+      scheduled,
+      underInspection,
+      turnedOver,
+      completed,
+      missed,
+      cancelled: 0,
+      fulfillmentRatePct: localRequests.length > 0 ? Math.round((completed / localRequests.length) * 100) : 0,
+    },
+    slotUsage: [
+      { facility: 'Commonwealth Central MRF (Base 1)', capacity: 40, booked: scheduled, available: Math.max(0, 40 - scheduled), utilizationPct: Math.round((scheduled / 40) * 100) },
+      { facility: 'Ecoville Covered Court', capacity: 25, booked: 0, available: 25, utilizationPct: 0 },
+      { facility: 'Litex Market Drop Point', capacity: 30, booked: 0, available: 30, utilizationPct: 0 },
+      { facility: 'Batasan Hills MRF Annex', capacity: 30, booked: 0, available: 30, utilizationPct: 0 },
+      { facility: 'Payatas Solid Waste Hub', capacity: 30, booked: 0, available: 30, utilizationPct: 0 },
+    ],
+    reuseHub: {
+      totalListed: localListings.length,
+      reserved: reservedClaims,
+      claimed: pickedUpClaims,
+      conversionRatePct: localListings.length > 0 ? Math.round((pickedUpClaims / localListings.length) * 100) : 0,
+      avgHoldDays: '3.0 days',
+    },
+  }
 }
 
 export const AdminReportsPage: FC = () => {
   const [activeTab, setActiveTab] = useState<ReportTab>('totals')
   const [selectedBrgy, setSelectedBrgy] = useState<string>('')
   const [selectedRange, setSelectedRange] = useState<string>('56')
-  const [reportsData, setReportsData] = useState<AdminReportsData>(FALLBACK_REPORTS)
+  const [reportsData, setReportsData] = useState<AdminReportsData>(getInitialReportsData)
   const [exportToast, setExportToast] = useState(false)
 
   useEffect(() => {
@@ -88,7 +121,7 @@ export const AdminReportsPage: FC = () => {
       })
   }, [selectedBrgy, selectedRange])
 
-  const data = reportsData || FALLBACK_REPORTS
+  const data = reportsData || getInitialReportsData()
 
   const handleExportCSV = () => {
     let filename = `ecobyte-${activeTab}-${new Date().toISOString().slice(0, 10)}.csv`

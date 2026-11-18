@@ -692,8 +692,36 @@ export const adminApi = {
       return await apiFetch<AdminCollectionRequest[]>('/admin/requests')
     } catch (err: unknown) {
       if (isNetworkError(err)) {
-        console.warn('Backend offline, using fallback collection requests:', err)
-        return FALLBACK_COLLECTION_REQUESTS
+        console.warn('Backend offline, reading local collection requests:', err)
+        if (typeof window !== 'undefined') {
+          try {
+            const raw = localStorage.getItem('ecobyte_dropoff_requests')
+            if (raw) {
+              const parsed = JSON.parse(raw)
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                return parsed.map((r: any) => ({
+                  id: r.id,
+                  requestCode: r.requestCode || r.id,
+                  residentName: r.residentName || 'Resident User',
+                  residentEmail: r.residentEmail,
+                  contactNumber: '+63 917 000 0000',
+                  siteName: r.siteName || 'Commonwealth Central MRF (Base 1)',
+                  address: 'Commonwealth, Quezon City',
+                  preferredMethod: r.itemName || r.type || 'drop_off',
+                  status: (r.status || 'Scheduled').toLowerCase().replace(/\s+/g, '_'),
+                  displayStatus: r.status || 'Scheduled',
+                  scheduledSlot: r.slot || '10:00 AM – 12:00 PM',
+                  requestedAt: new Date().toISOString(),
+                  requestedDate: r.date || new Date().toISOString().slice(0, 10),
+                  relativeDate: 'Today',
+                  linkedItemId: `item-${r.id}`,
+                  linkedItemStatus: (r.status || 'Scheduled').toLowerCase().replace(/\s+/g, '_'),
+                }))
+              }
+            }
+          } catch {}
+        }
+        return []
       }
       throw err
     }
@@ -745,14 +773,8 @@ export const adminApi = {
       })
     } catch (err: unknown) {
       if (isNetworkError(err)) {
-        console.warn('Backend offline, using fallback inspection queue:', err)
-        if (scope === 'waiting') {
-          return FALLBACK_INSPECTION_QUEUE.filter((i) => i.queueBucket === 'waiting')
-        }
-        if (scope === 'inspected') {
-          return FALLBACK_INSPECTION_QUEUE.filter((i) => i.queueBucket === 'inspected')
-        }
-        return FALLBACK_INSPECTION_QUEUE
+        console.warn('Backend offline, inspection queue empty:', err)
+        return []
       }
       throw err
     }

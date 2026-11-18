@@ -26,7 +26,6 @@ import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded'
 import EmailRoundedIcon from '@mui/icons-material/EmailRounded'
 import { adminApi } from '@/lib/api'
 import {
-  INITIAL_USERS,
   generateBadgeId,
   mapBackendUserToOfficial,
   mergeBackendUsersWithInitial,
@@ -57,8 +56,22 @@ const BARANGAYS = [
 
 const SUFFIX_OPTIONS = ['None', 'Jr.', 'Sr.', 'II', 'III', 'IV', 'V']
 
+const getInitialRegisteredUsers = (): OfficialUser[] => {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem('ecobyte_registered_users')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) return parsed
+    }
+  } catch {
+    // ignore
+  }
+  return []
+}
+
 export const AdminAccessPage: FC = () => {
-  const [users, setUsers] = useState<OfficialUser[]>(INITIAL_USERS)
+  const [users, setUsers] = useState<OfficialUser[]>(getInitialRegisteredUsers)
   const [search, setSearch] = useState('')
   const [filterRole, setFilterRole] = useState<AccessRoleFilter>('all')
   const [filterBarangay, setFilterBarangay] = useState('')
@@ -100,11 +113,19 @@ export const AdminAccessPage: FC = () => {
     adminApi
       .getUsers()
       .then((records) => {
-        if (!active || !Array.isArray(records) || records.length === 0) return
-        setUsers(mergeBackendUsersWithInitial(records))
+        if (!active || !Array.isArray(records)) return
+        const mapped = mergeBackendUsersWithInitial(records)
+        setUsers((prev) => {
+          const liveIds = new Set(mapped.map((m) => m.id))
+          const combined = [...mapped, ...prev.filter((p) => !liveIds.has(p.id))]
+          try {
+            localStorage.setItem('ecobyte_registered_users', JSON.stringify(combined))
+          } catch {}
+          return combined
+        })
       })
       .catch((err) => {
-        console.warn('Could not load live admin directory, using fallback entries:', err)
+        console.warn('Live admin directory unavailable:', err)
       })
     return () => {
       active = false

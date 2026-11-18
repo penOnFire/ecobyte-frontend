@@ -374,28 +374,105 @@ export const DropoffSchedulerPage: FC = () => {
     const siteToBook = currentSite
 
     try {
+      let createdReqId = requestIdParam || `REQ-${Math.floor(1000 + Math.random() * 9000)}`
       if (requestIdParam) {
-        await dropoffsApi.rescheduleIntake(requestIdParam, {
+        const res = await dropoffsApi.rescheduleIntake(requestIdParam, {
           siteId: siteToBook.id,
           scheduledDate: selectedDateStr,
           timeSlot: selectedWindow,
           courierOrSelf: 'SELF_DROPOFF',
         })
+        if (res?.requestId) createdReqId = res.requestId
       } else {
         const storedAssessmentId =
           searchParams.get('assessmentId') ||
           sessionStorage.getItem('ecobyte_last_assessment_id') ||
           undefined
-        await dropoffsApi.scheduleIntake({
+        const res = await dropoffsApi.scheduleIntake({
           assessmentId: storedAssessmentId,
           siteId: siteToBook.id,
           scheduledDate: selectedDateStr,
           timeSlot: selectedWindow,
           courierOrSelf: 'SELF_DROPOFF',
         })
+        if (res?.requestId) createdReqId = res.requestId
         sessionStorage.removeItem('ecobyte_last_assessment_id')
         sessionStorage.removeItem('ecobyte_scan_angles')
       }
+
+      // Synchronize with local drop-off requests list for immediate visibility in official portal
+      try {
+        const currentUser = getCachedUser()
+        const stored = localStorage.getItem('ecobyte_dropoff_requests')
+        const existing: any[] = stored ? JSON.parse(stored) : []
+        const dateCode = selectedDateStr.replace(/-/g, '')
+        const shortNum = Math.floor(100 + Math.random() * 900)
+        const requestCode = `DO-${dateCode}-${shortNum}`
+
+        const newDropoffRecord = {
+          id: createdReqId,
+          requestCode,
+          itemName: 'E-Waste Item Scheduled for Drop-off',
+          type: 'Electronics',
+          residentId: currentUser?.id || 'res-user',
+          residentName: currentUser?.fullName || 'Resident User',
+          residentEmail: currentUser?.email || 'resident@ecobyte.ph',
+          siteId: siteToBook.id,
+          siteName: siteToBook.name,
+          date: selectedDateStr,
+          slot: currentWindow.hours,
+          status: 'Scheduled',
+          assessment: {
+            detectedType: 'Electronic Device',
+            confidence: 94,
+            hazard: 'Low',
+            recommendation: 'Repair & Reuse',
+            impact: { kg: 1.5, materials: 'Recoverable metals & components' },
+            checklist: {
+              powersOn: 'Yes',
+              screen: 'Good',
+              battery: 'Standard',
+              missingParts: 'None',
+              waterDamage: 'No',
+            },
+          },
+          history: [
+            {
+              status: 'Scheduled',
+              note: 'Resident booked drop-off via Portal',
+              ts: new Date().toLocaleString(),
+              by: currentUser?.fullName || 'Resident User',
+            },
+          ],
+        }
+
+        const filtered = existing.filter((r) => r.id !== createdReqId)
+        localStorage.setItem(
+          'ecobyte_dropoff_requests',
+          JSON.stringify([newDropoffRecord, ...filtered])
+        )
+
+        // Also append to local activity logs
+        const logEntry = {
+          id: `log-${Date.now()}`,
+          ts: new Date().toISOString().replace('T', ' ').slice(0, 16),
+          userId: currentUser?.id || 'res-user',
+          userName: currentUser?.fullName || 'Resident User',
+          role: 'resident',
+          action: 'Scheduled drop-off',
+          target: createdReqId,
+          details: `Drop-off booked at ${siteToBook.name}`,
+          barangay: currentUser?.barangay?.name || 'Commonwealth',
+        }
+        const existingLogs = JSON.parse(localStorage.getItem('ecobyte_activity_logs') || '[]')
+        localStorage.setItem(
+          'ecobyte_activity_logs',
+          JSON.stringify([logEntry, ...existingLogs.slice(0, 50)])
+        )
+      } catch (syncErr) {
+        console.warn('Failed to sync drop-off locally:', syncErr)
+      }
+
       localStorage.removeItem('ecobyte_ongoing_requests')
       navigate('/requests?tab=ongoing')
     } catch (err: any) {

@@ -29,55 +29,45 @@ export interface InspectionQueueRecord {
   }
 }
 
-const INITIAL_QUEUE_DATA: InspectionQueueRecord[] = [
-  {
-    id: 'REQ-0199',
-    requestCode: 'DO-20261115-0199',
-    itemName: 'Sony Bravia 32-inch LED TV',
-    type: 'Monitor / TV',
-    residentName: 'Kgd. Paolo Mendoza',
-    siteName: 'Commonwealth Central MRF (Base 1)',
-    receivedAt: '2026-11-15 10:24 AM',
-    assessment: { hazard: 'Low', recommendation: 'Repair & Reuse' },
-  },
-  {
-    id: 'REQ-0203',
-    requestCode: 'DO-20261116-0203',
-    itemName: 'Xiaomi Mi Band 5 + USB Charger',
-    type: 'Mobile Phone',
-    residentName: 'Ana Gomez',
-    siteName: 'Commonwealth Central MRF (Base 1)',
-    receivedAt: '2026-11-16 02:40 PM',
-    assessment: { hazard: 'Low', recommendation: 'Repair & Reuse' },
-  },
-  {
-    id: 'REQ-0205',
-    requestCode: 'DO-20261117-0205',
-    itemName: 'Swollen Li-Ion Laptop Pack',
-    type: 'Battery / Power Bank',
-    residentName: 'Carlos Tan',
-    siteName: 'Commonwealth Central MRF (Base 1)',
-    receivedAt: '2026-11-17 11:15 AM',
-    assessment: { hazard: 'High', recommendation: 'Safe Disposal' },
-  },
-  {
-    id: 'REQ-0207',
-    requestCode: 'DO-20261118-0207',
-    itemName: 'Asus Chromebook C202',
-    type: 'Laptop',
-    residentName: 'Maria Santos',
-    siteName: 'Commonwealth Central MRF (Base 1)',
-    receivedAt: '2026-11-18 09:30 AM',
-    assessment: { hazard: 'Low', recommendation: 'Repair & Reuse' },
-  },
-]
+const getInitialQueue = (): InspectionQueueRecord[] => {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem('ecobyte_dropoff_requests')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) {
+        return parsed
+          .filter((r: any) => {
+            const s = (r.status || '').toLowerCase()
+            return s === 'under inspection' || s === 'under_inspection' || s === 'collected'
+          })
+          .map((r: any) => ({
+            id: r.id,
+            requestCode: r.requestCode || r.id,
+            itemName: r.itemName || r.preferredMethod || 'Resident E-Waste Device',
+            type: r.type || 'Electronics',
+            residentName: r.residentName || 'Resident User',
+            siteName: r.siteName || 'Commonwealth Central MRF (Base 1)',
+            receivedAt: r.receivedAt || r.date || 'Recent',
+            assessment: {
+              hazard: (r.assessment?.hazard || 'Low') as 'Low' | 'Medium' | 'High',
+              recommendation: (r.assessment?.recommendation || 'Repair & Reuse') as 'Repair & Reuse' | 'Safe Disposal' | 'Refurbish',
+            },
+          }))
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return []
+}
 
 export const AdminToInspectPage: FC = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const activeTab = searchParams.get('tab') === 'disposal' ? 'disposal' : 'queue'
 
-  const [queue, setQueue] = useState<InspectionQueueRecord[]>(INITIAL_QUEUE_DATA)
+  const [queue, setQueue] = useState<InspectionQueueRecord[]>(getInitialQueue)
 
   useEffect(() => {
     let active = true
@@ -85,14 +75,14 @@ export const AdminToInspectPage: FC = () => {
       .getRequests()
       .then((data: AdminCollectionRequest[]) => {
         if (!active || !data || data.length === 0) return
-        const liveUnderInspection = data
+        const liveUnderInspection: InspectionQueueRecord[] = data
           .filter((d) => {
             const s = (d.status || '').toLowerCase()
             return s === 'under_inspection' || s === 'collected'
           })
           .map((d) => ({
             id: d.id,
-            requestCode: d.requestCode,
+            requestCode: d.requestCode || d.id,
             itemName: d.preferredMethod || 'Resident E-Waste Device',
             type: d.preferredMethod || 'Electronics',
             residentName: d.residentName || 'Resident User',
@@ -104,12 +94,13 @@ export const AdminToInspectPage: FC = () => {
             },
           }))
 
-        if (liveUnderInspection.length > 0) {
-          setQueue(liveUnderInspection)
-        }
+        setQueue((prev) => {
+          const liveIds = new Set(liveUnderInspection.map((m) => m.id))
+          return [...liveUnderInspection, ...prev.filter((p) => !liveIds.has(p.id))]
+        })
       })
       .catch((err) => {
-        console.warn('Using prototype inspection queue dataset:', err)
+        console.warn('Backend requests unavailable:', err)
       })
 
     return () => {

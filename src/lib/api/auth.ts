@@ -97,8 +97,8 @@ export function buildFallbackMockUser(
   if (role === 'ADMIN') {
     return {
       id: 'usr-admin-01',
-      fullName: 'Elena Vance',
-      firstName: 'Elena',
+      fullName: 'System Administrator',
+      firstName: 'Administrator',
       email: email?.trim() || 'admin@ecobyte.gov',
       phone: '+63 917 888 9999',
       role: 'ADMIN',
@@ -108,8 +108,8 @@ export function buildFallbackMockUser(
   if (role === 'BARANGAY_OFFICIAL') {
     return {
       id: 'usr-official-01',
-      fullName: 'Captain Mateo Cruz',
-      firstName: 'Mateo',
+      fullName: 'Barangay Official',
+      firstName: 'Official',
       email: email?.trim() || 'official@barangay.gov.ph',
       phone: '+63 918 777 6666',
       role: 'BARANGAY_OFFICIAL',

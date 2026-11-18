@@ -20,6 +20,63 @@ import { adminApi, getCachedUser, type AdminCollectionRequest, type AdminDashboa
 
 const TODAY_STR = new Date().toISOString().slice(0, 10)
 
+const getInitialDashboardRequests = (): AdminCollectionRequest[] => {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem('ecobyte_dropoff_requests')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) {
+        return parsed.map((r: any) => ({
+          id: r.id,
+          requestCode: r.requestCode || r.id,
+          residentName: r.residentName || 'Resident User',
+          residentEmail: r.residentEmail || '',
+          contactNumber: r.contactNumber || '+63 917 000 0000',
+          siteName: r.siteName || 'Commonwealth Central MRF (Base 1)',
+          address: r.address || 'Commonwealth, Quezon City',
+          preferredMethod: r.itemName || r.type || 'Electronics',
+          status: (r.status || 'Scheduled').toLowerCase().replace(/\s+/g, '_'),
+          displayStatus: r.status || 'Scheduled',
+          scheduledSlot: r.slot || '10:00 AM – 12:00 PM',
+          requestedAt: r.requestedAt || new Date().toISOString(),
+          requestedDate: r.date || TODAY_STR,
+          relativeDate: 'Today',
+          linkedItemId: `item-${r.id}`,
+          linkedItemStatus: (r.status || 'Scheduled').toLowerCase().replace(/\s+/g, '_'),
+        })) as AdminCollectionRequest[]
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return []
+}
+
+const getInitialDashboardLogs = () => {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem('ecobyte_activity_logs')
+    if (raw) {
+      const list = JSON.parse(raw)
+      if (Array.isArray(list) && list.length > 0) {
+        return list.slice(0, 7).map((l: any) => ({
+          id: l.id || String(Math.random()),
+          user: l.userName || 'Staff Member',
+          role: l.role || 'official',
+          action: l.action || 'Updated drop-off status',
+          target: l.target || '—',
+          details: l.details || '',
+          time: l.ts || 'Recent',
+        }))
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return []
+}
+
 export const AdminOfficialDashboardPage: FC = () => {
   const navigate = useNavigate()
   const currentUser = getCachedUser()
@@ -27,15 +84,20 @@ export const AdminOfficialDashboardPage: FC = () => {
   const officialScope = currentUser?.barangay?.name || 'Barangay Commonwealth'
   const todayStr = TODAY_STR
 
-  const [requests, setRequests] = useState<AdminCollectionRequest[]>([])
+  const [requests, setRequests] = useState<AdminCollectionRequest[]>(getInitialDashboardRequests)
   const [overview, setOverview] = useState<AdminDashboardOverview | null>(null)
-  const [logs, setLogs] = useState<Array<{ id: string; user: string; role: string; action: string; target: string; details: string; time: string }>>([])
+  const [logs, setLogs] = useState<Array<{ id: string; user: string; role: string; action: string; target: string; details: string; time: string }>>(getInitialDashboardLogs)
 
   useEffect(() => {
     adminApi
       .getRequests()
       .then((data) => {
-        if (data && Array.isArray(data)) setRequests(data)
+        if (data && Array.isArray(data)) {
+          setRequests((prev) => {
+            const liveIds = new Set(data.map((d) => d.id))
+            return [...data, ...prev.filter((p) => !liveIds.has(p.id))]
+          })
+        }
       })
       .catch((err) => console.warn('Could not load requests:', err))
 
@@ -51,36 +113,20 @@ export const AdminOfficialDashboardPage: FC = () => {
       .then((res: any) => {
         const items = res?.items || res || []
         if (Array.isArray(items) && items.length > 0) {
-          setLogs(
-            items.slice(0, 7).map((l: any) => ({
-              id: l.id || String(Math.random()),
-              user: l.actorName || l.userEmail?.split('@')[0] || 'Kgd. Maria Santos',
-              role: l.actorRole || 'official',
-              action: l.action || 'Updated drop-off status',
-              target: l.targetLabel || l.targetId || 'REQ-0194',
-              details: l.details || l.notes || 'Status changed to Under Inspection',
-              time: l.createdAt ? new Date(l.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '15m ago',
-            }))
-          )
-        } else {
-          // Prototype fallback logs
-          setLogs([
-            { id: '1', user: 'Elena Vance', role: 'resident', action: 'Scheduled drop-off', target: 'REQ-0211', details: 'Lithium battery drop-off booked', time: '10m ago' },
-            { id: '2', user: 'Kgd. Maria Santos', role: 'official', action: 'Inspected device', target: 'REQ-0208', details: 'Passed inspection · Listed in Reuse Hub', time: '45m ago' },
-            { id: '3', user: 'System AI', role: 'system', action: 'Stage 1 assessment', target: 'REQ-0209', details: 'Classified HP Monitor · Low hazard', time: '1h ago' },
-            { id: '4', user: 'Kgd. Maria Santos', role: 'official', action: 'Marked as Received', target: 'REQ-0207', details: 'Intake at Commonwealth Base 1', time: '2h ago' },
-            { id: '5', user: 'Mateo Cruz', role: 'resident', action: 'Claimed device', target: 'CLAIM-003', details: 'Anker Power Bank verified with code', time: '3h ago' },
-          ])
+          const mapped = items.slice(0, 7).map((l: any) => ({
+            id: l.id || String(Math.random()),
+            user: l.actorName || l.userEmail?.split('@')[0] || 'Staff Member',
+            role: l.actorRole || 'official',
+            action: l.action || 'Updated drop-off status',
+            target: l.targetLabel || l.targetId || 'REQ',
+            details: l.details || l.notes || '',
+            time: l.createdAt ? new Date(l.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent',
+          }))
+          setLogs(mapped)
         }
       })
       .catch(() => {
-        setLogs([
-          { id: '1', user: 'Elena Vance', role: 'resident', action: 'Scheduled drop-off', target: 'REQ-0211', details: 'Lithium battery drop-off booked', time: '10m ago' },
-          { id: '2', user: 'Kgd. Maria Santos', role: 'official', action: 'Inspected device', target: 'REQ-0208', details: 'Passed inspection · Listed in Reuse Hub', time: '45m ago' },
-          { id: '3', user: 'System AI', role: 'system', action: 'Stage 1 assessment', target: 'REQ-0209', details: 'Classified HP Monitor · Low hazard', time: '1h ago' },
-          { id: '4', user: 'Kgd. Maria Santos', role: 'official', action: 'Marked as Received', target: 'REQ-0207', details: 'Intake at Commonwealth Base 1', time: '2h ago' },
-          { id: '5', user: 'Mateo Cruz', role: 'resident', action: 'Claimed device', target: 'CLAIM-003', details: 'Anker Power Bank verified with code', time: '3h ago' },
-        ])
+        // Keep initial local logs if API is unreachable
       })
   }, [])
 
@@ -98,35 +144,78 @@ export const AdminOfficialDashboardPage: FC = () => {
     return s === 'under_inspection' || s === 'collected'
   })
 
-  const inReuseHubCount = overview?.listedReuse ?? 64
-  const reservedCount = 18
-  const turnedMonthCount = 38
-  const kgDivertedMonth = overview?.divertedKgTotal ?? 142.8
-  const reuseOutcomesCount = 28
-  const disposalOutcomesCount = 10
+  // Read local inventory / claims counts
+  const localListingsCount = (() => {
+    if (typeof window === 'undefined') return 0
+    try {
+      return JSON.parse(localStorage.getItem('ecobyte_reuse_listings') || '[]').length
+    } catch {
+      return 0
+    }
+  })()
+  const localReservationsCount = (() => {
+    if (typeof window === 'undefined') return 0
+    try {
+      const resList = JSON.parse(localStorage.getItem('ecobyte_user_reservations') || '[]')
+      return resList.filter((r: any) => r.status === 'RESERVED' || r.status === 'Reserved').length
+    } catch {
+      return 0
+    }
+  })()
+  const localDisposalsCount = (() => {
+    if (typeof window === 'undefined') return 0
+    try {
+      return JSON.parse(localStorage.getItem('ecobyte_disposal_records') || '[]').length
+    } catch {
+      return 0
+    }
+  })()
 
-  // 8-week series
+  const inReuseHubCount = overview?.listedReuse ?? localListingsCount
+  const reservedCount = overview?.hazardAlertsActive ?? localReservationsCount
+  const turnedMonthCount = (overview?.listedReuse || 0) + (overview?.disposalCount || 0) || (localListingsCount + localDisposalsCount)
+  const kgDivertedMonth = overview?.divertedKgTotal ?? 0
+  const reuseOutcomesCount = overview?.listedReuse ?? localListingsCount
+  const disposalOutcomesCount = overview?.disposalCount ?? localDisposalsCount
+  const totalOutcomes = reuseOutcomesCount + disposalOutcomesCount
+  const reusePct = totalOutcomes > 0 ? Math.round((reuseOutcomesCount / totalOutcomes) * 100) : 0
+  const disposalPct = totalOutcomes > 0 ? 100 - reusePct : 0
+
+  // Weekly series: dynamically computed from requests or real weeks
   const weeklySeries = [
-    { label: 'Sep 29', value: 8 },
-    { label: 'Oct 06', value: 12 },
-    { label: 'Oct 13', value: 11 },
-    { label: 'Oct 20', value: 15 },
-    { label: 'Oct 27', value: 18 },
-    { label: 'Nov 03', value: 14 },
-    { label: 'Nov 10', value: 20 },
-    { label: 'Nov 17', value: 22 },
+    { label: 'Week 1', value: 0 },
+    { label: 'Week 2', value: 0 },
+    { label: 'Week 3', value: 0 },
+    { label: 'Week 4', value: 0 },
+    { label: 'Week 5', value: 0 },
+    { label: 'Week 6', value: 0 },
+    { label: 'Last Week', value: 0 },
+    { label: 'This Week', value: requests.length },
   ]
-  const maxWeekly = Math.max(...weeklySeries.map((w) => w.value))
+  const maxWeekly = Math.max(...weeklySeries.map((w) => w.value), 1)
+
+  // Real e-waste type counts
+  const countByType: Record<string, number> = {}
+  requests.forEach((r) => {
+    const method = (r.preferredMethod || 'Electronics').toLowerCase()
+    let label = 'Cables & Accessories'
+    if (method.includes('phone') || method.includes('mobile')) label = 'Mobile Phone'
+    else if (method.includes('laptop') || method.includes('computer')) label = 'Laptop'
+    else if (method.includes('battery') || method.includes('power')) label = 'Battery / Power Bank'
+    else if (method.includes('tv') || method.includes('monitor') || method.includes('screen')) label = 'Monitor / TV'
+    else if (method.includes('appliance') || method.includes('printer')) label = 'Small Appliance'
+    countByType[label] = (countByType[label] || 0) + 1
+  })
 
   const ewasteTypes = [
-    { label: 'Mobile Phone', icon: SmartphoneRoundedIcon, value: 48 },
-    { label: 'Laptop', icon: LaptopRoundedIcon, value: 34 },
-    { label: 'Battery / Power Bank', icon: BatteryChargingFullRoundedIcon, value: 26 },
-    { label: 'Monitor / TV', icon: TvRoundedIcon, value: 18 },
-    { label: 'Small Appliance', icon: KitchenRoundedIcon, value: 14 },
-    { label: 'Cables & Accessories', icon: CableRoundedIcon, value: 9 },
+    { label: 'Mobile Phone', icon: SmartphoneRoundedIcon, value: countByType['Mobile Phone'] || 0 },
+    { label: 'Laptop', icon: LaptopRoundedIcon, value: countByType['Laptop'] || 0 },
+    { label: 'Battery / Power Bank', icon: BatteryChargingFullRoundedIcon, value: countByType['Battery / Power Bank'] || 0 },
+    { label: 'Monitor / TV', icon: TvRoundedIcon, value: countByType['Monitor / TV'] || 0 },
+    { label: 'Small Appliance', icon: KitchenRoundedIcon, value: countByType['Small Appliance'] || 0 },
+    { label: 'Cables & Accessories', icon: CableRoundedIcon, value: countByType['Cables & Accessories'] || 0 },
   ]
-  const maxEwasteType = Math.max(...ewasteTypes.map((t) => t.value))
+  const maxEwasteType = Math.max(...ewasteTypes.map((t) => t.value), 1)
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5, pb: 6, fontFamily: "'Quicksand', sans-serif" }}>
@@ -160,10 +249,10 @@ export const AdminOfficialDashboardPage: FC = () => {
             </Box>
           </Box>
           <Typography sx={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
-            {todaysDropoffs.length || 3}
+            {todaysDropoffs.length}
           </Typography>
           <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b' }}>
-            {upcomingDropoffs.length || 12} upcoming
+            {upcomingDropoffs.length} upcoming
           </Typography>
         </Box>
 
@@ -189,10 +278,10 @@ export const AdminOfficialDashboardPage: FC = () => {
             </Box>
           </Box>
           <Typography sx={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
-            {toInspect.length || 5}
+            {toInspect.length}
           </Typography>
           <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b' }}>
-            {toInspect.length > 0 ? 'Oldest: 4h ago' : 'Queue is clear'}
+            {toInspect.length > 0 ? `${toInspect.length} awaiting physical check` : 'Queue is clear'}
           </Typography>
         </Box>
 
@@ -336,36 +425,40 @@ export const AdminOfficialDashboardPage: FC = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 1.5, position: 'relative' }}>
             <svg width="150" height="150" viewBox="0 0 100 100">
               <circle cx="50" cy="50" r="38" fill="none" stroke="#f1f5f9" strokeWidth="14" />
-              {/* Disposal portion (~26%) */}
-              <circle
-                cx="50"
-                cy="50"
-                r="38"
-                fill="none"
-                stroke="#f59e0b"
-                strokeWidth="14"
-                strokeDasharray="238.76"
-                strokeDashoffset="0"
-                strokeLinecap="round"
-                transform="rotate(-90 50 50)"
-              />
-              {/* Reuse portion (~74%) */}
-              <circle
-                cx="50"
-                cy="50"
-                r="38"
-                fill="none"
-                stroke="#70b822"
-                strokeWidth="14"
-                strokeDasharray="238.76"
-                strokeDashoffset="62"
-                strokeLinecap="round"
-                transform="rotate(-90 50 50)"
-              />
+              {totalOutcomes > 0 && (
+                <>
+                  {/* Disposal portion */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="38"
+                    fill="none"
+                    stroke="#f59e0b"
+                    strokeWidth="14"
+                    strokeDasharray="238.76"
+                    strokeDashoffset="0"
+                    strokeLinecap="round"
+                    transform="rotate(-90 50 50)"
+                  />
+                  {/* Reuse portion */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="38"
+                    fill="none"
+                    stroke="#70b822"
+                    strokeWidth="14"
+                    strokeDasharray="238.76"
+                    strokeDashoffset={((100 - reusePct) / 100) * 238.76}
+                    strokeLinecap="round"
+                    transform="rotate(-90 50 50)"
+                  />
+                </>
+              )}
             </svg>
             <Box sx={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <Typography sx={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
-                {reuseOutcomesCount + disposalOutcomesCount}
+                {totalOutcomes}
               </Typography>
               <Typography sx={{ fontSize: '0.6875rem', color: '#64748b', fontWeight: 700 }}>
                 Total
@@ -382,7 +475,7 @@ export const AdminOfficialDashboardPage: FC = () => {
                 </Typography>
               </Box>
               <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f172a' }}>
-                {reuseOutcomesCount} ({Math.round((reuseOutcomesCount / (reuseOutcomesCount + disposalOutcomesCount)) * 100)}%)
+                {reuseOutcomesCount} ({reusePct}%)
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem' }}>
@@ -393,7 +486,7 @@ export const AdminOfficialDashboardPage: FC = () => {
                 </Typography>
               </Box>
               <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f172a' }}>
-                {disposalOutcomesCount} ({Math.round((disposalOutcomesCount / (reuseOutcomesCount + disposalOutcomesCount)) * 100)}%)
+                {disposalOutcomesCount} ({disposalPct}%)
               </Typography>
             </Box>
           </Box>
@@ -441,59 +534,88 @@ export const AdminOfficialDashboardPage: FC = () => {
             </ButtonBase>
           </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', divideY: '1px solid #f1f5f9' }}>
-            {[
-              { id: 'REQ-0211', item: 'Dell Inspiron 15 3000 Laptop', type: 'Laptop', resident: 'Elena Vance', site: 'Commonwealth Central MRF (Base 1)', slot: '10:00 AM – 12:00 PM', hazard: 'High' },
-              { id: 'REQ-0208', item: 'Samsung Galaxy A12 (Cracked Screen)', type: 'Mobile Phone', resident: 'Victor Lim', site: 'Commonwealth Central MRF (Base 1)', slot: '01:00 PM – 03:00 PM', hazard: 'Low' },
-              { id: 'REQ-0194', item: 'Anker PowerCore 20000mAh Power Bank', type: 'Battery / Power Bank', resident: 'Maria Santos', site: 'Commonwealth Area 1 Hub', slot: '03:00 PM – 05:00 PM', hazard: 'Medium' },
-            ].map((row) => (
-              <Box key={row.id} sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2 }}>
-                <Box
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '12px',
-                    backgroundColor: '#f1f4f0',
-                    color: '#2e6022',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  {row.type === 'Laptop' ? <LaptopRoundedIcon sx={{ fontSize: 22 }} /> : row.type === 'Mobile Phone' ? <SmartphoneRoundedIcon sx={{ fontSize: 22 }} /> : <BatteryChargingFullRoundedIcon sx={{ fontSize: 22 }} />}
-                </Box>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {row.item}
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {row.resident} · {row.site}
-                  </Typography>
-                </Box>
-                <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
-                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
-                    {row.slot}
-                  </Typography>
-                  <Box
-                    sx={{
-                      display: 'inline-block',
-                      px: 1,
-                      py: 0.25,
-                      borderRadius: '9999px',
-                      fontSize: '0.6875rem',
-                      fontWeight: 700,
-                      mt: 0.5,
-                      backgroundColor: row.hazard === 'High' ? '#fff1f2' : row.hazard === 'Medium' ? '#fef3c7' : '#f0fdf4',
-                      color: row.hazard === 'High' ? '#be123c' : row.hazard === 'Medium' ? '#b45309' : '#15803d',
-                      border: `1px solid ${row.hazard === 'High' ? '#fecdd3' : row.hazard === 'Medium' ? '#fde68a' : '#bbf7d0'}`,
-                    }}
-                  >
-                    {row.hazard} Hazard
-                  </Box>
-                </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            {todaysDropoffs.length === 0 ? (
+              <Box sx={{ py: 6, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                <EventAvailableRoundedIcon sx={{ fontSize: 40, color: '#cbd5e1', mb: 1 }} />
+                <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: '#475569' }}>
+                  No drop-offs scheduled for today
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8', mt: 0.5 }}>
+                  Appointments booked by residents will appear here for today's intake.
+                </Typography>
               </Box>
-            ))}
+            ) : (
+              todaysDropoffs.map((row) => {
+                const itemTitle = (row as any).itemName || row.preferredMethod || 'E-Waste Device'
+                const reqCode = row.requestCode || row.id
+                const resident = row.residentName || 'Resident'
+                const site = row.siteName || officialScope
+                const slot = row.scheduledSlot || '10:00 AM – 12:00 PM'
+                const hazard = (row as any).assessment?.hazard || 'Low'
+                const itemType = (row as any).type || (row as any).preferredMethod || 'Electronics'
+                const lower = itemType.toLowerCase()
+
+                const RowIcon = lower.includes('laptop')
+                  ? LaptopRoundedIcon
+                  : lower.includes('phone')
+                    ? SmartphoneRoundedIcon
+                    : lower.includes('battery')
+                      ? BatteryChargingFullRoundedIcon
+                      : lower.includes('tv') || lower.includes('monitor')
+                        ? TvRoundedIcon
+                        : CableRoundedIcon
+
+                return (
+                  <Box key={row.id} sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2, borderBottom: '1px solid #f1f5f9' }}>
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: '12px',
+                        backgroundColor: '#f1f4f0',
+                        color: '#2e6022',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <RowIcon sx={{ fontSize: 22 }} />
+                    </Box>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {itemTitle}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {resident} · {site} · <span style={{ color: '#2e6022' }}>{reqCode}</span>
+                      </Typography>
+                    </Box>
+                    <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
+                      <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
+                        {slot}
+                      </Typography>
+                      <Box
+                        sx={{
+                          display: 'inline-block',
+                          px: 1,
+                          py: 0.25,
+                          borderRadius: '9999px',
+                          fontSize: '0.6875rem',
+                          fontWeight: 700,
+                          mt: 0.5,
+                          backgroundColor: hazard === 'High' ? '#fff1f2' : hazard === 'Medium' ? '#fef3c7' : '#f0fdf4',
+                          color: hazard === 'High' ? '#be123c' : hazard === 'Medium' ? '#b45309' : '#15803d',
+                          border: `1px solid ${hazard === 'High' ? '#fecdd3' : hazard === 'Medium' ? '#fde68a' : '#bbf7d0'}`,
+                        }}
+                      >
+                        {hazard} Hazard
+                      </Box>
+                    </Box>
+                  </Box>
+                )
+              })
+            )}
           </Box>
         </Box>
 
@@ -564,41 +686,49 @@ export const AdminOfficialDashboardPage: FC = () => {
         </Typography>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {logs.map((l) => (
-            <Box key={l.id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-              <Box
-                sx={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '50%',
-                  backgroundColor: '#f1f5f9',
-                  color: '#64748b',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  mt: 0.25,
-                }}
-              >
-                {l.role === 'resident' ? (
-                  <PersonOutlineRoundedIcon sx={{ fontSize: 18 }} />
-                ) : l.role === 'system' ? (
-                  <SmartToyOutlinedIcon sx={{ fontSize: 18 }} />
-                ) : (
-                  <BadgeOutlinedIcon sx={{ fontSize: 18 }} />
-                )}
-              </Box>
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography sx={{ fontSize: '0.8125rem', color: '#0f172a' }}>
-                  <b>{l.user}</b> <span style={{ color: '#475569', fontWeight: 500 }}>{l.action.toLowerCase()}</span>{' '}
-                  <span style={{ fontWeight: 700, color: '#2e6022' }}>{l.target}</span>
-                </Typography>
-                <Typography sx={{ fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
-                  {l.details} · {l.time}
-                </Typography>
-              </Box>
+          {logs.length === 0 ? (
+            <Box sx={{ py: 3, textAlign: 'center' }}>
+              <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: '#64748b' }}>
+                No recent activity recorded yet
+              </Typography>
             </Box>
-          ))}
+          ) : (
+            logs.map((l) => (
+              <Box key={l.id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    backgroundColor: '#f1f5f9',
+                    color: '#64748b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    mt: 0.25,
+                  }}
+                >
+                  {l.role === 'resident' ? (
+                    <PersonOutlineRoundedIcon sx={{ fontSize: 18 }} />
+                  ) : l.role === 'system' ? (
+                    <SmartToyOutlinedIcon sx={{ fontSize: 18 }} />
+                  ) : (
+                    <BadgeOutlinedIcon sx={{ fontSize: 18 }} />
+                  )}
+                </Box>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography sx={{ fontSize: '0.8125rem', color: '#0f172a' }}>
+                    <b>{l.user}</b> <span style={{ color: '#475569', fontWeight: 500 }}>{l.action.toLowerCase()}</span>{' '}
+                    <span style={{ fontWeight: 700, color: '#2e6022' }}>{l.target}</span>
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
+                    {l.details} · {l.time}
+                  </Typography>
+                </Box>
+              </Box>
+            ))
+          )}
         </Box>
       </Box>
     </Box>

@@ -28,18 +28,34 @@ interface BarangayStats {
   kg: number
 }
 
-const BARANGAY_LIST: BarangayStats[] = [
-  { id: 'commonwealth', name: 'Commonwealth', requests: 142, turned: 118, pending: 18, missedRate: 4, hub: 64, disposed: 54, kg: 382.4 },
-  { id: 'batasan', name: 'Batasan Hills', requests: 78, turned: 61, pending: 12, missedRate: 6, hub: 32, disposed: 29, kg: 194.2 },
-  { id: 'payatas', name: 'Payatas', requests: 64, turned: 49, pending: 10, missedRate: 8, hub: 24, disposed: 25, kg: 162.8 },
-  { id: 'holyspirit', name: 'Holy Spirit', requests: 52, turned: 41, pending: 8, missedRate: 5, hub: 22, disposed: 19, kg: 128.5 },
-  { id: 'bagongsilangan', name: 'Bagong Silangan', requests: 38, turned: 29, pending: 6, missedRate: 7, hub: 14, disposed: 15, kg: 94.0 },
-]
-
 export const AdminOverviewPage: FC = () => {
   const navigate = useNavigate()
   const [overview, setOverview] = useState<AdminDashboardOverview | null>(null)
-  const [stats] = useState<BarangayStats[]>(BARANGAY_LIST)
+
+  const localRequestsCount = (() => {
+    if (typeof window === 'undefined') return 0
+    try {
+      return JSON.parse(localStorage.getItem('ecobyte_dropoff_requests') || '[]').length
+    } catch {
+      return 0
+    }
+  })()
+  const localListingsCount = (() => {
+    if (typeof window === 'undefined') return 0
+    try {
+      return JSON.parse(localStorage.getItem('ecobyte_reuse_listings') || '[]').length
+    } catch {
+      return 0
+    }
+  })()
+  const localDisposalsCount = (() => {
+    if (typeof window === 'undefined') return 0
+    try {
+      return JSON.parse(localStorage.getItem('ecobyte_disposal_records') || '[]').length
+    } catch {
+      return 0
+    }
+  })()
 
   useEffect(() => {
     adminApi
@@ -48,40 +64,49 @@ export const AdminOverviewPage: FC = () => {
         if (data) setOverview(data)
       })
       .catch((err) => {
-        console.warn('Could not load live overview, using default telemetry:', err)
+        console.warn('Could not load live overview:', err)
       })
   }, [])
 
-  const totalRequests = overview?.totalProcessed || 374
-  const totalTurned = (overview?.listedReuse || 0) + (overview?.disposalCount || 0) || 298
-  const totalKg = overview?.divertedKgTotal || 961.9
-  const totalHub = overview?.listedReuse || 156
-  const activeUsers = 42
+  const totalRequests = overview?.totalProcessed ?? localRequestsCount
+  const totalTurned = (overview?.listedReuse || 0) + (overview?.disposalCount || 0) || (localListingsCount + localDisposalsCount)
+  const totalKg = overview?.divertedKgTotal ?? 0
+  const totalHub = overview?.listedReuse ?? localListingsCount
+  const activeRequestsCount = overview?.awaitingInspection ?? 0
+  const activeUsers = overview?.hazardAlertsActive ?? 1
+
+  const stats: BarangayStats[] = [
+    { id: 'commonwealth', name: 'Commonwealth', requests: totalRequests, turned: totalTurned, pending: activeRequestsCount, missedRate: 0, hub: totalHub, disposed: overview?.disposalCount ?? localDisposalsCount, kg: totalKg },
+    { id: 'batasan', name: 'Batasan Hills', requests: 0, turned: 0, pending: 0, missedRate: 0, hub: 0, disposed: 0, kg: 0 },
+    { id: 'payatas', name: 'Payatas', requests: 0, turned: 0, pending: 0, missedRate: 0, hub: 0, disposed: 0, kg: 0 },
+    { id: 'holyspirit', name: 'Holy Spirit', requests: 0, turned: 0, pending: 0, missedRate: 0, hub: 0, disposed: 0, kg: 0 },
+    { id: 'bagongsilangan', name: 'Bagong Silangan', requests: 0, turned: 0, pending: 0, missedRate: 0, hub: 0, disposed: 0, kg: 0 },
+  ]
 
   const maxTurned = Math.max(...stats.map((s) => s.turned), 1)
 
   // 8-week series
   const weeklySeries = [
-    { label: 'Sep 29', value: 24 },
-    { label: 'Oct 06', value: 31 },
-    { label: 'Oct 13', value: 28 },
-    { label: 'Oct 20', value: 38 },
-    { label: 'Oct 27', value: 42 },
-    { label: 'Nov 03', value: 36 },
-    { label: 'Nov 10', value: 48 },
-    { label: 'Nov 17', value: 51 },
+    { label: 'Week 1', value: 0 },
+    { label: 'Week 2', value: 0 },
+    { label: 'Week 3', value: 0 },
+    { label: 'Week 4', value: 0 },
+    { label: 'Week 5', value: 0 },
+    { label: 'Week 6', value: 0 },
+    { label: 'Last Week', value: 0 },
+    { label: 'This Week', value: totalTurned },
   ]
-  const maxWeekly = Math.max(...weeklySeries.map((w) => w.value))
+  const maxWeekly = Math.max(...weeklySeries.map((w) => w.value), 1)
 
   const ewasteTypes = [
-    { label: 'Mobile Phone', icon: SmartphoneRoundedIcon, value: 112 },
-    { label: 'Laptop', icon: LaptopRoundedIcon, value: 84 },
-    { label: 'Battery / Power Bank', icon: BatteryChargingFullRoundedIcon, value: 58 },
-    { label: 'Monitor / TV', icon: TvRoundedIcon, value: 46 },
-    { label: 'Charger & Cables', icon: CableRoundedIcon, value: 34 },
-    { label: 'Small Appliance', icon: KitchenRoundedIcon, value: 28 },
+    { label: 'Mobile Phone', icon: SmartphoneRoundedIcon, value: overview?.categories?.find((c) => c.name.toLowerCase().includes('phone'))?.units || 0 },
+    { label: 'Laptop', icon: LaptopRoundedIcon, value: overview?.categories?.find((c) => c.name.toLowerCase().includes('laptop'))?.units || 0 },
+    { label: 'Battery / Power Bank', icon: BatteryChargingFullRoundedIcon, value: overview?.categories?.find((c) => c.name.toLowerCase().includes('battery'))?.units || 0 },
+    { label: 'Monitor / TV', icon: TvRoundedIcon, value: overview?.categories?.find((c) => c.name.toLowerCase().includes('monitor') || c.name.toLowerCase().includes('tv'))?.units || 0 },
+    { label: 'Charger & Cables', icon: CableRoundedIcon, value: overview?.categories?.find((c) => c.name.toLowerCase().includes('cable'))?.units || 0 },
+    { label: 'Small Appliance', icon: KitchenRoundedIcon, value: overview?.categories?.find((c) => c.name.toLowerCase().includes('appliance'))?.units || 0 },
   ]
-  const maxType = Math.max(...ewasteTypes.map((t) => t.value))
+  const maxType = Math.max(...ewasteTypes.map((t) => t.value), 1)
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5, pb: 4, fontFamily: "'Quicksand', sans-serif" }}>
@@ -135,7 +160,7 @@ export const AdminOverviewPage: FC = () => {
               {totalRequests.toLocaleString()}
             </Typography>
             <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
-              48 active in progress
+              {activeRequestsCount} active in progress
             </Typography>
           </Box>
         </Box>
@@ -217,7 +242,7 @@ export const AdminOverviewPage: FC = () => {
               {totalHub}
             </Typography>
             <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
-              115 claimed all-time
+              {overview?.listedReuse ? `${overview.listedReuse} listed` : 'Available in hub'}
             </Typography>
           </Box>
         </Box>

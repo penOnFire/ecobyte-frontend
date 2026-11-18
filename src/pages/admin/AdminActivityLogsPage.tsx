@@ -21,118 +21,19 @@ interface LogEntry {
   barangay: string | null
 }
 
-const INITIAL_LOGS: LogEntry[] = [
-  {
-    id: 'L001',
-    ts: '2026-11-18 17:12',
-    userId: 'U001',
-    userName: 'Carla Bautista',
-    role: 'superadmin',
-    action: 'Signed in',
-    target: '—',
-    details: 'Staff portal sign-in from 192.168.1.45',
-    barangay: null,
-  },
-  {
-    id: 'L002',
-    ts: '2026-11-18 16:45',
-    userId: 'U001',
-    userName: 'Carla Bautista',
-    role: 'superadmin',
-    action: 'Created official account',
-    target: 'U009',
-    details: 'Kgd. Danilo Garcia · Payatas Drop Station',
-    barangay: 'Payatas',
-  },
-  {
-    id: 'L003',
-    ts: '2026-11-18 15:30',
-    userId: 'U002',
-    userName: 'Kgd. Maria Santos',
-    role: 'official',
-    action: 'Verified pick-up code → Picked Up',
-    target: 'TX-0141',
-    details: 'Acer Aspire 5 Battery & Power Brick (Claimed by Maria Santos)',
-    barangay: 'Commonwealth',
-  },
-  {
-    id: 'L004',
-    ts: '2026-11-18 14:15',
-    userId: 'U002',
-    userName: 'Kgd. Maria Santos',
-    role: 'official',
-    action: 'Inspected device → Listed in Reuse Hub',
-    target: 'RH-0104',
-    details: 'Samsung Galaxy A12 (Functional) · Good condition',
-    barangay: 'Commonwealth',
-  },
-  {
-    id: 'L005',
-    ts: '2026-11-18 13:00',
-    userId: 'SYS',
-    userName: 'System',
-    role: 'system',
-    action: 'Reservation auto-expired',
-    target: 'TX-0140',
-    details: 'Dell 24" LED Monitor · 48h claim window elapsed',
-    barangay: 'Payatas',
-  },
-  {
-    id: 'L006',
-    ts: '2026-11-18 11:20',
-    userId: 'U001',
-    userName: 'Carla Bautista',
-    role: 'superadmin',
-    action: 'Changed user role',
-    target: 'U004',
-    details: 'Juan Dela Cruz: Resident → Barangay Official',
-    barangay: 'Commonwealth',
-  },
-  {
-    id: 'L007',
-    ts: '2026-11-18 10:05',
-    userId: 'U003',
-    userName: 'Engr. Victor Lim',
-    role: 'official',
-    action: 'Inspected device → Marked for Disposal',
-    target: 'DSP-0041',
-    details: 'HP Motherboard: Corroded traces & burned power IC',
-    barangay: 'Batasan Hills',
-  },
-  {
-    id: 'L008',
-    ts: '2026-11-18 09:12',
-    userId: 'U005',
-    userName: 'Juan Dela Cruz',
-    role: 'resident',
-    action: 'Booked drop-off slot',
-    target: 'REQ-0215',
-    details: 'Drop-off at Commonwealth MRF Base 1 for Nov 20',
-    barangay: 'Commonwealth',
-  },
-  {
-    id: 'L009',
-    ts: '2026-11-17 17:40',
-    userId: 'U001',
-    userName: 'Carla Bautista',
-    role: 'superadmin',
-    action: 'Deactivated account',
-    target: 'U008',
-    details: 'Kgd. Paolo Mendoza (Revoked access & session tokens)',
-    barangay: null,
-  },
-  {
-    id: 'L010',
-    ts: '2026-11-17 14:10',
-    userId: 'U002',
-    userName: 'Kgd. Maria Santos',
-    role: 'official',
-    action: 'Checked-in resident drop-off',
-    target: 'REQ-0211',
-    details: 'Swollen Li-Ion battery pack checked in at Base 1',
-    barangay: 'Commonwealth',
-  },
-]
+const getInitialActivityLogs = (): LogEntry[] => {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem('ecobyte_activity_logs')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) return parsed
+    }
+  } catch {
+    // ignore
+  }
+  return []
+}
 
 const ROLE_LABELS: Record<string, string> = {
   superadmin: 'Super Admin',
@@ -149,7 +50,7 @@ const ROLE_BADGE_STYLES: Record<string, { bg: string; color: string; border: str
 }
 
 export const AdminActivityLogsPage: FC = () => {
-  const [logs, setLogs] = useState<LogEntry[]>(INITIAL_LOGS)
+  const [logs, setLogs] = useState<LogEntry[]>(getInitialActivityLogs)
   const [isLoading, setIsLoading] = useState(false)
 
   // 5 Prototype Filters

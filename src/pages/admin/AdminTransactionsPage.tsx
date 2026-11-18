@@ -86,113 +86,6 @@ const BARANGAYS = [
 
 const TODAY_STR = new Date().toISOString().slice(0, 10)
 
-const INITIAL_CLAIMS: ClaimRecord[] = [
-  {
-    id: 'TX-0142',
-    listingId: 'RH-0104',
-    itemName: 'Samsung Galaxy A12 (Functional)',
-    type: 'Mobile Phone',
-    condition: 'Good',
-    residentName: 'Juan Dela Cruz',
-    residentEmail: 'juan.delacruz@gmail.com',
-    barangay: 'Commonwealth',
-    siteName: 'Commonwealth Central MRF (Base 1)',
-    pickupDate: '2026-11-20',
-    slot: '10:00 AM – 12:00 PM',
-    pickupCode: 'ECO-2112',
-    status: 'Reserved',
-    reservedAt: '2026-11-18 10:24 AM',
-    proofPhoto: false,
-  },
-  {
-    id: 'TX-0141',
-    listingId: 'RH-0098',
-    itemName: 'Acer Aspire 5 Battery & Power Brick',
-    type: 'Laptop',
-    condition: 'Fair',
-    residentName: 'Maria Santos',
-    residentEmail: 'maria.santos@gmail.com',
-    barangay: 'Batasan Hills',
-    siteName: 'Batasan Hills MRF Annex',
-    pickupDate: '2026-11-19',
-    slot: '01:00 PM – 03:00 PM',
-    pickupCode: 'ECO-9182',
-    status: 'Picked Up',
-    reservedAt: '2026-11-16 02:15 PM',
-    resolvedAt: '2026-11-19 01:45 PM',
-    proofPhoto: true,
-  },
-  {
-    id: 'TX-0140',
-    listingId: 'RH-0092',
-    itemName: 'Dell 24" LED Monitor (Power Cable Included)',
-    type: 'Monitor / TV',
-    condition: 'Like New',
-    residentName: 'Ricardo Dalisay',
-    residentEmail: 'ricardo.d@yahoo.com',
-    barangay: 'Payatas',
-    siteName: 'Payatas Solid Waste Hub',
-    pickupDate: '2026-11-15',
-    slot: '08:00 AM – 10:00 AM',
-    pickupCode: 'ECO-3341',
-    status: 'Expired',
-    reservedAt: '2026-11-11 09:30 AM',
-    resolvedAt: '2026-11-16 12:00 AM',
-    proofPhoto: false,
-  },
-  {
-    id: 'TX-0139',
-    listingId: 'RH-0089',
-    itemName: 'Logitech Mechanical Keyboard & Mouse',
-    type: 'Charger & Cables',
-    condition: 'Good',
-    residentName: 'Elena Ramos',
-    residentEmail: 'elena.ramos@outlook.com',
-    barangay: 'Commonwealth',
-    siteName: 'Ecoville Covered Court Station',
-    pickupDate: '2026-11-18',
-    slot: '03:00 PM – 05:00 PM',
-    pickupCode: 'ECO-7721',
-    status: 'Picked Up',
-    reservedAt: '2026-11-15 11:10 AM',
-    resolvedAt: '2026-11-18 03:22 PM',
-    proofPhoto: true,
-  },
-  {
-    id: 'TX-0138',
-    listingId: 'RH-0084',
-    itemName: 'Anker PowerCore 20000mAh Power Bank',
-    type: 'Battery / Power Bank',
-    condition: 'Fair',
-    residentName: 'Mark Anthony Reyes',
-    residentEmail: 'mark.reyes@gmail.com',
-    barangay: 'Holy Spirit',
-    siteName: 'Holy Spirit Drop Point',
-    pickupDate: '2026-11-21',
-    slot: '10:00 AM – 12:00 PM',
-    pickupCode: 'ECO-1942',
-    status: 'Reserved',
-    reservedAt: '2026-11-18 04:30 PM',
-    proofPhoto: false,
-  },
-]
-
-const INITIAL_LISTINGS: ListingRecord[] = [
-  { id: 'RH-0104', itemName: 'Samsung Galaxy A12 (Functional)', type: 'Mobile Phone', condition: 'Good', barangay: 'Commonwealth', siteName: 'Commonwealth Central MRF (Base 1)', listedAt: '2026-11-17', status: 'Reserved' },
-  { id: 'RH-0103', itemName: 'Asus Chromebook C202', type: 'Laptop', condition: 'Fair', barangay: 'Commonwealth', siteName: 'Commonwealth Central MRF (Base 1)', listedAt: '2026-11-17', status: 'Available' },
-  { id: 'RH-0102', itemName: 'Philips 22-inch LCD Monitor', type: 'Monitor / TV', condition: 'Good', barangay: 'Batasan Hills', siteName: 'Batasan Hills MRF Annex', listedAt: '2026-11-16', status: 'Available' },
-  { id: 'RH-0101', itemName: 'Xiaomi Mi Band 5 + USB Charger', type: 'Mobile Phone', condition: 'Like New', barangay: 'Payatas', siteName: 'Payatas Solid Waste Hub', listedAt: '2026-11-16', status: 'Available' },
-  { id: 'RH-0098', itemName: 'Acer Aspire 5 Battery & Power Brick', type: 'Laptop', condition: 'Fair', barangay: 'Batasan Hills', siteName: 'Batasan Hills MRF Annex', listedAt: '2026-11-15', status: 'Claimed' },
-  { id: 'RH-0092', itemName: 'Dell 24" LED Monitor', type: 'Monitor / TV', condition: 'Like New', barangay: 'Payatas', siteName: 'Payatas Solid Waste Hub', listedAt: '2026-11-10', status: 'Available' },
-]
-
-const INITIAL_DISPOSALS: DisposalRecord[] = [
-  { id: 'DSP-0042', itemName: 'Swollen Li-Ion Laptop Pack', type: 'Battery / Power Bank', requestId: 'REQ-0211', hazard: 'High', reason: 'Severe thermal bulge · fire risk', by: 'Kgd. Maria Santos', barangay: 'Commonwealth', at: '2026-11-18', kg: 1.2 },
-  { id: 'DSP-0041', itemName: 'Water-Damaged HP Motherboard', type: 'Laptop', requestId: 'REQ-0208', hazard: 'Medium', reason: 'Corroded traces and charred power IC', by: 'Kgd. Victor Lim', barangay: 'Batasan Hills', at: '2026-11-17', kg: 0.8 },
-  { id: 'DSP-0040', itemName: 'CRT Monitor Shattered Vacuum Tube', type: 'Monitor / TV', requestId: 'REQ-0199', hazard: 'High', reason: 'Lead phosphor exposure risk', by: 'Kgd. Paolo Mendoza', barangay: 'Payatas', at: '2026-11-16', kg: 14.5 },
-  { id: 'DSP-0039', itemName: 'Burnt Microwave Transformer', type: 'Small Appliance', requestId: 'REQ-0194', hazard: 'Medium', reason: 'Insulation breakdown & short circuit', by: 'Kgd. Maria Santos', barangay: 'Commonwealth', at: '2026-11-15', kg: 5.4 },
-]
-
 const getInitialClaims = (): ClaimRecord[] => {
   let mappedLocalReservations: ClaimRecord[] = []
   if (typeof window !== 'undefined') {
@@ -225,15 +118,42 @@ const getInitialClaims = (): ClaimRecord[] => {
       // Ignore
     }
   }
-  const localIds = new Set(mappedLocalReservations.map((m) => m.id))
-  return [...mappedLocalReservations, ...INITIAL_CLAIMS.filter((p) => !localIds.has(p.id))]
+  return mappedLocalReservations
+}
+
+const getInitialListings = (): ListingRecord[] => {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem('ecobyte_reuse_listings')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) return parsed
+    }
+  } catch {
+    // ignore
+  }
+  return []
+}
+
+const getInitialDisposals = (): DisposalRecord[] => {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem('ecobyte_disposal_records')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) return parsed
+    }
+  } catch {
+    // ignore
+  }
+  return []
 }
 
 export const AdminTransactionsPage: FC = () => {
   const [tab, setTab] = useState<TxTab>('claims')
   const [claims, setClaims] = useState<ClaimRecord[]>(getInitialClaims)
-  const [listings] = useState<ListingRecord[]>(INITIAL_LISTINGS)
-  const [disposals] = useState<DisposalRecord[]>(INITIAL_DISPOSALS)
+  const [listings, setListings] = useState<ListingRecord[]>(getInitialListings)
+  const [disposals, setDisposals] = useState<DisposalRecord[]>(getInitialDisposals)
 
   // Filters
   const [filterBrgy, setFilterBrgy] = useState('')
@@ -288,15 +208,58 @@ export const AdminTransactionsPage: FC = () => {
           proofPhoto: (d.status || '').toLowerCase() === 'completed',
         }))
 
-        // Merge live claims with local and initial prototype data
         setClaims((prev) => {
           const ids = new Set(mappedLiveClaims.map((m) => m.id))
           return [...mappedLiveClaims, ...prev.filter((p) => !ids.has(p.id))]
         })
       })
       .catch((err) => {
-        console.warn('Using prototype transaction dataset:', err)
+        console.warn('Backend transactions unavailable:', err)
       })
+
+    adminApi
+      .getReuseInventory()
+      .then((rows) => {
+        if (!active || !Array.isArray(rows) || rows.length === 0) return
+        const mappedListings: ListingRecord[] = rows.map((r) => ({
+          id: r.id,
+          itemName: r.title,
+          type: r.category || 'Electronics',
+          condition: r.condition || 'Good',
+          barangay: 'Commonwealth',
+          siteName: r.hub || 'Commonwealth Area 1 Eco-Hub',
+          listedAt: r.createdAt?.slice(0, 10) || TODAY_STR,
+          status: r.status === 'Available' ? 'Available' : r.status === 'Reserved' ? 'Reserved' : 'Claimed',
+        }))
+        setListings((prev) => {
+          const ids = new Set(mappedListings.map((m) => m.id))
+          return [...mappedListings, ...prev.filter((p) => !ids.has(p.id))]
+        })
+      })
+      .catch(() => {})
+
+    adminApi
+      .getDisposalLogs()
+      .then((rows) => {
+        if (!active || !Array.isArray(rows) || rows.length === 0) return
+        const mappedDisposals: DisposalRecord[] = rows.map((d) => ({
+          id: d.manifestId || d.id || 'DSP',
+          itemName: d.itemName || 'Disposal Unit',
+          type: d.category || 'Electronics',
+          requestId: d.manifestId,
+          hazard: 'High',
+          reason: d.decisionNotes || 'Deemed hazardous / unrecoverable',
+          by: 'Barangay Official',
+          barangay: 'Commonwealth',
+          at: d.date?.slice(0, 10) || TODAY_STR,
+          kg: d.totalWeightKg || 1.5,
+        }))
+        setDisposals((prev) => {
+          const ids = new Set(mappedDisposals.map((m) => m.id))
+          return [...mappedDisposals, ...prev.filter((p) => !ids.has(p.id))]
+        })
+      })
+      .catch(() => {})
 
     return () => {
       active = false

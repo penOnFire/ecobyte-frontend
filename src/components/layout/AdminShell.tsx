@@ -97,7 +97,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
   const isSuperAdmin = staffRoleUpper === 'ADMIN'
   const staffRoleLabel = isSuperAdmin ? 'Super Admin' : 'Barangay Official'
   const staffFullName =
-    currentUser?.fullName?.trim() || (isSuperAdmin ? 'Elena Vance' : 'Captain Mateo Cruz')
+    currentUser?.fullName?.trim() || (isSuperAdmin ? 'System Administrator' : 'Barangay Official')
   const staffEmail =
     currentUser?.email || (isSuperAdmin ? 'admin@ecobyte.gov' : 'official@barangay.gov.ph')
   const staffArea = currentUser?.barangay?.name || 'Commonwealth Central MRF (Base 1)'

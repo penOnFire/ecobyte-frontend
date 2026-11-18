@@ -28,7 +28,7 @@ import BatteryChargingFullRoundedIcon from '@mui/icons-material/BatteryChargingF
 import TvRoundedIcon from '@mui/icons-material/TvRounded'
 import CableRoundedIcon from '@mui/icons-material/CableRounded'
 import KitchenRoundedIcon from '@mui/icons-material/KitchenRounded'
-import { adminApi, type AdminCollectionRequest } from '@/lib/api'
+import { adminApi, getCachedUser, type AdminCollectionRequest } from '@/lib/api'
 
 type DropoffTab = 'today' | 'upcoming' | 'overdue' | 'history'
 
@@ -73,138 +73,26 @@ interface DropoffRecord {
   history: HistoryEntry[]
 }
 
-const INITIAL_PROTOTYPE_DROPOFFS: DropoffRecord[] = [
-  {
-    id: 'REQ-0211',
-    requestCode: 'DO-20261118-0211',
-    itemName: 'Dell Inspiron 15 3000 Laptop',
-    type: 'Laptop',
-    residentId: 'res-01',
-    residentName: 'Elena Vance',
-    residentEmail: 'elena.vance@gmail.com',
-    siteId: 'S01',
-    siteName: 'Commonwealth Central MRF (Base 1)',
-    date: new Date().toISOString().slice(0, 10),
-    slot: '10:00 AM – 12:00 PM',
-    status: 'Scheduled',
-    assessment: {
-      detectedType: 'Laptop Computer',
-      confidence: 96,
-      hazard: 'High',
-      recommendation: 'Repair & Reuse',
-      impact: { kg: 2.1, materials: 'Aluminum · Copper · Li-Ion Battery' },
-      checklist: { powersOn: 'Yes', screen: 'Good', battery: 'Swollen', missingParts: 'None', waterDamage: 'No', notes: 'Powers on when plugged into AC, internal battery swollen.' },
-    },
-    history: [
-      { status: 'Scheduled', note: 'Resident booked drop-off via Portal', ts: '2026-11-17 08:30 PM', by: 'Elena Vance' },
-    ],
-  },
-  {
-    id: 'REQ-0208',
-    requestCode: 'DO-20261118-0208',
-    itemName: 'Samsung Galaxy A12 (Cracked Screen)',
-    type: 'Mobile Phone',
-    residentId: 'res-02',
-    residentName: 'Victor Lim',
-    residentEmail: 'victor.lim@gmail.com',
-    siteId: 'S01',
-    siteName: 'Commonwealth Central MRF (Base 1)',
-    date: new Date().toISOString().slice(0, 10),
-    slot: '01:00 PM – 03:00 PM',
-    status: 'Scheduled',
-    assessment: {
-      detectedType: 'Android Smartphone',
-      confidence: 92,
-      hazard: 'Low',
-      recommendation: 'Repair & Reuse',
-      impact: { kg: 0.35, materials: 'Rare Earth Elements · Glass · Silicon' },
-      checklist: { powersOn: 'Yes', screen: 'Cracked', battery: 'Holds Charge', missingParts: 'None', waterDamage: 'No', notes: 'Touch still responsive despite front glass hairline cracks.' },
-    },
-    history: [
-      { status: 'Scheduled', note: 'Resident booked drop-off via Portal', ts: '2026-11-16 02:15 PM', by: 'Victor Lim' },
-    ],
-  },
-  {
-    id: 'REQ-0214',
-    requestCode: 'DO-20261120-0214',
-    itemName: 'Philips 24-inch LCD Monitor',
-    type: 'Monitor / TV',
-    residentId: 'res-03',
-    residentName: 'Paolo Mendoza',
-    siteId: 'S01',
-    siteName: 'Commonwealth Central MRF (Base 1)',
-    date: '2026-11-21',
-    slot: '09:00 AM – 11:00 AM',
-    status: 'Scheduled',
-    assessment: {
-      detectedType: 'LCD Computer Monitor',
-      confidence: 94,
-      hazard: 'Low',
-      recommendation: 'Repair & Reuse',
-      impact: { kg: 3.8, materials: 'Display Glass · Copper Windings · Power Board' },
-      checklist: { powersOn: 'Yes', screen: 'Good', battery: 'None', missingParts: 'Power Cable', waterDamage: 'No', notes: 'Working display panel, replaced with ultrawide unit.' },
-    },
-    history: [
-      { status: 'Scheduled', note: 'Booked drop-off slot', ts: '2026-11-18 10:00 AM', by: 'Paolo Mendoza' },
-    ],
-  },
-  {
-    id: 'REQ-0204',
-    requestCode: 'DO-20261114-0204',
-    itemName: 'HP LaserJet Pro M404n (Paper Feed Jam)',
-    type: 'Small Appliance',
-    residentId: 'res-04',
-    residentName: 'Ricardo Dalisay',
-    siteId: 'S01',
-    siteName: 'Commonwealth Central MRF (Base 1)',
-    date: '2026-11-14',
-    slot: '02:00 PM – 04:00 PM',
-    status: 'Scheduled',
-    assessment: {
-      detectedType: 'Laser Printer',
-      confidence: 88,
-      hazard: 'Medium',
-      recommendation: 'Safe Disposal',
-      impact: { kg: 8.2, materials: 'Toner Residue · Motors · Steel Chassis' },
-      checklist: { powersOn: 'Yes', screen: 'Good', battery: 'None', missingParts: 'Toner Cartridge', waterDamage: 'No', notes: 'Rollers worn out, skips paper pickup.' },
-    },
-    history: [
-      { status: 'Scheduled', note: 'Scheduled slot', ts: '2026-11-12 11:00 AM', by: 'Ricardo Dalisay' },
-    ],
-  },
-  {
-    id: 'REQ-0199',
-    requestCode: 'DO-20261115-0199',
-    itemName: 'Sony Bravia 32-inch LED TV',
-    type: 'Monitor / TV',
-    residentId: 'res-05',
-    residentName: 'Kgd. Paolo Mendoza',
-    siteId: 'S01',
-    siteName: 'Commonwealth Central MRF (Base 1)',
-    date: '2026-11-15',
-    slot: '10:00 AM – 12:00 PM',
-    status: 'Under Inspection',
-    assessment: {
-      detectedType: 'Television Display',
-      confidence: 91,
-      hazard: 'Low',
-      recommendation: 'Repair & Reuse',
-      impact: { kg: 6.4, materials: 'Power Supply · Backlight Inverter · Housing' },
-      checklist: { powersOn: 'Partially', screen: 'Good', battery: 'None', missingParts: 'Remote Control', waterDamage: 'No', notes: 'Backlight turns on but audio intermittently cuts off.' },
-    },
-    history: [
-      { status: 'Scheduled', note: 'Resident booked slot', ts: '2026-11-14 09:00 AM', by: 'Kgd. Paolo Mendoza' },
-      { status: 'Under Inspection', note: 'Marked Received at intake bench', ts: '2026-11-15 10:24 AM', by: 'Kgd. Maria Santos' },
-    ],
-  },
-]
+const getInitialDropoffs = (): DropoffRecord[] => {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem('ecobyte_dropoff_requests')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) return parsed
+    }
+  } catch (e) {
+    console.warn('Could not read local drop-offs:', e)
+  }
+  return []
+}
 
 const TODAY_STR = new Date().toISOString().slice(0, 10)
 
 export const AdminIncomingDropoffsPage: FC = () => {
   const [tab, setTab] = useState<DropoffTab>('today')
   const [search, setSearch] = useState('')
-  const [requests, setRequests] = useState<DropoffRecord[]>(INITIAL_PROTOTYPE_DROPOFFS)
+  const [requests, setRequests] = useState<DropoffRecord[]>(getInitialDropoffs)
   const [selectedReq, setSelectedReq] = useState<DropoffRecord | null>(null)
   const [detailModalOpen, setDetailModalOpen] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -234,7 +122,7 @@ export const AdminIncomingDropoffsPage: FC = () => {
 
           return {
             id: d.id,
-            requestCode: d.requestCode,
+            requestCode: d.requestCode || d.id,
             itemName: d.preferredMethod || 'Resident E-Waste Device',
             type: d.preferredMethod || 'Electronics',
             residentId: 'res-01',
@@ -273,11 +161,17 @@ export const AdminIncomingDropoffsPage: FC = () => {
 
         setRequests((prev) => {
           const ids = new Set(mappedLive.map((m) => m.id))
-          return [...mappedLive, ...prev.filter((p) => !ids.has(p.id))]
+          const merged = [...mappedLive, ...prev.filter((p) => !ids.has(p.id))]
+          try {
+            localStorage.setItem('ecobyte_dropoff_requests', JSON.stringify(merged))
+          } catch {
+            // ignore
+          }
+          return merged
         })
       })
       .catch((err) => {
-        console.warn('Using prototype incoming drop-offs dataset:', err)
+        console.warn('Backend requests unavailable:', err)
       })
 
     return () => {
@@ -335,24 +229,46 @@ export const AdminIncomingDropoffsPage: FC = () => {
         // Fallback for local/offline prototype
       })
 
+      const staffUser = getCachedUser()
+      const staffName = staffUser?.fullName || 'Barangay Official'
+
       const updatedHistory: HistoryEntry = {
         status: 'Under Inspection',
         note: 'Marked Received at facility intake',
         ts: new Date().toLocaleString(),
-        by: 'Kgd. Maria Santos',
+        by: staffName,
       }
 
-      setRequests((prev) =>
-        prev.map((r) =>
+      setRequests((prev) => {
+        const next = prev.map((r) =>
           r.id === req.id
             ? {
                 ...r,
-                status: 'Under Inspection',
+                status: 'Under Inspection' as const,
                 history: [...r.history, updatedHistory],
               }
             : r
         )
-      )
+        try {
+          localStorage.setItem('ecobyte_dropoff_requests', JSON.stringify(next))
+          const existingLogs = JSON.parse(localStorage.getItem('ecobyte_activity_logs') || '[]')
+          const logEntry = {
+            id: `log-${Date.now()}`,
+            ts: new Date().toISOString().replace('T', ' ').slice(0, 16),
+            userId: staffUser?.id || 'staff',
+            userName: staffName,
+            role: 'official',
+            action: 'Marked as Received',
+            target: req.requestCode || req.id,
+            details: `Intake bench verification at ${req.siteName}`,
+            barangay: staffUser?.barangay?.name || 'Commonwealth',
+          }
+          localStorage.setItem('ecobyte_activity_logs', JSON.stringify([logEntry, ...existingLogs.slice(0, 50)]))
+        } catch {
+          // ignore
+        }
+        return next
+      })
 
       setToast({
         message: `Device marked Received! Moved to Inspection Queue (${req.requestCode}).`,
@@ -376,24 +292,46 @@ export const AdminIncomingDropoffsPage: FC = () => {
         // Fallback for local/offline prototype
       })
 
+      const staffUser = getCachedUser()
+      const staffName = staffUser?.fullName || 'Barangay Official'
+
       const updatedHistory: HistoryEntry = {
         status: 'Missed',
         note: 'Resident did not arrive for scheduled slot',
         ts: new Date().toLocaleString(),
-        by: 'Kgd. Maria Santos',
+        by: staffName,
       }
 
-      setRequests((prev) =>
-        prev.map((r) =>
+      setRequests((prev) => {
+        const next = prev.map((r) =>
           r.id === req.id
             ? {
                 ...r,
-                status: 'Missed',
+                status: 'Missed' as const,
                 history: [...r.history, updatedHistory],
               }
             : r
         )
-      )
+        try {
+          localStorage.setItem('ecobyte_dropoff_requests', JSON.stringify(next))
+          const existingLogs = JSON.parse(localStorage.getItem('ecobyte_activity_logs') || '[]')
+          const logEntry = {
+            id: `log-${Date.now()}`,
+            ts: new Date().toISOString().replace('T', ' ').slice(0, 16),
+            userId: staffUser?.id || 'staff',
+            userName: staffName,
+            role: 'official',
+            action: 'Marked as Missed',
+            target: req.requestCode || req.id,
+            details: `Resident absent for slot ${req.slot}`,
+            barangay: staffUser?.barangay?.name || 'Commonwealth',
+          }
+          localStorage.setItem('ecobyte_activity_logs', JSON.stringify([logEntry, ...existingLogs.slice(0, 50)]))
+        } catch {
+          // ignore
+        }
+        return next
+      })
 
       setToast({
         message: `Marked as Missed. Time slot released for ${req.requestCode}.`,

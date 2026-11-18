@@ -49,41 +49,66 @@ interface DeviceDetails {
   }
 }
 
-const DEFAULT_INSPECTION_ITEM: DeviceDetails = {
-  id: 'REQ-0199',
-  requestCode: 'DO-20261115-0199',
-  itemName: 'Sony Bravia 32-inch LED TV',
-  type: 'Monitor / TV',
-  residentName: 'Kgd. Paolo Mendoza',
-  siteName: 'Commonwealth Central MRF (Base 1)',
-  receivedAt: '2026-11-15 10:24 AM',
-  status: 'Under Inspection',
-  photos: { front: true, back: true, left: true, right: false },
-  checklist: {
-    powersOn: 'Partially',
-    screen: 'Good',
-    battery: 'None',
-    missingParts: 'Remote Control',
-    waterDamage: 'No',
-    notes: 'Backlight turns on but audio intermittently cuts off.',
-  },
-  assessment: {
-    detectedType: 'Television Display Panel',
-    confidence: 91,
-    hazard: 'Low',
-    recommendation: 'Repair & Reuse',
-    impactKg: 6.4,
-    materials: 'Display Glass · Copper Windings · Power Board',
-    components: ['32" LED Matrix', 'Main Logic Board', 'Power Supply PCB', 'Internal Speakers', 'T-Con Board'],
-  },
+const findLocalDevice = (targetId?: string): DeviceDetails | null => {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem('ecobyte_dropoff_requests')
+    if (!raw) return null
+    const list: any[] = JSON.parse(raw)
+    if (!Array.isArray(list) || list.length === 0) return null
+
+    let match = targetId
+      ? list.find((d) => d.id === targetId || d.requestCode === targetId)
+      : list.find((d) => {
+          const s = (d.status || '').toLowerCase()
+          return s === 'under inspection' || s === 'under_inspection'
+        })
+
+    if (!match && !targetId && list.length > 0) {
+      match = list[0]
+    }
+
+    if (match) {
+      return {
+        id: match.id,
+        requestCode: match.requestCode || match.id,
+        itemName: match.itemName || match.preferredMethod || 'Resident E-Waste Device',
+        type: match.type || 'Electronics',
+        residentName: match.residentName || 'Resident User',
+        siteName: match.siteName || 'Commonwealth Central MRF (Base 1)',
+        receivedAt: match.receivedAt || match.date || 'Today',
+        status: 'Under Inspection',
+        photos: { front: true, back: true, left: true, right: false },
+        checklist: {
+          powersOn: match.assessment?.checklist?.powersOn || 'Yes',
+          screen: match.assessment?.checklist?.screen || 'Good',
+          battery: match.assessment?.checklist?.battery || 'Standard',
+          missingParts: match.assessment?.checklist?.missingParts || 'None',
+          waterDamage: match.assessment?.checklist?.waterDamage || 'No',
+          notes: match.assessment?.checklist?.notes || match.displayStatus || '',
+        },
+        assessment: {
+          detectedType: match.assessment?.detectedType || match.type || 'Electronic Hardware',
+          confidence: match.assessment?.confidence || 92,
+          hazard: match.assessment?.hazard || 'Low',
+          recommendation: match.assessment?.recommendation || 'Repair & Reuse',
+          impactKg: match.assessment?.impact?.kg || 1.5,
+          materials: match.assessment?.impact?.materials || 'Recoverable metals · Plastics',
+          components: ['Mainboard', 'Power Supply', 'Chassis'],
+        },
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return null
 }
 
 export const AdminPhysicalInspectionPage: FC = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
-  const deviceId = id || 'REQ-0199'
 
-  const [device, setDevice] = useState<DeviceDetails>(DEFAULT_INSPECTION_ITEM)
+  const [device, setDevice] = useState<DeviceDetails | null>(() => findLocalDevice(id))
   const [works, setWorks] = useState<'Yes' | 'Partially' | 'No' | ''>('')
   const [condition, setCondition] = useState<'Good' | 'Fair' | 'Poor' | 'Damaged' | ''>('')
   const [notes, setNotes] = useState('')
@@ -98,16 +123,16 @@ export const AdminPhysicalInspectionPage: FC = () => {
       .getRequests()
       .then((data: AdminCollectionRequest[]) => {
         if (!active || !data || data.length === 0) return
-        const found = data.find((d) => d.id === deviceId || d.requestCode === deviceId)
+        const found = id ? data.find((d) => d.id === id || d.requestCode === id) : data.find((d) => (d.status || '').toLowerCase() === 'under_inspection')
         if (found) {
           setDevice({
             id: found.id,
-            requestCode: found.requestCode,
+            requestCode: found.requestCode || found.id,
             itemName: found.preferredMethod || 'Resident E-Waste Device',
             type: found.preferredMethod || 'Electronics',
             residentName: found.residentName || 'Resident User',
             siteName: found.siteName || 'Commonwealth Central MRF (Base 1)',
-            receivedAt: found.requestedDate || '2026-11-15 10:24 AM',
+            receivedAt: found.requestedDate || 'Today',
             status: 'Under Inspection',
             photos: { front: true, back: true, left: true, right: false },
             checklist: {
@@ -137,10 +162,11 @@ export const AdminPhysicalInspectionPage: FC = () => {
     return () => {
       active = false
     }
-  }, [deviceId])
+  }, [id])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!device) return
     if (!works) {
       setFormError('Please indicate whether the device works.')
       return
@@ -167,6 +193,61 @@ export const AdminPhysicalInspectionPage: FC = () => {
         .catch(() => {
           // Local prototype fallback
         })
+
+      // Sync with localStorage
+      try {
+        const storedReqs = JSON.parse(localStorage.getItem('ecobyte_dropoff_requests') || '[]')
+        const updatedReqs = storedReqs.map((r: any) =>
+          r.id === device.id ? { ...r, status: 'Turned Over' } : r
+        )
+        localStorage.setItem('ecobyte_dropoff_requests', JSON.stringify(updatedReqs))
+
+        if (decision === 'reuse') {
+          const storedListings = JSON.parse(localStorage.getItem('ecobyte_reuse_listings') || '[]')
+          const newListing = {
+            id: `RH-${Math.floor(1000 + Math.random() * 9000)}`,
+            itemName: device.itemName,
+            type: device.type,
+            condition,
+            barangay: 'Commonwealth',
+            siteName: device.siteName,
+            listedAt: new Date().toISOString().slice(0, 10),
+            status: 'Available',
+          }
+          localStorage.setItem('ecobyte_reuse_listings', JSON.stringify([newListing, ...storedListings]))
+        } else {
+          const storedDisposals = JSON.parse(localStorage.getItem('ecobyte_disposal_records') || '[]')
+          const newDisposal = {
+            id: `DSP-${Math.floor(1000 + Math.random() * 9000)}`,
+            itemName: device.itemName,
+            type: device.type,
+            requestId: device.requestCode || device.id,
+            hazard: device.assessment.hazard,
+            reason: notes || `Failed diagnostics: Works: ${works}, Condition: ${condition}`,
+            by: 'Barangay Official',
+            barangay: 'Commonwealth',
+            at: new Date().toISOString().slice(0, 10),
+            kg: device.assessment.impactKg || 1.5,
+          }
+          localStorage.setItem('ecobyte_disposal_records', JSON.stringify([newDisposal, ...storedDisposals]))
+        }
+
+        const existingLogs = JSON.parse(localStorage.getItem('ecobyte_activity_logs') || '[]')
+        const logEntry = {
+          id: `log-${Date.now()}`,
+          ts: new Date().toISOString().replace('T', ' ').slice(0, 16),
+          userId: 'staff',
+          userName: 'Barangay Official',
+          role: 'official',
+          action: decision === 'reuse' ? 'Inspected device → Listed in Reuse Hub' : 'Inspected device → Marked for disposal',
+          target: device.requestCode || device.id,
+          details: `${device.itemName} (${condition})`,
+          barangay: 'Commonwealth',
+        }
+        localStorage.setItem('ecobyte_activity_logs', JSON.stringify([logEntry, ...existingLogs.slice(0, 50)]))
+      } catch (syncErr) {
+        console.warn('Failed to sync inspection locally:', syncErr)
+      }
 
       setToast({
         message:
@@ -196,6 +277,51 @@ export const AdminPhysicalInspectionPage: FC = () => {
     if (lower.includes('monitor') || lower.includes('tv')) return TvRoundedIcon
     if (lower.includes('cable') || lower.includes('charger') || lower.includes('keyboard')) return CableRoundedIcon
     return KitchenRoundedIcon
+  }
+
+  if (!device) {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pb: 6, fontFamily: "'Quicksand', sans-serif" }}>
+        <ButtonBase
+          onClick={() => navigate('/admin/to-inspect')}
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 1,
+            color: '#64748b',
+            fontSize: '0.875rem',
+            fontWeight: 700,
+            width: 'fit-content',
+            '&:hover': { color: '#0f172a' },
+          }}
+        >
+          <ArrowBackRoundedIcon sx={{ fontSize: 18 }} />
+          <span>Inspection Queue</span>
+        </ButtonBase>
+        <Box sx={{ p: 6, textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '1.25rem', border: '1px solid #dbe3d6' }}>
+          <Typography sx={{ fontWeight: 800, fontSize: '1.125rem', color: '#0f172a', mb: 1 }}>
+            No Device Selected for Inspection
+          </Typography>
+          <Typography sx={{ fontSize: '0.875rem', color: '#64748b', mb: 3 }}>
+            Please select an incoming device from the Inspection Queue to conduct physical diagnostics.
+          </Typography>
+          <ButtonBase
+            onClick={() => navigate('/admin/to-inspect')}
+            sx={{
+              px: 3,
+              py: 1.25,
+              borderRadius: '0.75rem',
+              backgroundColor: '#70b822',
+              color: '#ffffff',
+              fontWeight: 700,
+              fontSize: '0.875rem',
+            }}
+          >
+            Open Inspection Queue
+          </ButtonBase>
+        </Box>
+      </Box>
+    )
   }
 
   const ItemIcon = getTypeIcon(device.type)
