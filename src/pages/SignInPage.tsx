@@ -3,6 +3,7 @@ import type { FC, FormEvent } from 'react'
 import {
   Box,
   Button,
+  ButtonBase,
   Card,
   Checkbox,
   CircularProgress,
@@ -26,9 +27,29 @@ import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import LockRoundedIcon from '@mui/icons-material/LockRounded'
 import LockClockRoundedIcon from '@mui/icons-material/LockClockRounded'
+import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined'
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
+import YardOutlinedIcon from '@mui/icons-material/YardOutlined'
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom'
 import ecobyteLogo from '@/assets/ui/ecobyte_logo.svg'
 import { authApi, clearStaleLocalRequests, setCachedUser } from '@/lib/api'
+
+type DetectedAccountType = 'resident' | 'official' | 'admin'
+
+function detectAccountType(email: string): DetectedAccountType {
+  const lower = email.trim().toLowerCase()
+  if (lower.includes('admin') || lower === 'admin@ecobyte.gov') {
+    return 'admin'
+  }
+  if (
+    lower.includes('official') ||
+    lower.includes('barangay.gov.ph') ||
+    lower.includes('gov.ph')
+  ) {
+    return 'official'
+  }
+  return 'resident'
+}
 
 const LOCKOUT_KEY = 'ecobyte_login_lockout'
 const MAX_FAILED_ATTEMPTS = 5
@@ -151,23 +172,53 @@ export const SignInPage: FC = () => {
         setCachedUser(res.user)
       }
 
-      const roleUpper = res?.user?.role?.toUpperCase()
-      const isAdmin =
-        res?.redirectTo === '/admin' ||
+      const roleUpper = (res?.user?.role || '').toUpperCase()
+      const isSuperAdmin =
         roleUpper === 'ADMIN' ||
+        email.toLowerCase().includes('admin')
+      const isOfficial =
         roleUpper === 'BARANGAY_OFFICIAL' ||
-        email.toLowerCase().includes('admin') ||
-        email.toLowerCase().includes('ecobyte.gov') ||
-        email.toLowerCase().includes('official')
+        roleUpper === 'OFFICIAL' ||
+        email.toLowerCase().includes('official') ||
+        email.toLowerCase().includes('barangay.gov.ph')
 
-      localStorage.setItem('ecobyte_user_role', roleUpper || (isAdmin ? 'ADMIN' : 'RESIDENT'))
+      const effectiveRole = isSuperAdmin
+        ? 'ADMIN'
+        : isOfficial
+        ? 'BARANGAY_OFFICIAL'
+        : 'RESIDENT'
 
-      if (safeRedirect && (isAdmin || !safeRedirect.startsWith('/admin'))) {
-        navigate(safeRedirect, { replace: true })
-      } else if (isAdmin) {
-        navigate('/admin')
+      localStorage.setItem('ecobyte_user_role', effectiveRole)
+
+      if (res?.user) {
+        setCachedUser({
+          ...res.user,
+          role: isSuperAdmin ? 'admin' : isOfficial ? 'barangay_official' : 'resident',
+        })
       } else {
-        navigate('/dashboard')
+        setCachedUser({
+          id: isSuperAdmin ? 'admin-001' : isOfficial ? 'official-001' : 'res-001',
+          fullName: isSuperAdmin
+            ? 'Elena Vance'
+            : isOfficial
+            ? 'Captain Mateo Cruz'
+            : 'Alex Resident',
+          email: email.trim(),
+          role: isSuperAdmin ? 'admin' : isOfficial ? 'barangay_official' : 'resident',
+          barangay: { id: 1, name: 'Commonwealth Central MRF' },
+        } as any)
+      }
+
+      if (safeRedirect) {
+        if (!isSuperAdmin && !isOfficial && safeRedirect.startsWith('/admin')) {
+          navigate('/dashboard', { replace: true })
+        } else {
+          navigate(safeRedirect, { replace: true })
+        }
+      } else if (isSuperAdmin || isOfficial) {
+        navigate('/admin', { replace: true })
+      } else {
+        navigate('/dashboard', { replace: true })
       }
     } catch (err: any) {
       console.error('Authentication rejected by backend:', err)
@@ -178,21 +229,39 @@ export const SignInPage: FC = () => {
         err?.message?.toLowerCase().includes('network')
 
       if (isNetworkError) {
-        const isAdmin =
-          email.toLowerCase().includes('admin') ||
-          email.toLowerCase().includes('ecobyte.gov') ||
-          email.toLowerCase().includes('official')
+        const isSuperAdmin = email.toLowerCase().includes('admin')
+        const isOfficial =
+          email.toLowerCase().includes('official') ||
+          email.toLowerCase().includes('barangay.gov.ph')
+
+        const effectiveRole = isSuperAdmin
+          ? 'ADMIN'
+          : isOfficial
+          ? 'BARANGAY_OFFICIAL'
+          : 'RESIDENT'
 
         clearStoredLockout()
-        localStorage.setItem('ecobyte_token', `offline_mock_token_${isAdmin ? 'admin' : 'resident'}`)
-        localStorage.setItem('ecobyte_user_role', isAdmin ? 'ADMIN' : 'RESIDENT')
+        localStorage.setItem('ecobyte_token', `offline_mock_token_${effectiveRole.toLowerCase()}`)
+        localStorage.setItem('ecobyte_user_role', effectiveRole)
 
-        if (safeRedirect && (isAdmin || !safeRedirect.startsWith('/admin'))) {
+        setCachedUser({
+          id: isSuperAdmin ? 'admin-001' : isOfficial ? 'official-001' : 'res-001',
+          fullName: isSuperAdmin
+            ? 'Elena Vance'
+            : isOfficial
+            ? 'Captain Mateo Cruz'
+            : 'Alex Resident',
+          email: email.trim(),
+          role: isSuperAdmin ? 'admin' : isOfficial ? 'barangay_official' : 'resident',
+          barangay: { id: 1, name: 'Commonwealth Central MRF' },
+        } as any)
+
+        if (safeRedirect && (isSuperAdmin || isOfficial || !safeRedirect.startsWith('/admin'))) {
           navigate(safeRedirect, { replace: true })
-        } else if (isAdmin) {
-          navigate('/admin')
+        } else if (isSuperAdmin || isOfficial) {
+          navigate('/admin', { replace: true })
         } else {
-          navigate('/dashboard')
+          navigate('/dashboard', { replace: true })
         }
         return
       }
@@ -453,6 +522,86 @@ export const SignInPage: FC = () => {
               </Typography>
             </Box>
           ) : null}
+          {/* Dynamic Account Type Detection Badge */}
+          {(() => {
+            const detected = detectAccountType(email)
+            if (detected === 'admin') {
+              return (
+                <Box
+                  sx={{
+                    mb: 2,
+                    p: 1.25,
+                    borderRadius: '10px',
+                    backgroundColor: '#f0fdf4',
+                    border: '1px solid #86efac',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                  }}
+                >
+                  <ShieldOutlinedIcon sx={{ fontSize: 18, color: '#15803d' }} />
+                  <Box>
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#14532d', lineHeight: 1.2 }}>
+                      Super Admin Central Account
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.6875rem', color: '#166534', fontWeight: 600 }}>
+                      Auto-redirects to Central System-Wide Oversight (/admin)
+                    </Typography>
+                  </Box>
+                </Box>
+              )
+            }
+            if (detected === 'official') {
+              return (
+                <Box
+                  sx={{
+                    mb: 2,
+                    p: 1.25,
+                    borderRadius: '10px',
+                    backgroundColor: '#f0fdf4',
+                    border: '1px solid #86efac',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                  }}
+                >
+                  <LocationOnOutlinedIcon sx={{ fontSize: 18, color: '#16a34a' }} />
+                  <Box>
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#14532d', lineHeight: 1.2 }}>
+                      Barangay Official Account
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.6875rem', color: '#166534', fontWeight: 600 }}>
+                      Auto-redirects to Station Operations Portal (/admin)
+                    </Typography>
+                  </Box>
+                </Box>
+              )
+            }
+            return (
+              <Box
+                sx={{
+                  mb: 2,
+                  p: 1.25,
+                  borderRadius: '10px',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                }}
+              >
+                <YardOutlinedIcon sx={{ fontSize: 18, color: '#0f172a' }} />
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
+                    Resident Account
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
+                    Auto-redirects to Circular E-Waste Portal (/dashboard)
+                  </Typography>
+                </Box>
+              </Box>
+            )
+          })()}
 
           <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {/* Email */}
@@ -615,49 +764,92 @@ export const SignInPage: FC = () => {
               )}
             </Button>
 
-            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-              <Button
-                fullWidth
-                type="button"
-                onClick={() => {
-                  setEmail('alex.resident@ecobyte.ph')
-                  setPassword('resident123')
-                }}
-                variant="outlined"
-                size="small"
+            {/* Quick Testing Presets for Resident, Official, Super Admin */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, mt: 1 }}>
+              <Typography
                 sx={{
-                  py: 0.75,
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  borderColor: '#cbd5e1',
-                  color: '#475569',
-                  backgroundColor: '#f8fafc',
-                  '&:hover': { backgroundColor: '#f1f5f9' },
+                  fontFamily: "'Quicksand', sans-serif",
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  color: '#94a3b8',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  textAlign: 'center',
                 }}
               >
-                Fill Resident Demo
-              </Button>
-              <Button
-                fullWidth
-                type="button"
-                onClick={() => {
-                  setEmail('admin@ecobyte.gov')
-                  setPassword('admin123')
-                }}
-                variant="outlined"
-                size="small"
-                sx={{
-                  py: 0.75,
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  borderColor: '#86efac',
-                  color: '#15803d',
-                  backgroundColor: '#f0fdf4',
-                  '&:hover': { backgroundColor: '#dcfce7' },
-                }}
-              >
-                Fill Admin Demo
-              </Button>
+                Quick Testing Presets
+              </Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0.75 }}>
+                <ButtonBase
+                  type="button"
+                  onClick={() => {
+                    setEmail('alex.resident@ecobyte.ph')
+                    setPassword('resident123')
+                    setErrorMessage(null)
+                  }}
+                  sx={{
+                    py: 0.75,
+                    px: 0.5,
+                    borderRadius: '8px',
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.6875rem',
+                    fontWeight: 700,
+                    color: '#334155',
+                    fontFamily: "'Quicksand', sans-serif",
+                    transition: 'all 0.15s ease',
+                    '&:hover': { backgroundColor: '#f1f5f9', borderColor: '#94a3b8' },
+                  }}
+                >
+                  🌱 Resident
+                </ButtonBase>
+                <ButtonBase
+                  type="button"
+                  onClick={() => {
+                    setEmail('official@barangay.gov.ph')
+                    setPassword('official123')
+                    setErrorMessage(null)
+                  }}
+                  sx={{
+                    py: 0.75,
+                    px: 0.5,
+                    borderRadius: '8px',
+                    backgroundColor: '#f0fdf4',
+                    border: '1px solid #86efac',
+                    fontSize: '0.6875rem',
+                    fontWeight: 700,
+                    color: '#166534',
+                    fontFamily: "'Quicksand', sans-serif",
+                    transition: 'all 0.15s ease',
+                    '&:hover': { backgroundColor: '#dcfce7', borderColor: '#4ade80' },
+                  }}
+                >
+                  📍 Official
+                </ButtonBase>
+                <ButtonBase
+                  type="button"
+                  onClick={() => {
+                    setEmail('admin@ecobyte.gov')
+                    setPassword('admin123')
+                    setErrorMessage(null)
+                  }}
+                  sx={{
+                    py: 0.75,
+                    px: 0.5,
+                    borderRadius: '8px',
+                    backgroundColor: '#f0fdf4',
+                    border: '1px solid #86efac',
+                    fontSize: '0.6875rem',
+                    fontWeight: 700,
+                    color: '#15803d',
+                    fontFamily: "'Quicksand', sans-serif",
+                    transition: 'all 0.15s ease',
+                    '&:hover': { backgroundColor: '#dcfce7', borderColor: '#4ade80' },
+                  }}
+                >
+                  🛡️ Admin
+                </ButtonBase>
+              </Box>
             </Box>
           </Box>
         </Card>
