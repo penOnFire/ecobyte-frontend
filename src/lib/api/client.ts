@@ -1,6 +1,26 @@
 import type { ApiResponse } from '@/types'
 
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) || '/api/v1'
+function resolveApiBaseUrl(): string {
+  const configured = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() || '/api/v1'
+  if (typeof window === 'undefined') return configured
+  try {
+    const parsed = new URL(configured, window.location.origin)
+    const configuredIsLoopback =
+      parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1'
+    const pageIsLoopback =
+      window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    // Remote visitors (e.g. ngrok / LAN / devtunnel) must route through the Vite proxy (/api/v1)
+    // instead of calling localhost on their own machine.
+    if (configuredIsLoopback && !pageIsLoopback) {
+      return '/api/v1'
+    }
+  } catch {
+    return configured
+  }
+  return configured
+}
+
+const BASE_URL = resolveApiBaseUrl()
 
 export function resolveMediaUrl(url?: string | null): string {
   if (!url) return ''

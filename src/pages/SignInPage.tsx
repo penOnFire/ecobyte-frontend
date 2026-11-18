@@ -32,7 +32,13 @@ import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded'
 import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { authApi, clearStaleLocalRequests, setCachedUser } from '@/lib/api'
+import {
+  authApi,
+  buildFallbackMockUser,
+  clearStaleLocalRequests,
+  resolveAuthRole,
+  setCachedUser,
+} from '@/lib/api'
 
 type DetectedAccountType = 'resident' | 'official' | 'admin'
 
@@ -179,40 +185,22 @@ export const SignInPage: FC = () => {
         setCachedUser(res.user)
       }
 
-      const roleUpper = (res?.user?.role || '').toUpperCase()
-      const isSuperAdmin =
-        roleUpper === 'ADMIN' || email.toLowerCase().includes('admin')
-      const isOfficial =
-        roleUpper === 'BARANGAY_OFFICIAL' ||
-        roleUpper === 'OFFICIAL' ||
-        email.toLowerCase().includes('official') ||
-        email.toLowerCase().includes('barangay.gov.ph')
-
-      const effectiveRole = isSuperAdmin
-        ? 'ADMIN'
-        : isOfficial
-        ? 'BARANGAY_OFFICIAL'
-        : 'RESIDENT'
+      const effectiveRole = resolveAuthRole(res?.user?.role, email)
+      const isSuperAdmin = effectiveRole === 'ADMIN'
+      const isOfficial = effectiveRole === 'BARANGAY_OFFICIAL'
 
       localStorage.setItem('ecobyte_user_role', effectiveRole)
 
       if (res?.user) {
         setCachedUser({
           ...res.user,
-          role: isSuperAdmin ? 'admin' : isOfficial ? 'barangay_official' : 'resident',
+          role: effectiveRole.toLowerCase(),
         })
       } else {
         setCachedUser({
-          id: isSuperAdmin ? 'admin-001' : isOfficial ? 'official-001' : 'res-001',
-          fullName: isSuperAdmin
-            ? 'Elena Vance'
-            : isOfficial
-            ? 'Captain Mateo Cruz'
-            : 'Alex Resident',
-          email: email.trim(),
-          role: isSuperAdmin ? 'admin' : isOfficial ? 'barangay_official' : 'resident',
-          barangay: { id: 1, name: 'Commonwealth Central MRF' },
-        } as any)
+          ...buildFallbackMockUser(effectiveRole, email),
+          role: effectiveRole.toLowerCase(),
+        })
       }
 
       if (safeRedirect) {
@@ -235,32 +223,18 @@ export const SignInPage: FC = () => {
         err?.message?.toLowerCase().includes('network')
 
       if (isNetworkError) {
-        const isSuperAdmin = email.toLowerCase().includes('admin')
-        const isOfficial =
-          email.toLowerCase().includes('official') ||
-          email.toLowerCase().includes('barangay.gov.ph')
-
-        const effectiveRole = isSuperAdmin
-          ? 'ADMIN'
-          : isOfficial
-          ? 'BARANGAY_OFFICIAL'
-          : 'RESIDENT'
+        const effectiveRole = resolveAuthRole(undefined, email)
+        const isSuperAdmin = effectiveRole === 'ADMIN'
+        const isOfficial = effectiveRole === 'BARANGAY_OFFICIAL'
 
         clearStoredLockout()
         localStorage.setItem('ecobyte_token', `offline_mock_token_${effectiveRole.toLowerCase()}`)
         localStorage.setItem('ecobyte_user_role', effectiveRole)
 
         setCachedUser({
-          id: isSuperAdmin ? 'admin-001' : isOfficial ? 'official-001' : 'res-001',
-          fullName: isSuperAdmin
-            ? 'Elena Vance'
-            : isOfficial
-            ? 'Captain Mateo Cruz'
-            : 'Alex Resident',
-          email: email.trim(),
-          role: isSuperAdmin ? 'admin' : isOfficial ? 'barangay_official' : 'resident',
-          barangay: { id: 1, name: 'Commonwealth Central MRF' },
-        } as any)
+          ...buildFallbackMockUser(effectiveRole, email),
+          role: effectiveRole.toLowerCase(),
+        })
 
         if (safeRedirect && (isSuperAdmin || isOfficial || !safeRedirect.startsWith('/admin'))) {
           navigate(safeRedirect, { replace: true })
