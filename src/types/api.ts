@@ -118,6 +118,32 @@ export interface DiagnosticResult {
   recommendedRoute: 'REUSE' | 'DROP_OFF' | 'REPAIR'
 }
 
+export interface AssessedDeviceRecord {
+  assessmentId: string
+  itemId?: string
+  deviceTitle: string
+  category: string
+  hazardLevel: 'HIGH_HAZARD' | 'LOW_RISK'
+  hazardTitle: string
+  handlingRecommendation: string
+  assessedAt: string
+  confidenceScore?: number
+  images?: Array<{
+    id: string
+    url: string
+    angle?: string | null
+  }>
+  notes?: string
+  visibleDamage?: string[]
+  missingParts?: string[]
+  subsystems?: Array<{
+    name: string
+    status: string
+    score: number
+    details?: string
+  }>
+}
+
 // ── Drop-Off Hubs & Scheduling ──
 export type HubFacilityType = 'Staffed & Smart Bin' | '24/7 Smart Bin' | 'Kiosk' | 'Staffed Only'
 
