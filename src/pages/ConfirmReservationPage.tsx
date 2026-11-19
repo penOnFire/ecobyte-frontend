@@ -21,6 +21,10 @@ import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { reuseApi } from '@/lib/api'
+import {
+  computeTwoDayExpiryDate,
+  formatExpiryDateTime,
+} from '@/lib/reservationExpiry'
 import thinkpadImg from '@/assets/ui/thinkpad.jpeg'
 import galaxyImg from '@/assets/ui/galaxy_s10.jpeg'
 import chargerImg from '@/assets/ui/charger.jpeg'
@@ -187,6 +191,7 @@ export const ConfirmReservationPage: FC = () => {
           const mockReservationId = `RES-${Date.now().toString().slice(-4)}`
           const stored = localStorage.getItem('ecobyte_user_reservations')
           const currentList = stored ? JSON.parse(stored) : []
+          const fallbackExpiry = computeTwoDayExpiryDate()
           const newReservation = {
             id: mockReservationId,
             itemId,
@@ -195,7 +200,7 @@ export const ConfirmReservationPage: FC = () => {
             pickupSlot: paramTime,
             pickupCode: mockCode,
             status: 'RESERVED',
-            expiresAt: new Date(Date.now() + 48 * 3600 * 1000).toISOString(),
+            expiresAt: fallbackExpiry.toISOString(),
             hoursRemaining: 48,
             pickupLocation: {
               name: activeDevice.hubName,
@@ -404,16 +409,21 @@ export const ConfirmReservationPage: FC = () => {
           </Box>
 
           {/* Claim Deadline */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <HourglassEmptyRoundedIcon sx={{ fontSize: 18, color: '#b45309' }} />
               <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#0f172a', fontWeight: 600 }}>
                 Claim Deadline
               </Typography>
             </Box>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#b45309', fontWeight: 700 }}>
-              Held for 48 Hours upon booking
-            </Typography>
+            <Box sx={{ textAlign: 'right' }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#b45309', fontWeight: 700 }}>
+                Expires {formatExpiryDateTime(computeTwoDayExpiryDate())}
+              </Typography>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#92400e', fontWeight: 600 }}>
+                Auto-releases after 2 days (48h) if unclaimed
+              </Typography>
+            </Box>
           </Box>
         </Box>
       </Card>

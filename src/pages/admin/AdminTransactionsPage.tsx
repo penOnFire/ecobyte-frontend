@@ -149,6 +149,22 @@ const getInitialDisposals = (): DisposalRecord[] => {
   return []
 }
 
+const HEADER_CELL_STYLE = {
+  padding: '10px 10px',
+  fontSize: '10.5px',
+  fontWeight: 700,
+  color: '#64748b',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.03em',
+  whiteSpace: 'nowrap' as const,
+}
+
+const BODY_CELL_STYLE = {
+  padding: '10px 10px',
+  verticalAlign: 'middle' as const,
+  overflowWrap: 'anywhere' as const,
+}
+
 export const AdminTransactionsPage: FC = () => {
   const [tab, setTab] = useState<TxTab>('claims')
   const [claims, setClaims] = useState<ClaimRecord[]>(getInitialClaims)
@@ -1022,19 +1038,38 @@ export const AdminTransactionsPage: FC = () => {
         </Box>
 
         {/* ── Table Content per Active Tab ── */}
-        <Box sx={{ overflowX: 'auto', mx: -3, px: 3 }}>
+        <Box sx={{ overflowX: { xs: 'auto', md: 'visible' }, mx: { xs: -2.5, sm: -3, md: 0 }, px: { xs: 2.5, sm: 3, md: 0 } }}>
           {tab === 'claims' && (
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <Box
+              component="table"
+              sx={{
+                width: '100%',
+                minWidth: { xs: 780, md: 0 },
+                tableLayout: { md: 'fixed' },
+                borderCollapse: 'collapse',
+                textAlign: 'left',
+              }}
+            >
+              <colgroup>
+                <col style={{ width: '10%' }} />
+                <col style={{ width: '20%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '10%' }} />
+                <col style={{ width: '14%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '9%' }} />
+                <col style={{ width: '13%' }} />
+              </colgroup>
               <thead>
                 <tr style={{ backgroundColor: '#f8faf6', borderBottom: '1px solid #e2e8f0' }}>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Transaction</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Item</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Resident</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Barangay</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Pick-Up Site</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Schedule</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Status</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
+                  <th style={HEADER_CELL_STYLE}>Transaction</th>
+                  <th style={HEADER_CELL_STYLE}>Item</th>
+                  <th style={HEADER_CELL_STYLE}>Resident</th>
+                  <th style={HEADER_CELL_STYLE}>Barangay</th>
+                  <th style={HEADER_CELL_STYLE}>Pick-Up Site</th>
+                  <th style={HEADER_CELL_STYLE}>Schedule</th>
+                  <th style={HEADER_CELL_STYLE}>Status</th>
+                  <th style={{ ...HEADER_CELL_STYLE, textAlign: 'right' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -1049,16 +1084,16 @@ export const AdminTransactionsPage: FC = () => {
                     const ItemIcon = getTypeIcon(c.type)
                     return (
                       <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '12px 16px', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap' }}>
+                        <td style={{ ...BODY_CELL_STYLE, fontWeight: 700, fontSize: '0.75rem', color: '#0f172a' }}>
                           {c.id}
                         </td>
-                        <td style={{ padding: '12px 16px' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 180 }}>
+                        <td style={BODY_CELL_STYLE}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
                             <Box
                               sx={{
-                                width: 34,
-                                height: 34,
-                                borderRadius: '10px',
+                                width: 30,
+                                height: 30,
+                                borderRadius: '8px',
                                 backgroundColor: '#f1f4f0',
                                 color: '#2e6022',
                                 display: 'flex',
@@ -1067,44 +1102,45 @@ export const AdminTransactionsPage: FC = () => {
                                 flexShrink: 0,
                               }}
                             >
-                              <ItemIcon sx={{ fontSize: 18 }} />
+                              <ItemIcon sx={{ fontSize: 16 }} />
                             </Box>
                             <Box sx={{ minWidth: 0 }}>
-                              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a', lineHeight: 1.2 }}>
+                              <Typography sx={{ fontWeight: 700, fontSize: '0.78125rem', color: '#0f172a', lineHeight: 1.25 }}>
                                 {c.itemName}
                               </Typography>
-                              <Typography sx={{ fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
+                              <Typography sx={{ fontSize: '0.6875rem', color: '#64748b', fontWeight: 600, lineHeight: 1.25 }}>
                                 {c.listingId} · {c.condition}
                               </Typography>
                             </Box>
                           </Box>
                         </td>
-                        <td style={{ padding: '12px 16px', fontWeight: 600, color: '#1e293b', whiteSpace: 'nowrap' }}>
+                        <td style={{ ...BODY_CELL_STYLE, fontWeight: 600, fontSize: '0.78125rem', color: '#1e293b' }}>
                           {c.residentName}
                         </td>
-                        <td style={{ padding: '12px 16px', fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>
+                        <td style={{ ...BODY_CELL_STYLE, fontWeight: 600, fontSize: '0.75rem', color: '#334155' }}>
                           {c.barangay}
                         </td>
-                        <td style={{ padding: '12px 16px', color: '#475569', fontWeight: 500, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                        <td style={{ ...BODY_CELL_STYLE, color: '#475569', fontWeight: 500, fontSize: '0.725rem', lineHeight: 1.35 }}>
                           {c.siteName}
                         </td>
-                        <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
-                          <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>
+                        <td style={BODY_CELL_STYLE}>
+                          <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', color: '#0f172a', lineHeight: 1.25 }}>
                             {c.pickupDate}
                           </Typography>
-                          <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>
+                          <Typography sx={{ fontSize: '0.675rem', color: '#64748b', lineHeight: 1.25 }}>
                             {c.slot}
                           </Typography>
                         </td>
-                        <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                        <td style={BODY_CELL_STYLE}>
                           <Box
                             sx={{
                               display: 'inline-block',
-                              px: 1.25,
-                              py: 0.35,
+                              px: 1,
+                              py: 0.3,
                               borderRadius: '9999px',
                               fontSize: '0.6875rem',
                               fontWeight: 700,
+                              whiteSpace: 'nowrap',
                               backgroundColor:
                                 c.status === 'Picked Up'
                                   ? '#f1f4f0'
@@ -1129,18 +1165,18 @@ export const AdminTransactionsPage: FC = () => {
                             {c.status}
                           </Box>
                         </td>
-                        <td style={{ padding: '12px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                        <td style={{ ...BODY_CELL_STYLE, textAlign: 'right' }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap', gap: 0.5 }}>
                             <ButtonBase
                               onClick={() => handleOpenClaimModal(c)}
                               sx={{
-                                px: 1.5,
-                                py: 0.5,
+                                px: 1.1,
+                                py: 0.45,
                                 borderRadius: '0.5rem',
                                 border: '1px solid #dbe3d6',
                                 backgroundColor: '#ffffff',
                                 color: '#334155',
-                                fontSize: '0.75rem',
+                                fontSize: '0.6875rem',
                                 fontWeight: 700,
                                 '&:hover': { backgroundColor: '#f8faf6' },
                               }}
@@ -1152,18 +1188,18 @@ export const AdminTransactionsPage: FC = () => {
                               <ButtonBase
                                 onClick={() => handleOpenVerifyModal(c)}
                                 sx={{
-                                  px: 1.5,
-                                  py: 0.5,
+                                  px: 1.1,
+                                  py: 0.45,
                                   borderRadius: '0.5rem',
                                   background: 'linear-gradient(135deg, #2e6022 0%, #70b822 100%)',
                                   color: '#ffffff',
-                                  fontSize: '0.75rem',
+                                  fontSize: '0.6875rem',
                                   fontWeight: 700,
-                                  gap: 0.5,
+                                  gap: 0.4,
                                   '&:hover': { opacity: 0.95 },
                                 }}
                               >
-                                <QrCodeScannerRoundedIcon sx={{ fontSize: 14 }} />
+                                <QrCodeScannerRoundedIcon sx={{ fontSize: 13 }} />
                                 <span>Verify</span>
                               </ButtonBase>
                             )}
@@ -1174,20 +1210,38 @@ export const AdminTransactionsPage: FC = () => {
                   })
                 )}
               </tbody>
-            </table>
+            </Box>
           )}
 
           {tab === 'listings' && (
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <Box
+              component="table"
+              sx={{
+                width: '100%',
+                minWidth: { xs: 720, md: 0 },
+                tableLayout: { md: 'fixed' },
+                borderCollapse: 'collapse',
+                textAlign: 'left',
+              }}
+            >
+              <colgroup>
+                <col style={{ width: '8%' }} />
+                <col style={{ width: '25%' }} />
+                <col style={{ width: '16%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '18%' }} />
+                <col style={{ width: '11%' }} />
+                <col style={{ width: '10%' }} />
+              </colgroup>
               <thead>
                 <tr style={{ backgroundColor: '#f8faf6', borderBottom: '1px solid #e2e8f0' }}>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Listing</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Item</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Condition</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Barangay</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Pick-Up Site</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Listed Date</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Status</th>
+                  <th style={HEADER_CELL_STYLE}>Listing</th>
+                  <th style={HEADER_CELL_STYLE}>Item</th>
+                  <th style={HEADER_CELL_STYLE}>Condition</th>
+                  <th style={HEADER_CELL_STYLE}>Barangay</th>
+                  <th style={HEADER_CELL_STYLE}>Pick-Up Site</th>
+                  <th style={HEADER_CELL_STYLE}>Listed Date</th>
+                  <th style={HEADER_CELL_STYLE}>Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -1202,42 +1256,44 @@ export const AdminTransactionsPage: FC = () => {
                     const ItemIcon = getTypeIcon(l.type)
                     return (
                       <tr key={l.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '12px 16px', fontWeight: 700, color: '#0f172a' }}>{l.id}</td>
-                        <td style={{ padding: '12px 16px' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <td style={{ ...BODY_CELL_STYLE, fontWeight: 700, fontSize: '0.75rem', color: '#0f172a' }}>{l.id}</td>
+                        <td style={BODY_CELL_STYLE}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
                             <Box
                               sx={{
-                                width: 34,
-                                height: 34,
-                                borderRadius: '10px',
+                                width: 30,
+                                height: 30,
+                                borderRadius: '8px',
                                 backgroundColor: '#f1f4f0',
                                 color: '#2e6022',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
+                                flexShrink: 0,
                               }}
                             >
-                              <ItemIcon sx={{ fontSize: 18 }} />
+                              <ItemIcon sx={{ fontSize: 16 }} />
                             </Box>
-                            <Box>
-                              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>{l.itemName}</Typography>
+                            <Box sx={{ minWidth: 0 }}>
+                              <Typography sx={{ fontWeight: 700, fontSize: '0.78125rem', color: '#0f172a', lineHeight: 1.25 }}>{l.itemName}</Typography>
                               <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>{l.type}</Typography>
                             </Box>
                           </Box>
                         </td>
-                        <td style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>{l.condition}</td>
-                        <td style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>{l.barangay}</td>
-                        <td style={{ padding: '12px 16px', color: '#475569', fontSize: '0.75rem' }}>{l.siteName}</td>
-                        <td style={{ padding: '12px 16px', fontWeight: 500, color: '#334155' }}>{l.listedAt}</td>
-                        <td style={{ padding: '12px 16px' }}>
+                        <td style={{ ...BODY_CELL_STYLE, fontWeight: 600, fontSize: '0.75rem', color: '#334155' }}>{l.condition}</td>
+                        <td style={{ ...BODY_CELL_STYLE, fontWeight: 600, fontSize: '0.75rem', color: '#334155' }}>{l.barangay}</td>
+                        <td style={{ ...BODY_CELL_STYLE, color: '#475569', fontSize: '0.725rem', lineHeight: 1.35 }}>{l.siteName}</td>
+                        <td style={{ ...BODY_CELL_STYLE, fontWeight: 500, fontSize: '0.75rem', color: '#334155' }}>{l.listedAt}</td>
+                        <td style={BODY_CELL_STYLE}>
                           <Box
                             sx={{
                               display: 'inline-block',
-                              px: 1.25,
-                              py: 0.35,
+                              px: 1,
+                              py: 0.3,
                               borderRadius: '9999px',
                               fontSize: '0.6875rem',
                               fontWeight: 700,
+                              whiteSpace: 'nowrap',
                               backgroundColor:
                                 l.status === 'Available'
                                   ? '#f1f4f0'
@@ -1267,20 +1323,38 @@ export const AdminTransactionsPage: FC = () => {
                   })
                 )}
               </tbody>
-            </table>
+            </Box>
           )}
 
           {tab === 'disposals' && (
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <Box
+              component="table"
+              sx={{
+                width: '100%',
+                minWidth: { xs: 720, md: 0 },
+                tableLayout: { md: 'fixed' },
+                borderCollapse: 'collapse',
+                textAlign: 'left',
+              }}
+            >
+              <colgroup>
+                <col style={{ width: '10%' }} />
+                <col style={{ width: '21%' }} />
+                <col style={{ width: '11%' }} />
+                <col style={{ width: '24%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '10%' }} />
+              </colgroup>
               <thead>
                 <tr style={{ backgroundColor: '#f8faf6', borderBottom: '1px solid #e2e8f0' }}>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Record</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Item &amp; Request</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Hazard</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Reason</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Barangay</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Inspected By</th>
-                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Date</th>
+                  <th style={HEADER_CELL_STYLE}>Record</th>
+                  <th style={HEADER_CELL_STYLE}>Item &amp; Request</th>
+                  <th style={HEADER_CELL_STYLE}>Hazard</th>
+                  <th style={HEADER_CELL_STYLE}>Reason</th>
+                  <th style={HEADER_CELL_STYLE}>Barangay</th>
+                  <th style={HEADER_CELL_STYLE}>Inspected By</th>
+                  <th style={HEADER_CELL_STYLE}>Date</th>
                 </tr>
               </thead>
               <tbody>
@@ -1293,22 +1367,23 @@ export const AdminTransactionsPage: FC = () => {
                 ) : (
                   filteredDisposals.map((d) => (
                     <tr key={d.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '12px 16px', fontWeight: 700, color: '#0f172a' }}>{d.id}</td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>{d.itemName}</Typography>
+                      <td style={{ ...BODY_CELL_STYLE, fontWeight: 700, fontSize: '0.75rem', color: '#0f172a' }}>{d.id}</td>
+                      <td style={BODY_CELL_STYLE}>
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.78125rem', color: '#0f172a', lineHeight: 1.25 }}>{d.itemName}</Typography>
                         <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>
                           {d.type} · {d.requestId}
                         </Typography>
                       </td>
-                      <td style={{ padding: '12px 16px' }}>
+                      <td style={BODY_CELL_STYLE}>
                         <Box
                           sx={{
                             display: 'inline-block',
-                            px: 1.25,
-                            py: 0.35,
+                            px: 1,
+                            py: 0.3,
                             borderRadius: '9999px',
                             fontSize: '0.6875rem',
                             fontWeight: 700,
+                            whiteSpace: 'nowrap',
                             backgroundColor:
                               d.hazard === 'High'
                                 ? '#fff1f2'
@@ -1333,23 +1408,23 @@ export const AdminTransactionsPage: FC = () => {
                           {d.hazard} Risk
                         </Box>
                       </td>
-                      <td style={{ padding: '12px 16px', color: '#475569', fontSize: '0.75rem', fontWeight: 500 }}>
+                      <td style={{ ...BODY_CELL_STYLE, color: '#475569', fontSize: '0.725rem', fontWeight: 500, lineHeight: 1.35 }}>
                         {d.reason}
                       </td>
-                      <td style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>
+                      <td style={{ ...BODY_CELL_STYLE, fontWeight: 600, fontSize: '0.75rem', color: '#334155' }}>
                         {d.barangay}
                       </td>
-                      <td style={{ padding: '12px 16px', fontWeight: 600, color: '#1e293b' }}>
+                      <td style={{ ...BODY_CELL_STYLE, fontWeight: 600, fontSize: '0.75rem', color: '#1e293b' }}>
                         {d.by}
                       </td>
-                      <td style={{ padding: '12px 16px', color: '#64748b', fontSize: '0.75rem', fontWeight: 500 }}>
+                      <td style={{ ...BODY_CELL_STYLE, color: '#64748b', fontSize: '0.725rem', fontWeight: 500 }}>
                         {d.at}
                       </td>
                     </tr>
                   ))
                 )}
               </tbody>
-            </table>
+            </Box>
           )}
         </Box>
       </Box>

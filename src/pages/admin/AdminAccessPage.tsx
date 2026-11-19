@@ -26,7 +26,9 @@ import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded'
 import EmailRoundedIcon from '@mui/icons-material/EmailRounded'
 import { adminApi } from '@/lib/api'
 import {
+  COMMONWEALTH_BASES,
   generateBadgeId,
+  getCommonwealthBaseName,
   mapBackendUserToOfficial,
   mergeBackendUsersWithInitial,
 } from '@/components/admin/adminAccessData'
@@ -35,24 +37,6 @@ import {
   AdminAccessDirectoryPanel,
   type AccessRoleFilter,
 } from '@/components/admin/AdminAccessDirectoryPanel'
-
-const OFFICIAL_SITES = [
-  { id: 'S01', name: 'Commonwealth Central MRF (Base 1)', barangay: 'Commonwealth' },
-  { id: 'S02', name: 'Ecoville Covered Court', barangay: 'Commonwealth' },
-  { id: 'S03', name: 'Litex Market Drop Point', barangay: 'Commonwealth' },
-  { id: 'S04', name: 'Batasan Hills MRF Annex', barangay: 'Batasan Hills' },
-  { id: 'S05', name: 'Payatas Solid Waste Hub', barangay: 'Payatas' },
-  { id: 'S06', name: 'Holy Spirit Drop Point', barangay: 'Holy Spirit' },
-  { id: 'S07', name: 'Bagong Silangan MRF Desk', barangay: 'Bagong Silangan' },
-]
-
-const BARANGAYS = [
-  'Commonwealth',
-  'Batasan Hills',
-  'Payatas',
-  'Holy Spirit',
-  'Bagong Silangan',
-]
 
 const SUFFIX_OPTIONS = ['None', 'Jr.', 'Sr.', 'II', 'III', 'IV', 'V']
 
@@ -88,9 +72,10 @@ export const AdminAccessPage: FC = () => {
   const [cuPhone, setCuPhone] = useState('+63 9')
   const [cuBadgeId, setCuBadgeId] = useState(() => generateBadgeId('Official'))
   const [cuRole, setCuRole] = useState<'Official' | 'Admin'>('Official')
-  const [cuBarangay, setCuBarangay] = useState('Commonwealth')
-  const [cuSiteId, setCuSiteId] = useState(OFFICIAL_SITES[0].id)
-  const [cuDepartment, setCuDepartment] = useState('Intake & Drop-Off Station')
+  const [cuBaseId, setCuBaseId] = useState<number>(1)
+  const [cuDepartment, setCuDepartment] = useState(
+    `${COMMONWEALTH_BASES[0].name} • Intake & Drop-Off Station`
+  )
   const [cuPassword, setCuPassword] = useState('official123')
   const [cuMustChangePassword, setCuMustChangePassword] = useState(true)
   const [cuTwoFactorEnabled, setCuTwoFactorEnabled] = useState(false)
@@ -101,7 +86,7 @@ export const AdminAccessPage: FC = () => {
   const [changeRoleModalOpen, setChangeRoleModalOpen] = useState(false)
   const [targetUser, setTargetUser] = useState<OfficialUser | null>(null)
   const [crRole, setCrRole] = useState<'Resident' | 'Official' | 'Admin'>('Official')
-  const [crBarangay, setCrBarangay] = useState(BARANGAYS[0])
+  const [crBaseId, setCrBaseId] = useState<number>(1)
 
   const [feedbackBanner, setFeedbackBanner] = useState<{
     type: 'success' | 'error'
@@ -142,9 +127,8 @@ export const AdminAccessPage: FC = () => {
     setCuPhone('+63 9')
     setCuBadgeId(generateBadgeId('Official'))
     setCuRole('Official')
-    setCuBarangay('Commonwealth')
-    setCuSiteId(OFFICIAL_SITES[0].id)
-    setCuDepartment('Intake & Drop-Off Station')
+    setCuBaseId(1)
+    setCuDepartment(`${COMMONWEALTH_BASES[0].name} • Intake & Drop-Off Station`)
     setCuPassword('official123')
     setCuMustChangePassword(true)
     setCuTwoFactorEnabled(false)
@@ -158,21 +142,19 @@ export const AdminAccessPage: FC = () => {
     setCuBadgeId(generateBadgeId(newRole))
     if (newRole === 'Admin') {
       setCuTwoFactorEnabled(true)
-      setCuBarangay('All')
-      setCuDepartment('Central Administration Office')
+      setCuDepartment('Central Administration Office (All 9 Bases)')
     } else {
       setCuTwoFactorEnabled(false)
-      setCuBarangay('Commonwealth')
-      setCuSiteId(OFFICIAL_SITES[0].id)
-      setCuDepartment('Intake & Drop-Off Station')
+      const selectedBase = COMMONWEALTH_BASES.find((b) => b.id === cuBaseId) || COMMONWEALTH_BASES[0]
+      setCuDepartment(`${selectedBase.name} • Intake & Drop-Off Station`)
     }
   }
 
-  const handleBarangayChange = (newBarangay: string) => {
-    setCuBarangay(newBarangay)
-    const matchingSites = OFFICIAL_SITES.filter((s) => s.barangay === newBarangay)
-    if (matchingSites.length > 0) {
-      setCuSiteId(matchingSites[0].id)
+  const handleBaseChange = (nextBaseId: number) => {
+    setCuBaseId(nextBaseId)
+    if (cuRole !== 'Admin') {
+      const selectedBase = COMMONWEALTH_BASES.find((b) => b.id === nextBaseId) || COMMONWEALTH_BASES[0]
+      setCuDepartment(`${selectedBase.name} • Intake & Drop-Off Station`)
     }
   }
 
@@ -215,10 +197,12 @@ export const AdminAccessPage: FC = () => {
 
     const nameParts = [fn, mn, ln, sfx].filter(Boolean)
     const fullName = nameParts.join(' ')
-    const selectedSite = OFFICIAL_SITES.find((s) => s.id === cuSiteId) || OFFICIAL_SITES[0]
-    const assignedBrgy = cuRole === 'Admin' ? 'All' : cuBarangay
+    const selectedBase = COMMONWEALTH_BASES.find((b) => b.id === cuBaseId) || COMMONWEALTH_BASES[0]
+    const assignedBaseId = cuRole === 'Admin' ? 1 : selectedBase.id
+    const assignedBrgy = cuRole === 'Admin' ? 'All 9 Bases' : selectedBase.name
     const assignedDept =
-      cuDepartment.trim() || (cuRole === 'Admin' ? 'Central Administration Office' : `${selectedSite.name} Desk`)
+      cuDepartment.trim() ||
+      (cuRole === 'Admin' ? 'Central Administration Office' : `${selectedBase.name} (${selectedBase.facility})`)
     const initials = `${fn[0] || ''}${ln[0] || ''}`.toUpperCase() || 'EB'
 
     try {
@@ -233,6 +217,8 @@ export const AdminAccessPage: FC = () => {
         idCode: badgeTrimmed,
         role: cuRole === 'Admin' ? 'ADMIN' : 'OFFICIAL',
         department: assignedDept,
+        unitAreaId: assignedBaseId,
+        barangayId: String(assignedBaseId),
         password: cuPassword || 'official123',
         mustChangePassword: cuMustChangePassword,
         twoFactorEnabled: cuTwoFactorEnabled,
@@ -244,7 +230,7 @@ export const AdminAccessPage: FC = () => {
       setUsers((prev) => [mapped, ...prev])
       setFeedbackBanner({
         type: 'success',
-        message: `Account registered successfully for ${mapped.name} (${mapped.idCode}) with temporary password "${cuPassword || 'official123'}".`,
+        message: `Account registered successfully for ${mapped.name} (${mapped.idCode}) • Assigned: ${assignedBrgy} (temp password: "${cuPassword || 'official123'}").`,
       })
       setCreateModalOpen(false)
     } catch {
@@ -261,19 +247,20 @@ export const AdminAccessPage: FC = () => {
         idCode: badgeTrimmed,
         role: cuRole,
         department: assignedDept,
+        unitAreaId: cuRole === 'Admin' ? undefined : assignedBaseId,
         barangay: assignedBrgy,
         status: 'Active',
         twoFactorEnabled: cuTwoFactorEnabled,
         mustChangePassword: cuMustChangePassword,
         lastActive: 'Just now',
         initials,
-        notes: cuNotes.trim() || `Registered via Admin Access directory · Assigned to ${assignedDept}`,
+        notes: cuNotes.trim() || `Registered via Admin Access directory · Assigned to ${assignedBrgy}`,
       }
 
       setUsers((prev) => [newLocalUser, ...prev])
       setFeedbackBanner({
         type: 'success',
-        message: `Account registered successfully for ${newLocalUser.name} (${newLocalUser.idCode}) with temporary password "${cuPassword || 'official123'}".`,
+        message: `Account registered successfully for ${newLocalUser.name} (${newLocalUser.idCode}) • Assigned: ${assignedBrgy} (temp password: "${cuPassword || 'official123'}").`,
       })
       setCreateModalOpen(false)
     } finally {
@@ -287,7 +274,7 @@ export const AdminAccessPage: FC = () => {
     const currentR: 'Resident' | 'Official' | 'Admin' =
       user.role === 'Admin' ? 'Admin' : user.role === 'Resident' ? 'Resident' : 'Official'
     setCrRole(currentR)
-    setCrBarangay(user.barangay && user.barangay !== 'All' ? user.barangay : BARANGAYS[0])
+    setCrBaseId(user.unitAreaId || 1)
     setChangeRoleModalOpen(true)
   }
 
@@ -295,12 +282,15 @@ export const AdminAccessPage: FC = () => {
     if (!targetUser) return
     setIsSaving(true)
 
-    const assignedBrgy = crRole === 'Admin' ? 'All' : crBarangay
+    const assignedBaseId = crRole === 'Admin' ? 1 : crBaseId
+    const assignedBrgy = crRole === 'Admin' ? 'All 9 Bases' : getCommonwealthBaseName(assignedBaseId)
 
     try {
       if (targetUser.isBackendUser) {
         await adminApi.updateUser(targetUser.id, {
           role: crRole === 'Admin' ? 'ADMIN' : crRole === 'Official' ? 'OFFICIAL' : ('RESIDENT' as any),
+          unitAreaId: assignedBaseId,
+          barangayId: String(assignedBaseId),
         })
       }
 
@@ -310,9 +300,10 @@ export const AdminAccessPage: FC = () => {
             ? {
                 ...u,
                 role: crRole,
+                unitAreaId: crRole === 'Admin' ? undefined : assignedBaseId,
                 barangay: assignedBrgy,
                 status: 'Active',
-                lastActive: 'Role updated just now',
+                lastActive: 'Role & Base updated just now',
               }
             : u
         )
@@ -385,7 +376,11 @@ export const AdminAccessPage: FC = () => {
     if (filterRole === 'official' && u.role !== 'Official') return false
     if (filterRole === 'resident' && u.role !== 'Resident') return false
     if (filterRole === 'deactivated' && u.role !== 'Deactivated') return false
-    if (filterBarangay && u.barangay?.toLowerCase() !== filterBarangay.toLowerCase()) return false
+    if (filterBarangay) {
+      const matchesBaseId = u.unitAreaId != null && String(u.unitAreaId) === filterBarangay
+      const matchesBaseLabel = (u.barangay || '').toLowerCase().includes(`base ${filterBarangay}`)
+      if (!matchesBaseId && !matchesBaseLabel) return false
+    }
     if (filterStatus) {
       const isDeactivated = u.role === 'Deactivated' || u.status === 'Deactivated'
       if (filterStatus === 'Active' && isDeactivated) return false
@@ -1030,15 +1025,15 @@ export const AdminAccessPage: FC = () => {
               </Box>
 
               {/* Assignment Selectors */}
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1.5fr 1.5fr' }, gap: 1.75 }}>
-                {/* Barangay */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1.2fr 1.5fr 1.5fr' }, gap: 1.75 }}>
+                {/* Assigned Commonwealth Base (1..9) */}
                 <Box>
                   <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
-                    Assigned Barangay
+                    Assigned Commonwealth Base
                   </Typography>
                   <select
-                    value={cuRole === 'Admin' ? 'All' : cuBarangay}
-                    onChange={(e) => handleBarangayChange(e.target.value)}
+                    value={cuRole === 'Admin' ? 'ALL' : String(cuBaseId)}
+                    onChange={(e) => handleBaseChange(Number(e.target.value))}
                     disabled={cuRole === 'Admin'}
                     style={{
                       width: '100%',
@@ -1055,50 +1050,44 @@ export const AdminAccessPage: FC = () => {
                     }}
                   >
                     {cuRole === 'Admin' ? (
-                      <option value="All">All Sites & Barangays</option>
+                      <option value="ALL">All 9 Bases (Super Admin)</option>
                     ) : (
-                      BARANGAYS.map((b) => (
-                        <option key={b} value={b}>
-                          {b}
+                      COMMONWEALTH_BASES.map((base) => (
+                        <option key={base.id} value={String(base.id)}>
+                          {base.name}
                         </option>
                       ))
                     )}
                   </select>
                 </Box>
 
-                {/* Assigned Drop-Off Facility */}
+                {/* Assigned Drop-Off Facility (Auto-linked to Base) */}
                 <Box>
                   <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
-                    Drop-Off Facility / Base
+                    Drop-Off Facility / Station
                   </Typography>
-                  <select
-                    value={cuRole === 'Admin' ? 'CENTRAL' : cuSiteId}
-                    onChange={(e) => setCuSiteId(e.target.value)}
-                    disabled={cuRole === 'Admin'}
+                  <input
+                    type="text"
+                    readOnly
+                    value={
+                      cuRole === 'Admin'
+                        ? 'Central Governance Depot (All Bases)'
+                        : (COMMONWEALTH_BASES.find((b) => b.id === cuBaseId) || COMMONWEALTH_BASES[0]).facility
+                    }
                     style={{
                       width: '100%',
                       height: 42,
                       padding: '0 12px',
                       borderRadius: '0.75rem',
                       border: '1px solid #dbe3d6',
-                      backgroundColor: cuRole === 'Admin' ? '#f8fafc' : '#ffffff',
-                      fontSize: '0.875rem',
+                      backgroundColor: '#f8fafc',
+                      fontSize: '0.8125rem',
                       fontWeight: 600,
-                      color: cuRole === 'Admin' ? '#94a3b8' : '#0f172a',
+                      color: '#475569',
                       outline: 'none',
                       fontFamily: "'Quicksand', sans-serif",
                     }}
-                  >
-                    {cuRole === 'Admin' ? (
-                      <option value="CENTRAL">Central Governance Depot</option>
-                    ) : (
-                      OFFICIAL_SITES.filter((s) => s.barangay.toLowerCase() === cuBarangay.toLowerCase()).map((st) => (
-                        <option key={st.id} value={st.id}>
-                          {st.name}
-                        </option>
-                      ))
-                    )}
-                  </select>
+                  />
                 </Box>
 
                 {/* Desk / Division Assignment */}
@@ -1394,14 +1383,14 @@ export const AdminAccessPage: FC = () => {
                 </select>
               </Box>
 
-              {/* Barangay Selector */}
+              {/* Assigned Base Selector */}
               <Box>
                 <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
-                  Barangay
+                  Assigned Commonwealth Base
                 </Typography>
                 <select
-                  value={crBarangay}
-                  onChange={(e) => setCrBarangay(e.target.value)}
+                  value={crRole === 'Admin' ? 'ALL' : String(crBaseId)}
+                  onChange={(e) => setCrBaseId(Number(e.target.value))}
                   disabled={crRole === 'Admin'}
                   style={{
                     width: '100%',
@@ -1417,11 +1406,15 @@ export const AdminAccessPage: FC = () => {
                     fontFamily: "'Quicksand', sans-serif",
                   }}
                 >
-                  {BARANGAYS.map((b) => (
-                    <option key={b} value={b}>
-                      {b}
-                    </option>
-                  ))}
+                  {crRole === 'Admin' ? (
+                    <option value="ALL">All 9 Bases (Super Admin)</option>
+                  ) : (
+                    COMMONWEALTH_BASES.map((base) => (
+                      <option key={base.id} value={String(base.id)}>
+                        {base.name}
+                      </option>
+                    ))
+                  )}
                 </select>
               </Box>
             </Box>

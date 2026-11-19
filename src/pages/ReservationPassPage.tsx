@@ -1,4 +1,4 @@
-import { useEffect, useState, type FC } from 'react'
+import { useEffect, useRef, useState, type FC } from 'react'
 import {
   Box,
   Button,
@@ -32,16 +32,24 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import keychronImg from '@/assets/ui/keychron.jpeg'
 import { authApi, dropoffsApi, getCachedUser } from '@/lib/api'
 import {
+  formatExpiryCountdown,
+  formatExpiryDateTime,
+  parseExpiryDate,
+} from '@/lib/reservationExpiry'
+import { playNotificationSound } from '@/lib/notificationSound'
+import {
   buildPickupVoucherPdfBlob,
   buildVerificationMatrix,
 } from '@/lib/pdf/voucherPdf'
 import type { User, UserReservationItem } from '@/types'
 
-function formatVoucherSchedule(expiresIso: string | null | undefined, fallbackMs: number) {
-  const expiryDate = expiresIso ? new Date(expiresIso) : new Date(fallbackMs + 48 * 60 * 60 * 1000)
-  const validExpiry = Number.isNaN(expiryDate.getTime())
-    ? new Date(fallbackMs + 48 * 60 * 60 * 1000)
-    : expiryDate
+function formatVoucherSchedule(
+  expiresIso: string | null | undefined,
+  fallbackBaseMs: number,
+  nowMs: number,
+  forcedExpired = false
+) {
+  const validExpiry = parseExpiryDate(expiresIso, fallbackBaseMs)
 
   const pickupDateLabel = new Intl.DateTimeFormat('en-US', {
     weekday: 'short',
@@ -50,24 +58,10 @@ function formatVoucherSchedule(expiresIso: string | null | undefined, fallbackMs
     year: 'numeric',
   }).format(validExpiry)
 
-  const heldUntilLabel = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(validExpiry)
-
-  const isExpired = validExpiry.getTime() <= fallbackMs
-  const hoursRemaining = Math.max(
-    0,
-    Math.ceil((validExpiry.getTime() - fallbackMs) / (1000 * 60 * 60))
-  )
-  const remainingLabel = isExpired
-    ? 'Expired'
-    : hoursRemaining >= 24
-      ? `${Math.ceil(hoursRemaining / 24)} days remaining`
-      : `${hoursRemaining}h remaining`
+  const heldUntilLabel = formatExpiryDateTime(validExpiry)
+  const countdown = formatExpiryCountdown(validExpiry, nowMs)
+  const isExpired = forcedExpired || countdown.isExpired
+  const remainingLabel = isExpired ? 'Expired' : countdown.label
 
   return { pickupDateLabel, heldUntilLabel, remainingLabel, isExpired }
 }
@@ -81,6 +75,7 @@ export const ReservationPassPage: FC = () => {
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
   const [toastMsg, setToastMsg] = useState<string | null>(null)
   const [mountedAtMs] = useState(() => Date.now())
+  const [nowMs, setNowMs] = useState(() => Date.now())
   const [currentUser, setCurrentUser] = useState<User | null>(() => getCachedUser())
   const [reservation, setReservation] = useState<UserReservationItem | null>(() => {
     if (typeof window !== 'undefined') {
@@ -137,11 +132,34 @@ export const ReservationPassPage: FC = () => {
   const claimantName = currentUser?.fullName?.trim() || 'Resident Claimant'
   const collectionPlace = reservation?.siteName || 'Commonwealth Area 1 Eco-Hub'
   const desk = 'E-Waste Hub Desk 2'
-  const statusLabel = reservation?.status ? `${reservation.status} (Active)` : 'Reserved (Active)'
   const { pickupDateLabel, heldUntilLabel, remainingLabel, isExpired } = formatVoucherSchedule(
     reservation?.expiresAt,
-    mountedAtMs
+    mountedAtMs,
+    nowMs,
+    reservation?.status === 'Expired'
   )
+  const statusLabel = isExpired
+    ? 'Expired (Returned to Reuse Hub)'
+    : reservation?.status
+      ? `${reservation.status} (Active)`
+      : 'Reserved (Active)'
+
+  const playedExpirySoundRef = useRef(false)
+  useEffect(() => {
+    if (isExpired) {
+      if (!playedExpirySoundRef.current) {
+        playedExpirySoundRef.current = true
+        playNotificationSound('expired')
+      }
+      return
+    }
+    const timer = window.setInterval(() => {
+      setNowMs(Date.now())
+    }, 1000)
+    return () => {
+      window.clearInterval(timer)
+    }
+  }, [isExpired])
   const qrMatrix = buildVerificationMatrix(`${pickupCode}|${itemTitle}`)
 
   const handleCopyCode = async () => {
@@ -336,7 +354,11 @@ export const ReservationPassPage: FC = () => {
               <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>
                 {itemTitle}
               </Typography>
-              <StatusBadge label="Reserved" variant="electric" size="sm" />
+              <StatusBadge
+                label={isExpired ? 'Expired' : 'Reserved'}
+                variant={isExpired ? 'error' : 'electric'}
+                size="sm"
+              />
             </Box>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.2 }}>
               Claimant: {claimantName}
@@ -536,7 +558,11 @@ export const ReservationPassPage: FC = () => {
                 {heldUntilLabel}
               </Typography>
               <Box sx={{ mt: 0.25 }}>
-                <StatusBadge label={remainingLabel} variant="electric" size="sm" />
+                <StatusBadge
+                  label={remainingLabel}
+                  variant={isExpired ? 'error' : 'electric'}
+                  size="sm"
+                />
               </Box>
             </Box>
           </Box>
