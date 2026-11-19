@@ -15,6 +15,7 @@ export interface OfficialUser {
   idCode: string
   role: UserRole
   department: string
+  unitAreaId?: number
   barangay?: string
   status: UserStatus
   twoFactorEnabled: boolean
@@ -26,18 +27,28 @@ export interface OfficialUser {
   isBackendUser?: boolean
 }
 
+export const COMMONWEALTH_BASES = [
+  { id: 1, name: 'Base 1 - Brgy. Hall Complex', facility: 'Area 1 Eco-Hub (Brgy Hall Complex)' },
+  { id: 2, name: 'Base 2 - Martan St.', facility: 'Area 2 Lupang Pangako E-Collection Base' },
+  { id: 3, name: 'Base 3 - Don Fabian', facility: 'Area 3 Payatas Border Green Station' },
+  { id: 4, name: 'Base 4 - Katuparan', facility: 'Area 4 Litex Market Green Exchange' },
+  { id: 5, name: 'Base 5 - Riverside', facility: 'Area 5 Commonwealth Market / MRT-7 Base' },
+  { id: 6, name: 'Base 6 - Kristong Hari', facility: 'Area 6 Kristong Hari Eco-Drop' },
+  { id: 7, name: 'Base 7 - Upper Kamias', facility: 'Area 7 Upper Kamias Kiosk' },
+  { id: 8, name: 'Base 8 - Pilot Area', facility: 'Area 8 Pilot Area Station' },
+  { id: 9, name: 'Base 9 - Lupang Pangako', facility: 'Area 9 Lupang Pangako Depot' },
+] as const
+
+export function getCommonwealthBaseName(baseId?: number | string | null): string {
+  const num = Number(baseId)
+  const found = COMMONWEALTH_BASES.find((b) => b.id === num)
+  return found ? found.name : COMMONWEALTH_BASES[0].name
+}
+
 export const COMMONWEALTH_FACILITIES = [
   'Commonwealth Central MRF (Main Base)',
   'Barangay Commonwealth Environmental Desk',
-  'Base 1 (MRF / Main Hall Operations)',
-  'Base 2 (Unit 1 E-Waste Station)',
-  'Base 3 (Unit 2 E-Waste Station)',
-  'Base 4 (Unit 3 E-Waste Station)',
-  'Base 5 (Unit 4 E-Waste Station)',
-  'Base 6 (Unit 5 E-Waste Station)',
-  'Base 7 (Unit 6 E-Waste Station)',
-  'Base 8 (Unit 7 E-Waste Station)',
-  'Base 9 (Unit 8 E-Waste Station)',
+  ...COMMONWEALTH_BASES.map((b) => `${b.name} (${b.facility})`),
   'Inspection & Physical Diagnostics Lab',
   'Reuse & Refurbishment Hub Desk',
   'Hazardous E-Waste Vault & Disposal',
@@ -147,6 +158,12 @@ export function mapBackendUserToOfficial(record: BackendUserRecord): OfficialUse
         ? `ID-${suffixCode}-OFC`
         : 'ID-RESIDENT')
 
+  const parsedAreaId = Number(record.unitAreaId ?? record.barangay?.id ?? 1) || 1
+  const resolvedBaseLabel =
+    mappedRole === 'Admin'
+      ? 'All 9 Bases'
+      : record.barangay?.name || getCommonwealthBaseName(parsedAreaId)
+
   return {
     id: record.id,
     name: displayName,
@@ -158,6 +175,8 @@ export function mapBackendUserToOfficial(record: BackendUserRecord): OfficialUse
     phone: record.phone || '+63 917 000 0000',
     idCode,
     role: mappedRole,
+    unitAreaId: mappedRole === 'Admin' ? undefined : parsedAreaId,
+    barangay: resolvedBaseLabel,
     department:
       record.department ||
       (record.barangay?.name

@@ -661,7 +661,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
           </Box>
         </Box>
 
-        {/* Right: Date badge, Role badge, Profile, Logout */}
+        {/* Right: Date badge & Role badge (Logout sits in the sidebar footer) */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
           {/* Current Date Badge (hidden on mobile) */}
           <Box
@@ -702,35 +702,6 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
           >
             {staffRoleLabel}
           </Box>
-
-          {/* Logout header button matching prototype */}
-          <ButtonBase
-            onClick={() => setLogoutOpen(true)}
-            sx={{
-              height: 36,
-              px: 1.75,
-              borderRadius: '0.75rem',
-              backgroundColor: '#ffffff',
-              border: '1px solid #dbe3d6',
-              color: '#475569',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 0.75,
-              transition: 'all 0.15s ease',
-              '&:hover': {
-                backgroundColor: '#fff1f2',
-                color: '#be123c',
-                borderColor: '#fecdd3',
-              },
-            }}
-          >
-            <LogoutRoundedIcon sx={{ fontSize: 16 }} />
-            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-              Logout
-            </Box>
-          </ButtonBase>
         </Box>
       </Box>
 

@@ -2,7 +2,7 @@ import type { FC } from 'react'
 import { Box, ButtonBase, Typography } from '@mui/material'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded'
-import type { OfficialUser } from '@/components/admin/adminAccessData'
+import { COMMONWEALTH_BASES, type OfficialUser } from '@/components/admin/adminAccessData'
 
 export type AccessRoleFilter = 'all' | 'admin' | 'official' | 'resident' | 'deactivated'
 
@@ -23,13 +23,9 @@ interface AdminAccessDirectoryPanelProps {
   onAddUser?: () => void
 }
 
-const BARANGAYS = [
-  { id: '', name: 'All barangays' },
-  { id: 'commonwealth', name: 'Commonwealth' },
-  { id: 'batasan', name: 'Batasan Hills' },
-  { id: 'payatas', name: 'Payatas' },
-  { id: 'holyspirit', name: 'Holy Spirit' },
-  { id: 'bagongsilangan', name: 'Bagong Silangan' },
+const BASE_FILTER_OPTIONS = [
+  { id: '', name: 'All 9 bases' },
+  ...COMMONWEALTH_BASES.map((b) => ({ id: String(b.id), name: b.name })),
 ]
 
 export const AdminAccessDirectoryPanel: FC<AdminAccessDirectoryPanelProps> = ({
@@ -156,7 +152,7 @@ export const AdminAccessDirectoryPanel: FC<AdminAccessDirectoryPanelProps> = ({
               fontFamily: "'Quicksand', sans-serif",
             }}
           >
-            {BARANGAYS.map((b) => (
+            {BASE_FILTER_OPTIONS.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.name}
               </option>
@@ -243,7 +239,7 @@ export const AdminAccessDirectoryPanel: FC<AdminAccessDirectoryPanelProps> = ({
             >
               <th style={{ padding: '12px 16px' }}>User</th>
               <th style={{ padding: '12px 16px' }}>Role</th>
-              <th style={{ padding: '12px 16px' }}>Barangay</th>
+              <th style={{ padding: '12px 16px' }}>Assigned Base</th>
               <th style={{ padding: '12px 16px' }}>Status</th>
               <th style={{ padding: '12px 16px' }}>Last Login</th>
               <th style={{ padding: '12px 16px', textAlign: 'right' }}>Action</th>
@@ -378,9 +374,13 @@ export const AdminAccessDirectoryPanel: FC<AdminAccessDirectoryPanelProps> = ({
                       </Box>
                     </td>
 
-                    {/* Barangay */}
+                    {/* Assigned Base */}
                     <td style={{ padding: '12px 16px', fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>
-                      {user.barangay ? user.barangay : isSuperAdmin ? <span style={{ color: '#94a3b8' }}>All</span> : 'Commonwealth'}
+                      {isSuperAdmin ? (
+                        <span style={{ color: '#6d28d9' }}>All 9 Bases</span>
+                      ) : (
+                        user.barangay || 'Base 1 - Brgy. Hall Complex'
+                      )}
                     </td>
 
                     {/* Status */}

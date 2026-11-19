@@ -1,4 +1,4 @@
-import { useEffect, useState, type FC, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type FC, type ReactNode } from 'react'
 import {
   Avatar,
   Badge,
@@ -35,6 +35,8 @@ import StarRoundedIcon from '@mui/icons-material/StarRounded'
 import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined'
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined'
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
+import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded'
+import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
   authApi,
@@ -44,6 +46,13 @@ import {
   setCachedUser,
   type DashboardSummary,
 } from '@/lib/api'
+import {
+  installAudioUnlockListener,
+  isNotificationSoundMuted,
+  playNotificationSound,
+  setNotificationSoundMuted,
+  type NotificationSoundVariant,
+} from '@/lib/notificationSound'
 import type { User } from '@/types'
 
 interface AppShellProps {
@@ -70,6 +79,59 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   },
 ]
 
+const ALERTED_NOTIF_STORAGE_KEY = 'ecobyte_alerted_notif_ids'
+
+function getAlertedNotifIds(): Set<string> {
+  if (typeof window === 'undefined') return new Set()
+  try {
+    const raw = sessionStorage.getItem(ALERTED_NOTIF_STORAGE_KEY)
+    const parsed = raw ? JSON.parse(raw) : []
+    return new Set(Array.isArray(parsed) ? parsed.map(String) : [])
+  } catch {
+    return new Set()
+  }
+}
+
+function markNotifIdsAlerted(ids: string[]): void {
+  if (typeof window === 'undefined' || ids.length === 0) return
+  try {
+    const existing = getAlertedNotifIds()
+    for (const id of ids) existing.add(id)
+    sessionStorage.setItem(ALERTED_NOTIF_STORAGE_KEY, JSON.stringify([...existing].slice(-100)))
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+function mapNotificationTitle(type: string): string {
+  switch (type) {
+    case 'INSPECTION_RESULT':
+      return 'Inspection Outcome Update'
+    case 'DROPOFF_RECEIVED':
+      return 'Drop-off Received'
+    case 'DROPOFF_MISSED':
+      return 'Drop-off Slot Update'
+    case 'PICKUP_CONFIRMED':
+      return 'Claim Verified'
+    case 'RESERVATION_EXPIRING_SOON':
+      return 'Reservation Reminder (< 24h Left)'
+    case 'RESERVATION_EXPIRING_URGENT':
+      return 'Urgent: Reservation Expiring Soon'
+    case 'RESERVATION_EXPIRED':
+      return 'Reservation Expired'
+    default:
+      return 'EcoByte Notification'
+  }
+}
+
+function getSoundVariantForType(type: string): NotificationSoundVariant {
+  if (type === 'RESERVATION_EXPIRED') return 'expired'
+  if (type === 'RESERVATION_EXPIRING_URGENT' || type === 'RESERVATION_EXPIRING_SOON') {
+    return 'warning'
+  }
+  return 'default'
+}
+
 export const AppShell: FC<AppShellProps> = ({ children }) => {
   const navigate = useNavigate()
   const location = useLocation()
@@ -79,6 +141,11 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [logoutOpen, setLogoutOpen] = useState(false)
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS)
+  const [soundMuted, setSoundMuted] = useState<boolean>(() => isNotificationSoundMuted())
+  const [liveAlertBanner, setLiveAlertBanner] = useState<{ title: string; desc: string } | null>(
+    null
+  )
+  const alertedIdsRef = useRef<Set<string>>(getAlertedNotifIds())
   const [currentUser, setCurrentUser] = useState<User | null>(() => getCachedUser())
   const [editProfileOpen, setEditProfileOpen] = useState(false)
   const [editPhone, setEditPhone] = useState(() => getCachedUser()?.phone || '')
@@ -95,6 +162,10 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
   })
 
   useEffect(() => {
+    installAudioUnlockListener()
+  }, [])
+
+  useEffect(() => {
     let active = true
     authApi
       .getProfile()
@@ -107,72 +178,111 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
         // Keep cached user when offline or unauthenticated
       })
 
-    Promise.all([
-      dropoffsApi.getDashboardSummary(),
-      dropoffsApi.getNotifications().catch(() => []),
-    ])
-      .then(([data, apiNotifications]) => {
-        if (!active || !data) return
-        setSummary(data)
-        const dynamicNotifications: NotificationItem[] = []
-        if (Array.isArray(apiNotifications)) {
-          for (const n of apiNotifications) {
-            const title =
-              n.type === 'INSPECTION_RESULT'
-                ? 'Inspection Outcome Update'
-                : n.type === 'DROPOFF_MISSED'
-                  ? 'Drop-off Slot Update'
-                  : n.type === 'PICKUP_CONFIRMED'
-                    ? 'Claim Verified'
-                    : 'EcoByte Notification'
-            const createdDate = new Date(n.createdAt)
-            const timeLabel = Number.isNaN(createdDate.getTime())
-              ? 'Recent'
-              : createdDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-            dynamicNotifications.push({
-              id: `db-${n.id}`,
-              title,
-              desc: n.message,
-              time: timeLabel,
-              read: n.isRead,
-              type:
-                n.type === 'PICKUP_CONFIRMED'
-                  ? 'points'
-                  : n.type === 'INSPECTION_RESULT' || n.type === 'DROPOFF_MISSED'
-                    ? 'alert'
-                    : 'community',
+    const refreshSummaryAndNotifications = () => {
+      Promise.all([
+        dropoffsApi.getDashboardSummary(),
+        dropoffsApi.getNotifications().catch(() => []),
+      ])
+        .then(([data, apiNotifications]) => {
+          if (!active || !data) return
+          setSummary(data)
+          const dynamicNotifications: NotificationItem[] = []
+          const newlyArrivedUnread: Array<{ id: string; title: string; desc: string; rawType: string }> = []
+
+          if (Array.isArray(apiNotifications)) {
+            for (const n of apiNotifications) {
+              const title = mapNotificationTitle(n.type)
+              const createdDate = new Date(n.createdAt)
+              const timeLabel = Number.isNaN(createdDate.getTime())
+                ? 'Recent'
+                : createdDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+              const itemId = `db-${n.id}`
+              if (!n.isRead && !alertedIdsRef.current.has(itemId)) {
+                newlyArrivedUnread.push({
+                  id: itemId,
+                  title,
+                  desc: n.message,
+                  rawType: n.type,
+                })
+              }
+              dynamicNotifications.push({
+                id: itemId,
+                title,
+                desc: n.message,
+                time: timeLabel,
+                read: n.isRead,
+                type:
+                  n.type === 'PICKUP_CONFIRMED'
+                    ? 'points'
+                    : n.type === 'INSPECTION_RESULT' ||
+                        n.type === 'DROPOFF_RECEIVED' ||
+                        n.type === 'DROPOFF_MISSED' ||
+                        n.type === 'RESERVATION_EXPIRING_SOON' ||
+                        n.type === 'RESERVATION_EXPIRING_URGENT' ||
+                        n.type === 'RESERVATION_EXPIRED'
+                      ? 'alert'
+                      : 'community',
+              })
+            }
+          }
+
+          if (newlyArrivedUnread.length > 0) {
+            const newIds = newlyArrivedUnread.map((n) => n.id)
+            for (const id of newIds) alertedIdsRef.current.add(id)
+            markNotifIdsAlerted(newIds)
+
+            let variant: NotificationSoundVariant = 'default'
+            for (const entry of newlyArrivedUnread) {
+              const entryVariant = getSoundVariantForType(entry.rawType)
+              if (entryVariant === 'expired') {
+                variant = 'expired'
+                break
+              }
+              if (entryVariant === 'warning') {
+                variant = 'warning'
+              }
+            }
+            playNotificationSound(variant)
+            setLiveAlertBanner({
+              title: newlyArrivedUnread[0].title,
+              desc: newlyArrivedUnread[0].desc,
             })
           }
-        }
-        if (data.ecoPoints > 0) {
-          dynamicNotifications.push({
-            id: 'eco-points-earned',
-            title: `Eco-Points Earned • ${data.ecoPoints} pts`,
-            desc: `You have diverted ${data.divertedKg} kg of e-waste and reached ${data.ecoTier}.`,
-            time: 'Updated',
-            read: false,
-            type: 'points',
-          })
-        }
-        if (data.activeRequest) {
-          dynamicNotifications.push({
-            id: `req-${data.activeRequest.requestId}`,
-            title: `Active Request #${data.activeRequest.requestId}`,
-            desc: `${data.activeRequest.deviceTitle} • ${data.activeRequest.statusStage}`,
-            time: 'Active',
-            read: false,
-            type: 'alert',
-          })
-        }
-        dynamicNotifications.push(...INITIAL_NOTIFICATIONS)
-        setNotifications(dynamicNotifications)
-      })
-      .catch(() => {
-        // Keep default summary when offline or unauthenticated
-      })
+
+          if (data.ecoPoints > 0) {
+            dynamicNotifications.push({
+              id: 'eco-points-earned',
+              title: `Eco-Points Earned • ${data.ecoPoints} pts`,
+              desc: `You have diverted ${data.divertedKg} kg of e-waste and reached ${data.ecoTier}.`,
+              time: 'Updated',
+              read: false,
+              type: 'points',
+            })
+          }
+          if (data.activeRequest) {
+            dynamicNotifications.push({
+              id: `req-${data.activeRequest.requestId}`,
+              title: `Active Request #${data.activeRequest.requestId}`,
+              desc: `${data.activeRequest.deviceTitle} • ${data.activeRequest.statusStage}`,
+              time: 'Active',
+              read: false,
+              type: 'alert',
+            })
+          }
+          dynamicNotifications.push(...INITIAL_NOTIFICATIONS)
+          setNotifications(dynamicNotifications)
+        })
+        .catch(() => {
+          // Keep default summary when offline or unauthenticated
+        })
+    }
+
+    refreshSummaryAndNotifications()
+    const pollHandle = window.setInterval(refreshSummaryAndNotifications, 30_000)
 
     return () => {
       active = false
+      window.clearInterval(pollHandle)
     }
   }, [path])
 
@@ -698,9 +808,29 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                 </Box>
               )}
             </Box>
-            <IconButton size="small" onClick={() => setNotificationsOpen(false)}>
-              <CloseRoundedIcon sx={{ fontSize: 20 }} />
-            </IconButton>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <IconButton
+                size="small"
+                aria-label={soundMuted ? 'Enable notification sound' : 'Mute notification sound'}
+                title={soundMuted ? 'Sound Muted (Click to Enable)' : 'Sound Alerts On (Click to Mute)'}
+                onClick={() => {
+                  const next = !soundMuted
+                  setSoundMuted(next)
+                  setNotificationSoundMuted(next)
+                  if (!next) playNotificationSound('default')
+                }}
+                sx={{ color: soundMuted ? '#94a3b8' : '#16a34a' }}
+              >
+                {soundMuted ? (
+                  <VolumeOffRoundedIcon sx={{ fontSize: 19 }} />
+                ) : (
+                  <VolumeUpRoundedIcon sx={{ fontSize: 19 }} />
+                )}
+              </IconButton>
+              <IconButton size="small" onClick={() => setNotificationsOpen(false)}>
+                <CloseRoundedIcon sx={{ fontSize: 20 }} />
+              </IconButton>
+            </Box>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
@@ -1005,6 +1135,39 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
         >
           <Alert severity="success" variant="filled" onClose={() => setSettingsSavedToast(false)}>
             Preferences updated successfully!
+          </Alert>
+        </Snackbar>
+
+        {/* ── Live Audible Notification Alert Banner ── */}
+        <Snackbar
+          open={Boolean(liveAlertBanner)}
+          autoHideDuration={6000}
+          onClose={() => setLiveAlertBanner(null)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert
+            severity="warning"
+            variant="filled"
+            onClose={() => setLiveAlertBanner(null)}
+            onClick={() => {
+              setLiveAlertBanner(null)
+              setNotificationsOpen(true)
+            }}
+            sx={{
+              cursor: 'pointer',
+              maxWidth: 400,
+              fontFamily: "'Quicksand', sans-serif",
+              backgroundColor: '#0f172a',
+              color: '#ffffff',
+              '& .MuiAlert-icon': { color: '#abf06b' },
+            }}
+          >
+            <Typography sx={{ fontWeight: 800, fontSize: '0.8125rem' }}>
+              {liveAlertBanner?.title}
+            </Typography>
+            <Typography sx={{ fontSize: '0.75rem', opacity: 0.92 }}>
+              {liveAlertBanner?.desc}
+            </Typography>
           </Alert>
         </Snackbar>
       </Container>

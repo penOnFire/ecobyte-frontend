@@ -22,6 +22,7 @@ export interface BackendUserRecord {
   idCode?: string
   role: BackendUserRole
   department?: string
+  unitAreaId?: number
   status?: 'Active' | 'Suspended' | 'Deactivated'
   accountStatus?: string
   twoFactorEnabled?: boolean
@@ -49,6 +50,8 @@ export interface CreateAdminUserPayload {
   phone?: string
   idCode?: string
   department?: string
+  unitAreaId?: number | string
+  barangayId?: string | number
   status?: string
   twoFactorEnabled?: boolean
   mustChangePassword?: boolean
@@ -64,6 +67,8 @@ export interface AdminCollectionRequest {
   residentName: string
   residentEmail: string
   contactNumber: string
+  residentBaseId?: string
+  residentBaseName?: string
   siteName: string
   address: string
   preferredMethod: string
@@ -83,6 +88,8 @@ export interface AdminInspectionQueueItem {
   serial: string
   specs: string
   category?: string
+  baseId?: string
+  baseName?: string
   status?: string
   queueBucket?: 'waiting' | 'inspected'
   date: string

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type MouseEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import type { FC } from 'react'
 import {
   Alert,
@@ -43,6 +43,11 @@ import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { assessmentsApi, dropoffsApi } from '@/lib/api'
+import {
+  formatExpiryCountdown,
+  formatExpiryDateTime,
+} from '@/lib/reservationExpiry'
+import { playNotificationSound } from '@/lib/notificationSound'
 import type { AssessedDeviceRecord, EwasteRequestItem, UserReservationItem } from '@/types'
 
 const SAMPLE_ASSESSED_DEVICES: AssessedDeviceRecord[] = [
@@ -120,7 +125,40 @@ export const MyRequestsPage: FC = () => {
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
   const [actionToast, setActionToast] = useState<string | null>(null)
-  const [nowMs] = useState(() => Date.now())
+  const [nowMs, setNowMs] = useState(() => Date.now())
+  const alertedExpiredIdsRef = useRef<Set<string>>(new Set())
+
+  useEffect(() => {
+    const startNow = Date.now()
+    const hasActiveHold = reservations.some(
+      (r) =>
+        r.status !== 'Expired' &&
+        r.expiresAt &&
+        new Date(r.expiresAt).getTime() > startNow
+    )
+    if (!hasActiveHold) return
+    const timer = window.setInterval(() => {
+      const tickNow = Date.now()
+      setNowMs(tickNow)
+      for (const r of reservations) {
+        const expiredByTime = Boolean(
+          r.expiresAt && new Date(r.expiresAt).getTime() <= tickNow
+        )
+        const isExp = r.status === 'Expired' || expiredByTime
+        if (isExp && !alertedExpiredIdsRef.current.has(r.reservationId)) {
+          alertedExpiredIdsRef.current.add(r.reservationId)
+          playNotificationSound('expired')
+          setActionToast(
+            `Reservation hold expired for ${r.itemTitle}. Item returned to Reuse Hub.`
+          )
+          break
+        }
+      }
+    }, 1000)
+    return () => {
+      window.clearInterval(timer)
+    }
+  }, [reservations])
 
   const handleCancelRequest = async () => {
     if (!selectedRequest) return
@@ -171,7 +209,18 @@ export const MyRequestsPage: FC = () => {
         const apiCompleted = data.completed || []
         const seenCodes = new Set(apiReservations.map((r) => r.pickupCode))
         const seenCompletedIds = new Set(apiCompleted.map((r) => r.requestId))
-        const dedupedLocalRes = localRes.filter((r) => !seenCodes.has(r.pickupCode))
+        // Keep only offline-created local reservations (non-numeric IDs) not already returned by backend.
+        const dedupedLocalRes = localRes.filter((r: any) => {
+          const code = r?.pickupCode
+          const rawId = String(r?.reservationId ?? r?.id ?? '')
+          const isLocalOnly = !/^\d+$/.test(rawId)
+          return isLocalOnly && (!code || !seenCodes.has(code))
+        })
+        try {
+          localStorage.setItem('ecobyte_user_reservations', JSON.stringify(dedupedLocalRes))
+        } catch {
+          // Ignore storage errors
+        }
         const dedupedLocalClaimed = localClaimed.filter((r) => !seenCompletedIds.has(r.requestId))
         setOngoing(data.ongoing || [])
         setCompleted([...apiCompleted, ...dedupedLocalClaimed])
@@ -443,11 +492,20 @@ export const MyRequestsPage: FC = () => {
               >
                 Reservations
               </Typography>
-              <StatusBadge
-                label={reservations.length > 0 ? `${reservations.length} Active` : '0 Active'}
-                variant={reservations.length > 0 ? 'electric' : 'muted'}
-                size="sm"
-              />
+              {(() => {
+                const activeCount = reservations.filter(
+                  (r) =>
+                    r.status !== 'Expired' &&
+                    (!r.expiresAt || new Date(r.expiresAt).getTime() > nowMs)
+                ).length
+                return (
+                  <StatusBadge
+                    label={`${activeCount} Active`}
+                    variant={activeCount > 0 ? 'electric' : 'muted'}
+                    size="sm"
+                  />
+                )
+              })()}
             </Box>
 
             {loadError && (
@@ -473,7 +531,13 @@ export const MyRequestsPage: FC = () => {
               </Card>
             ) : (
               reservations.map((res) => {
-                const isResExpired = res.expiresAt ? new Date(res.expiresAt).getTime() < nowMs : false
+                const expiryDate = res.expiresAt ? new Date(res.expiresAt) : null
+                const validExpiry =
+                  expiryDate && !Number.isNaN(expiryDate.getTime()) ? expiryDate : null
+                const countdown = validExpiry
+                  ? formatExpiryCountdown(validExpiry, nowMs)
+                  : { isExpired: false, label: '48h hold' }
+                const isResExpired = res.status === 'Expired' || countdown.isExpired
                 return (
                 <Card
                   key={res.reservationId}
@@ -508,10 +572,10 @@ export const MyRequestsPage: FC = () => {
                         }}
                       >
                         {isResExpired
-                          ? 'Hold expired • Unclaimed item returned to Reuse Hub'
-                          : res.expiresAt
-                            ? `Hold expires ${new Date(res.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-                            : 'Held for 48 hours'}
+                          ? '2-day hold expired • Unclaimed item returned to Reuse Hub'
+                          : validExpiry
+                            ? `Expires ${formatExpiryDateTime(validExpiry)} • ${countdown.label}`
+                            : 'Held for 2 days (48 hours)'}
                         <br />
                         ({res.siteName})
                       </Typography>
