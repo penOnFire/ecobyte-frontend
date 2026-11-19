@@ -1,330 +1,500 @@
-import { useEffect, useState, type FC } from 'react'
+import { useEffect, useState, useMemo, type FC } from 'react'
 import {
   Box,
   ButtonBase,
   CircularProgress,
   Typography,
 } from '@mui/material'
-import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
-import FilterListRoundedIcon from '@mui/icons-material/FilterListRounded'
+import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded'
 import { adminApi, type AdminActivityLogItem } from '@/lib/api'
 
+interface LogEntry {
+  id: string
+  ts: string
+  userId: string
+  userName: string
+  role: 'superadmin' | 'official' | 'resident' | 'system'
+  action: string
+  target: string
+  details: string
+  barangay: string | null
+}
+
+const getInitialActivityLogs = (): LogEntry[] => {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem('ecobyte_activity_logs')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) return parsed
+    }
+  } catch {
+    // ignore
+  }
+  return []
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  superadmin: 'Super Admin',
+  official: 'Barangay Official',
+  resident: 'Resident',
+  system: 'System',
+}
+
+const ROLE_BADGE_STYLES: Record<string, { bg: string; color: string; border: string }> = {
+  superadmin: { bg: '#f5f3ff', color: '#6d28d9', border: '#ddd6fe' },
+  official: { bg: '#f0f9ff', color: '#0369a1', border: '#bae6fd' },
+  resident: { bg: '#f1f4f0', color: '#2e6022', border: '#c5dcba' },
+  system: { bg: '#f8fafc', color: '#64748b', border: '#e2e8f0' },
+}
+
 export const AdminActivityLogsPage: FC = () => {
-  const [logs, setLogs] = useState<AdminActivityLogItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [logs, setLogs] = useState<LogEntry[]>(getInitialActivityLogs)
+  const [isLoading, setIsLoading] = useState(false)
+
+  // 5 Prototype Filters
+  const [filterRole, setFilterRole] = useState('')
+  const [filterUser, setFilterUser] = useState('')
+  const [filterAction, setFilterAction] = useState('')
+  const [filterFrom, setFilterFrom] = useState('')
+  const [filterTo, setFilterTo] = useState('')
   const [search, setSearch] = useState('')
-  const [filterAction, setFilterAction] = useState<string>('all')
 
   useEffect(() => {
     let active = true
     adminApi
       .getActivityLogs({
-        action: filterAction !== 'all' ? filterAction : undefined,
-        search,
+        userId: filterUser || undefined,
+        action: filterAction || undefined,
+        search: search || undefined,
       })
-      .then((records) => {
-        if (active) {
-          setLogs(records)
-          setIsLoading(false)
-        }
+      .then((records: AdminActivityLogItem[]) => {
+        if (!active || !records || records.length === 0) return
+        const mappedLive: LogEntry[] = records.map((r) => {
+          const roleUpper = (r.operator?.role || '').toLowerCase()
+          const matchedRole: 'superadmin' | 'official' | 'resident' | 'system' =
+            roleUpper.includes('admin')
+              ? 'superadmin'
+              : roleUpper.includes('official')
+                ? 'official'
+                : roleUpper.includes('resident')
+                  ? 'resident'
+                  : 'system'
+
+          return {
+            id: r.id,
+            ts: r.timestamp?.replace('T', ' ').slice(0, 16) || 'Recent',
+            userId: r.operator?.id || 'SYS',
+            userName: r.operator?.name || 'System Operator',
+            role: matchedRole,
+            action: r.action || `${r.entityType}: ${r.newStatus}`,
+            target: r.entityId || '—',
+            details: r.notes || `${r.entityType} status transitioned to ${r.newStatus}`,
+            barangay: 'Commonwealth',
+          }
+        })
+
+        setLogs((prev) => {
+          const liveIds = new Set(mappedLive.map((m) => m.id))
+          return [...mappedLive, ...prev.filter((p) => !liveIds.has(p.id))]
+        })
       })
       .catch((err) => {
-        if (active) {
-          console.warn('Could not load activity logs from backend:', err)
-          setIsLoading(false)
-        }
+        console.warn('Using prototype activity logs:', err)
       })
+      .finally(() => {
+        if (active) setIsLoading(false)
+      })
+
     return () => {
       active = false
     }
-  }, [filterAction, search])
+  }, [filterUser, filterAction, search])
 
-  const actionCategories = [
-    { id: 'all', label: 'All Activities' },
-    { id: 'USER', label: 'User Changes' },
-    { id: 'INSPECTION', label: 'Inspections' },
-    { id: 'REQUEST', label: 'Drop-Offs' },
-    { id: 'REUSE_CLAIM', label: 'Pick-Up Verification' },
-  ]
+  // Extract distinct staff users and actions for filter options
+  const staffUsers = useMemo(() => {
+    const map = new Map<string, string>()
+    logs.forEach((l) => {
+      if (l.role !== 'resident' && l.role !== 'system') {
+        map.set(l.userId, l.userName)
+      }
+    })
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }))
+  }, [logs])
 
-  const formatTimestamp = (iso: string) => {
-    try {
-      const d = new Date(iso)
-      return d.toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    } catch {
-      return iso
+  const distinctActions = useMemo(() => {
+    return Array.from(new Set(logs.map((l) => l.action))).sort()
+  }, [logs])
+
+  // Filter logic
+  const filteredLogs = useMemo(() => {
+    let rows = logs.slice()
+
+    if (filterRole) {
+      rows = rows.filter((l) => l.role === filterRole)
     }
+    if (filterUser) {
+      rows = rows.filter((l) => l.userId === filterUser)
+    }
+    if (filterAction) {
+      rows = rows.filter((l) => l.action === filterAction)
+    }
+    if (filterFrom) {
+      rows = rows.filter((l) => l.ts.slice(0, 10) >= filterFrom)
+    }
+    if (filterTo) {
+      rows = rows.filter((l) => l.ts.slice(0, 10) <= filterTo)
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      rows = rows.filter(
+        (l) =>
+          l.userName.toLowerCase().includes(q) ||
+          l.action.toLowerCase().includes(q) ||
+          l.target.toLowerCase().includes(q) ||
+          l.details.toLowerCase().includes(q)
+      )
+    }
+
+    return rows.sort((a, b) => b.ts.localeCompare(a.ts))
+  }, [logs, filterRole, filterUser, filterAction, filterFrom, filterTo, search])
+
+  const hasActiveFilters = Boolean(
+    filterRole || filterUser || filterAction || filterFrom || filterTo || search
+  )
+
+  const handleClearFilters = () => {
+    setFilterRole('')
+    setFilterUser('')
+    setFilterAction('')
+    setFilterFrom('')
+    setFilterTo('')
+    setSearch('')
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5, pb: 6 }}>
-      {/* ── Top Header ── */}
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5, pb: 6, fontFamily: "'Quicksand', sans-serif" }}>
+      {/* ── Main Activity Logs Card matching Prototype ── */}
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          justifyContent: 'space-between',
-          alignItems: { xs: 'flex-start', md: 'center' },
-          gap: 2,
+          backgroundColor: '#ffffff',
+          borderRadius: '1.25rem',
+          border: '1px solid #dbe3d6',
+          boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
+          overflow: 'hidden',
+          p: { xs: 2.5, sm: 3 },
         }}
       >
-        <Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-            <Box
-              sx={{
-                width: 8,
-                height: 8,
-                borderRadius: '9999px',
-                backgroundColor: '#22c55e',
-                boxShadow: '0 0 0 3px rgba(34, 197, 94, 0.2)',
-              }}
-            />
-            <Typography
-              sx={{
-                fontFamily: "'Rethink Sans', 'Inter', sans-serif",
-                fontSize: '0.6875rem',
-                fontWeight: 700,
-                color: '#475569',
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-              }}
-            >
-              Module 7 • Super Admin Audit Trail
-            </Typography>
-          </Box>
-          <Typography
-            variant="h4"
-            sx={{
-              fontFamily: "'Rethink Sans', 'Inter', sans-serif",
-              fontWeight: 800,
-              fontSize: { xs: '1.75rem', md: '2.125rem' },
-              color: '#0b1c30',
-              letterSpacing: '-0.025em',
+        {/* ── 5 Prototype Filter Controls ── */}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: 'repeat(2, 1fr)',
+              xl: 'repeat(5, 1fr)',
+            },
+            gap: 1.5,
+            mb: 2.5,
+          }}
+        >
+          {/* 1. Role Filter */}
+          <select
+            value={filterRole}
+            onChange={(e) => setFilterRole(e.target.value)}
+            style={{
+              height: 40,
+              padding: '0 12px',
+              borderRadius: '0.75rem',
+              border: '1px solid #dbe3d6',
+              backgroundColor: '#ffffff',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              color: '#334155',
+              outline: 'none',
+              fontFamily: "'Quicksand', sans-serif",
             }}
           >
-            Activity Logs
-          </Typography>
+            <option value="">All roles</option>
+            <option value="superadmin">Super Admin</option>
+            <option value="official">Barangay Official</option>
+            <option value="resident">Resident</option>
+            <option value="system">System</option>
+          </select>
+
+          {/* 2. Staff Operator Dropdown */}
+          <select
+            value={filterUser}
+            onChange={(e) => setFilterUser(e.target.value)}
+            style={{
+              height: 40,
+              padding: '0 12px',
+              borderRadius: '0.75rem',
+              border: '1px solid #dbe3d6',
+              backgroundColor: '#ffffff',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              color: '#334155',
+              outline: 'none',
+              fontFamily: "'Quicksand', sans-serif",
+            }}
+          >
+            <option value="">All staff users</option>
+            {staffUsers.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </select>
+
+          {/* 3. Action Dropdown */}
+          <select
+            value={filterAction}
+            onChange={(e) => setFilterAction(e.target.value)}
+            style={{
+              height: 40,
+              padding: '0 12px',
+              borderRadius: '0.75rem',
+              border: '1px solid #dbe3d6',
+              backgroundColor: '#ffffff',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              color: '#334155',
+              outline: 'none',
+              fontFamily: "'Quicksand', sans-serif",
+            }}
+          >
+            <option value="">All actions</option>
+            {distinctActions.map((a) => (
+              <option key={a} value={a}>
+                {a}
+              </option>
+            ))}
+          </select>
+
+          {/* 4. Date From */}
+          <input
+            type="date"
+            title="From"
+            value={filterFrom}
+            onChange={(e) => setFilterFrom(e.target.value)}
+            style={{
+              height: 40,
+              padding: '0 12px',
+              borderRadius: '0.75rem',
+              border: '1px solid #dbe3d6',
+              backgroundColor: '#ffffff',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              color: '#334155',
+              outline: 'none',
+              fontFamily: "'Quicksand', sans-serif",
+            }}
+          />
+
+          {/* 5. Date To */}
+          <input
+            type="date"
+            title="To"
+            value={filterTo}
+            onChange={(e) => setFilterTo(e.target.value)}
+            style={{
+              height: 40,
+              padding: '0 12px',
+              borderRadius: '0.75rem',
+              border: '1px solid #dbe3d6',
+              backgroundColor: '#ffffff',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              color: '#334155',
+              outline: 'none',
+              fontFamily: "'Quicksand', sans-serif",
+            }}
+          />
         </Box>
 
+        {/* ── Search Bar & Filter Summary Bar ── */}
         <Box
           sx={{
             display: 'flex',
-            alignItems: 'center',
-            gap: 1.25,
-            px: 2,
-            py: 0.85,
-            borderRadius: '12px',
-            backgroundColor: '#ffffff',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between',
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            gap: 2,
+            mb: 3,
+            pb: 2,
+            borderBottom: '1px solid #f1f5f9',
           }}
         >
-          <HistoryRoundedIcon sx={{ fontSize: 18, color: '#16a34a' }} />
-          <Typography sx={{ fontSize: '0.75rem', color: '#475569', fontWeight: 600 }}>
-            Audit Entries:
-          </Typography>
-          <Typography sx={{ fontSize: '0.8125rem', fontWeight: 800, color: '#0f172a' }}>
-            {logs.length}
-          </Typography>
-        </Box>
-      </Box>
-
-      {/* ── Filters & Search ── */}
-      <Box
-        sx={{
-          backgroundColor: '#ffffff',
-          borderRadius: '12px',
-          p: 2.5,
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: 2,
-        }}
-      >
-        <Box sx={{ position: 'relative', width: { xs: '100%', md: 360 } }}>
-          <SearchRoundedIcon
-            sx={{
-              position: 'absolute',
-              left: 14,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: '#94a3b8',
-              fontSize: 20,
-            }}
-          />
-          <input
-            type="text"
-            placeholder="Filter by user, action, or notes..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: '100%',
-              height: 42,
-              paddingLeft: 42,
-              paddingRight: 16,
-              borderRadius: 8,
-              border: '1px solid #e2e8f0',
-              backgroundColor: '#f8fafc',
-              fontSize: '0.875rem',
-              color: '#0f172a',
-              outline: 'none',
-              fontFamily: 'inherit',
-            }}
-          />
-        </Box>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-          <FilterListRoundedIcon sx={{ fontSize: 18, color: '#64748b' }} />
-          {actionCategories.map((cat) => {
-            const active = filterAction === cat.id
-            return (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: '#475569' }}>
+              {filteredLogs.length} audit entries
+            </Typography>
+            {hasActiveFilters && (
               <ButtonBase
-                key={cat.id}
-                onClick={() => setFilterAction(cat.id)}
+                onClick={handleClearFilters}
                 sx={{
-                  px: 1.75,
-                  py: 0.85,
-                  borderRadius: '9999px',
-                  backgroundColor: active ? '#16a34a' : '#f1f5f9',
-                  color: active ? '#ffffff' : '#475569',
+                  color: '#2e6022',
                   fontSize: '0.8125rem',
-                  fontWeight: 700,
-                  transition: 'all 0.15s ease',
-                  '&:hover': {
-                    backgroundColor: active ? '#15803d' : '#e2e8f0',
-                  },
+                  fontWeight: 800,
+                  textDecoration: 'underline',
+                  '&:hover': { opacity: 0.8 },
                 }}
               >
-                {cat.label}
+                Clear filters
               </ButtonBase>
-            )
-          })}
-        </Box>
-      </Box>
+            )}
+          </Box>
 
-      {/* ── Activity Logs Table ── */}
-      <Box
-        sx={{
-          backgroundColor: '#ffffff',
-          borderRadius: '12px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-          overflow: 'hidden',
-        }}
-      >
-        {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-            <CircularProgress size={32} color="success" />
+          <Box sx={{ position: 'relative', width: { xs: '100%', sm: 300 } }}>
+            <SearchRoundedIcon
+              sx={{
+                position: 'absolute',
+                left: 10,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#94a3b8',
+                fontSize: 18,
+                pointerEvents: 'none',
+              }}
+            />
+            <input
+              type="text"
+              placeholder="Search keyword, user, or target..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{
+                width: '100%',
+                height: 38,
+                paddingLeft: 34,
+                paddingRight: 12,
+                borderRadius: '0.75rem',
+                border: '1px solid #dbe3d6',
+                backgroundColor: '#ffffff',
+                fontSize: '0.8125rem',
+                fontWeight: 600,
+                color: '#1e293b',
+                outline: 'none',
+                fontFamily: "'Quicksand', sans-serif",
+              }}
+            />
           </Box>
-        ) : logs.length === 0 ? (
-          <Box sx={{ textAlign: 'center', py: 8, color: '#64748b' }}>
-            <HistoryRoundedIcon sx={{ fontSize: 48, color: '#cbd5e1', mb: 1 }} />
-            <Typography sx={{ fontWeight: 700, fontSize: '0.9375rem' }}>No activity records found</Typography>
-            <Typography sx={{ fontSize: '0.8125rem', color: '#94a3b8' }}>
-              System actions, user role modifications, and inspection decisions will be recorded here.
-            </Typography>
-          </Box>
-        ) : (
-          <Box sx={{ overflowX: 'auto' }}>
+        </Box>
+
+        {/* ── Audit Logs Table matching Prototype ── */}
+        <Box sx={{ overflowX: 'auto', mx: -3, px: 3 }}>
+          {isLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+              <CircularProgress size={32} sx={{ color: '#70b822' }} />
+            </Box>
+          ) : filteredLogs.length === 0 ? (
+            <Box sx={{ textAlign: 'center', py: 8, color: '#94a3b8' }}>
+              <HistoryRoundedIcon sx={{ fontSize: 44, color: '#cbd5e1', mb: 1 }} />
+              <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: '#475569' }}>
+                No activity matches your filters.
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8', mt: 0.5 }}>
+                Try adjusting the role, user, or date range filters above.
+              </Typography>
+            </Box>
+          ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                  <th style={{ padding: '12px 18px', fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
-                    Timestamp
+                <tr style={{ backgroundColor: '#f8faf6', borderBottom: '1px solid #e2e8f0' }}>
+                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                    Date &amp; Time
                   </th>
-                  <th style={{ padding: '12px 18px', fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
-                    Operator
+                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                    User
                   </th>
-                  <th style={{ padding: '12px 18px', fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
-                    Action Category
+                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                    Action
                   </th>
-                  <th style={{ padding: '12px 18px', fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
-                    Status Transition
+                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                    Target
                   </th>
-                  <th style={{ padding: '12px 18px', fontSize: '0.75rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
-                    Details &amp; Audit Notes
+                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                    Details
+                  </th>
+                  <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                    Barangay
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {logs.map((log) => {
-                  const isUserAction = log.entityType === 'USER'
-                  const isInspection = log.entityType === 'INSPECTION'
-                  const isClaim = log.entityType === 'REUSE_CLAIM'
-
+                {filteredLogs.map((l) => {
+                  const roleStyle = ROLE_BADGE_STYLES[l.role] || ROLE_BADGE_STYLES.system
                   return (
-                    <tr key={log.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '14px 18px', fontSize: '0.8125rem', color: '#475569', whiteSpace: 'nowrap' }}>
-                        {formatTimestamp(log.timestamp)}
+                    <tr key={l.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      {/* Date & Time */}
+                      <td style={{ padding: '12px 16px', whiteSpace: 'nowrap', fontSize: '0.8125rem', fontWeight: 600, color: '#475569' }}>
+                        {l.ts}
                       </td>
-                      <td style={{ padding: '14px 18px' }}>
-                        <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: '#0f172a' }}>
-                          {log.operator?.name || 'System / Official'}
+
+                      {/* User & Role Badge */}
+                      <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>
+                          {l.userName}
                         </Typography>
-                        <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>
-                          {log.operator?.email || 'Automated Workflow'}
-                        </Typography>
-                      </td>
-                      <td style={{ padding: '14px 18px' }}>
                         <Box
                           sx={{
                             display: 'inline-block',
-                            px: 1.25,
-                            py: 0.35,
-                            borderRadius: '6px',
+                            mt: 0.5,
+                            px: 1,
+                            py: 0.2,
+                            borderRadius: '9999px',
                             fontSize: '0.6875rem',
                             fontWeight: 700,
-                            backgroundColor: isUserAction
-                              ? '#eff4ff'
-                              : isInspection
-                                ? '#f0fdf4'
-                                : isClaim
-                                  ? '#fef3c7'
-                                  : '#f1f5f9',
-                            color: isUserAction
-                              ? '#1d4ed8'
-                              : isInspection
-                                ? '#15803d'
-                                : isClaim
-                                  ? '#b45309'
-                                  : '#475569',
+                            backgroundColor: roleStyle.bg,
+                            color: roleStyle.color,
+                            border: `1px solid ${roleStyle.border}`,
                           }}
                         >
-                          {log.entityType}
+                          {ROLE_LABELS[l.role] || l.role}
                         </Box>
                       </td>
-                      <td style={{ padding: '14px 18px' }}>
-                        <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: '#0f172a' }}>
-                          {log.newStatus}
-                        </Typography>
-                        {log.oldStatus && (
-                          <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>
-                            from {log.oldStatus}
-                          </Typography>
-                        )}
+
+                      {/* Action */}
+                      <td style={{ padding: '12px 16px', fontWeight: 700, fontSize: '0.8125rem', color: '#1e293b' }}>
+                        {l.action}
                       </td>
-                      <td style={{ padding: '14px 18px' }}>
-                        <Typography sx={{ fontSize: '0.8125rem', color: '#334155' }}>
-                          {log.notes || '—'}
-                        </Typography>
+
+                      {/* Target */}
+                      <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                        <Box
+                          component="span"
+                          sx={{
+                            fontFamily: 'monospace',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            color: '#475569',
+                            backgroundColor: '#f1f5f9',
+                            px: 1,
+                            py: 0.25,
+                            borderRadius: '6px',
+                          }}
+                        >
+                          {l.target}
+                        </Box>
+                      </td>
+
+                      {/* Details */}
+                      <td style={{ padding: '12px 16px', color: '#475569', fontWeight: 500, fontSize: '0.8125rem', minWidth: 220 }}>
+                        {l.details}
+                      </td>
+
+                      {/* Barangay */}
+                      <td style={{ padding: '12px 16px', whiteSpace: 'nowrap', fontWeight: 600, fontSize: '0.8125rem', color: '#334155' }}>
+                        {l.barangay || '—'}
                       </td>
                     </tr>
                   )
                 })}
               </tbody>
             </table>
-          </Box>
-        )}
+          )}
+        </Box>
       </Box>
     </Box>
   )

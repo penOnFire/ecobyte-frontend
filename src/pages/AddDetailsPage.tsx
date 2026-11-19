@@ -5,6 +5,8 @@ import {
   Box,
   Button,
   Card,
+  Chip,
+  CircularProgress,
   IconButton,
   ListItemIcon,
   ListItemText,
@@ -31,6 +33,23 @@ import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded'
 import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded'
 import { useNavigate } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { assessmentsApi } from '@/lib/api'
+import type { CameraAngle } from '@/types'
+
+const DEVICE_CATEGORIES = [
+  'Phones',
+  'Laptops',
+  'Tablets',
+  'Chargers',
+  'Peripherals',
+  'Electronics',
+]
+
+async function dataUrlToFile(dataUrl: string, filename: string): Promise<File> {
+  const res = await fetch(dataUrl)
+  const blob = await res.blob()
+  return new File([blob], filename, { type: blob.type || 'image/jpeg' })
+}
 
 const FOUR_ANGLES = [
   { id: 'front', label: 'Front', icon: '📱' },
@@ -52,12 +71,15 @@ export const AddDetailsPage: FC = () => {
   })
 
   // Guided questions state
+  const [deviceModel, setDeviceModel] = useState('')
+  const [deviceCategory, setDeviceCategory] = useState('Phones')
   const [workingStatus, setWorkingStatus] = useState<'yes' | 'no' | 'notsure'>('no')
   const [visibleDamage, setVisibleDamage] = useState<string[]>(['none'])
   const [otherDamageText, setOtherDamageText] = useState('')
   const [missingParts, setMissingParts] = useState<string[]>(['none'])
   const [otherMissingText, setOtherMissingText] = useState('')
   const [notes, setNotes] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [validationError, setValidationError] = useState<string | null>(null)
   const [tuneMenuAnchor, setTuneMenuAnchor] = useState<null | HTMLElement>(null)
 
@@ -124,7 +146,7 @@ export const AddDetailsPage: FC = () => {
     }
   }
 
-  const handleAnalyzeSubmit = () => {
+  const handleAnalyzeSubmit = async () => {
     if (visibleDamage.includes('others') && !otherDamageText.trim()) {
       setValidationError('Please specify the other visible damage before continuing.')
       return
@@ -145,6 +167,8 @@ export const AddDetailsPage: FC = () => {
       sessionStorage.setItem(
         'ecobyte_assessment_draft',
         JSON.stringify({
+          deviceModel: deviceModel.trim() || undefined,
+          category: deviceCategory,
           workingStatus,
           visibleDamage: resolvedDamage,
           missingParts: resolvedMissing,
@@ -156,7 +180,47 @@ export const AddDetailsPage: FC = () => {
       // Ignore quota errors
     }
 
-    navigate('/diagnostic')
+    setIsSubmitting(true)
+    try {
+      const sessionId = `scan_${Date.now()}`
+      for (const angle of FOUR_ANGLES) {
+        const dataUrl = capturedAngles[angle.id]
+        if (!dataUrl) continue
+        try {
+          const file = await dataUrlToFile(dataUrl, `${angle.id}.jpg`)
+          await assessmentsApi.uploadAngle(sessionId, angle.id as CameraAngle, file)
+        } catch (uploadErr) {
+          console.warn(`Could not upload ${angle.id} photo:`, uploadErr)
+        }
+      }
+
+      const result = await assessmentsApi.submitDetails({
+        sessionId,
+        deviceModel: deviceModel.trim() || `${deviceCategory} Unit`,
+        category: deviceCategory,
+        workingStatus: workingStatus === 'notsure' ? 'not_sure' : workingStatus,
+        powersOn: workingStatus === 'yes',
+        displayIntact: !visibleDamage.includes('cracked'),
+        portsWorking: true,
+        visibleDamage: resolvedDamage,
+        otherDamage: otherDamageText.trim() || undefined,
+        missingParts: resolvedMissing,
+        otherMissing: otherMissingText.trim() || undefined,
+        notes: notes.trim() || undefined,
+      })
+
+      try {
+        sessionStorage.setItem('ecobyte_last_assessment_id', result.assessmentId)
+      } catch {
+        // Ignore quota errors
+      }
+      navigate(`/diagnostic?assessmentId=${encodeURIComponent(result.assessmentId)}`)
+    } catch (err: any) {
+      console.warn('Assessment API unavailable, continuing to diagnostic preview:', err)
+      navigate('/diagnostic')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -387,6 +451,43 @@ export const AddDetailsPage: FC = () => {
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#64748b', letterSpacing: '0.06em' }}>
             TELEMETRY INPUTS
           </Typography>
+        </Box>
+
+        {/* Device Identification */}
+        <Box sx={{ mb: 2.25 }}>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a', mb: 0.75 }}>
+            Device Name / Model &amp; Category
+          </Typography>
+          <OutlinedInput
+            fullWidth
+            size="small"
+            value={deviceModel}
+            onChange={(e) => setDeviceModel(e.target.value)}
+            placeholder="e.g., Samsung Galaxy S10, Lenovo ThinkPad T480"
+            sx={{ mb: 1, borderRadius: 1.5, fontSize: '0.8125rem', backgroundColor: '#f8fafc' }}
+          />
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+            {DEVICE_CATEGORIES.map((cat) => {
+              const active = deviceCategory === cat
+              return (
+                <Chip
+                  key={cat}
+                  size="small"
+                  label={cat}
+                  onClick={() => setDeviceCategory(cat)}
+                  sx={{
+                    fontFamily: "'Quicksand', sans-serif",
+                    fontWeight: 700,
+                    fontSize: '0.75rem',
+                    backgroundColor: active ? '#0f172a' : '#ffffff',
+                    color: active ? '#abf06b' : '#475569',
+                    border: '1px solid',
+                    borderColor: active ? '#0f172a' : '#e2e8f0',
+                  }}
+                />
+              )
+            })}
+          </Box>
         </Box>
 
         {/* Q1: Is it working? */}
@@ -786,8 +887,15 @@ export const AddDetailsPage: FC = () => {
           fullWidth
           variant="contained"
           size="large"
+          disabled={isSubmitting}
           onClick={handleAnalyzeSubmit}
-          startIcon={<AutoAwesomeRoundedIcon sx={{ fontSize: 20, color: '#abf06b' }} />}
+          startIcon={
+            isSubmitting ? (
+              <CircularProgress size={16} sx={{ color: '#abf06b' }} />
+            ) : (
+              <AutoAwesomeRoundedIcon sx={{ fontSize: 20, color: '#abf06b' }} />
+            )
+          }
           endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
           sx={{
             py: 1.6,
@@ -801,7 +909,7 @@ export const AddDetailsPage: FC = () => {
             },
           }}
         >
-          Analyze e-waste
+          {isSubmitting ? 'Uploading scan & analyzing...' : 'Analyze e-waste'}
         </Button>
         <Typography
           sx={{

@@ -23,10 +23,10 @@ import MyLocationRoundedIcon from '@mui/icons-material/MyLocationRounded'
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { dropoffsApi } from '@/lib/api'
-import type { DropOffSite } from '@/types'
+import { dropoffsApi, getCachedUser } from '@/lib/api'
+import type { DropOffSite, User } from '@/types'
 import { CommonwealthLeafletMap } from '@/components/map/CommonwealthLeafletMap'
 import {
   COMMONWEALTH_FALLBACK_SITES,
@@ -71,10 +71,31 @@ function calculateHaversineDistanceKm(
 
 export const DropOffFinderPage: FC = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const [currentUser] = useState<User | null>(() => getCachedUser())
+  const userBaseNum = (() => {
+    if (!currentUser) return 1
+    if (currentUser.barangay?.id) {
+      const idNum = parseInt(currentUser.barangay.id, 10)
+      if (!isNaN(idNum) && idNum >= 1 && idNum <= 9) return idNum
+      const match = /(?:base|area)[\s_-]*(\d+)/i.exec(currentUser.barangay.id)
+      if (match) return parseInt(match[1], 10)
+    }
+    if (currentUser.barangay?.name) {
+      const match = /(?:base|area)[\s_-]*(\d+)/i.exec(currentUser.barangay.name)
+      if (match) return parseInt(match[1], 10)
+    }
+    return 1
+  })()
+  const initialBaseSite =
+    COMMONWEALTH_FALLBACK_SITES.find(
+      (s) => resolveSiteBaseNumber(s.id, s.name) === userBaseNum
+    ) || COMMONWEALTH_FALLBACK_SITES[0]
+
   const [activeFilter, setActiveFilter] = useState('All Sites (9)')
   const [sites, setSites] = useState<DropOffSite[]>(COMMONWEALTH_FALLBACK_SITES)
   const [isLoading, setIsLoading] = useState(true)
-  const [selectedSiteId, setSelectedSiteId] = useState<string>('commonwealth-mrf-area1')
+  const [selectedSiteId, setSelectedSiteId] = useState<string>(initialBaseSite.id)
   const [selectedArea, setSelectedArea] = useState('Commonwealth, Quezon City (9 Areas)')
   const [areaDialogOpen, setAreaDialogOpen] = useState(false)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
@@ -101,7 +122,8 @@ export const DropOffFinderPage: FC = () => {
             }
           })
           setSites(enriched)
-          setSelectedSiteId(enriched[0].id)
+          const match = enriched.find((s) => resolveSiteBaseNumber(s.id, s.name) === userBaseNum)
+          setSelectedSiteId(match ? match.id : enriched[0].id)
         }
       })
       .catch((err) => {
@@ -116,7 +138,7 @@ export const DropOffFinderPage: FC = () => {
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [userBaseNum])
 
   const handleGetDirections = (site: DropOffSite) => {
     let destinationQuery = encodeURIComponent(
@@ -367,24 +389,38 @@ export const DropOffFinderPage: FC = () => {
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#0f172a' }}>
-                      {site.name}
-                    </Typography>
-                    {userLocation && index === 0 && (
-                      <Chip
-                        size="small"
-                        label="Nearest"
-                        sx={{
-                          height: 18,
-                          fontSize: '0.625rem',
-                          fontWeight: 800,
-                          backgroundColor: '#dcfce7',
-                          color: '#15803d',
-                        }}
-                      />
-                    )}
-                  </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
+                      <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#0f172a' }}>
+                        {site.name}
+                      </Typography>
+                      {resolveSiteBaseNumber(site.id, site.name) === userBaseNum && (
+                        <Chip
+                          size="small"
+                          label={`🌟 Nearest to Base ${userBaseNum}`}
+                          sx={{
+                            height: 18,
+                            fontSize: '0.625rem',
+                            fontWeight: 800,
+                            backgroundColor: '#dcfce7',
+                            color: '#15803d',
+                            border: '1px solid #86efac',
+                          }}
+                        />
+                      )}
+                      {userLocation && index === 0 && (
+                        <Chip
+                          size="small"
+                          label="Nearest"
+                          sx={{
+                            height: 18,
+                            fontSize: '0.625rem',
+                            fontWeight: 800,
+                            backgroundColor: '#dcfce7',
+                            color: '#15803d',
+                          }}
+                        />
+                      )}
+                    </Box>
                   <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
                     {site.address}
                   </Typography>
@@ -413,7 +449,9 @@ export const DropOffFinderPage: FC = () => {
                     size="small"
                     onClick={(e) => {
                       e.stopPropagation()
-                      navigate(`/dropoff-schedule?siteId=${encodeURIComponent(site.id)}`)
+                      const nextParams = new URLSearchParams(searchParams)
+                      nextParams.set('siteId', site.id)
+                      navigate(`/dropoff-schedule?${nextParams.toString()}`)
                     }}
                     startIcon={<CalendarMonthRoundedIcon sx={{ fontSize: 16 }} />}
                     sx={{

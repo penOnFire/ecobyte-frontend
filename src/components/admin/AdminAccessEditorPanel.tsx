@@ -1,5 +1,5 @@
 import type { FC } from 'react'
-import { Box, ButtonBase, Typography } from '@mui/material'
+import { Box, ButtonBase, IconButton, Typography } from '@mui/material'
 import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded'
 import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined'
 import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded'
@@ -17,6 +17,7 @@ import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded'
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded'
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded'
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import {
   COMMONWEALTH_FACILITIES,
   calculatePasswordStrength,
@@ -44,6 +45,7 @@ interface AdminAccessEditorPanelProps {
   showConfirmPassword: boolean
   formNotes: string
   validationErrors: Record<string, string>
+  onClose?: () => void
   onResetForm: () => void
   onFirstNameChange: (v: string) => void
   onMiddleNameChange: (v: string) => void
@@ -90,6 +92,7 @@ export const AdminAccessEditorPanel: FC<AdminAccessEditorPanelProps> = ({
   showConfirmPassword,
   formNotes,
   validationErrors,
+  onClose,
   onResetForm,
   onFirstNameChange,
   onMiddleNameChange,
@@ -163,26 +166,46 @@ export const AdminAccessEditorPanel: FC<AdminAccessEditorPanelProps> = ({
               {selectedUser ? `Edit ${selectedUser.name}` : 'Enroll New Official'}
             </Typography>
           </Box>
-          <ButtonBase
-            onClick={onResetForm}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.75,
-              px: 1.5,
-              py: 0.75,
-              borderRadius: '6px',
-              backgroundColor: '#f1f5f9',
-              color: '#475569',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              '&:hover': { backgroundColor: '#e2e8f0' },
-            }}
-            title="Reset Form / Clear Selection"
-          >
-            <PersonAddRoundedIcon sx={{ fontSize: 16 }} />
-            <span>New Official</span>
-          </ButtonBase>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <ButtonBase
+              onClick={onResetForm}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.75,
+                px: 1.5,
+                py: 0.75,
+                borderRadius: '6px',
+                backgroundColor: '#f1f5f9',
+                color: '#475569',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                '&:hover': { backgroundColor: '#e2e8f0' },
+              }}
+              title="Reset Form / Clear Selection"
+            >
+              <PersonAddRoundedIcon sx={{ fontSize: 16 }} />
+              <span>New Official</span>
+            </ButtonBase>
+            {onClose && (
+              <IconButton
+                size="small"
+                onClick={onClose}
+                aria-label="Close drawer"
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '6px',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  color: '#64748b',
+                  '&:hover': { backgroundColor: '#fee2e2', color: '#dc2626', borderColor: '#fca5a5' },
+                }}
+              >
+                <CloseRoundedIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            )}
+          </Box>
         </Box>
 
         {/* Self demotion warning */}
@@ -269,7 +292,7 @@ export const AdminAccessEditorPanel: FC<AdminAccessEditorPanelProps> = ({
                     borderRadius: 8,
                     border: `1px solid ${validationErrors.firstName ? '#ef4444' : '#cbd5e1'}`,
                     backgroundColor: '#f8fafc',
-                    fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                    fontFamily: "'Quicksand', sans-serif",
                     fontSize: '0.8125rem',
                     color: '#0f172a',
                     outline: 'none',
@@ -303,7 +326,7 @@ export const AdminAccessEditorPanel: FC<AdminAccessEditorPanelProps> = ({
                   borderRadius: 8,
                   border: '1px solid #cbd5e1',
                   backgroundColor: '#f8fafc',
-                  fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                  fontFamily: "'Quicksand', sans-serif",
                   fontSize: '0.8125rem',
                   color: '#0f172a',
                   outline: 'none',
@@ -342,7 +365,7 @@ export const AdminAccessEditorPanel: FC<AdminAccessEditorPanelProps> = ({
                     borderRadius: 8,
                     border: `1px solid ${validationErrors.lastName ? '#ef4444' : '#cbd5e1'}`,
                     backgroundColor: '#f8fafc',
-                    fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                    fontFamily: "'Quicksand', sans-serif",
                     fontSize: '0.8125rem',
                     color: '#0f172a',
                     outline: 'none',
@@ -376,7 +399,7 @@ export const AdminAccessEditorPanel: FC<AdminAccessEditorPanelProps> = ({
                   borderRadius: 8,
                   border: '1px solid #cbd5e1',
                   backgroundColor: '#f8fafc',
-                  fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                  fontFamily: "'Quicksand', sans-serif",
                   fontSize: '0.8125rem',
                   color: '#0f172a',
                   outline: 'none',
@@ -415,7 +438,7 @@ export const AdminAccessEditorPanel: FC<AdminAccessEditorPanelProps> = ({
                     borderRadius: 8,
                     border: `1px solid ${validationErrors.email ? '#ef4444' : '#cbd5e1'}`,
                     backgroundColor: '#f8fafc',
-                    fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                    fontFamily: "'Quicksand', sans-serif",
                     fontSize: '0.8125rem',
                     color: '#0f172a',
                     outline: 'none',
@@ -457,7 +480,7 @@ export const AdminAccessEditorPanel: FC<AdminAccessEditorPanelProps> = ({
                     borderRadius: 8,
                     border: `1px solid ${validationErrors.phone ? '#ef4444' : '#cbd5e1'}`,
                     backgroundColor: '#f8fafc',
-                    fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                    fontFamily: "'Quicksand', sans-serif",
                     fontSize: '0.8125rem',
                     color: '#0f172a',
                     outline: 'none',
@@ -648,7 +671,7 @@ export const AdminAccessEditorPanel: FC<AdminAccessEditorPanelProps> = ({
                   borderRadius: 8,
                   border: '1px solid #cbd5e1',
                   backgroundColor: '#f8fafc',
-                  fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                  fontFamily: "'Quicksand', sans-serif",
                   fontSize: '0.8125rem',
                   color: '#0f172a',
                   outline: 'none',
@@ -807,7 +830,7 @@ export const AdminAccessEditorPanel: FC<AdminAccessEditorPanelProps> = ({
                   borderRadius: 8,
                   border: `1px solid ${validationErrors.password ? '#ef4444' : '#cbd5e1'}`,
                   backgroundColor: '#f8fafc',
-                  fontFamily: showPassword ? "'Rethink Sans', 'Inter', sans-serif" : 'monospace',
+                  fontFamily: showPassword ? "'Quicksand', sans-serif" : 'monospace',
                   fontSize: '0.8125rem',
                   color: '#0f172a',
                   outline: 'none',
@@ -911,7 +934,7 @@ export const AdminAccessEditorPanel: FC<AdminAccessEditorPanelProps> = ({
                     border: `1px solid ${validationErrors.confirmPassword || isPasswordsMismatch ? '#ef4444' : '#cbd5e1'}`,
                     backgroundColor: '#f8fafc',
                     fontFamily: showConfirmPassword
-                      ? "'Rethink Sans', 'Inter', sans-serif"
+                      ? "'Quicksand', sans-serif"
                       : 'monospace',
                     fontSize: '0.8125rem',
                     color: '#0f172a',
@@ -1014,7 +1037,7 @@ export const AdminAccessEditorPanel: FC<AdminAccessEditorPanelProps> = ({
               borderRadius: 8,
               border: '1px solid #cbd5e1',
               backgroundColor: '#f8fafc',
-              fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+              fontFamily: "'Quicksand', sans-serif",
               fontSize: '0.8125rem',
               color: '#0f172a',
               outline: 'none',
@@ -1073,7 +1096,7 @@ export const AdminAccessEditorPanel: FC<AdminAccessEditorPanelProps> = ({
             borderRadius: '10px',
             background: 'linear-gradient(135deg, rgb(22, 163, 74) 0%, rgb(34, 197, 94) 100%)',
             color: '#ffffff',
-            fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+            fontFamily: "'Quicksand', sans-serif",
             fontSize: '0.875rem',
             fontWeight: 700,
             display: 'flex',

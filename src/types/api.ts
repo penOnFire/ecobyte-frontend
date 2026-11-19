@@ -76,12 +76,25 @@ export interface AngleUploadResult {
 
 export interface DamageAssessmentPayload {
   sessionId: string
+  deviceModel?: string
+  category?: string
+  workingStatus?: 'yes' | 'no' | 'not_sure'
   powersOn: boolean
   displayIntact: boolean
   portsWorking: boolean
   visibleDamage: string[]
+  otherDamage?: string
   missingParts: string[]
+  otherMissing?: string
   notes?: string
+}
+
+export interface ResidentNotificationItem {
+  id: string
+  type: string
+  message: string
+  isRead: boolean
+  createdAt: string
 }
 
 export interface SubsystemHealth {
@@ -103,6 +116,32 @@ export interface DiagnosticResult {
   hazardAlert: HazardAlert | null
   subsystems: SubsystemHealth[]
   recommendedRoute: 'REUSE' | 'DROP_OFF' | 'REPAIR'
+}
+
+export interface AssessedDeviceRecord {
+  assessmentId: string
+  itemId?: string
+  deviceTitle: string
+  category: string
+  hazardLevel: 'HIGH_HAZARD' | 'LOW_RISK'
+  hazardTitle: string
+  handlingRecommendation: string
+  assessedAt: string
+  confidenceScore?: number
+  images?: Array<{
+    id: string
+    url: string
+    angle?: string | null
+  }>
+  notes?: string
+  visibleDamage?: string[]
+  missingParts?: string[]
+  subsystems?: Array<{
+    name: string
+    status: string
+    score: number
+    details?: string
+  }>
 }
 
 // ── Drop-Off Hubs & Scheduling ──

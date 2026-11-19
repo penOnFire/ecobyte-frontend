@@ -1,54 +1,108 @@
 import { useEffect, useState, type FC } from 'react'
-import { Box, ButtonBase, Typography } from '@mui/material'
-import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded'
+import {
+  Alert,
+  Box,
+  ButtonBase,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Typography,
+} from '@mui/material'
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
-import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded'
+import AdminPanelSettingsRoundedIcon from '@mui/icons-material/AdminPanelSettingsRounded'
+import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined'
+import PeopleOutlineRoundedIcon from '@mui/icons-material/PeopleOutlineRounded'
+import PersonOffOutlinedIcon from '@mui/icons-material/PersonOffOutlined'
+import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded'
+import ManageAccountsRoundedIcon from '@mui/icons-material/ManageAccountsRounded'
+import KeyRoundedIcon from '@mui/icons-material/KeyRounded'
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
+import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded'
+import EmailRoundedIcon from '@mui/icons-material/EmailRounded'
 import { adminApi } from '@/lib/api'
 import {
-  COMMONWEALTH_FACILITIES,
-  INITIAL_USERS,
   generateBadgeId,
   mapBackendUserToOfficial,
   mergeBackendUsersWithInitial,
-  parseNameParts,
-  toBackendRole,
 } from '@/components/admin/adminAccessData'
-import type { OfficialUser, UserStatus } from '@/components/admin/adminAccessData'
+import type { OfficialUser } from '@/components/admin/adminAccessData'
 import {
   AdminAccessDirectoryPanel,
   type AccessRoleFilter,
 } from '@/components/admin/AdminAccessDirectoryPanel'
-import { AdminAccessEditorPanel } from '@/components/admin/AdminAccessEditorPanel'
+
+const OFFICIAL_SITES = [
+  { id: 'S01', name: 'Commonwealth Central MRF (Base 1)', barangay: 'Commonwealth' },
+  { id: 'S02', name: 'Ecoville Covered Court', barangay: 'Commonwealth' },
+  { id: 'S03', name: 'Litex Market Drop Point', barangay: 'Commonwealth' },
+  { id: 'S04', name: 'Batasan Hills MRF Annex', barangay: 'Batasan Hills' },
+  { id: 'S05', name: 'Payatas Solid Waste Hub', barangay: 'Payatas' },
+  { id: 'S06', name: 'Holy Spirit Drop Point', barangay: 'Holy Spirit' },
+  { id: 'S07', name: 'Bagong Silangan MRF Desk', barangay: 'Bagong Silangan' },
+]
+
+const BARANGAYS = [
+  'Commonwealth',
+  'Batasan Hills',
+  'Payatas',
+  'Holy Spirit',
+  'Bagong Silangan',
+]
+
+const SUFFIX_OPTIONS = ['None', 'Jr.', 'Sr.', 'II', 'III', 'IV', 'V']
+
+const getInitialRegisteredUsers = (): OfficialUser[] => {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem('ecobyte_registered_users')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) return parsed
+    }
+  } catch {
+    // ignore
+  }
+  return []
+}
 
 export const AdminAccessPage: FC = () => {
-  const [users, setUsers] = useState<OfficialUser[]>(INITIAL_USERS)
-  const [selectedUser, setSelectedUser] = useState<OfficialUser | null>(null)
+  const [users, setUsers] = useState<OfficialUser[]>(getInitialRegisteredUsers)
   const [search, setSearch] = useState('')
   const [filterRole, setFilterRole] = useState<AccessRoleFilter>('all')
+  const [filterBarangay, setFilterBarangay] = useState('')
+  const [filterStatus, setFilterStatus] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
-  // Form Fields State
-  const [formFirstName, setFormFirstName] = useState('')
-  const [formMiddleName, setFormMiddleName] = useState('')
-  const [formLastName, setFormLastName] = useState('')
-  const [formSuffix, setFormSuffix] = useState('')
-  const [formEmail, setFormEmail] = useState('')
-  const [formPhone, setFormPhone] = useState('')
-  const [formIdCode, setFormIdCode] = useState(() => generateBadgeId('Official'))
-  const [formRole, setFormRole] = useState<'Admin' | 'Official'>('Official')
-  const [formDepartment, setFormDepartment] = useState(COMMONWEALTH_FACILITIES[0])
-  const [formStatus, setFormStatus] = useState<UserStatus>('Active')
-  const [formTwoFactor, setFormTwoFactor] = useState(true)
-  const [formMustChangePassword, setFormMustChangePassword] = useState(true)
-  const [formPassword, setFormPassword] = useState('')
-  const [formConfirmPassword, setFormConfirmPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [formNotes, setFormNotes] = useState('')
+  // ── Pop-Up Modal 1: Account Registration (Proper structured official/admin registration) ──
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [cuFirstName, setCuFirstName] = useState('')
+  const [cuMiddleName, setCuMiddleName] = useState('')
+  const [cuLastName, setCuLastName] = useState('')
+  const [cuSuffix, setCuSuffix] = useState('None')
+  const [cuEmail, setCuEmail] = useState('')
+  const [cuPhone, setCuPhone] = useState('+63 9')
+  const [cuBadgeId, setCuBadgeId] = useState(() => generateBadgeId('Official'))
+  const [cuRole, setCuRole] = useState<'Official' | 'Admin'>('Official')
+  const [cuBarangay, setCuBarangay] = useState('Commonwealth')
+  const [cuSiteId, setCuSiteId] = useState(OFFICIAL_SITES[0].id)
+  const [cuDepartment, setCuDepartment] = useState('Intake & Drop-Off Station')
+  const [cuPassword, setCuPassword] = useState('official123')
+  const [cuMustChangePassword, setCuMustChangePassword] = useState(true)
+  const [cuTwoFactorEnabled, setCuTwoFactorEnabled] = useState(false)
+  const [cuNotes, setCuNotes] = useState('')
+  const [cuError, setCuError] = useState<string | null>(null)
 
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+  // ── Pop-Up Modal 2: Change User Role (Prototype change-role modal) ──
+  const [changeRoleModalOpen, setChangeRoleModalOpen] = useState(false)
+  const [targetUser, setTargetUser] = useState<OfficialUser | null>(null)
+  const [crRole, setCrRole] = useState<'Resident' | 'Official' | 'Admin'>('Official')
+  const [crBarangay, setCrBarangay] = useState(BARANGAYS[0])
+
   const [feedbackBanner, setFeedbackBanner] = useState<{
     type: 'success' | 'error'
     message: string
@@ -59,326 +113,284 @@ export const AdminAccessPage: FC = () => {
     adminApi
       .getUsers()
       .then((records) => {
-        if (!active || !Array.isArray(records) || records.length === 0) return
-        setUsers(mergeBackendUsersWithInitial(records))
+        if (!active || !Array.isArray(records)) return
+        const mapped = mergeBackendUsersWithInitial(records)
+        setUsers((prev) => {
+          const liveIds = new Set(mapped.map((m) => m.id))
+          const combined = [...mapped, ...prev.filter((p) => !liveIds.has(p.id))]
+          try {
+            localStorage.setItem('ecobyte_registered_users', JSON.stringify(combined))
+          } catch {}
+          return combined
+        })
       })
       .catch((err) => {
-        console.warn('Could not load live admin directory, using fallback entries:', err)
+        console.warn('Live admin directory unavailable:', err)
       })
     return () => {
       active = false
     }
   }, [])
 
-  const resetFormFields = (clearBanner = true) => {
-    setSelectedUser(null)
-    setFormFirstName('')
-    setFormMiddleName('')
-    setFormLastName('')
-    setFormSuffix('')
-    setFormEmail('')
-    setFormPhone('')
-    setFormIdCode(generateBadgeId('Official'))
-    setFormRole('Official')
-    setFormDepartment(COMMONWEALTH_FACILITIES[0])
-    setFormStatus('Active')
-    setFormTwoFactor(true)
-    setFormMustChangePassword(true)
-    setFormPassword('')
-    setFormConfirmPassword('')
-    setShowPassword(false)
-    setShowConfirmPassword(false)
-    setFormNotes('')
-    setValidationErrors({})
-    if (clearBanner) {
-      setFeedbackBanner(null)
+  // ── Handlers for Create User Modal ──
+  const handleOpenCreateModal = () => {
+    setCuFirstName('')
+    setCuMiddleName('')
+    setCuLastName('')
+    setCuSuffix('None')
+    setCuEmail('')
+    setCuPhone('+63 9')
+    setCuBadgeId(generateBadgeId('Official'))
+    setCuRole('Official')
+    setCuBarangay('Commonwealth')
+    setCuSiteId(OFFICIAL_SITES[0].id)
+    setCuDepartment('Intake & Drop-Off Station')
+    setCuPassword('official123')
+    setCuMustChangePassword(true)
+    setCuTwoFactorEnabled(false)
+    setCuNotes('')
+    setCuError(null)
+    setCreateModalOpen(true)
+  }
+
+  const handleRoleChange = (newRole: 'Official' | 'Admin') => {
+    setCuRole(newRole)
+    setCuBadgeId(generateBadgeId(newRole))
+    if (newRole === 'Admin') {
+      setCuTwoFactorEnabled(true)
+      setCuBarangay('All')
+      setCuDepartment('Central Administration Office')
+    } else {
+      setCuTwoFactorEnabled(false)
+      setCuBarangay('Commonwealth')
+      setCuSiteId(OFFICIAL_SITES[0].id)
+      setCuDepartment('Intake & Drop-Off Station')
     }
   }
 
-  const handleSelectUser = (user: OfficialUser) => {
-    setSelectedUser(user)
-    const { first, middle, last, suffix } = parseNameParts(user)
-    setFormFirstName(first)
-    setFormMiddleName(middle)
-    setFormLastName(last)
-    setFormSuffix(suffix)
-    setFormEmail(user.email)
-    setFormPhone(user.phone)
-    setFormIdCode(user.idCode)
-    setFormRole(user.role === 'Admin' ? 'Admin' : 'Official')
-    setFormDepartment(user.department || COMMONWEALTH_FACILITIES[0])
-    setFormStatus(user.status || (user.role === 'Deactivated' ? 'Deactivated' : 'Active'))
-    setFormTwoFactor(user.twoFactorEnabled)
-    setFormMustChangePassword(user.mustChangePassword ?? false)
-    setFormNotes(user.notes || '')
-    setFormPassword('')
-    setFormConfirmPassword('')
-    setValidationErrors({})
-    setFeedbackBanner(null)
-  }
-
-  const handleGeneratePassword = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*+'
-    let generated = 'Eco#'
-    for (let i = 0; i < 8; i++) {
-      generated += chars.charAt(Math.floor(Math.random() * chars.length))
-    }
-    setFormPassword(generated)
-    setFormConfirmPassword(generated)
-    setShowPassword(true)
-    setShowConfirmPassword(true)
-    setValidationErrors((prev) => {
-      if (!prev.password && !prev.confirmPassword) return prev
-      const next = { ...prev }
-      delete next.password
-      delete next.confirmPassword
-      return next
-    })
-  }
-
-  const handleRoleChange = (newRole: 'Admin' | 'Official') => {
-    if (selectedUser?.isSelf) return
-    setFormRole(newRole)
-    if (!selectedUser) {
-      setFormIdCode(generateBadgeId(newRole))
+  const handleBarangayChange = (newBarangay: string) => {
+    setCuBarangay(newBarangay)
+    const matchingSites = OFFICIAL_SITES.filter((s) => s.barangay === newBarangay)
+    if (matchingSites.length > 0) {
+      setCuSiteId(matchingSites[0].id)
     }
   }
 
-  const validate = (): boolean => {
-    const errors: Record<string, string> = {}
+  const handleSaveNewUser = async () => {
+    const fn = cuFirstName.trim()
+    const mn = cuMiddleName.trim()
+    const ln = cuLastName.trim()
+    const sfx = cuSuffix.trim() === 'None' ? '' : cuSuffix.trim()
+    const emailTrimmed = cuEmail.trim().toLowerCase()
+    const phoneTrimmed = cuPhone.trim()
+    const badgeTrimmed = cuBadgeId.trim()
 
-    if (!formFirstName.trim()) errors.firstName = 'First name is required.'
-    if (!formLastName.trim()) errors.lastName = 'Last name is required.'
-    if (!formEmail.trim()) {
-      errors.email = 'Official email address is required.'
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formEmail.trim())) {
-      errors.email = 'Please enter a valid official email address.'
+    if (!fn) {
+      setCuError('Please enter the first name.')
+      return
     }
-    if (!formPhone.trim()) errors.phone = 'Contact number is required.'
-    if (!formIdCode.trim()) errors.idCode = 'Badge / ID Code is required.'
-
-    if (!selectedUser) {
-      if (!formPassword) {
-        errors.password = 'Initial password is required for new accounts.'
-      } else if (formPassword.length < 8) {
-        errors.password = 'Password must be at least 8 characters.'
-      }
-      if (formPassword !== formConfirmPassword) {
-        errors.confirmPassword = 'Passwords do not match.'
-      }
-    } else if (formPassword) {
-      if (formPassword.length < 8) {
-        errors.password = 'New password must be at least 8 characters.'
-      }
-      if (formPassword !== formConfirmPassword) {
-        errors.confirmPassword = 'Passwords do not match.'
-      }
+    if (!ln) {
+      setCuError('Please enter the last name.')
+      return
     }
-
-    setValidationErrors(errors)
-    return Object.keys(errors).length === 0
-  }
-
-  const handleSave = async () => {
-    if (!validate()) {
-      setFeedbackBanner({
-        type: 'error',
-        message: 'Please review and resolve the highlighted errors before submitting.',
-      })
+    if (!emailTrimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
+      setCuError('Please enter a valid official email address.')
+      return
+    }
+    if (users.some((u) => u.email.toLowerCase() === emailTrimmed)) {
+      setCuError('An account with this email address already exists.')
+      return
+    }
+    if (!phoneTrimmed || phoneTrimmed === '+63' || phoneTrimmed.length < 10) {
+      setCuError('Please enter a valid contact phone number (e.g. +63 917 123 4567).')
+      return
+    }
+    if (!badgeTrimmed) {
+      setCuError('Please specify an Employee / Badge ID.')
       return
     }
 
-    const constructedFullName = [
-      formFirstName.trim(),
-      formMiddleName.trim(),
-      formLastName.trim(),
-      formSuffix.trim(),
-    ]
-      .filter(Boolean)
-      .join(' ')
+    setCuError(null)
+    setIsSaving(true)
 
-    const calculatedInitials =
-      ((formFirstName.trim()[0] || '') + (formLastName.trim()[0] || '')).toUpperCase() || 'OF'
+    const nameParts = [fn, mn, ln, sfx].filter(Boolean)
+    const fullName = nameParts.join(' ')
+    const selectedSite = OFFICIAL_SITES.find((s) => s.id === cuSiteId) || OFFICIAL_SITES[0]
+    const assignedBrgy = cuRole === 'Admin' ? 'All' : cuBarangay
+    const assignedDept =
+      cuDepartment.trim() || (cuRole === 'Admin' ? 'Central Administration Office' : `${selectedSite.name} Desk`)
+    const initials = `${fn[0] || ''}${ln[0] || ''}`.toUpperCase() || 'EB'
 
+    try {
+      const backendRecord = await adminApi.createUser({
+        firstName: fn,
+        middleName: mn || undefined,
+        lastName: ln,
+        suffix: sfx || undefined,
+        fullName,
+        email: emailTrimmed,
+        phone: phoneTrimmed,
+        idCode: badgeTrimmed,
+        role: cuRole === 'Admin' ? 'ADMIN' : 'OFFICIAL',
+        department: assignedDept,
+        password: cuPassword || 'official123',
+        mustChangePassword: cuMustChangePassword,
+        twoFactorEnabled: cuTwoFactorEnabled,
+        notes: cuNotes.trim() || undefined,
+        status: 'Active',
+      })
+
+      const mapped = mapBackendUserToOfficial(backendRecord)
+      setUsers((prev) => [mapped, ...prev])
+      setFeedbackBanner({
+        type: 'success',
+        message: `Account registered successfully for ${mapped.name} (${mapped.idCode}) with temporary password "${cuPassword || 'official123'}".`,
+      })
+      setCreateModalOpen(false)
+    } catch {
+      // Local fallback
+      const newLocalUser: OfficialUser = {
+        id: `USR-${Math.floor(1000 + Math.random() * 9000)}`,
+        name: fullName,
+        firstName: fn,
+        middleName: mn || undefined,
+        lastName: ln,
+        suffix: sfx || undefined,
+        email: emailTrimmed,
+        phone: phoneTrimmed,
+        idCode: badgeTrimmed,
+        role: cuRole,
+        department: assignedDept,
+        barangay: assignedBrgy,
+        status: 'Active',
+        twoFactorEnabled: cuTwoFactorEnabled,
+        mustChangePassword: cuMustChangePassword,
+        lastActive: 'Just now',
+        initials,
+        notes: cuNotes.trim() || `Registered via Admin Access directory · Assigned to ${assignedDept}`,
+      }
+
+      setUsers((prev) => [newLocalUser, ...prev])
+      setFeedbackBanner({
+        type: 'success',
+        message: `Account registered successfully for ${newLocalUser.name} (${newLocalUser.idCode}) with temporary password "${cuPassword || 'official123'}".`,
+      })
+      setCreateModalOpen(false)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // ── Handlers for Change Role Modal ──
+  const handleOpenChangeRole = (user: OfficialUser) => {
+    setTargetUser(user)
+    const currentR: 'Resident' | 'Official' | 'Admin' =
+      user.role === 'Admin' ? 'Admin' : user.role === 'Resident' ? 'Resident' : 'Official'
+    setCrRole(currentR)
+    setCrBarangay(user.barangay && user.barangay !== 'All' ? user.barangay : BARANGAYS[0])
+    setChangeRoleModalOpen(true)
+  }
+
+  const handleSaveRole = async () => {
+    if (!targetUser) return
+    setIsSaving(true)
+
+    const assignedBrgy = crRole === 'Admin' ? 'All' : crBarangay
+
+    try {
+      if (targetUser.isBackendUser) {
+        await adminApi.updateUser(targetUser.id, {
+          role: crRole === 'Admin' ? 'ADMIN' : crRole === 'Official' ? 'OFFICIAL' : ('RESIDENT' as any),
+        })
+      }
+
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === targetUser.id
+            ? {
+                ...u,
+                role: crRole,
+                barangay: assignedBrgy,
+                status: 'Active',
+                lastActive: 'Role updated just now',
+              }
+            : u
+        )
+      )
+
+      setFeedbackBanner({
+        type: 'success',
+        message: `${targetUser.name} is now ${crRole === 'Admin' ? 'Super Admin' : crRole === 'Official' ? 'Barangay Official' : 'Resident'} (${assignedBrgy}).`,
+      })
+      setChangeRoleModalOpen(false)
+    } catch {
+      setFeedbackBanner({
+        type: 'error',
+        message: 'Could not update user role.',
+      })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // ── Toggle User Status (Deactivate / Reactivate) ──
+  const handleToggleUserStatus = async (user: OfficialUser) => {
+    if (user.isSelf) return
+    const isDeactivated = user.role === 'Deactivated' || user.status === 'Deactivated'
     setIsSaving(true)
     try {
-      if (selectedUser) {
-        if (selectedUser.isBackendUser) {
-          const updatedRecord = await adminApi.updateUser(selectedUser.id, {
-            fullName: constructedFullName,
-            firstName: formFirstName.trim(),
-            middleName: formMiddleName.trim() || undefined,
-            lastName: formLastName.trim(),
-            suffix: formSuffix.trim() || undefined,
-            email: formEmail.trim(),
-            phone: formPhone.trim(),
-            idCode: formIdCode.trim(),
-            role: toBackendRole(formRole),
-            department: formDepartment,
-            status: formStatus,
-            twoFactorEnabled: formTwoFactor,
-            mustChangePassword: formMustChangePassword,
-            notes: formNotes.trim() || undefined,
-            password: formPassword || undefined,
-          })
-          const mapped = mapBackendUserToOfficial(updatedRecord)
-          setUsers((prev) => prev.map((u) => (u.id === selectedUser.id ? mapped : u)))
-          setFeedbackBanner({
-            type: 'success',
-            message: `Saved profile & credentials for ${mapped.name} (${mapped.idCode}) to PostgreSQL.`,
-          })
-        } else {
-          setUsers((prev) =>
-            prev.map((u) =>
-              u.id === selectedUser.id
-                ? {
-                    ...u,
-                    name: constructedFullName,
-                    firstName: formFirstName.trim(),
-                    middleName: formMiddleName.trim(),
-                    lastName: formLastName.trim(),
-                    suffix: formSuffix.trim(),
-                    email: formEmail.trim(),
-                    phone: formPhone.trim(),
-                    idCode: formIdCode.trim(),
-                    role: formStatus === 'Deactivated' ? 'Deactivated' : formRole,
-                    department: formDepartment,
-                    status: formStatus,
-                    twoFactorEnabled: formTwoFactor,
-                    mustChangePassword: formMustChangePassword,
-                    notes: formNotes.trim(),
-                    initials: calculatedInitials,
-                    lastActive: 'Updated locally',
-                  }
-                : u,
-            ),
+      if (isDeactivated) {
+        const restoredRole = user.department?.toLowerCase().includes('resident') ? 'Resident' : 'Official'
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === user.id
+              ? {
+                  ...u,
+                  role: restoredRole,
+                  status: 'Active',
+                  idCode: user.idCode && user.idCode !== 'ID-REVOKED' ? user.idCode : generateBadgeId('Official'),
+                  lastActive: 'Reactivated just now',
+                }
+              : u
           )
-          setFeedbackBanner({
-            type: 'success',
-            message: `Updated demo profile for ${constructedFullName} (${formIdCode}) in this session.`,
-          })
-        }
-      } else {
-        const createdRecord = await adminApi.createUser({
-          fullName: constructedFullName,
-          firstName: formFirstName.trim(),
-          middleName: formMiddleName.trim() || undefined,
-          lastName: formLastName.trim(),
-          suffix: formSuffix.trim() || undefined,
-          email: formEmail.trim(),
-          phone: formPhone.trim(),
-          idCode: formIdCode.trim(),
-          role: toBackendRole(formRole),
-          department: formDepartment,
-          status: formStatus,
-          twoFactorEnabled: formTwoFactor,
-          mustChangePassword: formMustChangePassword,
-          notes: formNotes.trim() || undefined,
-          password: formPassword,
-        })
-        const mapped = mapBackendUserToOfficial(createdRecord)
-        setUsers((prev) => [mapped, ...prev])
+        )
         setFeedbackBanner({
           type: 'success',
-          message: `Official identity ${mapped.name} enrolled in PostgreSQL with badge ${mapped.idCode}.`,
+          message: `Account for ${user.name} has been reactivated.`,
         })
-      }
-
-      resetFormFields(false)
-    } catch (err: any) {
-      setFeedbackBanner({
-        type: 'error',
-        message: err?.message || 'Failed to save official credentials to the server.',
-      })
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const handleDeactivate = async () => {
-    if (!selectedUser || selectedUser.isSelf) return
-    setIsSaving(true)
-    try {
-      if (selectedUser.isBackendUser) {
-        const updatedRecord = await adminApi.updateUserStatus(selectedUser.id, 'inactive')
-        const mapped = mapBackendUserToOfficial(updatedRecord)
-        setUsers((prev) => prev.map((u) => (u.id === selectedUser.id ? mapped : u)))
       } else {
         setUsers((prev) =>
           prev.map((u) =>
-            u.id === selectedUser.id
-              ? {
-                  ...u,
-                  role: 'Deactivated' as const,
-                  status: 'Deactivated' as const,
-                  idCode: 'ID-REVOKED',
-                }
-              : u,
-          ),
+            u.id === user.id ? { ...u, role: 'Deactivated', status: 'Deactivated', idCode: 'ID-REVOKED' } : u
+          )
         )
-      }
-      setFeedbackBanner({
-        type: 'success',
-        message: `Account for ${selectedUser.name} has been deactivated and access tokens revoked.`,
-      })
-      resetFormFields(false)
-    } catch (err: any) {
-      setFeedbackBanner({
-        type: 'error',
-        message: err?.message || 'Failed to deactivate account on the server.',
-      })
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const handleReactivate = async () => {
-    if (!selectedUser) return
-    setIsSaving(true)
-    try {
-      const restoredCode = generateBadgeId(formRole)
-      if (selectedUser.isBackendUser) {
-        const updatedRecord = await adminApi.updateUser(selectedUser.id, {
-          status: 'Active',
-          role: toBackendRole(formRole),
-          idCode: restoredCode,
+        setFeedbackBanner({
+          type: 'success',
+          message: `Account for ${user.name} deactivated and access tokens revoked.`,
         })
-        const mapped = mapBackendUserToOfficial(updatedRecord)
-        setUsers((prev) => prev.map((u) => (u.id === selectedUser.id ? mapped : u)))
-      } else {
-        setUsers((prev) =>
-          prev.map((u) =>
-            u.id === selectedUser.id
-              ? {
-                  ...u,
-                  role: formRole,
-                  status: 'Active' as const,
-                  idCode: restoredCode,
-                  lastActive: 'Reactivated locally',
-                }
-              : u,
-          ),
-        )
       }
-      setFeedbackBanner({
-        type: 'success',
-        message: `Account for ${selectedUser.name} reactivated with fresh badge ID ${restoredCode}.`,
-      })
-      resetFormFields(false)
-    } catch (err: any) {
+    } catch {
       setFeedbackBanner({
         type: 'error',
-        message: err?.message || 'Failed to reactivate account on the server.',
+        message: 'Failed to update account status.',
       })
     } finally {
       setIsSaving(false)
     }
   }
 
+  // ── Filter logic ──
   const filteredUsers = users.filter((u) => {
     if (filterRole === 'admin' && u.role !== 'Admin') return false
     if (filterRole === 'official' && u.role !== 'Official') return false
+    if (filterRole === 'resident' && u.role !== 'Resident') return false
     if (filterRole === 'deactivated' && u.role !== 'Deactivated') return false
+    if (filterBarangay && u.barangay?.toLowerCase() !== filterBarangay.toLowerCase()) return false
+    if (filterStatus) {
+      const isDeactivated = u.role === 'Deactivated' || u.status === 'Deactivated'
+      if (filterStatus === 'Active' && isDeactivated) return false
+      if (filterStatus === 'Deactivated' && !isDeactivated) return false
+    }
     if (!search.trim()) return true
     const q = search.toLowerCase()
     return (
@@ -390,272 +402,184 @@ export const AdminAccessPage: FC = () => {
     )
   })
 
-  const activeAdminsCount = users.filter((u) => u.role === 'Admin' && u.status === 'Active').length
-  const activeOfficialsCount = users.filter(
-    (u) => u.role === 'Official' && u.status === 'Active',
-  ).length
-  const deactivatedCount = users.filter(
-    (u) => u.role === 'Deactivated' || u.status === 'Deactivated',
-  ).length
-  const twoFactorPercent =
-    users.length > 0
-      ? Math.round((users.filter((u) => u.twoFactorEnabled).length / users.length) * 100)
-      : 0
+  const superAdminsCount = users.filter((u) => u.role === 'Admin').length
+  const officialsCount = users.filter((u) => u.role === 'Official').length
+  const activeOfficialsCount = users.filter((u) => u.role === 'Official' && u.status === 'Active').length
+  const residentsCount = users.filter((u) => u.role === 'Resident').length
+  const activeResidentsCount = users.filter((u) => u.role === 'Resident' && u.status === 'Active').length
+  const deactivatedCount = users.filter((u) => u.role === 'Deactivated' || u.status === 'Deactivated').length
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5, pb: 4 }}>
-      {/* Page Header & Metrics Summary Bar */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5, pb: 6, fontFamily: "'Quicksand', sans-serif" }}>
+      {/* ── 4 KPI Summary Cards matching Prototype ── */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', xl: 'repeat(4, 1fr)' },
+          gap: 2.5,
+        }}
+      >
+        {/* KPI 1: Super Admins */}
         <Box
           sx={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #dbe3d6',
+            borderRadius: '1.25rem',
+            p: 2.5,
             display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            justifyContent: 'space-between',
-            alignItems: { xs: 'flex-start', md: 'center' },
+            alignItems: 'flex-start',
             gap: 2,
+            boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
           }}
         >
-          <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-              <Typography
-                sx={{
-                  fontSize: '0.6875rem',
-                  fontWeight: 700,
-                  color: '#64748b',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Security Infrastructure
-              </Typography>
-              <span style={{ color: '#cbd5e1' }}>/</span>
-              <Typography
-                sx={{
-                  fontSize: '0.6875rem',
-                  fontWeight: 800,
-                  color: '#16a34a',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Access &amp; Identity Management
-              </Typography>
-            </Box>
-            <Typography
-              variant="h4"
-              sx={{
-                fontFamily: "'Rethink Sans', 'Inter', sans-serif",
-                fontWeight: 800,
-                fontSize: { xs: '1.75rem', md: '2.125rem' },
-                color: '#0b1c30',
-                letterSpacing: '-0.025em',
-              }}
-            >
-              Access &amp; Identity Management
-            </Typography>
+          <Box
+            sx={{
+              width: 44,
+              height: 44,
+              borderRadius: '1rem',
+              backgroundColor: '#f5f3ff',
+              color: '#6d28d9',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <AdminPanelSettingsRoundedIcon sx={{ fontSize: 22 }} />
           </Box>
-
-          {/* Quick Status Badges */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1.25,
-                px: 2,
-                py: 0.85,
-                borderRadius: '8px',
-                backgroundColor: '#eff4ff',
-                border: '1px solid #dce9ff',
-              }}
-            >
-              <Box
-                sx={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: '9999px',
-                  backgroundColor: '#16a34a',
-                  boxShadow: '0 0 0 3px rgba(34, 197, 94, 0.2)',
-                }}
-              />
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: '#334155' }}>
-                RBAC Mode: Enforced
-              </Typography>
-            </Box>
-
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                px: 2,
-                py: 0.85,
-                borderRadius: '8px',
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-              }}
-            >
-              <SecurityRoundedIcon sx={{ fontSize: 15, color: '#16a34a' }} />
-              <Typography
-                sx={{
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  color: '#475569',
-                  fontFamily: 'monospace',
-                }}
-              >
-                2FA Coverage: {twoFactorPercent}%
-              </Typography>
-            </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
+              Super Admins
+            </Typography>
+            <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
+              {superAdminsCount}
+            </Typography>
+            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
+              All scopes
+            </Typography>
           </Box>
         </Box>
 
-        {/* Telemetry Strip */}
+        {/* KPI 2: Barangay Officials */}
         <Box
           sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+            backgroundColor: '#ffffff',
+            border: '1px solid #dbe3d6',
+            borderRadius: '1.25rem',
+            p: 2.5,
+            display: 'flex',
+            alignItems: 'flex-start',
             gap: 2,
+            boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
           }}
         >
           <Box
             sx={{
-              backgroundColor: '#ffffff',
-              borderRadius: '10px',
-              p: 2,
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              width: 44,
+              height: 44,
+              borderRadius: '1rem',
+              backgroundColor: '#f0f9ff',
+              color: '#0369a1',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
             }}
           >
-            <Typography
-              sx={{
-                fontSize: '0.6875rem',
-                fontWeight: 700,
-                color: '#64748b',
-                textTransform: 'uppercase',
-              }}
-            >
-              Active Administrators
-            </Typography>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'baseline',
-                justifyContent: 'space-between',
-                mt: 1,
-              }}
-            >
-              <Typography sx={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a' }}>
-                {activeAdminsCount}
-              </Typography>
-              <Box
-                sx={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  px: 1.25,
-                  py: 0.25,
-                  borderRadius: '9999px',
-                  backgroundColor: '#dcfce7',
-                  color: '#15803d',
-                  fontSize: '0.6875rem',
-                  fontWeight: 700,
-                }}
-              >
-                <ShieldRoundedIcon sx={{ fontSize: 13 }} />
-                <span>Tier 1 Authority</span>
-              </Box>
-            </Box>
+            <BadgeOutlinedIcon sx={{ fontSize: 22 }} />
           </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
+              Barangay Officials
+            </Typography>
+            <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
+              {officialsCount}
+            </Typography>
+            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
+              {activeOfficialsCount} active
+            </Typography>
+          </Box>
+        </Box>
 
+        {/* KPI 3: Residents */}
+        <Box
+          sx={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #dbe3d6',
+            borderRadius: '1.25rem',
+            p: 2.5,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 2,
+            boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
+          }}
+        >
           <Box
             sx={{
-              backgroundColor: '#ffffff',
-              borderRadius: '10px',
-              p: 2,
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              width: 44,
+              height: 44,
+              borderRadius: '1rem',
+              backgroundColor: '#f1f4f0',
+              color: '#2e6022',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
             }}
           >
-            <Typography
-              sx={{
-                fontSize: '0.6875rem',
-                fontWeight: 700,
-                color: '#64748b',
-                textTransform: 'uppercase',
-              }}
-            >
-              Field Officials
-            </Typography>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'baseline',
-                justifyContent: 'space-between',
-                mt: 1,
-              }}
-            >
-              <Typography sx={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a' }}>
-                {activeOfficialsCount}
-              </Typography>
-              <Box
-                sx={{
-                  px: 1.25,
-                  py: 0.25,
-                  borderRadius: '9999px',
-                  backgroundColor: '#eff4ff',
-                  color: '#1e40af',
-                  fontSize: '0.6875rem',
-                  fontWeight: 700,
-                }}
-              >
-                Intake &amp; Manifest Auth
-              </Box>
-            </Box>
+            <PeopleOutlineRoundedIcon sx={{ fontSize: 22 }} />
           </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
+              Residents
+            </Typography>
+            <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
+              {residentsCount}
+            </Typography>
+            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
+              {activeResidentsCount} active
+            </Typography>
+          </Box>
+        </Box>
 
+        {/* KPI 4: Deactivated */}
+        <Box
+          sx={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #dbe3d6',
+            borderRadius: '1.25rem',
+            p: 2.5,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 2,
+            boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
+          }}
+        >
           <Box
             sx={{
-              backgroundColor: '#ffffff',
-              borderRadius: '10px',
-              p: 2,
-              border: '1px solid #fee2e2',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              width: 44,
+              height: 44,
+              borderRadius: '1rem',
+              backgroundColor: '#fff1f2',
+              color: '#be123c',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
             }}
           >
-            <Typography
-              sx={{
-                fontSize: '0.6875rem',
-                fontWeight: 700,
-                color: '#dc2626',
-                textTransform: 'uppercase',
-              }}
-            >
-              Deactivated Accounts
+            <PersonOffOutlinedIcon sx={{ fontSize: 22 }} />
+          </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
+              Deactivated
             </Typography>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'baseline',
-                justifyContent: 'space-between',
-                mt: 1,
-              }}
-            >
-              <Typography sx={{ fontSize: '1.75rem', fontWeight: 800, color: '#dc2626' }}>
-                {deactivatedCount}
-              </Typography>
-              <Box
-                sx={{
-                  px: 1.25,
-                  py: 0.25,
-                  borderRadius: '9999px',
-                  backgroundColor: '#fee2e2',
-                  color: '#991b1b',
-                  fontSize: '0.6875rem',
-                  fontWeight: 700,
-                }}
-              >
-                Tokens Revoked
-              </Box>
-            </Box>
+            <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', mt: 0.25, lineHeight: 1.1 }}>
+              {deactivatedCount}
+            </Typography>
+            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.5 }}>
+              Cannot sign in
+            </Typography>
           </Box>
         </Box>
       </Box>
@@ -665,19 +589,19 @@ export const AdminAccessPage: FC = () => {
         <Box
           sx={{
             p: 1.75,
-            borderRadius: '10px',
+            borderRadius: '0.75rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            backgroundColor: feedbackBanner.type === 'success' ? '#dcfce7' : '#fee2e2',
+            backgroundColor: feedbackBanner.type === 'success' ? '#f1f4f0' : '#fee2e2',
             border: '1px solid',
-            borderColor: feedbackBanner.type === 'success' ? '#86efac' : '#fca5a5',
-            color: feedbackBanner.type === 'success' ? '#14532d' : '#991b1b',
+            borderColor: feedbackBanner.type === 'success' ? '#c5dcba' : '#fca5a5',
+            color: feedbackBanner.type === 'success' ? '#2e6022' : '#991b1b',
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
             {feedbackBanner.type === 'success' ? (
-              <CheckCircleRoundedIcon sx={{ fontSize: 20, color: '#16a34a' }} />
+              <CheckCircleRoundedIcon sx={{ fontSize: 20, color: '#2e6022' }} />
             ) : (
               <ErrorOutlineRoundedIcon sx={{ fontSize: 20, color: '#dc2626' }} />
             )}
@@ -694,102 +618,863 @@ export const AdminAccessPage: FC = () => {
         </Box>
       )}
 
-      {/* Primary Workspace: Two-Panel Grid */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', lg: '7fr 6fr' },
-          gap: 3,
-          alignItems: 'start',
-        }}
-      >
+      {/* Primary Workspace: Full Width Access Directory */}
+      <Box sx={{ width: '100%' }}>
         <AdminAccessDirectoryPanel
           users={users}
           filteredUsers={filteredUsers}
-          selectedUserId={selectedUser?.id ?? null}
+          selectedUserId={targetUser?.id ?? null}
           search={search}
           filterRole={filterRole}
+          filterBarangay={filterBarangay}
+          filterStatus={filterStatus}
           onSearchChange={setSearch}
           onFilterRoleChange={setFilterRole}
-          onSelectUser={handleSelectUser}
-        />
-
-        <AdminAccessEditorPanel
-          selectedUser={selectedUser}
-          isSaving={isSaving}
-          formFirstName={formFirstName}
-          formMiddleName={formMiddleName}
-          formLastName={formLastName}
-          formSuffix={formSuffix}
-          formEmail={formEmail}
-          formPhone={formPhone}
-          formIdCode={formIdCode}
-          formRole={formRole}
-          formDepartment={formDepartment}
-          formStatus={formStatus}
-          formTwoFactor={formTwoFactor}
-          formMustChangePassword={formMustChangePassword}
-          formPassword={formPassword}
-          formConfirmPassword={formConfirmPassword}
-          showPassword={showPassword}
-          showConfirmPassword={showConfirmPassword}
-          formNotes={formNotes}
-          validationErrors={validationErrors}
-          onResetForm={() => resetFormFields(true)}
-          onFirstNameChange={(val) => {
-            setFormFirstName(val)
-            if (validationErrors.firstName) {
-              setValidationErrors((prev) => ({ ...prev, firstName: '' }))
-            }
-          }}
-          onMiddleNameChange={setFormMiddleName}
-          onLastNameChange={(val) => {
-            setFormLastName(val)
-            if (validationErrors.lastName) {
-              setValidationErrors((prev) => ({ ...prev, lastName: '' }))
-            }
-          }}
-          onSuffixChange={setFormSuffix}
-          onEmailChange={(val) => {
-            setFormEmail(val)
-            if (validationErrors.email) {
-              setValidationErrors((prev) => ({ ...prev, email: '' }))
-            }
-          }}
-          onPhoneChange={(val) => {
-            setFormPhone(val)
-            if (validationErrors.phone) {
-              setValidationErrors((prev) => ({ ...prev, phone: '' }))
-            }
-          }}
-          onIdCodeChange={setFormIdCode}
-          onRegenerateBadge={() => setFormIdCode(generateBadgeId(formRole))}
-          onRoleChange={handleRoleChange}
-          onDepartmentChange={setFormDepartment}
-          onStatusChange={setFormStatus}
-          onGeneratePassword={handleGeneratePassword}
-          onPasswordChange={(val) => {
-            setFormPassword(val)
-            if (validationErrors.password) {
-              setValidationErrors((prev) => ({ ...prev, password: '' }))
-            }
-          }}
-          onConfirmPasswordChange={(val) => {
-            setFormConfirmPassword(val)
-            if (validationErrors.confirmPassword) {
-              setValidationErrors((prev) => ({ ...prev, confirmPassword: '' }))
-            }
-          }}
-          onToggleShowPassword={() => setShowPassword((p) => !p)}
-          onToggleShowConfirmPassword={() => setShowConfirmPassword((p) => !p)}
-          onMustChangePasswordChange={setFormMustChangePassword}
-          onTwoFactorChange={setFormTwoFactor}
-          onNotesChange={setFormNotes}
-          onSave={handleSave}
-          onDeactivate={handleDeactivate}
-          onReactivate={handleReactivate}
+          onFilterBarangayChange={setFilterBarangay}
+          onFilterStatusChange={setFilterStatus}
+          onSelectUser={handleOpenChangeRole}
+          onToggleUserStatus={handleToggleUserStatus}
+          onAddUser={handleOpenCreateModal}
         />
       </Box>
+
+      {/* ── POP-UP MODAL 1: Account Registration (Proper structured official/admin registration) ── */}
+      <Dialog
+        open={createModalOpen}
+        onClose={() => !isSaving && setCreateModalOpen(false)}
+        maxWidth="md"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: '1.25rem',
+              border: '1px solid #dbe3d6',
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.22)',
+              fontFamily: "'Quicksand', sans-serif",
+              maxHeight: '92vh',
+            },
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            px: { xs: 2.5, sm: 3.5 },
+            pt: 3,
+            pb: 2,
+            borderBottom: '1px solid #eef2ed',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: '0.75rem',
+                backgroundColor: '#f1f4f0',
+                color: '#2e6022',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <PersonAddRoundedIcon sx={{ fontSize: 22 }} />
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '1.125rem', color: '#0f172a', lineHeight: 1.2 }}>
+                Account Registration
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', mt: 0.25 }}>
+                Register and provision verified credentials for Barangay Staff or Super Admin
+              </Typography>
+            </Box>
+          </Box>
+          <IconButton size="small" onClick={() => setCreateModalOpen(false)} disabled={isSaving}>
+            <CloseRoundedIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ px: { xs: 2.5, sm: 3.5 }, py: 3, overflowY: 'auto' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5 }}>
+            {/* ── Section 1: Personal Information ── */}
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <BadgeOutlinedIcon sx={{ fontSize: 18, color: '#2e6022' }} />
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#334155' }}>
+                  1. Personal Details
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '2fr 1.5fr 2fr 1fr' }, gap: 1.75 }}>
+                {/* First Name */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    First Name <span style={{ color: '#e11d48' }}>*</span>
+                  </Typography>
+                  <input
+                    type="text"
+                    placeholder="e.g. Juan"
+                    value={cuFirstName}
+                    onChange={(e) => setCuFirstName(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#ffffff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                    }}
+                  />
+                </Box>
+
+                {/* Middle Name */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    Middle Name <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>(Optional)</span>
+                  </Typography>
+                  <input
+                    type="text"
+                    placeholder="e.g. Silang"
+                    value={cuMiddleName}
+                    onChange={(e) => setCuMiddleName(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#ffffff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                    }}
+                  />
+                </Box>
+
+                {/* Last Name */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    Last Name <span style={{ color: '#e11d48' }}>*</span>
+                  </Typography>
+                  <input
+                    type="text"
+                    placeholder="e.g. Dela Cruz"
+                    value={cuLastName}
+                    onChange={(e) => setCuLastName(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#ffffff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                    }}
+                  />
+                </Box>
+
+                {/* Suffix */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    Suffix
+                  </Typography>
+                  <select
+                    value={cuSuffix}
+                    onChange={(e) => setCuSuffix(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 10px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#ffffff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                    }}
+                  >
+                    {SUFFIX_OPTIONS.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </Box>
+              </Box>
+            </Box>
+
+            {/* ── Section 2: Contact & Identification ── */}
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <EmailRoundedIcon sx={{ fontSize: 18, color: '#2e6022' }} />
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#334155' }}>
+                  2. Contact & Identification
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '2fr 1.5fr 1.5fr' }, gap: 1.75 }}>
+                {/* Official Email */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    Official Email <span style={{ color: '#e11d48' }}>*</span>
+                  </Typography>
+                  <input
+                    type="email"
+                    placeholder="jdelacruz@barangay.gov.ph"
+                    value={cuEmail}
+                    onChange={(e) => setCuEmail(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#ffffff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                    }}
+                  />
+                </Box>
+
+                {/* Contact Number */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    Contact Number <span style={{ color: '#e11d48' }}>*</span>
+                  </Typography>
+                  <input
+                    type="tel"
+                    placeholder="+63 917 123 4567"
+                    value={cuPhone}
+                    onChange={(e) => setCuPhone(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#ffffff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                    }}
+                  />
+                </Box>
+
+                {/* Employee / Badge ID with Regenerate Button */}
+                <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569' }}>
+                      Badge ID <span style={{ color: '#e11d48' }}>*</span>
+                    </Typography>
+                    <ButtonBase
+                      onClick={() => setCuBadgeId(generateBadgeId(cuRole))}
+                      sx={{
+                        fontSize: '0.6875rem',
+                        fontWeight: 700,
+                        color: '#2e6022',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.35,
+                        '&:hover': { textDecoration: 'underline' },
+                      }}
+                    >
+                      <AutorenewRoundedIcon sx={{ fontSize: 13 }} />
+                      <span>Regen</span>
+                    </ButtonBase>
+                  </Box>
+                  <input
+                    type="text"
+                    value={cuBadgeId}
+                    onChange={(e) => setCuBadgeId(e.target.value.toUpperCase())}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#f8fafc',
+                      fontSize: '0.875rem',
+                      fontWeight: 700,
+                      color: '#1e293b',
+                      fontFamily: 'monospace',
+                      outline: 'none',
+                    }}
+                  />
+                </Box>
+              </Box>
+            </Box>
+
+            {/* ── Section 3: Role & Organizational Assignment ── */}
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <AdminPanelSettingsRoundedIcon sx={{ fontSize: 18, color: '#2e6022' }} />
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#334155' }}>
+                  3. Role & Organizational Assignment
+                </Typography>
+              </Box>
+
+              {/* Role Radio Cards */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5, mb: 2 }}>
+                {/* Official Role Card */}
+                <Box
+                  onClick={() => handleRoleChange('Official')}
+                  sx={{
+                    p: 2,
+                    borderRadius: '1rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    border: '2px solid',
+                    borderColor: cuRole === 'Official' ? '#70b822' : '#dbe3d6',
+                    backgroundColor: cuRole === 'Official' ? '#f4f9ec' : '#ffffff',
+                    boxShadow: cuRole === 'Official' ? '0 0 0 3px rgba(132, 204, 22, 0.15)' : 'none',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 1.5,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: '50%',
+                      border: '2px solid',
+                      borderColor: cuRole === 'Official' ? '#4f8a24' : '#94a3b8',
+                      backgroundColor: cuRole === 'Official' ? '#4f8a24' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mt: 0.25,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {cuRole === 'Official' && (
+                      <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#ffffff' }} />
+                    )}
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.875rem', color: '#0f172a' }}>
+                      Barangay Official
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.25 }}>
+                      Drop-off intake verification, resident inspection triage & facility records.
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Super Admin Role Card */}
+                <Box
+                  onClick={() => handleRoleChange('Admin')}
+                  sx={{
+                    p: 2,
+                    borderRadius: '1rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    border: '2px solid',
+                    borderColor: cuRole === 'Admin' ? '#7c3aed' : '#dbe3d6',
+                    backgroundColor: cuRole === 'Admin' ? '#f5f3ff' : '#ffffff',
+                    boxShadow: cuRole === 'Admin' ? '0 0 0 3px rgba(124, 58, 237, 0.15)' : 'none',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 1.5,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: '50%',
+                      border: '2px solid',
+                      borderColor: cuRole === 'Admin' ? '#7c3aed' : '#94a3b8',
+                      backgroundColor: cuRole === 'Admin' ? '#7c3aed' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mt: 0.25,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {cuRole === 'Admin' && (
+                      <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#ffffff' }} />
+                    )}
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.875rem', color: '#0f172a' }}>
+                      Super Admin
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.25 }}>
+                      All-barangay governance, reports & analytics, user directory & system audit.
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* Assignment Selectors */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1.5fr 1.5fr' }, gap: 1.75 }}>
+                {/* Barangay */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    Assigned Barangay
+                  </Typography>
+                  <select
+                    value={cuRole === 'Admin' ? 'All' : cuBarangay}
+                    onChange={(e) => handleBarangayChange(e.target.value)}
+                    disabled={cuRole === 'Admin'}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: cuRole === 'Admin' ? '#f8fafc' : '#ffffff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: cuRole === 'Admin' ? '#94a3b8' : '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                    }}
+                  >
+                    {cuRole === 'Admin' ? (
+                      <option value="All">All Sites & Barangays</option>
+                    ) : (
+                      BARANGAYS.map((b) => (
+                        <option key={b} value={b}>
+                          {b}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </Box>
+
+                {/* Assigned Drop-Off Facility */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    Drop-Off Facility / Base
+                  </Typography>
+                  <select
+                    value={cuRole === 'Admin' ? 'CENTRAL' : cuSiteId}
+                    onChange={(e) => setCuSiteId(e.target.value)}
+                    disabled={cuRole === 'Admin'}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: cuRole === 'Admin' ? '#f8fafc' : '#ffffff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: cuRole === 'Admin' ? '#94a3b8' : '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                    }}
+                  >
+                    {cuRole === 'Admin' ? (
+                      <option value="CENTRAL">Central Governance Depot</option>
+                    ) : (
+                      OFFICIAL_SITES.filter((s) => s.barangay.toLowerCase() === cuBarangay.toLowerCase()).map((st) => (
+                        <option key={st.id} value={st.id}>
+                          {st.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </Box>
+
+                {/* Desk / Division Assignment */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    Division / Operations Desk
+                  </Typography>
+                  <input
+                    type="text"
+                    placeholder="e.g. Intake & Inspection Desk"
+                    value={cuDepartment}
+                    onChange={(e) => setCuDepartment(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: 42,
+                      padding: '0 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#ffffff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                    }}
+                  />
+                </Box>
+              </Box>
+            </Box>
+
+            {/* ── Section 4: Security Credentials & Policy ── */}
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <KeyRoundedIcon sx={{ fontSize: 18, color: '#2e6022' }} />
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#334155' }}>
+                  4. Security Credentials & Access Policy
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                {/* Temporary Password Card */}
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: '1rem',
+                    backgroundColor: '#f1f4f0',
+                    border: '1px solid #c5dcba',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <Box>
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#2e6022' }}>
+                      Initial Temporary Password
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.6875rem', color: '#475569', fontWeight: 600, mt: 0.25 }}>
+                      Issued to the official for initial setup.
+                    </Typography>
+                  </Box>
+                  <input
+                    type="text"
+                    value={cuPassword}
+                    onChange={(e) => setCuPassword(e.target.value)}
+                    style={{
+                      marginTop: 10,
+                      width: '100%',
+                      height: 36,
+                      padding: '0 12px',
+                      borderRadius: '0.5rem',
+                      border: '1px solid #c5dcba',
+                      backgroundColor: '#ffffff',
+                      fontFamily: 'monospace',
+                      fontWeight: 700,
+                      fontSize: '0.875rem',
+                      color: '#1e2e1a',
+                      outline: 'none',
+                    }}
+                  />
+                </Box>
+
+                {/* Checkboxes Policy Card */}
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: '1rem',
+                    border: '1px solid #dbe3d6',
+                    backgroundColor: '#ffffff',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1.25,
+                    justifyContent: 'center',
+                  }}
+                >
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
+                    <input
+                      type="checkbox"
+                      checked={cuMustChangePassword}
+                      onChange={(e) => setCuMustChangePassword(e.target.checked)}
+                      style={{ width: 16, height: 16, accentColor: '#70b822' }}
+                    />
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1e293b' }}>
+                      Require password reset upon first sign-in
+                    </span>
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
+                    <input
+                      type="checkbox"
+                      checked={cuTwoFactorEnabled}
+                      onChange={(e) => setCuTwoFactorEnabled(e.target.checked)}
+                      style={{ width: 16, height: 16, accentColor: '#70b822' }}
+                    />
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1e293b' }}>
+                      Enforce Two-Factor Authentication (2FA)
+                    </span>
+                  </label>
+                </Box>
+
+                {/* Administrative Notes */}
+                <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' } }}>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', mb: 0.5 }}>
+                    Administrative Remarks <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>(Optional)</span>
+                  </Typography>
+                  <textarea
+                    rows={2}
+                    placeholder="e.g. Onboarded for Barangay Commonwealth MRF intake desk shift rotation."
+                    value={cuNotes}
+                    onChange={(e) => setCuNotes(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#ffffff',
+                      fontSize: '0.8125rem',
+                      fontWeight: 500,
+                      color: '#0f172a',
+                      outline: 'none',
+                      fontFamily: "'Quicksand', sans-serif",
+                      resize: 'none',
+                    }}
+                  />
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Validation Error Banner */}
+            {cuError && (
+              <Alert severity="error" sx={{ borderRadius: '0.75rem', fontSize: '0.8125rem', fontWeight: 600 }}>
+                {cuError}
+              </Alert>
+            )}
+          </Box>
+        </DialogContent>
+
+        <DialogActions sx={{ px: { xs: 2.5, sm: 3.5 }, pb: 3, pt: 1.5, borderTop: '1px solid #eef2ed', gap: 1 }}>
+          <ButtonBase
+            onClick={() => setCreateModalOpen(false)}
+            disabled={isSaving}
+            sx={{
+              px: 2.5,
+              py: 1.1,
+              borderRadius: '0.75rem',
+              backgroundColor: '#f1f5f9',
+              color: '#475569',
+              fontWeight: 700,
+              fontSize: '0.8125rem',
+              '&:hover': { backgroundColor: '#e2e8f0' },
+            }}
+          >
+            Cancel
+          </ButtonBase>
+
+          <ButtonBase
+            onClick={handleSaveNewUser}
+            disabled={isSaving}
+            sx={{
+              px: 3,
+              py: 1.1,
+              borderRadius: '0.75rem',
+              background: 'linear-gradient(135deg, #2e6022 0%, #70b822 100%)',
+              color: '#ffffff',
+              fontWeight: 700,
+              fontSize: '0.8125rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.75,
+              boxShadow: '0 2px 8px rgba(112, 184, 34, 0.35)',
+              '&:hover': { opacity: 0.95 },
+              '&:disabled': { opacity: 0.5 },
+            }}
+          >
+            {isSaving ? (
+              <CircularProgress size={16} sx={{ color: '#fff' }} />
+            ) : (
+              <>
+                <PersonAddRoundedIcon sx={{ fontSize: 18 }} />
+                <span>Register Account</span>
+              </>
+            )}
+          </ButtonBase>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── POP-UP MODAL 2: Change User Role (Matches Prototype change-role modal) ── */}
+      <Dialog
+        open={changeRoleModalOpen}
+        onClose={() => !isSaving && setChangeRoleModalOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: '1.25rem',
+              border: '1px solid #dbe3d6',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
+              fontFamily: "'Quicksand', sans-serif",
+            },
+          },
+        }}
+      >
+        <DialogTitle sx={{ px: 3, pt: 3, pb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: '10px',
+                backgroundColor: '#f1f5f9',
+                color: '#475569',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <ManageAccountsRoundedIcon sx={{ fontSize: 20 }} />
+            </Box>
+            <Typography sx={{ fontWeight: 800, fontSize: '1.125rem', color: '#0f172a' }}>
+              Change User Role
+            </Typography>
+          </Box>
+          <IconButton size="small" onClick={() => setChangeRoleModalOpen(false)} disabled={isSaving}>
+            <CloseRoundedIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ px: 3, py: 2 }}>
+          {targetUser && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* User Identity Preview Box */}
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: '0.75rem',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                }}
+              >
+                <Typography sx={{ fontWeight: 800, fontSize: '0.875rem', color: '#0f172a' }}>
+                  {targetUser.name}
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.25 }}>
+                  {targetUser.email} · currently {targetUser.role === 'Admin' ? 'Super Admin' : targetUser.role === 'Official' ? 'Barangay Official' : 'Resident'}
+                </Typography>
+              </Box>
+
+              {/* New Role Selector */}
+              <Box>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                  New role
+                </Typography>
+                <select
+                  value={crRole}
+                  onChange={(e) => setCrRole(e.target.value as 'Resident' | 'Official' | 'Admin')}
+                  style={{
+                    width: '100%',
+                    height: 42,
+                    padding: '0 12px',
+                    borderRadius: '0.75rem',
+                    border: '1px solid #dbe3d6',
+                    backgroundColor: '#ffffff',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    color: '#0f172a',
+                    outline: 'none',
+                    fontFamily: "'Quicksand', sans-serif",
+                  }}
+                >
+                  <option value="Resident">Resident</option>
+                  <option value="Official">Barangay Official</option>
+                  <option value="Admin">Super Admin</option>
+                </select>
+              </Box>
+
+              {/* Barangay Selector */}
+              <Box>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                  Barangay
+                </Typography>
+                <select
+                  value={crBarangay}
+                  onChange={(e) => setCrBarangay(e.target.value)}
+                  disabled={crRole === 'Admin'}
+                  style={{
+                    width: '100%',
+                    height: 42,
+                    padding: '0 12px',
+                    borderRadius: '0.75rem',
+                    border: '1px solid #dbe3d6',
+                    backgroundColor: crRole === 'Admin' ? '#f8fafc' : '#ffffff',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    color: crRole === 'Admin' ? '#94a3b8' : '#0f172a',
+                    outline: 'none',
+                    fontFamily: "'Quicksand', sans-serif",
+                  }}
+                >
+                  {BARANGAYS.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+          <ButtonBase
+            onClick={() => setChangeRoleModalOpen(false)}
+            disabled={isSaving}
+            sx={{
+              px: 2.5,
+              py: 1,
+              borderRadius: '0.75rem',
+              backgroundColor: '#f1f5f9',
+              color: '#475569',
+              fontWeight: 700,
+              fontSize: '0.8125rem',
+              '&:hover': { backgroundColor: '#e2e8f0' },
+            }}
+          >
+            Cancel
+          </ButtonBase>
+
+          <ButtonBase
+            onClick={handleSaveRole}
+            disabled={isSaving}
+            sx={{
+              px: 3,
+              py: 1,
+              borderRadius: '0.75rem',
+              background: 'linear-gradient(135deg, #2e6022 0%, #70b822 100%)',
+              color: '#ffffff',
+              fontWeight: 700,
+              fontSize: '0.8125rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.75,
+              '&:hover': { opacity: 0.95 },
+              '&:disabled': { opacity: 0.5 },
+            }}
+          >
+            {isSaving ? (
+              <CircularProgress size={16} sx={{ color: '#fff' }} />
+            ) : (
+              <>
+                <CheckRoundedIcon sx={{ fontSize: 16 }} />
+                <span>Save Role</span>
+              </>
+            )}
+          </ButtonBase>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

@@ -29,6 +29,27 @@ import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import diagnosticImg from '@/assets/ui/diagnostic_view.jpeg'
+import { getCachedUser } from '@/lib/api'
+import type { User } from '@/types'
+import {
+  COMMONWEALTH_FALLBACK_SITES,
+  resolveSiteBaseNumber,
+} from '@/components/map/commonwealthData'
+
+function resolveUserBase(user: User | null): number {
+  if (!user) return 1
+  if (user.barangay?.id) {
+    const idNum = parseInt(user.barangay.id, 10)
+    if (!isNaN(idNum) && idNum >= 1 && idNum <= 9) return idNum
+    const match = /(?:base|area)[\s_-]*(\d+)/i.exec(user.barangay.id)
+    if (match) return parseInt(match[1], 10)
+  }
+  if (user.barangay?.name) {
+    const match = /(?:base|area)[\s_-]*(\d+)/i.exec(user.barangay.name)
+    if (match) return parseInt(match[1], 10)
+  }
+  return 1
+}
 
 const MANUAL_CATEGORIES = [
   'Mobile Phones & Tablets',
@@ -48,6 +69,12 @@ export const AiDiagnosticPage: FC = () => {
     searchParams.get('category') || MANUAL_CATEGORIES[0]
   )
   const [toastMsg, setToastMsg] = useState<string | null>(null)
+  const [currentUser] = useState<User | null>(() => getCachedUser())
+  const userBaseNum = resolveUserBase(currentUser)
+  const suggestedBaseSite =
+    COMMONWEALTH_FALLBACK_SITES.find(
+      (s) => resolveSiteBaseNumber(s.id, s.name) === userBaseNum
+    ) || COMMONWEALTH_FALLBACK_SITES[0]
 
   const handleShare = async () => {
     const shareData = {
@@ -600,11 +627,30 @@ export const AiDiagnosticPage: FC = () => {
                   <LocationOnOutlinedIcon sx={{ fontSize: 22 }} />
                 </Box>
                 <Box>
-                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#ffffff' }}>
-                    Further Assessment (Station Drop-Off)
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
+                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#ffffff' }}>
+                      Further Assessment (Station Drop-Off)
+                    </Typography>
+                    <Box
+                      component="span"
+                      sx={{
+                        fontSize: '0.625rem',
+                        fontWeight: 800,
+                        backgroundColor: '#16a34a',
+                        color: '#ffffff',
+                        px: 0.75,
+                        py: 0.15,
+                        borderRadius: 1,
+                      }}
+                    >
+                      Nearest: Area {userBaseNum}
+                    </Box>
+                  </Box>
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#abf06b', mt: 0.25 }}>
+                    Suggested: {suggestedBaseSite.name}
                   </Typography>
-                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#94a3b8' }}>
-                    Schedule intake at Barangay Commonwealth Eco-Hub station
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#94a3b8' }}>
+                    Auto-suggests your nearest base station • Choose any Commonwealth hub freely
                   </Typography>
                 </Box>
               </Box>

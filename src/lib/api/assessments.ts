@@ -1,6 +1,7 @@
 import { apiFetch } from './client'
 import type {
   AngleUploadResult,
+  AssessedDeviceRecord,
   CameraAngle,
   DamageAssessmentPayload,
   DiagnosticResult,
@@ -26,5 +27,8 @@ export const assessmentsApi = {
 
   getDiagnostic: (assessmentId: string) =>
     apiFetch<DiagnosticResult>(`/assessments/${assessmentId}/diagnostic`),
+
+  getMyAssessedItems: () =>
+    apiFetch<AssessedDeviceRecord[]>('/assessments/my-assessments'),
 }
 

@@ -61,6 +61,72 @@ export function extractFirstName(user: Partial<User> | null | undefined): string
   return 'Resident'
 }
 
+export type CanonicalAuthRole = 'ADMIN' | 'BARANGAY_OFFICIAL' | 'RESIDENT'
+
+/** Resolves a canonical auth role from the explicit backend/stored role first, falling back to email hints only when absent. */
+export function resolveAuthRole(
+  role?: string | null,
+  email?: string | null
+): CanonicalAuthRole {
+  const normalizedRole = (role || '').trim().toUpperCase()
+  if (normalizedRole === 'ADMIN') return 'ADMIN'
+  if (normalizedRole === 'BARANGAY_OFFICIAL' || normalizedRole === 'OFFICIAL') {
+    return 'BARANGAY_OFFICIAL'
+  }
+  if (normalizedRole === 'RESIDENT') return 'RESIDENT'
+
+  const lower = (email || '').trim().toLowerCase()
+  if (lower.includes('admin') || lower === 'admin@ecobyte.gov') {
+    return 'ADMIN'
+  }
+  if (
+    lower.includes('official') ||
+    lower.includes('barangay.gov.ph') ||
+    lower.includes('gov.ph')
+  ) {
+    return 'BARANGAY_OFFICIAL'
+  }
+  return 'RESIDENT'
+}
+
+/** Builds a fallback mock user matching all three canonical roles when the backend is unreachable. */
+export function buildFallbackMockUser(
+  role: CanonicalAuthRole,
+  email?: string
+): User {
+  if (role === 'ADMIN') {
+    return {
+      id: 'usr-admin-01',
+      fullName: 'System Administrator',
+      firstName: 'Administrator',
+      email: email?.trim() || 'admin@ecobyte.gov',
+      phone: '+63 917 888 9999',
+      role: 'ADMIN',
+      barangay: DEFAULT_BARANGAY,
+    }
+  }
+  if (role === 'BARANGAY_OFFICIAL') {
+    return {
+      id: 'usr-official-01',
+      fullName: 'Barangay Official',
+      firstName: 'Official',
+      email: email?.trim() || 'official@barangay.gov.ph',
+      phone: '+63 918 777 6666',
+      role: 'BARANGAY_OFFICIAL',
+      barangay: DEFAULT_BARANGAY,
+    }
+  }
+  return {
+    id: 'usr-resident-01',
+    fullName: 'Alex Rivera',
+    firstName: 'Alex',
+    email: email?.trim() || 'resident@ecobyte.ph',
+    phone: '+63 917 123 4567',
+    role: 'RESIDENT',
+    barangay: DEFAULT_BARANGAY,
+  }
+}
+
 export const authApi = {
   login: async (payload: LoginPayload): Promise<AuthSession> => {
     try {
@@ -83,22 +149,14 @@ export const authApi = {
 
       if (isNetworkError) {
         console.warn('Backend unavailable or offline. Falling back to offline mock authentication for:', payload.email)
-        const isAdmin =
-          payload.email.toLowerCase().includes('admin') ||
-          payload.email.toLowerCase().includes('ecobyte.gov') ||
-          payload.email.toLowerCase().includes('official')
+        const role = resolveAuthRole(undefined, payload.email)
+        const tokenTag =
+          role === 'ADMIN' ? 'admin' : role === 'BARANGAY_OFFICIAL' ? 'official' : 'resident'
 
         return {
-          accessToken: `mock_jwt_token_${isAdmin ? 'admin' : 'resident'}_${Date.now()}`,
+          accessToken: `mock_jwt_token_${tokenTag}_${Date.now()}`,
           refreshToken: `mock_refresh_${Date.now()}`,
-          user: {
-            id: isAdmin ? 'usr-admin-01' : 'usr-resident-01',
-            fullName: isAdmin ? 'Elena Vance' : 'Alex Rivera',
-            email: payload.email,
-            phone: '+63 917 123 4567',
-            role: isAdmin ? 'ADMIN' : 'RESIDENT',
-            barangay: DEFAULT_BARANGAY,
-          },
+          user: buildFallbackMockUser(role, payload.email),
         }
       }
 
@@ -156,17 +214,8 @@ export const authApi = {
       if (isNetworkError) {
         const cached = getCachedUser()
         if (cached) return cached
-        const role = localStorage.getItem('ecobyte_user_role') || 'RESIDENT'
-        const isAdmin = role === 'ADMIN'
-        return {
-          id: isAdmin ? 'usr-admin-01' : 'usr-resident-01',
-          fullName: isAdmin ? 'Elena Vance' : 'Alex Rivera',
-          firstName: isAdmin ? 'Elena' : 'Alex',
-          email: isAdmin ? 'admin@ecobyte.gov' : 'resident@ecobyte.ph',
-          phone: '+63 917 123 4567',
-          role: isAdmin ? 'ADMIN' : 'RESIDENT',
-          barangay: DEFAULT_BARANGAY,
-        }
+        const storedRole = localStorage.getItem('ecobyte_user_role') || 'RESIDENT'
+        return buildFallbackMockUser(resolveAuthRole(storedRole))
       }
       throw err
     }

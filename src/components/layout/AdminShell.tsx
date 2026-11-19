@@ -31,6 +31,9 @@ import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded'
 import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded'
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded'
 import MoveToInboxRoundedIcon from '@mui/icons-material/MoveToInboxRounded'
+import PublicRoundedIcon from '@mui/icons-material/PublicRounded'
+import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded'
+import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded'
 
 interface AdminShellProps {
   children: ReactNode
@@ -94,22 +97,32 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
   const isSuperAdmin = staffRoleUpper === 'ADMIN'
   const staffRoleLabel = isSuperAdmin ? 'Super Admin' : 'Barangay Official'
   const staffFullName =
-    currentUser?.fullName?.trim() || (isSuperAdmin ? 'Elena Vance' : 'Captain Mateo Cruz')
+    currentUser?.fullName?.trim() || (isSuperAdmin ? 'System Administrator' : 'Barangay Official')
   const staffEmail =
     currentUser?.email || (isSuperAdmin ? 'admin@ecobyte.gov' : 'official@barangay.gov.ph')
   const staffArea = currentUser?.barangay?.name || 'Commonwealth Central MRF (Base 1)'
 
+  const staffInitials =
+    (staffFullName || '')
+      .replace(/^(Kgd\.|Engr\.|Hon\.|Director)\s*/i, '')
+      .split(' ')
+      .filter(Boolean)
+      .map((p) => p[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || 'EB'
+
   const officialNavItems: NavItem[] = [
     { label: 'Dashboard', path: '/admin', icon: GridViewRoundedIcon },
     { label: 'Incoming Drop-Offs', path: '/admin/incoming', icon: MoveToInboxRoundedIcon },
-    { label: 'Inspection', path: '/admin/to-inspect', icon: FactCheckOutlinedIcon },
+    { label: 'Inspection Queue', path: '/admin/to-inspect', icon: FactCheckOutlinedIcon },
     { label: 'Transactions', path: '/admin/transactions', icon: ReceiptLongRoundedIcon },
   ]
 
   const adminNavItems: NavItem[] = [
-    { label: 'Dashboard', path: '/admin', icon: GridViewRoundedIcon },
-    { label: 'Reports', path: '/admin/reports', icon: BarChartRoundedIcon },
-    { label: 'Transactions', path: '/admin/transactions', icon: ReceiptLongRoundedIcon },
+    { label: 'All-Barangay Overview', path: '/admin', icon: GridViewRoundedIcon },
+    { label: 'Reports & Data', path: '/admin/reports', icon: BarChartRoundedIcon },
+    { label: 'Overall Transactions', path: '/admin/transactions', icon: ReceiptLongRoundedIcon },
     { label: 'Manage Users', path: '/admin/access', icon: AdminPanelSettingsOutlinedIcon },
     { label: 'Activity Logs', path: '/admin/activity-logs', icon: HistoryRoundedIcon },
   ]
@@ -133,16 +146,74 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
     return path.startsWith(itemPath)
   }
 
+  const getHeaderMeta = () => {
+    if (path.startsWith('/admin/reports')) {
+      return { title: 'Reports & Data', subtitle: 'Totals, e-waste types, slot usage, and Reuse Hub metrics' }
+    }
+    if (path.startsWith('/admin/transactions')) {
+      return {
+        title: isSuperAdmin ? 'Overall Transactions' : 'Transactions',
+        subtitle: isSuperAdmin
+          ? 'Reuse Hub reservations across all barangays'
+          : 'Reuse Hub pick-ups, listings, and disposal records',
+      }
+    }
+    if (path.startsWith('/admin/access')) {
+      return {
+        title: 'Manage Users',
+        subtitle: 'Create official accounts, change roles, deactivate or reactivate',
+      }
+    }
+    if (path.startsWith('/admin/activity-logs')) {
+      return {
+        title: 'Activity Logs',
+        subtitle: 'Filter by user, action, and barangay',
+      }
+    }
+    if (path.startsWith('/admin/incoming')) {
+      return { title: 'Incoming Drop-Offs', subtitle: 'Mark scheduled drop-offs as Received or Missed' }
+    }
+    if (path.startsWith('/admin/to-inspect') || path.startsWith('/admin/inspect')) {
+      return { title: 'Inspection Queue', subtitle: 'Physically inspect devices — oldest first' }
+    }
+    return {
+      title: isSuperAdmin ? 'All-Barangay Overview' : 'Dashboard',
+      subtitle: isSuperAdmin
+        ? 'System-wide monitoring · view-only'
+        : 'Own barangay metrics · read-only',
+    }
+  }
+
+  const headerMeta = getHeaderMeta()
+  const [todayFormatted] = useState(() =>
+    new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(new Date())
+  )
+
   const renderSidebarContent = (isMobile = false) => (
-    <>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        fontFamily: "'Quicksand', sans-serif",
+      }}
+    >
+      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
         {/* Brand Header */}
         <Box
           sx={{
-            px: 1.5,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            gap: 1.5,
+            px: 2.5,
+            height: 64,
+            flexShrink: 0,
           }}
         >
           <Box
@@ -153,49 +224,50 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
             sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: 1.5,
+              gap: 1.25,
               cursor: 'pointer',
+              userSelect: 'none',
             }}
           >
             <Box
               sx={{
-                width: 32,
-                height: 32,
-                borderRadius: '8px',
-                background: 'linear-gradient(135deg, rgb(34, 197, 94) 0%, rgb(22, 163, 74) 100%)',
+                width: 36,
+                height: 36,
+                borderRadius: '0.75rem',
+                background: 'linear-gradient(135deg, #2e6022 0%, #70b822 100%)',
+                boxShadow: '0 2px 8px rgba(112, 184, 34, 0.35)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#ffffff',
-                boxShadow: '0 2px 6px rgba(22, 163, 74, 0.3)',
+                flexShrink: 0,
               }}
             >
-              <RecyclingRoundedIcon sx={{ fontSize: 18 }} />
+              <RecyclingRoundedIcon sx={{ fontSize: 21 }} />
             </Box>
-            <Box>
+            <Box sx={{ lineHeight: 1.15 }}>
               <Typography
                 sx={{
-                  fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+                  fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 800,
-                  fontSize: '1.125rem',
-                  color: '#0b1c30',
+                  fontSize: '1.05rem',
+                  color: '#ffffff',
                   letterSpacing: '-0.02em',
-                  lineHeight: 1.2,
                 }}
               >
-                EcoByte Admin
+                ECOBYTE
               </Typography>
               <Typography
                 sx={{
-                  fontFamily: "'Rethink Sans', 'Inter', sans-serif",
-                  fontSize: '0.6875rem',
-                  fontWeight: 600,
-                  color: '#16a34a',
+                  fontFamily: "'Quicksand', sans-serif",
+                  fontSize: '0.625rem',
+                  fontWeight: 800,
+                  color: '#a3e635',
                   textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
+                  letterSpacing: '0.14em',
                 }}
               >
-                Enterprise Console
+                Staff Portal
               </Typography>
             </Box>
           </Box>
@@ -203,15 +275,74 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
             <IconButton
               size="small"
               onClick={() => setMobileNavOpen(false)}
-              sx={{ color: '#64748b' }}
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: '0.75rem',
+                color: 'rgba(255, 255, 255, 0.8)',
+                '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' },
+              }}
             >
               <CloseRoundedIcon sx={{ fontSize: 20 }} />
             </IconButton>
           )}
         </Box>
 
+        {/* Scope Banner (Exact match to prototype) */}
+        <Box
+          sx={{
+            mx: 2,
+            mb: 2,
+            p: 1.5,
+            borderRadius: '1rem',
+            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+            border: '1px solid rgba(255, 255, 255, 0.10)',
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: '0.625rem',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.12em',
+              color: 'rgba(255, 255, 255, 0.50)',
+            }}
+          >
+            {isSuperAdmin ? 'Scope' : 'Assigned Base / Site'}
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+            {isSuperAdmin ? (
+              <PublicRoundedIcon sx={{ fontSize: 17, color: '#a3e635', flexShrink: 0 }} />
+            ) : (
+              <LocationOnRoundedIcon sx={{ fontSize: 17, color: '#a3e635', flexShrink: 0 }} />
+            )}
+            <Typography
+              sx={{
+                fontSize: '0.875rem',
+                fontWeight: 700,
+                color: '#ffffff',
+                fontFamily: "'Quicksand', sans-serif",
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {isSuperAdmin ? 'All sites & barangays' : staffArea}
+            </Typography>
+          </Box>
+        </Box>
+
         {/* Navigation Links */}
-        <Box component="nav" sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+        <Box
+          component="nav"
+          sx={{
+            px: 1.5,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+            overflowY: 'auto',
+          }}
+        >
           {navItems.map((item) => {
             const active = isCurrentActive(item.path)
             const Icon = item.icon
@@ -228,43 +359,45 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  px: 1.75,
-                  py: 1.15,
-                  borderRadius: '9999px',
+                  px: 1.5,
+                  py: 1.2,
+                  borderRadius: '0.75rem',
                   transition: 'all 0.15s ease',
-                  backgroundColor: active ? '#16a34a' : 'transparent',
-                  color: active ? '#ffffff' : '#3f4944',
+                  backgroundColor: active ? 'rgba(132, 204, 22, 0.14)' : 'transparent',
+                  color: active ? '#ffffff' : 'rgba(255, 255, 255, 0.70)',
                   fontWeight: active ? 700 : 600,
                   fontSize: '0.875rem',
-                  boxShadow: active ? '0 2px 8px rgba(22, 163, 74, 0.28)' : 'none',
                   '&:hover': {
-                    backgroundColor: active ? '#15803d' : '#eff4ff',
-                    color: active ? '#ffffff' : '#0b1c30',
+                    backgroundColor: active ? 'rgba(132, 204, 22, 0.20)' : 'rgba(255, 255, 255, 0.06)',
+                    color: '#ffffff',
                   },
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <Icon
                     sx={{
-                      fontSize: 19,
-                      color: active ? '#ffffff' : '#475569',
+                      fontSize: 20,
+                      color: active ? '#a3e635' : 'rgba(255, 255, 255, 0.60)',
                     }}
                   />
-                  <span style={{ fontFamily: "'Rethink Sans', 'Inter', sans-serif" }}>
+                  <span style={{ fontFamily: "'Quicksand', sans-serif" }}>
                     {item.label}
                   </span>
                 </Box>
                 {item.badge && !active && (
                   <Box
                     sx={{
-                      px: 1,
-                      py: 0.15,
+                      minWidth: 22,
+                      height: 22,
+                      px: 0.75,
                       borderRadius: '9999px',
-                      backgroundColor: '#eff4ff',
-                      color: '#16a34a',
-                      fontWeight: 700,
+                      backgroundColor: '#84cc16',
+                      color: '#121c10',
+                      fontWeight: 800,
                       fontSize: '0.6875rem',
-                      border: '1px solid #dce9ff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
                     {item.badge}
@@ -276,8 +409,77 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
         </Box>
       </Box>
 
-      {/* Bottom Utility Links */}
-      <Box sx={{ pt: 2, borderTop: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+      {/* Bottom User Info & Logout (Matching Prototype) */}
+      <Box
+        sx={{
+          p: 1.5,
+          pb: 3,
+          borderTop: '1px solid rgba(255, 255, 255, 0.10)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+        }}
+      >
+        <Box
+          onClick={() => setProfileOpen(true)}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            p: 1,
+            borderRadius: '0.75rem',
+            cursor: 'pointer',
+            transition: 'background-color 0.15s ease',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 255, 255, 0.06)',
+            },
+          }}
+        >
+          <Box
+            sx={{
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              backgroundColor: 'rgba(132, 204, 22, 0.20)',
+              border: '1px solid rgba(132, 204, 22, 0.40)',
+              color: '#a3e635',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '0.75rem',
+              fontWeight: 800,
+              flexShrink: 0,
+            }}
+          >
+            {staffInitials}
+          </Box>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography
+              sx={{
+                fontFamily: "'Quicksand', sans-serif",
+                fontSize: '0.875rem',
+                fontWeight: 700,
+                color: '#ffffff',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {staffFullName}
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: "'Quicksand', sans-serif",
+                fontSize: '0.6875rem',
+                fontWeight: 600,
+                color: 'rgba(255, 255, 255, 0.50)',
+              }}
+            >
+              {staffRoleLabel}
+            </Typography>
+          </Box>
+        </Box>
+
         {/* Switch to Resident Portal */}
         <ButtonBase
           onClick={() => {
@@ -286,26 +488,26 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
           }}
           sx={{
             width: '100%',
+            height: 32,
+            borderRadius: '0.75rem',
+            color: 'rgba(255, 255, 255, 0.70)',
+            fontSize: '0.75rem',
+            fontWeight: 600,
             display: 'flex',
             alignItems: 'center',
-            gap: 1.5,
-            px: 1.75,
-            py: 1,
-            borderRadius: '9999px',
-            color: '#3f4944',
-            fontSize: '0.8125rem',
-            fontWeight: 600,
+            justifyContent: 'center',
+            gap: 1,
             '&:hover': {
-              backgroundColor: '#eff4ff',
-              color: '#0b1c30',
+              backgroundColor: 'rgba(255, 255, 255, 0.06)',
+              color: '#ffffff',
             },
           }}
         >
-          <SmartphoneRoundedIcon sx={{ fontSize: 18, color: '#475569' }} />
-          <span style={{ fontFamily: "'Rethink Sans', 'Inter', sans-serif" }}>Resident View (Mobile)</span>
+          <SmartphoneRoundedIcon sx={{ fontSize: 16 }} />
+          <span>Resident View (Mobile)</span>
         </ButtonBase>
 
-        {/* Log Out */}
+        {/* Log Out Button */}
         <ButtonBase
           onClick={() => {
             setLogoutOpen(true)
@@ -313,34 +515,35 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
           }}
           sx={{
             width: '100%',
+            height: 36,
+            borderRadius: '0.75rem',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            backgroundColor: 'rgba(255, 255, 255, 0.10)',
+            color: '#ffffff',
             display: 'flex',
             alignItems: 'center',
-            gap: 1.5,
-            px: 1.75,
-            py: 1,
-            borderRadius: '9999px',
-            color: '#dc2626',
-            fontSize: '0.8125rem',
-            fontWeight: 600,
+            justifyContent: 'center',
+            gap: 1,
+            transition: 'all 0.15s ease',
             '&:hover': {
-              backgroundColor: '#fee2e2',
-              color: '#b91c1c',
+              backgroundColor: 'rgba(255, 255, 255, 0.15)',
             },
           }}
         >
-          <LogoutRoundedIcon sx={{ fontSize: 18 }} />
-          <span style={{ fontFamily: "'Rethink Sans', 'Inter', sans-serif" }}>Log out</span>
+          <LogoutRoundedIcon sx={{ fontSize: 16 }} />
+          <span>Logout</span>
         </ButtonBase>
       </Box>
-    </>
+    </Box>
   )
 
   return (
     <Box
       sx={{
         minHeight: '100vh',
-        backgroundColor: '#f8f9ff',
-        fontFamily: "'Rethink Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+        backgroundColor: '#f6f8f4',
+        fontFamily: "'Quicksand', sans-serif",
         color: '#0b1c30',
       }}
     >
@@ -354,14 +557,12 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
           top: 0,
           bottom: 0,
           width: 256,
-          backgroundColor: '#ffffff',
-          borderRight: '1px solid #e2e8f0',
+          background: 'linear-gradient(180deg, #1e2e1a 0%, #121c10 100%)',
+          color: '#ffffff',
+          borderRight: '1px solid rgba(255, 255, 255, 0.08)',
           zIndex: 50,
           flexDirection: 'column',
-          justifyContent: 'space-between',
-          py: 3,
-          px: 2,
-          boxShadow: '0 1px 8px rgba(0,0,0,0.04)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
         }}
       >
         {renderSidebarContent(false)}
@@ -375,22 +576,20 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
         sx={{
           display: { xs: 'block', lg: 'none' },
           '& .MuiDrawer-paper': {
-            width: 280,
+            width: 288,
             boxSizing: 'border-box',
-            backgroundColor: '#ffffff',
-            py: 3,
-            px: 2,
+            background: 'linear-gradient(180deg, #1e2e1a 0%, #121c10 100%)',
+            color: '#ffffff',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'space-between',
-            boxShadow: '4px 0 24px rgba(0,0,0,0.15)',
+            boxShadow: '4px 0 24px rgba(0, 0, 0, 0.35)',
           },
         }}
       >
         {renderSidebarContent(true)}
       </Drawer>
 
-      {/* ── Fixed Top Header (h-16 / 64px, adaptive left offset) ── */}
+      {/* ── Fixed Top Header (h-16 / 64px, adaptive left offset, matching prototype) ── */}
       <Box
         component="header"
         sx={{
@@ -399,131 +598,139 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
           left: { xs: 0, lg: 256 },
           right: 0,
           height: 64,
-          backgroundColor: 'rgba(248, 249, 255, 0.92)',
+          backgroundColor: 'rgba(246, 248, 244, 0.88)',
           backdropFilter: 'blur(16px)',
-          borderBottom: '1px solid #e2e8f0',
+          borderBottom: '1px solid #dbe3d6',
           zIndex: 40,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           px: { xs: 2, sm: 3, md: 4 },
-          boxShadow: '0 1px 6px rgba(0,0,0,0.02)',
+          boxShadow: '0 1px 3px rgba(30, 46, 26, 0.02)',
           transition: 'left 0.2s ease',
         }}
       >
-        {/* Left: Hamburger Toggle + Telemetry / Brand Pill */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.25, sm: 2 } }}>
+        {/* Left: Mobile Menu + Page Title & Subtitle */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 }, minWidth: 0 }}>
           <IconButton
             onClick={() => setMobileNavOpen(true)}
             sx={{
               display: { xs: 'inline-flex', lg: 'none' },
               p: 0.75,
-              borderRadius: '8px',
+              borderRadius: '0.75rem',
               backgroundColor: '#ffffff',
-              border: '1px solid #e2e8f0',
+              border: '1px solid #dbe3d6',
               color: '#0f172a',
             }}
             aria-label="Open navigation menu"
           >
-            <MenuRoundedIcon sx={{ fontSize: 22 }} />
+            <MenuRoundedIcon sx={{ fontSize: 20 }} />
           </IconButton>
 
-          {/* Telemetry pill (visible on sm and up) */}
-          <Box
-            sx={{
-              display: { xs: 'none', sm: 'flex' },
-              alignItems: 'center',
-              gap: 1.25,
-              px: 1.75,
-              py: 0.5,
-              borderRadius: '9999px',
-              backgroundColor: '#ffffff',
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
-            }}
-          >
-            <Box
-              sx={{
-                width: 7,
-                height: 7,
-                borderRadius: '9999px',
-                backgroundColor: '#16a34a',
-                boxShadow: '0 0 0 3px rgba(34, 197, 94, 0.2)',
-              }}
-            />
+          <Box sx={{ minWidth: 0 }}>
             <Typography
               sx={{
-                fontFamily: "'Rethink Sans', 'Inter', sans-serif",
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                color: '#334155',
+                fontFamily: "'Quicksand', sans-serif",
+                fontWeight: 800,
+                fontSize: { xs: '1rem', sm: '1.125rem' },
+                color: '#0f172a',
+                lineHeight: 1.2,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
               }}
             >
-              Node: <strong style={{ color: '#0f172a' }}>Central-Depot-01</strong> • Status: Online
+              {headerMeta.title}
+            </Typography>
+            <Typography
+              sx={{
+                display: { xs: 'none', sm: 'block' },
+                fontFamily: "'Quicksand', sans-serif",
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: '#64748b',
+                lineHeight: 1.2,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                mt: 0.25,
+              }}
+            >
+              {headerMeta.subtitle}
             </Typography>
           </Box>
-
-          {/* Compact brand text on small mobile screens */}
-          <Typography
-            sx={{
-              display: { xs: 'block', sm: 'none' },
-              fontFamily: "'Rethink Sans', 'Inter', sans-serif",
-              fontWeight: 800,
-              fontSize: '1rem',
-              color: '#0b1c30',
-            }}
-          >
-            EcoByte Admin
-          </Typography>
         </Box>
 
-        {/* Right Admin Profile */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        {/* Right: Date badge, Role badge, Profile, Logout */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
+          {/* Current Date Badge (hidden on mobile) */}
+          <Box
+            sx={{
+              display: { xs: 'none', md: 'flex' },
+              alignItems: 'center',
+              gap: 1,
+              px: 1.5,
+              height: 36,
+              borderRadius: '0.75rem',
+              backgroundColor: '#ffffff',
+              border: '1px solid #dbe3d6',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              color: '#475569',
+            }}
+          >
+            <CalendarTodayRoundedIcon sx={{ fontSize: 16, color: '#64748b' }} />
+            <span>{todayFormatted}</span>
+          </Box>
+
+          {/* Role badge */}
           <Box
             sx={{
               display: 'inline-flex',
               alignItems: 'center',
               px: 1.5,
-              py: 0.35,
+              py: 0.5,
               borderRadius: '9999px',
-              border: '1px solid #cbd5e1',
-              backgroundColor: '#ffffff',
-              fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+              border: '1px solid',
+              borderColor: isSuperAdmin ? '#ddd6fe' : '#bae6fd',
+              backgroundColor: isSuperAdmin ? '#f5f3ff' : '#f0f9ff',
+              fontFamily: "'Quicksand', sans-serif",
               fontSize: '0.6875rem',
-              color: '#0f172a',
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              fontWeight: 700,
-              boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+              color: isSuperAdmin ? '#6d28d9' : '#0369a1',
+              fontWeight: 800,
             }}
           >
             {staffRoleLabel}
           </Box>
-          <Box
-            onClick={() => setProfileOpen(true)}
-            role="button"
-            tabIndex={0}
-            title="View Admin Profile"
+
+          {/* Logout header button matching prototype */}
+          <ButtonBase
+            onClick={() => setLogoutOpen(true)}
             sx={{
-              width: 36,
               height: 36,
-              borderRadius: '9999px',
-              background: 'linear-gradient(135deg, rgb(22, 163, 74) 0%, rgb(34, 197, 94) 100%)',
-              display: 'flex',
+              px: 1.75,
+              borderRadius: '0.75rem',
+              backgroundColor: '#ffffff',
+              border: '1px solid #dbe3d6',
+              color: '#475569',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              display: 'inline-flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              boxShadow: '0 2px 6px rgba(22, 163, 74, 0.25)',
-              cursor: 'pointer',
-              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+              gap: 0.75,
+              transition: 'all 0.15s ease',
               '&:hover': {
-                transform: 'scale(1.05)',
-                boxShadow: '0 3px 10px rgba(22, 163, 74, 0.35)',
+                backgroundColor: '#fff1f2',
+                color: '#be123c',
+                borderColor: '#fecdd3',
               },
             }}
           >
-            <PersonRoundedIcon sx={{ fontSize: 20 }} />
-          </Box>
+            <LogoutRoundedIcon sx={{ fontSize: 16 }} />
+            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+              Logout
+            </Box>
+          </ButtonBase>
         </Box>
       </Box>
 
@@ -561,7 +768,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
               borderRadius: '16px',
               p: 1,
               boxShadow: '0 20px 40px rgba(15, 23, 42, 0.16)',
-              fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+              fontFamily: "'Quicksand', sans-serif",
             },
           },
         }}
@@ -711,7 +918,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
               borderRadius: '16px',
               p: 1,
               boxShadow: '0 20px 40px rgba(15, 23, 42, 0.16)',
-              fontFamily: "'Rethink Sans', 'Inter', sans-serif",
+              fontFamily: "'Quicksand', sans-serif",
             },
           },
         }}

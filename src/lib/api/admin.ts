@@ -169,15 +169,80 @@ export interface AdminActivityLogItem {
   timestamp: string
 }
 
+export type InspectionRoutingAction =
+  | 'REUSE'
+  | 'REPAIR'
+  | 'DISPOSAL'
+  | 'HAZARDOUS'
+  | 'PENDING_INSPECTION'
+
+export interface InspectorAssessmentPayload {
+  actualCondition?: string
+  matchesDescription?: 'yes' | 'partially' | 'no'
+  observedDamage?: string[]
+  missingComponents?: string[]
+  batterySafety?: 'safe' | 'swollen' | 'leaking' | 'missing' | 'not_applicable'
+  inspectorPhotos?: string[]
+  remarks?: string
+}
+
 export interface AdminInspectionDetails {
   id: string
   deviceModel: string
+  category?: string
   serialNumber: string
   intakeDate: string
+  currentStatus?: string
   resident: {
     name: string
+    email?: string
+    phone?: string
     barangay: string
   }
+  requestInfo?: {
+    requestId: string | null
+    requestCode: string | null
+    dropOffSite: string
+    scheduledSlot: string
+    requestStatus: string
+    collectionStatus: string
+    collectedAt?: string | null
+    deviceCategory: string
+  }
+  residentAssessment?: {
+    workingStatus: 'yes' | 'no' | 'not_sure'
+    powersOn: boolean
+    displayIntact: boolean
+    portsWorking: boolean
+    visibleDamage: string[]
+    otherDamage?: string
+    missingParts: string[]
+    otherMissing?: string
+    notes: string
+    recommendedRoute: string
+    hazardLevel: string
+    photos: Array<{
+      id: string
+      angleLabel: string
+      imageUrl: string
+    }>
+  }
+  previousInspection?: {
+    inspectionId: string
+    finalDecision: string
+    inspectedAt: string
+    inspectorName?: string
+    action?: InspectionRoutingAction
+    actualCondition?: string
+    matchesDescription?: 'yes' | 'partially' | 'no'
+    observedDamage?: string[]
+    missingComponents?: string[]
+    batterySafety?: 'safe' | 'swollen' | 'leaking' | 'missing' | 'not_applicable'
+    inspectorPhotos?: string[]
+    remarks?: string
+    conditionGrade?: string
+    benchNotes?: string
+  } | null
   reportedCondition: {
     powersOn: boolean
     displayIntact: boolean
@@ -627,8 +692,36 @@ export const adminApi = {
       return await apiFetch<AdminCollectionRequest[]>('/admin/requests')
     } catch (err: unknown) {
       if (isNetworkError(err)) {
-        console.warn('Backend offline, using fallback collection requests:', err)
-        return FALLBACK_COLLECTION_REQUESTS
+        console.warn('Backend offline, reading local collection requests:', err)
+        if (typeof window !== 'undefined') {
+          try {
+            const raw = localStorage.getItem('ecobyte_dropoff_requests')
+            if (raw) {
+              const parsed = JSON.parse(raw)
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                return parsed.map((r: any) => ({
+                  id: r.id,
+                  requestCode: r.requestCode || r.id,
+                  residentName: r.residentName || 'Resident User',
+                  residentEmail: r.residentEmail,
+                  contactNumber: '+63 917 000 0000',
+                  siteName: r.siteName || 'Commonwealth Central MRF (Base 1)',
+                  address: 'Commonwealth, Quezon City',
+                  preferredMethod: r.itemName || r.type || 'drop_off',
+                  status: (r.status || 'Scheduled').toLowerCase().replace(/\s+/g, '_'),
+                  displayStatus: r.status || 'Scheduled',
+                  scheduledSlot: r.slot || '10:00 AM – 12:00 PM',
+                  requestedAt: new Date().toISOString(),
+                  requestedDate: r.date || new Date().toISOString().slice(0, 10),
+                  relativeDate: 'Today',
+                  linkedItemId: `item-${r.id}`,
+                  linkedItemStatus: (r.status || 'Scheduled').toLowerCase().replace(/\s+/g, '_'),
+                }))
+              }
+            }
+          } catch {}
+        }
+        return []
       }
       throw err
     }
@@ -680,14 +773,8 @@ export const adminApi = {
       })
     } catch (err: unknown) {
       if (isNetworkError(err)) {
-        console.warn('Backend offline, using fallback inspection queue:', err)
-        if (scope === 'waiting') {
-          return FALLBACK_INSPECTION_QUEUE.filter((i) => i.queueBucket === 'waiting')
-        }
-        if (scope === 'inspected') {
-          return FALLBACK_INSPECTION_QUEUE.filter((i) => i.queueBucket === 'inspected')
-        }
-        return FALLBACK_INSPECTION_QUEUE
+        console.warn('Backend offline, inspection queue empty:', err)
+        return []
       }
       throw err
     }
@@ -708,16 +795,30 @@ export const adminApi = {
     }
   },
 
+  uploadInspectionPhoto: async (id: string, file: File): Promise<{ url: string }> => {
+    const formData = new FormData()
+    formData.append('photo', file)
+    return await apiFetch<{ url: string }>(`/admin/inspections/${id}/photos`, {
+      method: 'POST',
+      body: formData,
+    })
+  },
+
   submitInspectionVerdict: async (
     id: string,
-    payload: { action: 'REUSE' | 'DISPOSAL'; conditionGrade?: string; benchNotes?: string }
+    payload: {
+      action: InspectionRoutingAction
+      conditionGrade?: string
+      benchNotes?: string
+      inspectorAssessment?: InspectorAssessmentPayload
+    }
   ) => {
     try {
       return await apiFetch<{
         success: boolean
         inspectionId: string
         itemId: string
-        action: 'REUSE' | 'DISPOSAL'
+        action: InspectionRoutingAction
         routedTo: string
         processedAt: string
       }>(`/admin/inspections/${id}/verdict`, {
@@ -732,10 +833,7 @@ export const adminApi = {
           inspectionId: `insp-${Date.now()}`,
           itemId: id,
           action: payload.action,
-          routedTo:
-            payload.action === 'REUSE'
-              ? 'Refurbished Reuse Hub Inventory'
-              : 'Certified Recycler Hazardous Disposal Queue',
+          routedTo: payload.action,
           processedAt: new Date().toISOString(),
         }
       }

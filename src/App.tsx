@@ -195,6 +195,8 @@ export const App: FC = () => {
         <Route path="/schedule-dropoff" element={<PreserveQueryRedirect to="/dropoff-schedule" />} />
         <Route path="/schedule-drop-off" element={<PreserveQueryRedirect to="/dropoff-schedule" />} />
         <Route path="/schedule" element={<PreserveQueryRedirect to="/dropoff-schedule" />} />
+        <Route path="/assessed" element={<PreserveQueryRedirect to="/requests?tab=assessed" />} />
+        <Route path="/assessments" element={<PreserveQueryRedirect to="/requests?tab=assessed" />} />
         <Route
           path="/requests"
           element={

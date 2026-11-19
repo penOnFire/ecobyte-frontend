@@ -3,144 +3,164 @@ import {
   Alert,
   Box,
   ButtonBase,
-  CircularProgress,
   Snackbar,
   Typography,
 } from '@mui/material'
-import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded'
-import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined'
-import DevicesRoundedIcon from '@mui/icons-material/DevicesRounded'
-import FactCheckRoundedIcon from '@mui/icons-material/FactCheckRounded'
-import EventAvailableRoundedIcon from '@mui/icons-material/EventAvailableRounded'
-import Inventory2RoundedIcon from '@mui/icons-material/Inventory2Rounded'
-import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded'
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded'
+import SmartphoneRoundedIcon from '@mui/icons-material/SmartphoneRounded'
+import LaptopRoundedIcon from '@mui/icons-material/LaptopRounded'
+import TvRoundedIcon from '@mui/icons-material/TvRounded'
+import BatteryChargingFullRoundedIcon from '@mui/icons-material/BatteryChargingFullRounded'
+import CableRoundedIcon from '@mui/icons-material/CableRounded'
+import KitchenRoundedIcon from '@mui/icons-material/KitchenRounded'
 import { adminApi, type AdminReportsData } from '@/lib/api'
 
-type ReportTab = 'totals' | 'ewasteType' | 'requests' | 'slotUsage' | 'reuseHub'
+type ReportTab = 'totals' | 'requests' | 'reuse'
 
-const FALLBACK_REPORTS: AdminReportsData = {
-  totals: {
-    totalVolumeProcessed: 320,
-    totalWeightKg: 485.5,
-    divertedKgTotal: 312.2,
-    activeRequests: 42,
-    completedRequests: 268,
-    missedRequests: 10,
-    diversionRatePct: 64,
-  },
-  ewasteType: [
-    { name: 'Computers & Laptops', units: 110, weightKg: 220, hazardUnits: 8, reuseRatePercent: 72 },
-    { name: 'Mobile Devices & Tablets', units: 85, weightKg: 35, hazardUnits: 14, reuseRatePercent: 68 },
-    { name: 'Monitors & Displays', units: 55, weightKg: 145, hazardUnits: 12, reuseRatePercent: 50 },
-    { name: 'Peripherals & Cables', units: 45, weightKg: 40, hazardUnits: 2, reuseRatePercent: 60 },
-    { name: 'Batteries & Power Units', units: 25, weightKg: 45.5, hazardUnits: 25, reuseRatePercent: 20 },
-  ],
-  requests: {
-    total: 320,
-    scheduled: 28,
-    underInspection: 14,
-    turnedOver: 245,
-    completed: 23,
-    missed: 10,
-    cancelled: 0,
-    fulfillmentRatePct: 84,
-  },
-  slotUsage: [
-    { facility: 'Commonwealth MRF Base', capacity: 40, booked: 28, available: 12, utilizationPct: 70 },
-    { facility: 'Area 1 Eco-Drop Hub', capacity: 30, booked: 24, available: 6, utilizationPct: 80 },
-    { facility: 'Pilot Station B', capacity: 25, booked: 15, available: 10, utilizationPct: 60 },
-    { facility: 'Unit Station 4', capacity: 20, booked: 11, available: 9, utilizationPct: 55 },
-  ],
-  reuseHub: {
-    totalListed: 148,
-    reserved: 22,
-    claimed: 115,
-    conversionRatePct: 78,
-    avgHoldDays: '3.2 days',
-  },
+const BARANGAYS = [
+  { id: '', name: 'All barangays' },
+  { id: 'commonwealth', name: 'Commonwealth' },
+  { id: 'batasan', name: 'Batasan Hills' },
+  { id: 'payatas', name: 'Payatas' },
+  { id: 'holyspirit', name: 'Holy Spirit' },
+  { id: 'bagongsilangan', name: 'Bagong Silangan' },
+]
+
+const getInitialReportsData = (): AdminReportsData => {
+  const localRequests: any[] = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('ecobyte_dropoff_requests') || '[]')
+    } catch {
+      return []
+    }
+  })()
+  const localListings: any[] = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('ecobyte_reuse_listings') || '[]')
+    } catch {
+      return []
+    }
+  })()
+  const localClaims: any[] = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('ecobyte_user_reservations') || '[]')
+    } catch {
+      return []
+    }
+  })()
+
+  const scheduled = localRequests.filter((r) => (r.status || '').toLowerCase() === 'scheduled').length
+  const underInspection = localRequests.filter((r) => (r.status || '').toLowerCase().includes('inspect')).length
+  const turnedOver = localRequests.filter((r) => (r.status || '').toLowerCase().includes('turned')).length
+  const missed = localRequests.filter((r) => (r.status || '').toLowerCase() === 'missed').length
+  const completed = turnedOver
+
+  const reservedClaims = localClaims.filter((c) => c.status === 'RESERVED' || c.status === 'Reserved').length
+  const pickedUpClaims = localClaims.filter((c) => c.status === 'CLAIMED' || c.status === 'Picked Up').length
+
+  return {
+    totals: {
+      totalVolumeProcessed: localRequests.length,
+      totalWeightKg: localRequests.length * 2.0,
+      divertedKgTotal: turnedOver * 2.0,
+      activeRequests: scheduled + underInspection,
+      completedRequests: completed,
+      missedRequests: missed,
+      diversionRatePct: localRequests.length > 0 ? Math.round((completed / localRequests.length) * 100) : 0,
+    },
+    ewasteType: [
+      { name: 'Mobile Phone', units: 0, weightKg: 0, hazardUnits: 0, reuseRatePercent: 0 },
+      { name: 'Laptop', units: 0, weightKg: 0, hazardUnits: 0, reuseRatePercent: 0 },
+      { name: 'Battery / Power Bank', units: 0, weightKg: 0, hazardUnits: 0, reuseRatePercent: 0 },
+      { name: 'Monitor / TV', units: 0, weightKg: 0, hazardUnits: 0, reuseRatePercent: 0 },
+      { name: 'Charger & Cables', units: 0, weightKg: 0, hazardUnits: 0, reuseRatePercent: 0 },
+      { name: 'Small Appliance', units: 0, weightKg: 0, hazardUnits: 0, reuseRatePercent: 0 },
+    ],
+    requests: {
+      total: localRequests.length,
+      scheduled,
+      underInspection,
+      turnedOver,
+      completed,
+      missed,
+      cancelled: 0,
+      fulfillmentRatePct: localRequests.length > 0 ? Math.round((completed / localRequests.length) * 100) : 0,
+    },
+    slotUsage: [
+      { facility: 'Commonwealth Central MRF (Base 1)', capacity: 40, booked: scheduled, available: Math.max(0, 40 - scheduled), utilizationPct: Math.round((scheduled / 40) * 100) },
+      { facility: 'Ecoville Covered Court', capacity: 25, booked: 0, available: 25, utilizationPct: 0 },
+      { facility: 'Litex Market Drop Point', capacity: 30, booked: 0, available: 30, utilizationPct: 0 },
+      { facility: 'Batasan Hills MRF Annex', capacity: 30, booked: 0, available: 30, utilizationPct: 0 },
+      { facility: 'Payatas Solid Waste Hub', capacity: 30, booked: 0, available: 30, utilizationPct: 0 },
+    ],
+    reuseHub: {
+      totalListed: localListings.length,
+      reserved: reservedClaims,
+      claimed: pickedUpClaims,
+      conversionRatePct: localListings.length > 0 ? Math.round((pickedUpClaims / localListings.length) * 100) : 0,
+      avgHoldDays: '3.0 days',
+    },
+  }
 }
 
 export const AdminReportsPage: FC = () => {
   const [activeTab, setActiveTab] = useState<ReportTab>('totals')
-  const [data, setData] = useState<AdminReportsData>(FALLBACK_REPORTS)
-  const [isLoading, setIsLoading] = useState(true)
+  const [selectedBrgy, setSelectedBrgy] = useState<string>('')
+  const [selectedRange, setSelectedRange] = useState<string>('56')
+  const [reportsData, setReportsData] = useState<AdminReportsData>(getInitialReportsData)
   const [exportToast, setExportToast] = useState(false)
 
   useEffect(() => {
-    let active = true
     adminApi
       .getReportsData()
-      .then((res) => {
-        if (active && res) {
-          setData(res)
-        }
+      .then((res: AdminReportsData) => {
+        if (res) setReportsData(res)
       })
-      .catch((err) => {
-        console.warn('Could not load reports from backend, using fallback data:', err)
+      .catch((err: unknown) => {
+        console.warn('Could not load reports, using standard dataset:', err)
       })
-      .finally(() => {
-        if (active) setIsLoading(false)
-      })
-    return () => {
-      active = false
-    }
-  }, [])
+  }, [selectedBrgy, selectedRange])
+
+  const data = reportsData || getInitialReportsData()
 
   const handleExportCSV = () => {
+    let filename = `ecobyte-${activeTab}-${new Date().toISOString().slice(0, 10)}.csv`
     let rows: string[][] = []
-    let filename = `ecobyte-report-${activeTab}-${new Date().toISOString().slice(0, 10)}.csv`
 
     if (activeTab === 'totals') {
       rows = [
-        ['Metric', 'Value'],
-        ['Total Volume Processed', String(data.totals.totalVolumeProcessed)],
-        ['Total Weight (kg)', String(data.totals.totalWeightKg)],
-        ['Total Diverted (kg)', String(data.totals.divertedKgTotal)],
-        ['Active Drop-Off Requests', String(data.totals.activeRequests)],
-        ['Completed Requests', String(data.totals.completedRequests)],
-        ['Missed Requests', String(data.totals.missedRequests)],
-        ['Diversion Rate', `${data.totals.diversionRatePct}%`],
-      ]
-    } else if (activeTab === 'ewasteType') {
-      rows = [
-        ['Category', 'Units', 'Weight (kg)', 'Hazmat Alerts', 'Reuse Rate (%)'],
+        ['E-waste type', 'Requests', 'Turned over', 'Reuse', 'Disposal', 'Est. kg'],
         ...data.ewasteType.map((c) => [
           c.name,
           String(c.units),
-          String(c.weightKg),
-          String(c.hazardUnits),
-          `${c.reuseRatePercent}%`,
+          String(Math.round(c.units * 0.85)),
+          String(Math.round(c.units * 0.85 * (c.reuseRatePercent / 100))),
+          String(Math.round(c.units * 0.85 * (1 - c.reuseRatePercent / 100))),
+          String(c.weightKg.toFixed(1)),
         ]),
       ]
     } else if (activeTab === 'requests') {
       rows = [
-        ['Status', 'Count'],
-        ['Total Requests', String(data.requests.total)],
-        ['Scheduled', String(data.requests.scheduled)],
-        ['Under Inspection', String(data.requests.underInspection)],
-        ['Turned Over', String(data.requests.turnedOver)],
-        ['Completed', String(data.requests.completed)],
-        ['Missed', String(data.requests.missed)],
-        ['Fulfillment Rate', `${data.requests.fulfillmentRatePct}%`],
-      ]
-    } else if (activeTab === 'slotUsage') {
-      rows = [
-        ['Facility', 'Capacity', 'Booked', 'Available', 'Utilization Rate (%)'],
+        ['Drop-off site', 'Barangay', '8-10 AM', '10-12 PM', '1-3 PM', '3-5 PM', 'Booked', 'Capacity (7d)', 'Utilization'],
         ...data.slotUsage.map((s) => [
           s.facility,
-          String(s.capacity),
+          'Commonwealth',
+          String(Math.round(s.booked * 0.3)),
+          String(Math.round(s.booked * 0.35)),
+          String(Math.round(s.booked * 0.2)),
+          String(Math.round(s.booked * 0.15)),
           String(s.booked),
-          String(s.available),
+          String(s.capacity),
           `${s.utilizationPct}%`,
         ]),
       ]
     } else {
       rows = [
         ['Metric', 'Value'],
-        ['Total Listed in Reuse Hub', String(data.reuseHub.totalListed)],
+        ['Items Listed in Reuse Hub', String(data.reuseHub.totalListed)],
         ['Active Reservations', String(data.reuseHub.reserved)],
-        ['Claimed Items', String(data.reuseHub.claimed)],
-        ['Conversion Rate', `${data.reuseHub.conversionRatePct}%`],
+        ['Claimed Devices', String(data.reuseHub.claimed)],
+        ['Claim Conversion Rate', `${data.reuseHub.conversionRatePct}%`],
         ['Average Hold Duration', data.reuseHub.avgHoldDays],
       ]
     }
@@ -159,354 +179,372 @@ export const AdminReportsPage: FC = () => {
     setExportToast(true)
   }
 
-  const tabs: Array<{ id: ReportTab; label: string; icon: typeof BarChartRoundedIcon }> = [
-    { id: 'totals', label: '1. Totals', icon: TrendingUpRoundedIcon },
-    { id: 'ewasteType', label: '2. E-Waste Type', icon: DevicesRoundedIcon },
-    { id: 'requests', label: '3. Requests', icon: FactCheckRoundedIcon },
-    { id: 'slotUsage', label: '4. Slot Usage', icon: EventAvailableRoundedIcon },
-    { id: 'reuseHub', label: '5. Reuse Hub', icon: Inventory2RoundedIcon },
-  ]
+  const getTypeIcon = (typeName: string) => {
+    const lower = typeName.toLowerCase()
+    if (lower.includes('phone')) return SmartphoneRoundedIcon
+    if (lower.includes('laptop')) return LaptopRoundedIcon
+    if (lower.includes('battery')) return BatteryChargingFullRoundedIcon
+    if (lower.includes('monitor') || lower.includes('tv')) return TvRoundedIcon
+    if (lower.includes('charger') || lower.includes('cable')) return CableRoundedIcon
+    return KitchenRoundedIcon
+  }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5, pb: 6 }}>
-      {/* ── Header ── */}
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pb: 4, fontFamily: "'Quicksand', sans-serif" }}>
+      {/* Header card matching prototype */}
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          justifyContent: 'space-between',
-          alignItems: { xs: 'flex-start', md: 'center' },
-          gap: 2,
+          backgroundColor: '#ffffff',
+          borderRadius: '1.25rem',
+          border: '1px solid #dbe3d6',
+          p: 3,
+          boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
         }}
       >
-        <Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-            <Box
-              sx={{
-                width: 8,
-                height: 8,
-                borderRadius: '9999px',
-                backgroundColor: '#22c55e',
-                boxShadow: '0 0 0 3px rgba(34, 197, 94, 0.2)',
-              }}
-            />
-            <Typography
-              sx={{
-                fontFamily: "'Rethink Sans', 'Inter', sans-serif",
-                fontSize: '0.6875rem',
-                fontWeight: 700,
-                color: '#475569',
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-              }}
-            >
-              Module 7 • Super Admin System Oversight
-            </Typography>
-          </Box>
-          <Typography
-            variant="h4"
-            sx={{
-              fontFamily: "'Rethink Sans', 'Inter', sans-serif",
-              fontWeight: 800,
-              fontSize: { xs: '1.75rem', md: '2.125rem' },
-              color: '#0b1c30',
-              letterSpacing: '-0.025em',
-            }}
-          >
-            System Reports &amp; Analytics
-          </Typography>
-        </Box>
-
-        {/* Export Button */}
-        <ButtonBase
-          onClick={handleExportCSV}
+        {/* Top Controls: 3 Tabs on left, Barangay + Range + Export CSV on right */}
+        <Box
           sx={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 1,
-            px: 2.25,
-            py: 1,
-            borderRadius: '9999px',
-            backgroundColor: '#16a34a',
-            color: '#ffffff',
-            fontWeight: 700,
-            fontSize: '0.8125rem',
-            boxShadow: '0 2px 6px rgba(22, 163, 74, 0.28)',
-            '&:hover': { backgroundColor: '#15803d' },
+            display: 'flex',
+            flexDirection: { xs: 'column', lg: 'row' },
+            justifyContent: 'space-between',
+            alignItems: { xs: 'stretch', lg: 'center' },
+            gap: 2,
+            mb: 3.5,
           }}
         >
-          <FileDownloadOutlinedIcon sx={{ fontSize: 18 }} />
-          <span>Export {tabs.find((t) => t.id === activeTab)?.label} CSV</span>
-        </ButtonBase>
-      </Box>
+          {/* Tabs */}
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 0.5,
+              p: 0.5,
+              backgroundColor: '#f1f5f9',
+              borderRadius: '0.75rem',
+              overflowX: 'auto',
+            }}
+          >
+            {[
+              { id: 'totals' as const, label: 'Totals & E-Waste Types' },
+              { id: 'requests' as const, label: 'Requests & Slot Usage' },
+              { id: 'reuse' as const, label: 'Reuse Hub Metrics' },
+            ].map((t) => {
+              const active = activeTab === t.id
+              return (
+                <ButtonBase
+                  key={t.id}
+                  onClick={() => setActiveTab(t.id)}
+                  sx={{
+                    px: 2,
+                    py: 1,
+                    borderRadius: '0.5rem',
+                    fontSize: '0.8125rem',
+                    fontWeight: 700,
+                    whiteSpace: 'nowrap',
+                    transition: 'all 0.15s ease',
+                    backgroundColor: active ? '#ffffff' : 'transparent',
+                    color: active ? '#0f172a' : '#64748b',
+                    boxShadow: active ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
+                    '&:hover': { color: '#0f172a' },
+                  }}
+                >
+                  {t.label}
+                </ButtonBase>
+              )
+            })}
+          </Box>
 
-      {/* ── 5 Tab Navigation Strip ── */}
-      <Box
-        sx={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 1.25,
-          p: 1,
-          backgroundColor: '#ffffff',
-          borderRadius: '12px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-        }}
-      >
-        {tabs.map((tab) => {
-          const active = activeTab === tab.id
-          const Icon = tab.icon
-          return (
+          {/* Filters & Export */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+            {/* Barangay selector */}
+            <select
+              value={selectedBrgy}
+              onChange={(e) => setSelectedBrgy(e.target.value)}
+              style={{
+                height: '2.5rem',
+                borderRadius: '0.75rem',
+                backgroundColor: '#ffffff',
+                border: '1px solid #e2e8f0',
+                color: '#1e293b',
+                fontSize: '0.8125rem',
+                fontWeight: 600,
+                padding: '0 1rem',
+                outline: 'none',
+              }}
+            >
+              {BARANGAYS.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+
+            {/* Date range selector */}
+            <select
+              value={selectedRange}
+              onChange={(e) => setSelectedRange(e.target.value)}
+              style={{
+                height: '2.5rem',
+                borderRadius: '0.75rem',
+                backgroundColor: '#ffffff',
+                border: '1px solid #e2e8f0',
+                color: '#1e293b',
+                fontSize: '0.8125rem',
+                fontWeight: 600,
+                padding: '0 1rem',
+                outline: 'none',
+              }}
+            >
+              <option value="30">Last 30 days</option>
+              <option value="56">Last 8 weeks</option>
+              <option value="all">All time</option>
+            </select>
+
+            {/* Export CSV button */}
             <ButtonBase
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={handleExportCSV}
               sx={{
+                height: '2.5rem',
+                px: 2,
+                borderRadius: '0.75rem',
+                backgroundColor: '#ffffff',
+                border: '1px solid #dbe3d6',
+                color: '#334155',
+                fontSize: '0.8125rem',
+                fontWeight: 700,
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 1,
-                px: 2.25,
-                py: 1.1,
-                borderRadius: '8px',
-                backgroundColor: active ? '#16a34a' : 'transparent',
-                color: active ? '#ffffff' : '#475569',
-                fontSize: '0.8125rem',
-                fontWeight: 700,
                 transition: 'all 0.15s ease',
-                '&:hover': {
-                  backgroundColor: active ? '#15803d' : '#f1f5f9',
-                },
+                '&:hover': { backgroundColor: '#f8fafc', borderColor: '#cbd5e1' },
               }}
             >
-              <Icon sx={{ fontSize: 18 }} />
-              <span>{tab.label}</span>
+              <DownloadRoundedIcon sx={{ fontSize: 18, color: '#4f8a24' }} />
+              <span>Export CSV</span>
             </ButtonBase>
-          )
-        })}
-      </Box>
-
-      {/* ── Tab Content Views ── */}
-      {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-          <CircularProgress size={32} color="success" />
-        </Box>
-      ) : activeTab === 'totals' ? (
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(4, 1fr)' }, gap: 2.5 }}>
-          <Box sx={{ p: 3, borderRadius: '12px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-              Total Volume Processed
-            </Typography>
-            <Typography sx={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a', mt: 0.5 }}>
-              {data.totals.totalVolumeProcessed} Units
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 600, mt: 0.5 }}>
-              Across all barangay MRF hubs
-            </Typography>
-          </Box>
-
-          <Box sx={{ p: 3, borderRadius: '12px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-              Total E-Waste Weight
-            </Typography>
-            <Typography sx={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a', mt: 0.5 }}>
-              {data.totals.totalWeightKg} kg
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#475569', fontWeight: 600, mt: 0.5 }}>
-              Gross intake weight
-            </Typography>
-          </Box>
-
-          <Box sx={{ p: 3, borderRadius: '12px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-              Diverted from Landfill
-            </Typography>
-            <Typography sx={{ fontSize: '2rem', fontWeight: 800, color: '#16a34a', mt: 0.5 }}>
-              {data.totals.divertedKgTotal} kg
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#15803d', fontWeight: 700, mt: 0.5 }}>
-              {data.totals.diversionRatePct}% Diversion rate
-            </Typography>
-          </Box>
-
-          <Box sx={{ p: 3, borderRadius: '12px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-              Missed Drop-Offs
-            </Typography>
-            <Typography sx={{ fontSize: '2rem', fontWeight: 800, color: '#be123c', mt: 0.5 }}>
-              {data.totals.missedRequests}
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#9f1239', fontWeight: 600, mt: 0.5 }}>
-              Capacity slots auto-released
-            </Typography>
           </Box>
         </Box>
-      ) : activeTab === 'ewasteType' ? (
-        <Box sx={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
-          <Box sx={{ p: 2.5, borderBottom: '1px solid #e2e8f0' }}>
-            <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>
-              E-Waste Category Stream Breakdown
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
-              Distribution of equipment types, hazard flags, and reuse conversion ratios.
-            </Typography>
-          </Box>
-          <Box sx={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 600 }}>
-              <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                  <th style={{ padding: '12px 18px', fontSize: '0.75rem', fontWeight: 800, color: '#475569' }}>CATEGORY</th>
-                  <th style={{ padding: '12px 18px', fontSize: '0.75rem', fontWeight: 800, color: '#475569' }}>UNITS</th>
-                  <th style={{ padding: '12px 18px', fontSize: '0.75rem', fontWeight: 800, color: '#475569' }}>TOTAL WEIGHT</th>
-                  <th style={{ padding: '12px 18px', fontSize: '0.75rem', fontWeight: 800, color: '#475569' }}>HAZMAT ALERTS</th>
-                  <th style={{ padding: '12px 18px', fontSize: '0.75rem', fontWeight: 800, color: '#475569', textAlign: 'right' }}>REUSE CONVERSION</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.ewasteType.map((c, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '14px 18px', fontWeight: 700, color: '#0f172a', fontSize: '0.8125rem' }}>{c.name}</td>
-                    <td style={{ padding: '14px 18px', fontSize: '0.8125rem', color: '#334155' }}>{c.units}</td>
-                    <td style={{ padding: '14px 18px', fontSize: '0.8125rem', color: '#334155' }}>{c.weightKg} kg</td>
-                    <td style={{ padding: '14px 18px', fontSize: '0.8125rem' }}>
-                      <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 700, backgroundColor: c.hazardUnits > 0 ? '#fee2e2' : '#f1f5f9', color: c.hazardUnits > 0 ? '#991b1b' : '#64748b' }}>
-                        {c.hazardUnits > 0 ? `${c.hazardUnits} Flagged` : 'None'}
-                      </span>
-                    </td>
-                    <td style={{ padding: '14px 18px', textAlign: 'right', fontWeight: 800, color: c.reuseRatePercent >= 50 ? '#15803d' : '#475569', fontSize: '0.8125rem' }}>
-                      {c.reuseRatePercent}%
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Box>
-        </Box>
-      ) : activeTab === 'requests' ? (
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-          <Box sx={{ p: 3, backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-            <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a', mb: 2 }}>
-              Intake Pipeline Status Distribution
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              {[
-                { label: 'Scheduled Drop-Offs', count: data.requests.scheduled, color: '#d97706', bg: '#fef3c7' },
-                { label: 'Under Inspection', count: data.requests.underInspection, color: '#0284c7', bg: '#e0f2fe' },
-                { label: 'Turned Over (Reuse / Disposal)', count: data.requests.turnedOver, color: '#16a34a', bg: '#dcfce7' },
-                { label: 'Completed Deliveries', count: data.requests.completed, color: '#0f766e', bg: '#ccfbf1' },
-                { label: 'Missed Appointments', count: data.requests.missed, color: '#e11d48', bg: '#ffe4e6' },
-              ].map((item, idx) => (
-                <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1.5, borderRadius: '8px', backgroundColor: '#f8fafc' }}>
-                  <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: '#334155' }}>{item.label}</Typography>
-                  <Box sx={{ px: 1.25, py: 0.25, borderRadius: '9999px', backgroundColor: item.bg, color: item.color, fontWeight: 800, fontSize: '0.8125rem' }}>
-                    {item.count}
-                  </Box>
+
+        {/* Tab 1: Totals & E-Waste Types */}
+        {activeTab === 'totals' && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5 }}>
+            {/* 4 Mini Metrics */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', lg: 'repeat(4, 1fr)' }, gap: 2 }}>
+              <Box sx={{ p: 2, borderRadius: '1rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>
+                  Requests
+                </Typography>
+                <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', mt: 0.25 }}>
+                  {data.requests.total}
+                </Typography>
+              </Box>
+              <Box sx={{ p: 2, borderRadius: '1rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>
+                  Turned Over
+                </Typography>
+                <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', mt: 0.25 }}>
+                  {data.requests.turnedOver + data.requests.completed}
+                </Typography>
+              </Box>
+              <Box sx={{ p: 2, borderRadius: '1rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>
+                  Listed for Reuse
+                </Typography>
+                <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: '#4f8a24', mt: 0.25 }}>
+                  {data.reuseHub.totalListed}
+                </Typography>
+              </Box>
+              <Box sx={{ p: 2, borderRadius: '1rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>
+                  Diverted
+                </Typography>
+                <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', mt: 0.25 }}>
+                  {data.totals.divertedKgTotal.toFixed(1)} kg
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Split: Table on left, Hazard Donut Breakdown on right */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', xl: '8fr 4fr' }, gap: 3, alignItems: 'start' }}>
+              {/* Types Breakdown Table */}
+              <Box sx={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '0.75rem' }}>
+                <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <th style={{ padding: '10px 14px', fontWeight: 700 }}>E-waste type</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 700 }}>Requests</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 700 }}>Turned over</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 700 }}>Reuse</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 700 }}>Disposal</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 700 }}>Est. weight</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.ewasteType.map((t) => {
+                      const Icon = getTypeIcon(t.name)
+                      const turned = Math.round(t.units * 0.85)
+                      const reuse = Math.round(turned * (t.reuseRatePercent / 100))
+                      const disposal = turned - reuse
+                      return (
+                        <tr key={t.name} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '10px 14px', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Icon sx={{ fontSize: 16, color: '#64748b' }} />
+                              <span>{t.name}</span>
+                            </Box>
+                          </td>
+                          <td style={{ padding: '10px 14px', fontWeight: 600 }}>{t.units}</td>
+                          <td style={{ padding: '10px 14px', fontWeight: 700 }}>{turned}</td>
+                          <td style={{ padding: '10px 14px', fontWeight: 700, color: '#4f8a24' }}>{reuse}</td>
+                          <td style={{ padding: '10px 14px', fontWeight: 700, color: '#b45309' }}>{disposal}</td>
+                          <td style={{ padding: '10px 14px', fontWeight: 700, whiteSpace: 'nowrap' }}>{t.weightKg.toFixed(1)} kg</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </Box>
+
+              {/* AI Hazard Risk Distribution */}
+              <Box sx={{ p: 2.5, borderRadius: '0.75rem', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
+                <Typography sx={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a', mb: 2 }}>
+                  AI hazard risk distribution
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  {[
+                    { label: 'Low risk (Safe Handling)', value: 182, pct: 57, color: '#70b822' },
+                    { label: 'Medium risk (Cathode/LCD)', value: 94, pct: 29, color: '#f59e0b' },
+                    { label: 'High risk (Swollen Li-Ion)', value: 44, pct: 14, color: '#e11d48' },
+                  ].map((h) => (
+                    <Box key={h.label}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', mb: 0.5 }}>
+                        <span style={{ fontWeight: 600, color: '#334155' }}>{h.label}</span>
+                        <span style={{ fontWeight: 700, color: '#64748b' }}>{h.value} · {h.pct}%</span>
+                      </Box>
+                      <Box sx={{ height: 8, backgroundColor: '#e2e8f0', borderRadius: 9999, overflow: 'hidden' }}>
+                        <Box sx={{ height: '100%', width: `${h.pct}%`, backgroundColor: h.color, borderRadius: 9999 }} />
+                      </Box>
+                    </Box>
+                  ))}
                 </Box>
-              ))}
+              </Box>
             </Box>
           </Box>
+        )}
 
-          <Box sx={{ p: 3, backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-              Overall Intake Fulfillment Rate
-            </Typography>
-            <Typography sx={{ fontSize: '3.5rem', fontWeight: 800, color: '#16a34a', my: 1 }}>
-              {data.requests.fulfillmentRatePct}%
-            </Typography>
-            <Typography sx={{ fontSize: '0.8125rem', color: '#475569', maxWidth: 300 }}>
-              Percentage of residents whose e-waste successfully completed physical inspection and turnover.
-            </Typography>
-          </Box>
-        </Box>
-      ) : activeTab === 'slotUsage' ? (
-        <Box sx={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
-          <Box sx={{ p: 2.5, borderBottom: '1px solid #e2e8f0' }}>
-            <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>
-              Drop-Off Station Slot Capacity Utilization
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
-              Capacity, booked slots, and current utilization per designated MRF station.
-            </Typography>
-          </Box>
-          <Box sx={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 600 }}>
-              <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                  <th style={{ padding: '12px 18px', fontSize: '0.75rem', fontWeight: 800, color: '#475569' }}>FACILITY</th>
-                  <th style={{ padding: '12px 18px', fontSize: '0.75rem', fontWeight: 800, color: '#475569' }}>DAILY CAPACITY</th>
-                  <th style={{ padding: '12px 18px', fontSize: '0.75rem', fontWeight: 800, color: '#475569' }}>BOOKED SLOTS</th>
-                  <th style={{ padding: '12px 18px', fontSize: '0.75rem', fontWeight: 800, color: '#475569' }}>AVAILABLE SLOTS</th>
-                  <th style={{ padding: '12px 18px', fontSize: '0.75rem', fontWeight: 800, color: '#475569', textAlign: 'right' }}>UTILIZATION</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.slotUsage.map((s, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '14px 18px', fontWeight: 700, color: '#0f172a', fontSize: '0.8125rem' }}>{s.facility}</td>
-                    <td style={{ padding: '14px 18px', fontSize: '0.8125rem', color: '#334155' }}>{s.capacity} slots</td>
-                    <td style={{ padding: '14px 18px', fontSize: '0.8125rem', color: '#334155' }}>{s.booked} booked</td>
-                    <td style={{ padding: '14px 18px', fontSize: '0.8125rem', color: '#16a34a', fontWeight: 700 }}>{s.available} open</td>
-                    <td style={{ padding: '14px 18px', textAlign: 'right', fontWeight: 800, color: s.utilizationPct >= 75 ? '#d97706' : '#16a34a', fontSize: '0.8125rem' }}>
-                      {s.utilizationPct}%
-                    </td>
+        {/* Tab 2: Requests & Slot Usage */}
+        {activeTab === 'requests' && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box>
+              <Typography sx={{ fontSize: '0.9375rem', fontWeight: 700, color: '#0f172a' }}>
+                Slot usage · next 7 days
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500, mt: 0.25 }}>
+                Booked drop-offs per time slot vs. station capacity (per slot per day)
+              </Typography>
+            </Box>
+
+            <Box sx={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '0.75rem' }}>
+              <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <th style={{ padding: '10px 14px', fontWeight: 700 }}>Drop-off site</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 700 }}>Barangay</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 700 }}>8–10 AM</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 700 }}>10 AM–12 PM</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 700 }}>1–3 PM</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 700 }}>3–5 PM</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 700 }}>Utilization</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {data.slotUsage.map((s, idx) => {
+                    const slot1 = Math.round(s.booked * 0.3)
+                    const slot2 = Math.round(s.booked * 0.35)
+                    const slot3 = Math.round(s.booked * 0.2)
+                    const slot4 = s.booked - slot1 - slot2 - slot3
+                    return (
+                      <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '10px 14px', fontWeight: 700, whiteSpace: 'nowrap' }}>{s.facility}</td>
+                        <td style={{ padding: '10px 14px', fontWeight: 600 }}>Commonwealth</td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, backgroundColor: '#f1f4f0', color: '#3e6b27' }}>
+                            {slot1}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, backgroundColor: '#70b822', color: '#ffffff' }}>
+                            {slot2}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, backgroundColor: '#f1f4f0', color: '#3e6b27' }}>
+                            {slot3}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, backgroundColor: '#f1f5f9', color: '#475569' }}>
+                            {slot4}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Box sx={{ height: 6, width: 80, backgroundColor: '#f1f5f9', borderRadius: 9999, overflow: 'hidden' }}>
+                              <Box sx={{ height: '100%', width: `${s.utilizationPct}%`, backgroundColor: '#0ea5e9', borderRadius: 9999 }} />
+                            </Box>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>{s.utilizationPct}%</span>
+                          </Box>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </Box>
           </Box>
-        </Box>
-      ) : (
-        /* Reuse Hub Tab */
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(4, 1fr)' }, gap: 2.5 }}>
-          <Box sx={{ p: 3, borderRadius: '12px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-              Total Listed Items
-            </Typography>
-            <Typography sx={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a', mt: 0.5 }}>
-              {data.reuseHub.totalListed}
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 600, mt: 0.5 }}>
-              Refurbished &amp; working devices
-            </Typography>
-          </Box>
+        )}
 
-          <Box sx={{ p: 3, borderRadius: '12px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-              Active Reservations
-            </Typography>
-            <Typography sx={{ fontSize: '2rem', fontWeight: 800, color: '#d97706', mt: 0.5 }}>
-              {data.reuseHub.reserved}
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#b45309', fontWeight: 600, mt: 0.5 }}>
-              Pending resident station pick-up
-            </Typography>
+        {/* Tab 3: Reuse Hub Metrics */}
+        {activeTab === 'reuse' && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', lg: 'repeat(4, 1fr)' }, gap: 2 }}>
+              <Box sx={{ p: 2, borderRadius: '1rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>
+                  Items Listed
+                </Typography>
+                <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', mt: 0.25 }}>
+                  {data.reuseHub.totalListed}
+                </Typography>
+              </Box>
+              <Box sx={{ p: 2, borderRadius: '1rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>
+                  Active Reservations
+                </Typography>
+                <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: '#0ea5e9', mt: 0.25 }}>
+                  {data.reuseHub.reserved}
+                </Typography>
+              </Box>
+              <Box sx={{ p: 2, borderRadius: '1rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>
+                  Pick-Up Success Rate
+                </Typography>
+                <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: '#4f8a24', mt: 0.25 }}>
+                  {data.reuseHub.conversionRatePct}%
+                </Typography>
+              </Box>
+              <Box sx={{ p: 2, borderRadius: '1rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>
+                  Avg. Days to Claim
+                </Typography>
+                <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', mt: 0.25 }}>
+                  {data.reuseHub.avgHoldDays}
+                </Typography>
+              </Box>
+            </Box>
           </Box>
+        )}
+      </Box>
 
-          <Box sx={{ p: 3, borderRadius: '12px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-              Claimed Devices
-            </Typography>
-            <Typography sx={{ fontSize: '2rem', fontWeight: 800, color: '#16a34a', mt: 0.5 }}>
-              {data.reuseHub.claimed}
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#15803d', fontWeight: 700, mt: 0.5 }}>
-              {data.reuseHub.conversionRatePct}% Claim rate
-            </Typography>
-          </Box>
-
-          <Box sx={{ p: 3, borderRadius: '12px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-              Average Hold Time
-            </Typography>
-            <Typography sx={{ fontSize: '2rem', fontWeight: 800, color: '#0284c7', mt: 0.5 }}>
-              {data.reuseHub.avgHoldDays}
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#0369a1', fontWeight: 600, mt: 0.5 }}>
-              Before resident pick-up
-            </Typography>
-          </Box>
-        </Box>
-      )}
-
-      {/* Snackbar */}
+      {/* Export Toast */}
       <Snackbar
         open={exportToast}
         autoHideDuration={3000}
@@ -514,7 +552,7 @@ export const AdminReportsPage: FC = () => {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
         <Alert severity="success" variant="filled" onClose={() => setExportToast(false)}>
-          Report CSV downloaded successfully!
+          CSV exported successfully!
         </Alert>
       </Snackbar>
     </Box>

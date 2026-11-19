@@ -293,7 +293,7 @@ export const DashboardPage: FC = () => {
 
               {/* Assessed */}
               <Box
-                onClick={() => navigate('/scan')}
+                onClick={() => navigate('/requests?tab=assessed')}
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
