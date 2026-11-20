@@ -26,6 +26,19 @@ export function clearStaleLocalRequests(): void {
   localStorage.removeItem('ecobyte_ongoing_requests')
   localStorage.removeItem('ecobyte_claimed_requests')
   localStorage.removeItem('ecobyte_user_reservations')
+  localStorage.removeItem('ecobyte_dropoff_requests')
+  localStorage.removeItem('ecobyte_reuse_listings')
+  localStorage.removeItem('ecobyte_disposal_records')
+  localStorage.removeItem('ecobyte_activity_logs')
+}
+
+export function getScopedOfficialBaseId(): string | null {
+  const user = getCachedUser()
+  const storedRole =
+    typeof window !== 'undefined' ? localStorage.getItem('ecobyte_user_role') : null
+  const role = resolveAuthRole(user?.role || storedRole, user?.email)
+  if (role !== 'BARANGAY_OFFICIAL') return null
+  return user?.barangay?.id ? String(user.barangay.id) : null
 }
 
 export function setCachedUser(user: User | null): void {

@@ -199,7 +199,7 @@ export const AdminTransactionsPage: FC = () => {
     adminApi
       .getTransactions({ search })
       .then((data: AdminTransactionItem[]) => {
-        if (!active || !data || data.length === 0) return
+        if (!active || !Array.isArray(data)) return
         const mappedLiveClaims: ClaimRecord[] = data.map((d) => ({
           id: d.transactionNumber || d.id,
           listingId: d.rawId || 'RH-LIVE',
@@ -224,10 +224,7 @@ export const AdminTransactionsPage: FC = () => {
           proofPhoto: (d.status || '').toLowerCase() === 'completed',
         }))
 
-        setClaims((prev) => {
-          const ids = new Set(mappedLiveClaims.map((m) => m.id))
-          return [...mappedLiveClaims, ...prev.filter((p) => !ids.has(p.id))]
-        })
+        setClaims(mappedLiveClaims)
       })
       .catch((err) => {
         console.warn('Backend transactions unavailable:', err)
@@ -236,7 +233,7 @@ export const AdminTransactionsPage: FC = () => {
     adminApi
       .getReuseInventory()
       .then((rows) => {
-        if (!active || !Array.isArray(rows) || rows.length === 0) return
+        if (!active || !Array.isArray(rows)) return
         const mappedListings: ListingRecord[] = rows.map((r) => ({
           id: r.id,
           itemName: r.title,
@@ -247,10 +244,7 @@ export const AdminTransactionsPage: FC = () => {
           listedAt: r.createdAt?.slice(0, 10) || TODAY_STR,
           status: r.status === 'Available' ? 'Available' : r.status === 'Reserved' ? 'Reserved' : 'Claimed',
         }))
-        setListings((prev) => {
-          const ids = new Set(mappedListings.map((m) => m.id))
-          return [...mappedListings, ...prev.filter((p) => !ids.has(p.id))]
-        })
+        setListings(mappedListings)
       })
       .catch(() => {})
 

@@ -13,7 +13,7 @@ import CableRoundedIcon from '@mui/icons-material/CableRounded'
 import KitchenRoundedIcon from '@mui/icons-material/KitchenRounded'
 import TaskAltRoundedIcon from '@mui/icons-material/TaskAltRounded'
 import { AdminDisposalPage } from '@/pages/admin/AdminDisposalPage'
-import { adminApi, type AdminCollectionRequest } from '@/lib/api'
+import { adminApi, getScopedOfficialBaseId, type AdminCollectionRequest } from '@/lib/api'
 
 export interface InspectionQueueRecord {
   id: string
@@ -36,8 +36,10 @@ const getInitialQueue = (): InspectionQueueRecord[] => {
     if (raw) {
       const parsed = JSON.parse(raw)
       if (Array.isArray(parsed)) {
+        const scopedBaseId = getScopedOfficialBaseId()
         return parsed
           .filter((r: any) => {
+            if (scopedBaseId && String(r?.residentBaseId ?? '') !== scopedBaseId) return false
             const s = (r.status || '').toLowerCase()
             return s === 'under inspection' || s === 'under_inspection' || s === 'collected'
           })
@@ -74,7 +76,7 @@ export const AdminToInspectPage: FC = () => {
     adminApi
       .getRequests()
       .then((data: AdminCollectionRequest[]) => {
-        if (!active || !data || data.length === 0) return
+        if (!active || !Array.isArray(data)) return
         const liveUnderInspection: InspectionQueueRecord[] = data
           .filter((d) => {
             const s = (d.status || '').toLowerCase()
@@ -83,8 +85,8 @@ export const AdminToInspectPage: FC = () => {
           .map((d) => ({
             id: d.id,
             requestCode: d.requestCode || d.id,
-            itemName: d.preferredMethod || 'Resident E-Waste Device',
-            type: d.preferredMethod || 'Electronics',
+            itemName: d.itemName || d.preferredMethod || 'Resident E-Waste Device',
+            type: d.itemCategory || d.preferredMethod || 'Electronics',
             residentName: d.residentName || 'Resident User',
             siteName: d.siteName || 'Commonwealth Central MRF (Base 1)',
             receivedAt: d.requestedDate || 'Recent',
@@ -94,10 +96,7 @@ export const AdminToInspectPage: FC = () => {
             },
           }))
 
-        setQueue((prev) => {
-          const liveIds = new Set(liveUnderInspection.map((m) => m.id))
-          return [...liveUnderInspection, ...prev.filter((p) => !liveIds.has(p.id))]
-        })
+        setQueue(liveUnderInspection)
       })
       .catch((err) => {
         console.warn('Backend requests unavailable:', err)

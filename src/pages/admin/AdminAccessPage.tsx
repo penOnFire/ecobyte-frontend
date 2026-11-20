@@ -81,6 +81,7 @@ export const AdminAccessPage: FC = () => {
   const [cuTwoFactorEnabled, setCuTwoFactorEnabled] = useState(false)
   const [cuNotes, setCuNotes] = useState('')
   const [cuError, setCuError] = useState<string | null>(null)
+  const [confirmCreateModalOpen, setConfirmCreateModalOpen] = useState(false)
 
   // ── Pop-Up Modal 2: Change User Role (Prototype change-role modal) ──
   const [changeRoleModalOpen, setChangeRoleModalOpen] = useState(false)
@@ -134,6 +135,7 @@ export const AdminAccessPage: FC = () => {
     setCuTwoFactorEnabled(false)
     setCuNotes('')
     setCuError(null)
+    setConfirmCreateModalOpen(false)
     setCreateModalOpen(true)
   }
 
@@ -158,7 +160,7 @@ export const AdminAccessPage: FC = () => {
     }
   }
 
-  const handleSaveNewUser = async () => {
+  const validateNewUserForm = () => {
     const fn = cuFirstName.trim()
     const mn = cuMiddleName.trim()
     const ln = cuLastName.trim()
@@ -169,30 +171,47 @@ export const AdminAccessPage: FC = () => {
 
     if (!fn) {
       setCuError('Please enter the first name.')
-      return
+      return null
     }
     if (!ln) {
       setCuError('Please enter the last name.')
-      return
+      return null
     }
     if (!emailTrimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
       setCuError('Please enter a valid official email address.')
-      return
+      return null
     }
     if (users.some((u) => u.email.toLowerCase() === emailTrimmed)) {
       setCuError('An account with this email address already exists.')
-      return
+      return null
     }
     if (!phoneTrimmed || phoneTrimmed === '+63' || phoneTrimmed.length < 10) {
       setCuError('Please enter a valid contact phone number (e.g. +63 917 123 4567).')
-      return
+      return null
     }
     if (!badgeTrimmed) {
       setCuError('Please specify an Employee / Badge ID.')
-      return
+      return null
     }
 
     setCuError(null)
+    return { fn, mn, ln, sfx, emailTrimmed, phoneTrimmed, badgeTrimmed }
+  }
+
+  const handleRequestConfirmCreate = () => {
+    const validated = validateNewUserForm()
+    if (!validated) return
+    setConfirmCreateModalOpen(true)
+  }
+
+  const handleSaveNewUser = async () => {
+    const validated = validateNewUserForm()
+    if (!validated) {
+      setConfirmCreateModalOpen(false)
+      return
+    }
+    const { fn, mn, ln, sfx, emailTrimmed, phoneTrimmed, badgeTrimmed } = validated
+
     setIsSaving(true)
 
     const nameParts = [fn, mn, ln, sfx].filter(Boolean)
@@ -232,9 +251,15 @@ export const AdminAccessPage: FC = () => {
         type: 'success',
         message: `Account registered successfully for ${mapped.name} (${mapped.idCode}) • Assigned: ${assignedBrgy} (temp password: "${cuPassword || 'official123'}").`,
       })
+      setConfirmCreateModalOpen(false)
       setCreateModalOpen(false)
-    } catch {
-      // Local fallback
+    } catch (err: any) {
+      if (err?.status === 400 || err?.status === 403 || err?.status === 409) {
+        setConfirmCreateModalOpen(false)
+        setCuError(err?.message || 'Unable to register account. Please review the entered details.')
+        return
+      }
+      // Local fallback when backend is offline
       const newLocalUser: OfficialUser = {
         id: `USR-${Math.floor(1000 + Math.random() * 9000)}`,
         name: fullName,
@@ -262,6 +287,7 @@ export const AdminAccessPage: FC = () => {
         type: 'success',
         message: `Account registered successfully for ${newLocalUser.name} (${newLocalUser.idCode}) • Assigned: ${assignedBrgy} (temp password: "${cuPassword || 'official123'}").`,
       })
+      setConfirmCreateModalOpen(false)
       setCreateModalOpen(false)
     } finally {
       setIsSaving(false)
@@ -1263,7 +1289,7 @@ export const AdminAccessPage: FC = () => {
           </ButtonBase>
 
           <ButtonBase
-            onClick={handleSaveNewUser}
+            onClick={handleRequestConfirmCreate}
             disabled={isSaving}
             sx={{
               px: 3,
@@ -1463,6 +1489,155 @@ export const AdminAccessPage: FC = () => {
               <>
                 <CheckRoundedIcon sx={{ fontSize: 16 }} />
                 <span>Save Role</span>
+              </>
+            )}
+          </ButtonBase>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── POP-UP MODAL 3: Confirm Account Registration ── */}
+      <Dialog
+        open={confirmCreateModalOpen}
+        onClose={() => !isSaving && setConfirmCreateModalOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: '1.25rem',
+              border: '1px solid #dbe3d6',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.12)',
+              fontFamily: "'Quicksand', sans-serif",
+            },
+          },
+        }}
+      >
+        <DialogTitle sx={{ px: 3, pt: 3, pb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+            <Box
+              sx={{
+                width: 38,
+                height: 38,
+                borderRadius: '12px',
+                backgroundColor: '#f1f4f0',
+                color: '#2e6022',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <CheckCircleRoundedIcon sx={{ fontSize: 21 }} />
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '1.0625rem', color: '#0f172a', lineHeight: 1.2 }}>
+                Confirm Account Registration
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                Review details before issuing staff credentials
+              </Typography>
+            </Box>
+          </Box>
+          <IconButton size="small" onClick={() => setConfirmCreateModalOpen(false)} disabled={isSaving}>
+            <CloseRoundedIcon sx={{ fontSize: 19 }} />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ px: 3, py: 1.5 }}>
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: '0.875rem',
+              backgroundColor: '#f8faf6',
+              border: '1px solid #dbe3d6',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1.1,
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1.5 }}>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Full Name</Typography>
+              <Typography sx={{ fontSize: '0.8125rem', color: '#0f172a', fontWeight: 800, textAlign: 'right' }}>
+                {[cuFirstName.trim(), cuMiddleName.trim(), cuLastName.trim(), cuSuffix === 'None' ? '' : cuSuffix.trim()]
+                  .filter(Boolean)
+                  .join(' ')}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1.5 }}>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Email</Typography>
+              <Typography sx={{ fontSize: '0.78125rem', color: '#0f172a', fontWeight: 700, textAlign: 'right', wordBreak: 'break-all' }}>
+                {cuEmail.trim().toLowerCase()}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1.5 }}>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Role</Typography>
+              <Typography sx={{ fontSize: '0.78125rem', color: cuRole === 'Admin' ? '#6d28d9' : '#2e6022', fontWeight: 800 }}>
+                {cuRole === 'Admin' ? 'Super Admin' : 'Barangay Official'}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1.5 }}>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Assigned Base</Typography>
+              <Typography sx={{ fontSize: '0.78125rem', color: '#0f172a', fontWeight: 700, textAlign: 'right' }}>
+                {cuRole === 'Admin' ? 'All 9 Bases' : getCommonwealthBaseName(cuBaseId)}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1.5 }}>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Badge ID</Typography>
+              <Typography sx={{ fontSize: '0.78125rem', color: '#0f172a', fontWeight: 700, fontFamily: 'monospace' }}>
+                {cuBadgeId.trim()}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1.5 }}>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Temp Password</Typography>
+              <Typography sx={{ fontSize: '0.78125rem', color: '#0f172a', fontWeight: 700, fontFamily: 'monospace' }}>
+                {cuPassword || 'official123'}
+              </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 3, pt: 1.5, gap: 1 }}>
+          <ButtonBase
+            onClick={() => setConfirmCreateModalOpen(false)}
+            disabled={isSaving}
+            sx={{
+              px: 2.25,
+              py: 1,
+              borderRadius: '0.75rem',
+              backgroundColor: '#f1f5f9',
+              color: '#475569',
+              fontWeight: 700,
+              fontSize: '0.8125rem',
+              '&:hover': { backgroundColor: '#e2e8f0' },
+            }}
+          >
+            Back &amp; Edit
+          </ButtonBase>
+
+          <ButtonBase
+            onClick={handleSaveNewUser}
+            disabled={isSaving}
+            sx={{
+              px: 2.75,
+              py: 1,
+              borderRadius: '0.75rem',
+              background: 'linear-gradient(135deg, #2e6022 0%, #70b822 100%)',
+              color: '#ffffff',
+              fontWeight: 700,
+              fontSize: '0.8125rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.75,
+              boxShadow: '0 2px 8px rgba(112, 184, 34, 0.35)',
+              '&:hover': { opacity: 0.95 },
+              '&:disabled': { opacity: 0.5 },
+            }}
+          >
+            {isSaving ? (
+              <CircularProgress size={16} sx={{ color: '#fff' }} />
+            ) : (
+              <>
+                <CheckRoundedIcon sx={{ fontSize: 16 }} />
+                <span>Confirm &amp; Register</span>
               </>
             )}
           </ButtonBase>

@@ -1,9 +1,10 @@
-import { useState, type FC } from 'react'
+import { useEffect, useMemo, useState, type FC } from 'react'
 import {
   Alert,
   Box,
   Button,
   Card,
+  CircularProgress,
   Divider,
   FormControl,
   IconButton,
@@ -15,41 +16,25 @@ import {
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import ShareOutlinedIcon from '@mui/icons-material/ShareOutlined'
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded'
+import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded'
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined'
 import BatteryAlertRoundedIcon from '@mui/icons-material/BatteryAlertRounded'
 import PhoneAndroidRoundedIcon from '@mui/icons-material/PhoneAndroidRounded'
 import CropFreeRoundedIcon from '@mui/icons-material/CropFreeRounded'
 import MemoryRoundedIcon from '@mui/icons-material/MemoryRounded'
-import BuildOutlinedIcon from '@mui/icons-material/BuildOutlined'
+import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded'
+import BuildRoundedIcon from '@mui/icons-material/BuildRounded'
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
 import EnergySavingsLeafRoundedIcon from '@mui/icons-material/EnergySavingsLeafRounded'
 import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded'
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import diagnosticImg from '@/assets/ui/diagnostic_view.jpeg'
-import { getCachedUser } from '@/lib/api'
-import type { User } from '@/types'
-import {
-  COMMONWEALTH_FALLBACK_SITES,
-  resolveSiteBaseNumber,
-} from '@/components/map/commonwealthData'
-
-function resolveUserBase(user: User | null): number {
-  if (!user) return 1
-  if (user.barangay?.id) {
-    const idNum = parseInt(user.barangay.id, 10)
-    if (!isNaN(idNum) && idNum >= 1 && idNum <= 9) return idNum
-    const match = /(?:base|area)[\s_-]*(\d+)/i.exec(user.barangay.id)
-    if (match) return parseInt(match[1], 10)
-  }
-  if (user.barangay?.name) {
-    const match = /(?:base|area)[\s_-]*(\d+)/i.exec(user.barangay.name)
-    if (match) return parseInt(match[1], 10)
-  }
-  return 1
-}
+import { assessmentsApi } from '@/lib/api'
+import type { DiagnosticResult, SubsystemHealth } from '@/types'
 
 const MANUAL_CATEGORIES = [
   'Mobile Phones & Tablets',
@@ -60,26 +45,186 @@ const MANUAL_CATEGORIES = [
   'Unidentified / General Electronic Waste',
 ]
 
+function loadInitialDiagnostic(assessmentIdParam: string | null): DiagnosticResult | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = sessionStorage.getItem('ecobyte_last_diagnostic')
+    if (raw) {
+      const parsed = JSON.parse(raw) as DiagnosticResult
+      if (parsed && (!assessmentIdParam || parsed.assessmentId === assessmentIdParam)) {
+        return parsed
+      }
+    }
+    const rawDraft = sessionStorage.getItem('ecobyte_assessment_draft')
+    if (rawDraft) {
+      const draft = JSON.parse(rawDraft) as {
+        deviceModel?: string
+        category?: string
+        workingStatus?: 'yes' | 'no' | 'notsure'
+        visibleDamage?: string[]
+        missingParts?: string[]
+        notes?: string
+      }
+      const category = draft.category || 'Electronics'
+      const deviceModel = draft.deviceModel || `${category} Unit`
+      const visibleDamage = Array.isArray(draft.visibleDamage) ? draft.visibleDamage : []
+      const hasHazard = visibleDamage.some((v) => v.includes('swollen') || v.includes('battery_leak'))
+      const powersOn = draft.workingStatus === 'yes'
+      return {
+        assessmentId: assessmentIdParam || 'draft',
+        deviceModel,
+        category,
+        analysisSource: 'rule_based_fallback',
+        confidenceScore: 0.85,
+        wasteClassification: hasHazard
+          ? 'Class III (Hazardous Lithium-Ion)'
+          : 'Class I (Recoverable Consumer Electronics)',
+        estimatedMassLabel: '~190g (Est. recoverable)',
+        aiSummary: `Stage 1 pre-screening for ${deviceModel} using your entered device details.`,
+        supportingDetails: {
+          workingStatus: draft.workingStatus === 'notsure' ? 'not_sure' : draft.workingStatus,
+          powersOn,
+          displayIntact: !visibleDamage.includes('cracked'),
+          portsWorking: true,
+          visibleDamage,
+          missingParts: draft.missingParts,
+          notes: draft.notes,
+        },
+        hazardAlert: hasHazard
+          ? {
+              level: 'CRITICAL',
+              title: 'Lithium-Ion Battery Hazard Reported',
+              instructions: 'Do not puncture or compress. Pack in a non-conductive container.',
+            }
+          : null,
+        subsystems: [
+          { name: 'Battery Cell', status: hasHazard ? 'HEALTH_RISK' : powersOn ? 'OPTIMAL' : 'DEGRADED', score: hasHazard ? 32 : powersOn ? 90 : 58 },
+          { name: 'Display & Glass', status: visibleDamage.includes('cracked') ? 'DEGRADED' : 'OPTIMAL', score: visibleDamage.includes('cracked') ? 42 : 95 },
+          { name: 'Logic Board', status: powersOn ? 'INTACT' : 'DEGRADED', score: powersOn ? 88 : 46 },
+          { name: 'Enclosure & Ports', status: 'OPTIMAL', score: 90 },
+        ],
+        recommendedRoute: hasHazard ? 'DROP_OFF' : powersOn ? 'REUSE' : 'REPAIR',
+      }
+    }
+  } catch {
+    // ignore storage parse error
+  }
+  return null
+}
+
+function getSubsystemVisuals(sub: SubsystemHealth) {
+  const nameLower = sub.name.toLowerCase()
+  const isOk = sub.status === 'OPTIMAL' || sub.status === 'INTACT'
+  const isRisk = sub.status === 'HEALTH_RISK'
+
+  let badgeVariant: 'electric' | 'warning' | 'error' = isOk
+    ? 'electric'
+    : isRisk
+      ? 'error'
+      : 'warning'
+  let iconBg = isOk ? '#f1f5f9' : isRisk ? '#fee2e2' : '#fef3c7'
+  let iconColor = isOk ? '#0f172a' : isRisk ? '#dc2626' : '#d97706'
+
+  let icon = <PhoneAndroidRoundedIcon sx={{ fontSize: 20, color: iconColor }} />
+  if (nameLower.includes('battery')) {
+    icon = <BatteryAlertRoundedIcon sx={{ fontSize: 20, color: iconColor }} />
+  } else if (nameLower.includes('display') || nameLower.includes('screen') || nameLower.includes('glass')) {
+    icon = <CropFreeRoundedIcon sx={{ fontSize: 20, color: iconColor }} />
+  } else if (nameLower.includes('logic') || nameLower.includes('board')) {
+    icon = <MemoryRoundedIcon sx={{ fontSize: 20, color: iconColor }} />
+  }
+
+  const badgeLabel =
+    sub.status === 'OPTIMAL'
+      ? 'Optimal'
+      : sub.status === 'INTACT'
+        ? 'Intact'
+        : sub.status === 'HEALTH_RISK'
+          ? 'Hazard Risk'
+          : 'Needs Check'
+
+  return { badgeVariant, iconBg, icon, badgeLabel }
+}
+
 export const AiDiagnosticPage: FC = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const assessmentIdParam = searchParams.get('assessmentId')
   const initialUnidentified = searchParams.get('unidentified') === 'true'
+
+  const [diagnostic, setDiagnostic] = useState<DiagnosticResult | null>(() =>
+    loadInitialDiagnostic(assessmentIdParam)
+  )
+  const [isLoading, setIsLoading] = useState(
+    Boolean(assessmentIdParam && !loadInitialDiagnostic(assessmentIdParam))
+  )
   const [isUnidentified, setIsUnidentified] = useState(initialUnidentified)
   const [manualCategory, setManualCategory] = useState(
     searchParams.get('category') || MANUAL_CATEGORIES[0]
   )
   const [toastMsg, setToastMsg] = useState<string | null>(null)
-  const [currentUser] = useState<User | null>(() => getCachedUser())
-  const userBaseNum = resolveUserBase(currentUser)
-  const suggestedBaseSite =
-    COMMONWEALTH_FALLBACK_SITES.find(
-      (s) => resolveSiteBaseNumber(s.id, s.name) === userBaseNum
-    ) || COMMONWEALTH_FALLBACK_SITES[0]
+
+  const capturedAngles = useMemo(() => {
+    try {
+      const saved = sessionStorage.getItem('ecobyte_scan_angles')
+      return saved ? (JSON.parse(saved) as Record<string, string>) : {}
+    } catch {
+      return {}
+    }
+  }, [])
+
+  const backendImages = diagnostic?.images
+  const previewPhotoUrl = useMemo(() => {
+    const angleOrder = ['front', 'back', 'left', 'right']
+    for (const key of angleOrder) {
+      if (capturedAngles[key]) return capturedAngles[key]
+    }
+    if (backendImages && backendImages.length > 0) {
+      return backendImages[0].url
+    }
+    return diagnosticImg
+  }, [capturedAngles, backendImages])
+
+  const capturedCount = useMemo(() => {
+    const localCount = Object.values(capturedAngles).filter(Boolean).length
+    if (localCount > 0) return localCount
+    return backendImages?.length ?? 0
+  }, [capturedAngles, backendImages])
+
+  useEffect(() => {
+    if (!assessmentIdParam) return
+    let active = true
+    assessmentsApi
+      .getDiagnostic(assessmentIdParam)
+      .then((res) => {
+        if (!active || !res) return
+        setDiagnostic(res)
+        try {
+          sessionStorage.setItem('ecobyte_last_diagnostic', JSON.stringify(res))
+        } catch {
+          // ignore
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not fetch diagnostic from backend:', err)
+      })
+      .finally(() => {
+        if (active) setIsLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [assessmentIdParam])
+
+  const deviceTitle = diagnostic?.deviceModel || 'Electronic Device'
+  const confidencePct = Math.round((diagnostic?.confidenceScore ?? 0.9) * 100)
+  const isAiAssisted = diagnostic?.analysisSource === 'ai_assisted'
+  const hazardAlert = diagnostic?.hazardAlert ?? null
 
   const handleShare = async () => {
     const shareData = {
-      title: 'EcoByte AI Diagnostic Result',
-      text: 'EcoByte AI Multi-Angle Inspection: Galaxy S10 assessed with minor swelling. Reviewing circular turnover in Barangay Commonwealth.',
+      title: `EcoByte Stage 1 Triage — ${deviceTitle}`,
+      text: `EcoByte AI-Assisted Stage 1 Screening for ${deviceTitle}: Recommended route ${diagnostic?.recommendedRoute || 'DROP_OFF'}.`,
       url: window.location.href,
     }
     if (typeof navigator !== 'undefined' && navigator.share) {
@@ -101,6 +246,22 @@ export const AiDiagnosticPage: FC = () => {
       setToastMsg('Diagnostic results link copied to clipboard!')
     }
   }
+
+  const buildGuideUrl = (tab: 'reuse' | 'repair') =>
+    `/reuse-guide?${new URLSearchParams({
+      ...(diagnostic?.assessmentId && diagnostic.assessmentId !== 'draft'
+        ? { assessmentId: diagnostic.assessmentId }
+        : {}),
+      tab,
+    }).toString()}`
+
+  const scheduleTargetUrl = `/dropoff-schedule?${new URLSearchParams({
+    ...(diagnostic?.assessmentId && diagnostic.assessmentId !== 'draft'
+      ? { assessmentId: diagnostic.assessmentId }
+      : {}),
+    deviceName: deviceTitle,
+    ...(diagnostic?.category ? { category: diagnostic.category } : {}),
+  }).toString()}`
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5 }}>
@@ -129,7 +290,7 @@ export const AiDiagnosticPage: FC = () => {
             Diagnostic Results
           </Typography>
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#64748b' }}>
-            AI Multi-Angle Inspection
+            AI-Assisted Pre-Screening
           </Typography>
         </Box>
 
@@ -152,525 +313,588 @@ export const AiDiagnosticPage: FC = () => {
         </IconButton>
       </Box>
 
-      {/* ── Session & Confidence Bar ── */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-          <Box
-            sx={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              backgroundColor: isUnidentified ? '#f59e0b' : '#abf06b',
-              boxShadow: isUnidentified ? '0 0 6px #f59e0b' : '0 0 6px #abf06b',
-            }}
-          />
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>
-            Session #SCAN-9042
-          </Typography>
+      {isLoading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+          <CircularProgress size={28} sx={{ color: '#0f172a' }} />
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <StatusBadge
-            label={isUnidentified ? 'Low Confidence (Unidentified)' : 'Confidence 98.4%'}
-            variant={isUnidentified ? 'hazard' : 'electric'}
-            size="sm"
-          />
-          <Button
-            size="small"
-            variant="text"
-            onClick={() => setIsUnidentified((v) => !v)}
-            sx={{
-              fontSize: '0.6875rem',
-              fontWeight: 700,
-              textTransform: 'none',
-              color: '#64748b',
-              p: 0,
-              minWidth: 'auto',
-              textDecoration: 'underline',
-            }}
-          >
-            {isUnidentified ? 'Reset to Recognized' : 'Flag Unidentified'}
-          </Button>
-        </Box>
-      </Box>
-
-      {/* ── Hero Hardware Card ── */}
-      <Card
-        sx={{
-          borderRadius: 2,
-          border: '1px solid #e2e8f0',
-          overflow: 'hidden',
-          backgroundColor: '#ffffff',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        }}
-      >
-        {/* Mock X-Ray / Vision scan viewport */}
-        <Box
-          sx={{
-            height: 168,
-            backgroundColor: '#020617',
-            position: 'relative',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            p: 1.75,
-            overflow: 'hidden',
-          }}
-        >
-          <Box
-            component="img"
-            src={diagnosticImg}
-            alt="Hardware Diagnostic Scan"
-            sx={{
-              position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              opacity: 0.35,
-            }}
-          />
-
-          {/* Top HUD overlay */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1, position: 'relative' }}>
-            <Box
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 0.6,
-                backgroundColor: 'rgba(15, 23, 42, 0.85)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(6px)',
-                px: 1.25,
-                py: 0.4,
-                borderRadius: 9999,
-              }}
-            >
-              <CropFreeRoundedIcon sx={{ fontSize: 13, color: '#abf06b' }} />
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.625rem', color: '#ffffff', letterSpacing: '0.04em' }}>
-                AI MULTI-ANGLE LOCK
-              </Typography>
-            </Box>
-            <Box
-              sx={{
-                backgroundColor: '#abf06b',
-                color: '#0f172a',
-                px: 1.25,
-                py: 0.35,
-                borderRadius: 9999,
-              }}
-            >
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.625rem' }}>
-                6/6 ANGLES
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Internal circuitry graphic illustration */}
-          <Box
-            sx={{
-              alignSelf: 'center',
-              my: 'auto',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1.5,
-              zIndex: 1,
-            }}
-          >
-            <MemoryRoundedIcon sx={{ fontSize: 44, color: '#abf06b', filter: 'drop-shadow(0 0 8px rgba(171, 240, 107, 0.5))' }} />
-            <Box>
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#ffffff' }}>
-                BATTERY STATUS: DEGRADED (68%)
-              </Typography>
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#94a3b8' }}>
-                INTERNAL GAS BUILDUP: DETECTED
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Warning badge overlay */}
-          <Box
-            sx={{
-              alignSelf: 'center',
-              backgroundColor: 'rgba(254, 243, 199, 0.95)',
-              border: '1px solid #fde68a',
-              borderRadius: 9999,
-              px: 1.5,
-              py: 0.4,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.75,
-              zIndex: 1,
-            }}
-          >
-            <WarningAmberRoundedIcon sx={{ fontSize: 14, color: '#b45309' }} />
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#b45309' }}>
-              Screen stress fractures identified
-            </Typography>
-          </Box>
-        </Box>
-
-        {/* Hardware Info Bottom Container */}
-        <Box sx={{ p: 2.25 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <Box>
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#64748b', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                IDENTIFIED HARDWARE
-              </Typography>
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', mt: 0.25 }}>
-                iPhone 11 Pro
-              </Typography>
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#64748b', mt: 0.25 }}>
-                64GB Space Gray • Model A2160
-              </Typography>
-            </Box>
-            <StatusBadge label="Class III e-Waste" variant="electric" size="sm" />
-          </Box>
-
-          <Divider sx={{ my: 1.75, borderColor: '#e2e8f0' }} />
-
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      ) : (
+        <>
+          {/* ── Session & Confidence Bar ── */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-              <EnergySavingsLeafRoundedIcon sx={{ fontSize: 18, color: '#4f5f4b' }} />
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.8125rem', color: '#64748b' }}>
-                Recoverable Mass:
+              <Box
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  backgroundColor: isUnidentified ? '#f59e0b' : '#abf06b',
+                  boxShadow: isUnidentified ? '0 0 6px #f59e0b' : '0 0 6px #abf06b',
+                }}
+              />
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>
+                {isAiAssisted ? 'OpenRouter AI-Assisted' : 'Guided Intake Triage'}
               </Typography>
             </Box>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>
-              188g (91% EcoByte Recoverable)
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <StatusBadge
+                label={isUnidentified ? 'Low Confidence (Manual)' : `Confidence ${confidencePct}%`}
+                variant={isUnidentified ? 'hazard' : 'electric'}
+                size="sm"
+              />
+              <Button
+                size="small"
+                variant="text"
+                onClick={() => setIsUnidentified((v) => !v)}
+                sx={{
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  textTransform: 'none',
+                  color: '#64748b',
+                  p: 0,
+                  minWidth: 'auto',
+                  textDecoration: 'underline',
+                }}
+              >
+                {isUnidentified ? 'Show AI Result' : 'Flag Unidentified'}
+              </Button>
+            </Box>
           </Box>
-        </Box>
-      </Card>
 
-      {/* ── Potential Health Risk Card ── */}
-      <Card
-        sx={{
-          p: 2.25,
-          borderRadius: 2,
-          border: '1.5px solid #fecaca',
-          backgroundColor: '#ffffff',
-          boxShadow: '0 1px 3px rgba(239, 68, 68, 0.08)',
-        }}
-      >
-        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start', mb: 1.75 }}>
-          <Box
+          {/* ── Hero Hardware Card ── */}
+          <Card
             sx={{
-              width: 38,
-              height: 38,
-              borderRadius: 1.5,
-              backgroundColor: '#fee2e2',
-              color: '#dc2626',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
+              borderRadius: 2,
+              border: '1px solid #e2e8f0',
+              overflow: 'hidden',
+              backgroundColor: '#ffffff',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
             }}
           >
-            <WarningAmberRoundedIcon sx={{ fontSize: 22 }} />
-          </Box>
-          <Box sx={{ flex: 1 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
-                Potential health risk
-              </Typography>
-              <StatusBadge label="High Risk" variant="error" size="sm" />
-            </Box>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#64748b', mt: 0.5, lineHeight: 1.5 }}>
-              <strong>Reason:</strong> Contains an aged, swollen lithium-ion battery exhibiting internal degassing stress and seal degradation.
-            </Typography>
-          </Box>
-        </Box>
+            <Box
+              sx={{
+                height: 168,
+                backgroundColor: '#020617',
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                p: 1.75,
+                overflow: 'hidden',
+              }}
+            >
+              <Box
+                component="img"
+                src={previewPhotoUrl}
+                alt={deviceTitle}
+                sx={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  opacity: 0.42,
+                }}
+              />
 
-        {/* Mandatory precautions subcard */}
-        <Box
-          sx={{
-            backgroundColor: '#fffbeb',
-            borderRadius: 1.5,
-            p: 1.5,
-            border: '1px solid #fde68a',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.5 }}>
-            <ShieldOutlinedIcon sx={{ fontSize: 16, color: '#b45309' }} />
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#b45309', letterSpacing: '0.04em' }}>
-              MANDATORY PRECAUTIONS
-            </Typography>
-          </Box>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#92400e', lineHeight: 1.5, fontWeight: 500 }}>
-            Do not puncture, apply direct pressure, or expose to heat. Store immediately in a cool, fire-rated container isolated from flammable materials.
-          </Typography>
-        </Box>
-      </Card>
-
-      {/* ── Parts Detected Section ── */}
-      <Box>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.25 }}>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
-            Parts detected
-          </Typography>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
-            4 Subsystems Analyzed
-          </Typography>
-        </Box>
-
-        <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', overflow: 'hidden', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-          {[
-            {
-              title: 'Battery',
-              subtitle: 'Cell degassed • 68% Max Capacity',
-              badge: 'Degraded',
-              badgeVariant: 'error' as const,
-              icon: <BatteryAlertRoundedIcon sx={{ fontSize: 20, color: '#dc2626' }} />,
-              iconBg: '#fee2e2',
-            },
-            {
-              title: 'Screen',
-              subtitle: 'Surface glass fracture • Digitizer Intact',
-              badge: 'Cracked',
-              badgeVariant: 'warning' as const,
-              icon: <CropFreeRoundedIcon sx={{ fontSize: 20, color: '#d97706' }} />,
-              iconBg: '#fef3c7',
-            },
-            {
-              title: 'Casing',
-              subtitle: 'Minor chassis abrasions only',
-              badge: 'OK',
-              badgeVariant: 'electric' as const,
-              icon: <PhoneAndroidRoundedIcon sx={{ fontSize: 20, color: '#0f172a' }} />,
-              iconBg: '#f1f5f9',
-            },
-            {
-              title: 'Logic Board',
-              subtitle: 'Boot sequence & sensors pass',
-              badge: 'Operational',
-              badgeVariant: 'electric' as const,
-              icon: <MemoryRoundedIcon sx={{ fontSize: 20, color: '#0f172a' }} />,
-              iconBg: '#f1f5f9',
-            },
-          ].map((part, i, arr) => (
-            <Box key={part.title}>
-              <Box sx={{ p: 1.75, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-                  <Box
-                    sx={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 1.5,
-                      backgroundColor: part.iconBg,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {part.icon}
-                  </Box>
-                  <Box>
-                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
-                      {part.title}
-                    </Typography>
-                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
-                      {part.subtitle}
-                    </Typography>
-                  </Box>
+              {/* Top HUD overlay */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1, position: 'relative' }}>
+                <Box
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.6,
+                    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(6px)',
+                    px: 1.25,
+                    py: 0.4,
+                    borderRadius: 9999,
+                  }}
+                >
+                  <AutoAwesomeRoundedIcon sx={{ fontSize: 13, color: '#abf06b' }} />
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.625rem', color: '#ffffff', letterSpacing: '0.04em' }}>
+                    {isAiAssisted ? 'AI-ASSISTED STAGE 1 TRIAGE' : 'STAGE 1 INTAKE ASSESSMENT'}
+                  </Typography>
                 </Box>
-                <StatusBadge label={part.badge} variant={part.badgeVariant} size="sm" />
+                <Box
+                  sx={{
+                    backgroundColor: '#abf06b',
+                    color: '#0f172a',
+                    px: 1.25,
+                    py: 0.35,
+                    borderRadius: 9999,
+                  }}
+                >
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.625rem' }}>
+                    {capturedCount > 0 ? `${capturedCount}/4 ANGLES` : 'DETAILS LOGGED'}
+                  </Typography>
+                </Box>
               </Box>
-              {i < arr.length - 1 && <Divider sx={{ borderColor: '#f1f5f9' }} />}
+
+              {/* Hardware Status Banner */}
+              <Box
+                sx={{
+                  alignSelf: 'center',
+                  my: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  zIndex: 1,
+                  backgroundColor: 'rgba(2, 6, 23, 0.62)',
+                  px: 2,
+                  py: 1,
+                  borderRadius: 2,
+                }}
+              >
+                <MemoryRoundedIcon sx={{ fontSize: 36, color: '#abf06b' }} />
+                <Box>
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#ffffff' }}>
+                    RECOMMENDED: {diagnostic?.recommendedRoute || 'DROP_OFF'}
+                  </Typography>
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#cbd5e1' }}>
+                    Suggested by AI using your photos &amp; details
+                  </Typography>
+                </Box>
+              </Box>
             </Box>
-          ))}
-        </Card>
-      </Box>
 
-      {/* ── What would you like to do? ── */}
-      <Box sx={{ mb: 2 }}>
-        <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a', mb: 1.25 }}>
-          {isUnidentified ? 'Module 2: Unidentified E-Waste Intake' : 'Stage 1 Decision: What would you like to do?'}
-        </Typography>
+            {/* Hardware Info Bottom Container */}
+            <Box sx={{ p: 2.25 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1 }}>
+                <Box>
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#64748b', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                    RESIDENT DEVICE SUBMISSION
+                  </Typography>
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', mt: 0.25 }}>
+                    {deviceTitle}
+                  </Typography>
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#64748b', mt: 0.25 }}>
+                    {diagnostic?.category || 'Electronics'} • {diagnostic?.wasteClassification || 'Class I e-Waste'}
+                  </Typography>
+                </Box>
+                <StatusBadge
+                  label={diagnostic?.recommendedRoute || 'DROP_OFF'}
+                  variant={hazardAlert ? 'hazard' : 'electric'}
+                  size="sm"
+                />
+              </Box>
 
-        {isUnidentified ? (
+              {diagnostic?.aiSummary && (
+                <Box sx={{ mt: 1.5, p: 1.25, borderRadius: 1.5, backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#334155', lineHeight: 1.5, fontWeight: 600 }}>
+                    {diagnostic.aiSummary}
+                  </Typography>
+                </Box>
+              )}
+
+              <Divider sx={{ my: 1.75, borderColor: '#e2e8f0' }} />
+
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                  <EnergySavingsLeafRoundedIcon sx={{ fontSize: 18, color: '#4f5f4b' }} />
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.8125rem', color: '#64748b' }}>
+                    Estimated Recoverable Mass:
+                  </Typography>
+                </Box>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>
+                  {diagnostic?.estimatedMassLabel || '~190g (Est. recoverable)'}
+                </Typography>
+              </Box>
+            </Box>
+          </Card>
+
+          {/* ── Safety & Supporting Details Card ── */}
           <Card
             sx={{
               p: 2.25,
               borderRadius: 2,
-              border: '1.5px solid #f59e0b',
-              backgroundColor: '#fffbeb',
-              boxShadow: '0 2px 6px rgba(245, 158, 11, 0.1)',
+              border: hazardAlert ? '1.5px solid #fecaca' : '1.5px solid #bbf7d0',
+              backgroundColor: '#ffffff',
+              boxShadow: hazardAlert
+                ? '0 1px 3px rgba(239, 68, 68, 0.08)'
+                : '0 1px 3px rgba(22, 163, 74, 0.06)',
             }}
           >
-            <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'center', mb: 1.5 }}>
-              <HelpOutlineRoundedIcon sx={{ color: '#d97706', fontSize: 24 }} />
-              <Box>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#92400e' }}>
-                  Manual Category Selection (Module 2 Fallback)
-                </Typography>
-                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#b45309' }}>
-                  AI model confidence is low. Select the closest category to schedule a physical inspection at the Eco-Hub.
+            <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start', mb: 1.5 }}>
+              <Box
+                sx={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 1.5,
+                  backgroundColor: hazardAlert ? '#fee2e2' : '#dcfce7',
+                  color: hazardAlert ? '#dc2626' : '#16a34a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                {hazardAlert ? (
+                  <WarningAmberRoundedIcon sx={{ fontSize: 22 }} />
+                ) : (
+                  <CheckCircleOutlineRoundedIcon sx={{ fontSize: 22 }} />
+                )}
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
+                    {hazardAlert ? hazardAlert.title : 'Safety & Handling Guidance'}
+                  </Typography>
+                  <StatusBadge
+                    label={
+                      hazardAlert?.level === 'CRITICAL'
+                        ? 'High Risk'
+                        : hazardAlert?.level === 'WARNING'
+                          ? 'Caution'
+                          : 'Low Risk'
+                    }
+                    variant={hazardAlert?.level === 'CRITICAL' ? 'error' : hazardAlert ? 'warning' : 'electric'}
+                    size="sm"
+                  />
+                </Box>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#64748b', mt: 0.5, lineHeight: 1.5 }}>
+                  {hazardAlert
+                    ? hazardAlert.instructions
+                    : 'No critical battery hazard flagged from your photos and supporting checklist. Final classification will be verified by your Barangay MRF official.'}
                 </Typography>
               </Box>
             </Box>
 
-            <FormControl fullWidth size="small" sx={{ mb: 2, backgroundColor: '#ffffff', borderRadius: 1.5 }}>
-              <Select
-                value={manualCategory}
-                onChange={(e) => setManualCategory(e.target.value)}
-                sx={{ borderRadius: 1.5, fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.875rem' }}
+            {diagnostic?.supportingDetails && (
+              <Box
+                sx={{
+                  backgroundColor: '#f8fafc',
+                  borderRadius: 1.5,
+                  p: 1.5,
+                  border: '1px solid #e2e8f0',
+                }}
               >
-                {MANUAL_CATEGORIES.map((cat) => (
-                  <MenuItem key={cat} value={cat}>
-                    {cat}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.5 }}>
+                  <ShieldOutlinedIcon sx={{ fontSize: 16, color: '#0f172a' }} />
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#0f172a', letterSpacing: '0.04em' }}>
+                    RESIDENT SUPPORTING DETAILS USED BY AI
+                  </Typography>
+                </Box>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#475569', lineHeight: 1.5, fontWeight: 500 }}>
+                  Powers on:{' '}
+                  <strong>
+                    {diagnostic.supportingDetails.workingStatus === 'not_sure'
+                      ? 'Not sure'
+                      : diagnostic.supportingDetails.powersOn
+                        ? 'Yes'
+                        : 'No'}
+                  </strong>
+                  {' · '}Visible damage:{' '}
+                  <strong>{(diagnostic.supportingDetails.visibleDamage || ['none']).join(', ')}</strong>
+                  {' · '}Missing parts:{' '}
+                  <strong>{(diagnostic.supportingDetails.missingParts || ['none']).join(', ')}</strong>
+                  {diagnostic.supportingDetails.notes ? ` · Notes: "${diagnostic.supportingDetails.notes}"` : ''}
+                </Typography>
+              </Box>
+            )}
+          </Card>
+
+          {/* ── Parts Detected Section ── */}
+          <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.25 }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
+                Component Condition Breakdown
+              </Typography>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                {(diagnostic?.subsystems || []).length} Subsystems Evaluated
+              </Typography>
+            </Box>
+
+            <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', overflow: 'hidden', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              {(diagnostic?.subsystems || []).map((part, i, arr) => {
+                const visual = getSubsystemVisuals(part)
+                return (
+                  <Box key={part.name}>
+                    <Box sx={{ p: 1.75, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
+                        <Box
+                          sx={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 1.5,
+                            backgroundColor: visual.iconBg,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {visual.icon}
+                        </Box>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
+                            {part.name} ({part.score}%)
+                          </Typography>
+                          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
+                            {part.details || part.status}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <StatusBadge label={visual.badgeLabel} variant={visual.badgeVariant} size="sm" />
+                    </Box>
+                    {i < arr.length - 1 && <Divider sx={{ borderColor: '#f1f5f9' }} />}
+                  </Box>
+                )
+              })}
+            </Card>
+          </Box>
+
+          {/* ── What would you like to do? ── */}
+          <Box sx={{ mb: 2 }}>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a', mb: 1.25 }}>
+              {isUnidentified ? 'Module 2: Unidentified E-Waste Intake' : 'What would you like to do?'}
+            </Typography>
+
+            {isUnidentified ? (
+              <Card
+                sx={{
+                  p: 2.25,
+                  borderRadius: 2,
+                  border: '1.5px solid #f59e0b',
+                  backgroundColor: '#fffbeb',
+                  boxShadow: '0 2px 6px rgba(245, 158, 11, 0.1)',
+                }}
+              >
+                <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'center', mb: 1.5 }}>
+                  <HelpOutlineRoundedIcon sx={{ color: '#d97706', fontSize: 24 }} />
+                  <Box>
+                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#92400e' }}>
+                      Manual Category Selection (Module 2 Fallback)
+                    </Typography>
+                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#b45309' }}>
+                      Select the closest category to schedule a physical inspection at the Eco-Hub.
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <FormControl fullWidth size="small" sx={{ mb: 2, backgroundColor: '#ffffff', borderRadius: 1.5 }}>
+                  <Select
+                    value={manualCategory}
+                    onChange={(e) => setManualCategory(e.target.value)}
+                    sx={{ borderRadius: 1.5, fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.875rem' }}
+                  >
+                    {MANUAL_CATEGORIES.map((cat) => (
+                      <MenuItem key={cat} value={cat}>
+                        {cat}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <Button
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  endIcon={<ArrowForwardRoundedIcon />}
+                  onClick={() => {
+                    navigate(
+                      `/dropoff-schedule?${new URLSearchParams({
+                        unidentified: 'true',
+                        category: manualCategory,
+                        deviceName: deviceTitle,
+                        ...(diagnostic?.assessmentId && diagnostic.assessmentId !== 'draft'
+                          ? { assessmentId: diagnostic.assessmentId }
+                          : {}),
+                      }).toString()}`
+                    )
+                  }}
+                  sx={{
+                    py: 1.4,
+                    backgroundColor: '#0f172a',
+                    color: '#ffffff',
+                    fontFamily: "'Quicksand', sans-serif",
+                    fontWeight: 700,
+                    fontSize: '0.875rem',
+                    borderRadius: 1.5,
+                    '&:hover': { backgroundColor: '#1e293b' },
+                  }}
+                >
+                  Proceed to Drop-Off (Station Physical Inspection)
+                </Button>
+              </Card>
+            ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+                {/* Option 1: Reuse */}
+                <Card
+                  onClick={() => navigate(buildGuideUrl('reuse'))}
+                  sx={{
+                    p: 1.75,
+                    borderRadius: 2.25,
+                    border: '1px solid #cce7ba',
+                    backgroundColor: '#dff2d1',
+                    boxShadow: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    '&:hover': { backgroundColor: '#d3ecc0', transform: 'translateY(-1px)' },
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Box
+                      sx={{
+                        width: 42,
+                        height: 42,
+                        borderRadius: 1.75,
+                        backgroundColor: '#1e6c28',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <AutorenewRoundedIcon sx={{ fontSize: 22 }} />
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#0f172a' }}>
+                        Reuse Guide
+                      </Typography>
+                      <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#475569', fontWeight: 500 }}>
+                        See how to safely reuse or pass this device on
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <ChevronRightRoundedIcon sx={{ fontSize: 20, color: '#64748b' }} />
+                </Card>
+
+                {/* Option 2: Repair */}
+                <Card
+                  onClick={() => navigate(buildGuideUrl('repair'))}
+                  sx={{
+                    p: 1.75,
+                    borderRadius: 2.25,
+                    border: '1px solid #cce7ba',
+                    backgroundColor: '#dff2d1',
+                    boxShadow: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    '&:hover': { backgroundColor: '#d3ecc0', transform: 'translateY(-1px)' },
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Box
+                      sx={{
+                        width: 42,
+                        height: 42,
+                        borderRadius: 1.75,
+                        backgroundColor: '#66aa2c',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <BuildRoundedIcon sx={{ fontSize: 20 }} />
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#0f172a' }}>
+                        Repair Guide
+                      </Typography>
+                      <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#475569', fontWeight: 500 }}>
+                        See repair tips and what a technician should check
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <ChevronRightRoundedIcon sx={{ fontSize: 20, color: '#64748b' }} />
+                </Card>
+
+                {/* Option 3: Further assessment */}
+                <Card
+                  onClick={() => navigate(scheduleTargetUrl)}
+                  sx={{
+                    p: 1.75,
+                    borderRadius: 2.25,
+                    border: '1px solid #cce7ba',
+                    backgroundColor: '#dff2d1',
+                    boxShadow: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    '&:hover': { backgroundColor: '#d3ecc0', transform: 'translateY(-1px)' },
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Box
+                      sx={{
+                        width: 42,
+                        height: 42,
+                        borderRadius: 1.75,
+                        backgroundColor: '#66aa2c',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <LocationOnOutlinedIcon sx={{ fontSize: 22 }} />
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#0f172a' }}>
+                        Further assessment
+                      </Typography>
+                      <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#475569', fontWeight: 500 }}>
+                        Schedule a drop-off for physical inspection
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <ChevronRightRoundedIcon sx={{ fontSize: 20, color: '#64748b' }} />
+                </Card>
+              </Box>
+            )}
+
+            <Typography
+              sx={{
+                fontFamily: "'Quicksand', sans-serif",
+                fontSize: '0.6875rem',
+                color: '#94a3b8',
+                textAlign: 'center',
+                mt: 2.25,
+                mb: 1.5,
+              }}
+            >
+              Initial guide only. It does not replace professional inspection.
+            </Typography>
 
             <Button
               fullWidth
               variant="contained"
               size="large"
-              endIcon={<ArrowForwardRoundedIcon />}
-              onClick={() => {
-                navigate(
-                  `/schedule-dropoff?unidentified=true&category=${encodeURIComponent(manualCategory)}`
-                )
-              }}
+              onClick={() => navigate('/dashboard')}
+              endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
               sx={{
-                py: 1.4,
-                backgroundColor: '#0f172a',
+                py: 1.5,
+                borderRadius: 2,
+                background: 'linear-gradient(90deg, #1b4d14 0%, #5da126 55%, #99d944 100%)',
                 color: '#ffffff',
                 fontFamily: "'Quicksand', sans-serif",
                 fontWeight: 700,
-                fontSize: '0.875rem',
-                borderRadius: 1.5,
-                '&:hover': { backgroundColor: '#1e293b' },
+                fontSize: '0.9375rem',
+                textTransform: 'none',
+                boxShadow: '0 4px 12px rgba(27, 77, 20, 0.22)',
+                '&:hover': {
+                  background: 'linear-gradient(90deg, #163f10 0%, #4e8a1f 55%, #86c736 100%)',
+                },
               }}
             >
-              Proceed to Drop-Off (Station Physical Inspection)
+              Back to Home
             </Button>
-          </Card>
-        ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
-            {/* Stage 1 Option: Reuse & Repair Guide */}
-            <Card
-              onClick={() => navigate('/reuse-guide')}
-              sx={{
-                p: 1.75,
-                borderRadius: 2,
-                border: '1px solid #e2e8f0',
-                backgroundColor: '#ffffff',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                '&:hover': { borderColor: '#0f172a', transform: 'translateY(-1px)' },
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <Box
-                  sx={{
-                    width: 42,
-                    height: 42,
-                    borderRadius: 1.5,
-                    backgroundColor: '#f1f5f9',
-                    color: '#0f172a',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <BuildOutlinedIcon sx={{ fontSize: 20 }} />
-                </Box>
-                <Box>
-                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
-                    Reuse / Repair Guide
-                  </Typography>
-                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
-                    Step-by-step circular guides, technician repair tips &amp; safe reuse
-                  </Typography>
-                </Box>
-              </Box>
-              <ChevronRightRoundedIcon sx={{ fontSize: 20, color: '#94a3b8' }} />
-            </Card>
-
-            {/* Stage 1 Option: Further Assessment (Drop-off Booking) */}
-            <Card
-              onClick={() => navigate('/schedule-dropoff')}
-              sx={{
-                p: 1.75,
-                borderRadius: 2,
-                backgroundColor: '#0f172a',
-                color: '#ffffff',
-                border: '1px solid #1e293b',
-                boxShadow: '0 2px 6px rgba(15,23,42,0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                '&:hover': { backgroundColor: '#1e293b', transform: 'translateY(-1px)' },
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <Box
-                  sx={{
-                    width: 42,
-                    height: 42,
-                    borderRadius: 1.5,
-                    backgroundColor: '#abf06b',
-                    color: '#0f172a',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <LocationOnOutlinedIcon sx={{ fontSize: 22 }} />
-                </Box>
-                <Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
-                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#ffffff' }}>
-                      Further Assessment (Station Drop-Off)
-                    </Typography>
-                    <Box
-                      component="span"
-                      sx={{
-                        fontSize: '0.625rem',
-                        fontWeight: 800,
-                        backgroundColor: '#16a34a',
-                        color: '#ffffff',
-                        px: 0.75,
-                        py: 0.15,
-                        borderRadius: 1,
-                      }}
-                    >
-                      Nearest: Area {userBaseNum}
-                    </Box>
-                  </Box>
-                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#abf06b', mt: 0.25 }}>
-                    Suggested: {suggestedBaseSite.name}
-                  </Typography>
-                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#94a3b8' }}>
-                    Auto-suggests your nearest base station • Choose any Commonwealth hub freely
-                  </Typography>
-                </Box>
-              </Box>
-              <ChevronRightRoundedIcon sx={{ fontSize: 20, color: '#abf06b' }} />
-            </Card>
           </Box>
-        )}
-
-        <Typography
-          sx={{
-            fontFamily: "'Quicksand', sans-serif",
-            fontSize: '0.6875rem',
-            color: '#94a3b8',
-            textAlign: 'center',
-            mt: 2,
-          }}
-        >
-          Initial guide only. It does not replace professional inspection.
-        </Typography>
-      </Box>
+        </>
+      )}
 
       {/* Share Toast */}
       <Snackbar

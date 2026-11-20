@@ -1,14 +1,11 @@
-import { useEffect, useState, type MouseEvent } from 'react'
+import { useEffect, useState } from 'react'
 import type { FC } from 'react'
 import {
   Box,
   Button,
   Card,
+  Divider,
   IconButton,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
   Typography,
   Snackbar,
   Alert,
@@ -19,9 +16,10 @@ import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded'
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded'
+import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded'
+import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
 import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded'
 import BookmarkAddRoundedIcon from '@mui/icons-material/BookmarkAddRounded'
-import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
 import { useNavigate, useParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { reuseApi } from '@/lib/api'
@@ -45,26 +43,171 @@ function resolveDetailImage(item: ReuseItem | null): string {
   return thinkpadDetailImg
 }
 
-function getAvailableDates() {
-  const dates = []
+function formatIsoDate(year: number, monthIndex: number, day: number): string {
+  const mm = String(monthIndex + 1).padStart(2, '0')
+  const dd = String(day).padStart(2, '0')
+  return `${year}-${mm}-${dd}`
+}
+
+function getDateDefaults(): {
+  todayIso: string
+  tomorrowIso: string
+  todayYear: number
+  todayMonth: number
+  year: number
+  month: number
+} {
   const now = new Date()
-  for (let i = 1; i <= 4; i++) {
-    const d = new Date(now.getTime() + i * 24 * 60 * 60 * 1000)
-    const label =
-      i === 1
-        ? `Tomorrow, ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-        : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
-    dates.push(label)
+  const todayYear = now.getFullYear()
+  const todayMonth = now.getMonth()
+  const todayIso = formatIsoDate(todayYear, todayMonth, now.getDate())
+  const tmrw = new Date(todayYear, todayMonth, now.getDate() + 1)
+  const tomorrowIso = formatIsoDate(tmrw.getFullYear(), tmrw.getMonth(), tmrw.getDate())
+  return {
+    todayIso,
+    tomorrowIso,
+    todayYear,
+    todayMonth,
+    year: tmrw.getFullYear(),
+    month: tmrw.getMonth(),
   }
-  return dates
+}
+
+function formatPickupLabel(isoDate: string, todayIso: string, tomorrowIso: string): string {
+  const [y, m, d] = isoDate.split('-').map(Number)
+  if (!y || !m || !d) return isoDate
+  const utc = new Date(Date.UTC(y, m - 1, d))
+  if (isoDate === tomorrowIso) {
+    const shortPart = new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC',
+    }).format(utc)
+    return `Tomorrow, ${shortPart}`
+  }
+  if (isoDate === todayIso) {
+    const shortPart = new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC',
+    }).format(utc)
+    return `Today, ${shortPart}`
+  }
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(utc)
+}
+
+function formatMonthYear(year: number, monthIndex: number): string {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(year, monthIndex, 1)))
+}
+
+interface CalendarCell {
+  key: string
+  day: number
+  isoDate: string
+  inCurrentMonth: boolean
+  isPast: boolean
+}
+
+function buildMonthGrid(year: number, monthIndex: number, todayIso: string): CalendarCell[] {
+  const firstDayOfWeek = new Date(Date.UTC(year, monthIndex, 1)).getUTCDay()
+  const leadingEmpty = (firstDayOfWeek + 6) % 7
+  const daysInMonth = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate()
+  const prevMonthYear = monthIndex === 0 ? year - 1 : year
+  const prevMonthIndex = monthIndex === 0 ? 11 : monthIndex - 1
+  const daysInPrevMonth = new Date(Date.UTC(prevMonthYear, prevMonthIndex + 1, 0)).getUTCDate()
+
+  const cells: CalendarCell[] = []
+  for (let i = leadingEmpty - 1; i >= 0; i--) {
+    const day = daysInPrevMonth - i
+    const isoDate = formatIsoDate(prevMonthYear, prevMonthIndex, day)
+    cells.push({
+      key: `prev-${isoDate}`,
+      day,
+      isoDate,
+      inCurrentMonth: false,
+      isPast: true,
+    })
+  }
+  for (let day = 1; day <= daysInMonth; day++) {
+    const isoDate = formatIsoDate(year, monthIndex, day)
+    cells.push({
+      key: `curr-${isoDate}`,
+      day,
+      isoDate,
+      inCurrentMonth: true,
+      isPast: isoDate < todayIso,
+    })
+  }
+  const nextMonthYear = monthIndex === 11 ? year + 1 : year
+  const nextMonthIndex = monthIndex === 11 ? 0 : monthIndex + 1
+  const trailingCount = (7 - (cells.length % 7)) % 7
+  for (let day = 1; day <= trailingCount; day++) {
+    const isoDate = formatIsoDate(nextMonthYear, nextMonthIndex, day)
+    cells.push({
+      key: `next-${isoDate}`,
+      day,
+      isoDate,
+      inCurrentMonth: false,
+      isPast: true,
+    })
+  }
+  return cells
 }
 
 export const ReuseItemDetailPage: FC = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id?: string }>()
-  const availableDates = getAvailableDates()
-  const [selectedDate, setSelectedDate] = useState(availableDates[0])
-  const [dateMenuAnchor, setDateMenuAnchor] = useState<null | HTMLElement>(null)
+  const [dateDefaults] = useState(() => getDateDefaults())
+  const [selectedDateIso, setSelectedDateIso] = useState(() => dateDefaults.tomorrowIso)
+  const [viewedMonth, setViewedMonth] = useState(() => ({
+    year: dateDefaults.year,
+    month: dateDefaults.month,
+  }))
+  const [calendarOpen, setCalendarOpen] = useState(false)
+  const selectedDate = formatPickupLabel(
+    selectedDateIso,
+    dateDefaults.todayIso,
+    dateDefaults.tomorrowIso
+  )
+  const isAtCurrentMonth =
+    viewedMonth.year === dateDefaults.todayYear &&
+    viewedMonth.month === dateDefaults.todayMonth
+  const calendarCells = buildMonthGrid(
+    viewedMonth.year,
+    viewedMonth.month,
+    dateDefaults.todayIso
+  )
+  const viewedMonthLabel = formatMonthYear(viewedMonth.year, viewedMonth.month)
+
+  const handlePrevMonth = () => {
+    if (isAtCurrentMonth) return
+    setViewedMonth((prev) =>
+      prev.month === 0
+        ? { year: prev.year - 1, month: 11 }
+        : { year: prev.year, month: prev.month - 1 }
+    )
+  }
+
+  const handleNextMonth = () => {
+    setViewedMonth((prev) =>
+      prev.month === 11
+        ? { year: prev.year + 1, month: 0 }
+        : { year: prev.year, month: prev.month + 1 }
+    )
+  }
+
   const [selectedWindow, setSelectedWindow] = useState('01:00 PM')
   const [toastMsg, setToastMsg] = useState<string | null>(null)
   const [liveItem, setLiveItem] = useState<ReuseItem | null>(null)
@@ -364,7 +507,7 @@ export const ReuseItemDetailPage: FC = () => {
               Reserve this device
             </Typography>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b' }}>
-              ⓘ Held for 24 hours upon reservation
+              ⓘ Held for 2 days (48h) upon reservation
             </Typography>
           </Box>
           <StatusBadge label="Free of charge" variant="electric" size="sm" />
@@ -386,53 +529,158 @@ export const ReuseItemDetailPage: FC = () => {
             </Box>
             <Button
               size="small"
-              onClick={(e: MouseEvent<HTMLElement>) => setDateMenuAnchor(e.currentTarget)}
+              onClick={() => setCalendarOpen((prev) => !prev)}
               sx={{ color: '#0f172a', fontWeight: 700, fontSize: '0.75rem', textTransform: 'none' }}
             >
-              Change
+              {calendarOpen ? 'Done' : 'Change'}
             </Button>
           </Box>
         </Card>
 
-        {/* Date Selection Menu */}
-        <Menu
-          anchorEl={dateMenuAnchor}
-          open={Boolean(dateMenuAnchor)}
-          onClose={() => setDateMenuAnchor(null)}
-          slotProps={{
-            paper: {
-              sx: {
-                borderRadius: 2,
-                minWidth: 260,
-                boxShadow: '0 8px 24px rgba(15,23,42,0.12)',
-                fontFamily: "'Quicksand', sans-serif",
-              },
-            },
-          }}
-        >
-          {availableDates.map((d) => (
-            <MenuItem
-              key={d}
-              onClick={() => {
-                setSelectedDate(d)
-                setDateMenuAnchor(null)
-              }}
-              selected={selectedDate === d}
-              sx={{ py: 1 }}
-            >
-              <ListItemIcon>
-                {selectedDate === d ? <CheckRoundedIcon sx={{ fontSize: 18, color: '#16a34a' }} /> : <Box sx={{ width: 18 }} />}
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <Typography sx={{ fontWeight: selectedDate === d ? 700 : 500, fontSize: '0.8125rem', color: '#0f172a' }}>
-                    {d}
-                  </Typography>
+        {/* Interactive Calendar Picker */}
+        {calendarOpen && (
+          <Card
+            sx={{
+              p: 2,
+              mb: 1.5,
+              borderRadius: 2,
+              border: '1px solid #cbd5e1',
+              backgroundColor: '#ffffff',
+              boxShadow: '0 4px 16px rgba(15,23,42,0.08)',
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
+                {viewedMonthLabel}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                <IconButton
+                  size="small"
+                  onClick={handlePrevMonth}
+                  disabled={isAtCurrentMonth}
+                  aria-label="Previous month"
+                  sx={{ color: isAtCurrentMonth ? '#cbd5e1' : '#0f172a' }}
+                >
+                  <ChevronLeftRoundedIcon sx={{ fontSize: 20 }} />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={handleNextMonth}
+                  aria-label="Next month"
+                  sx={{ color: '#0f172a' }}
+                >
+                  <ChevronRightRoundedIcon sx={{ fontSize: 20 }} />
+                </IconButton>
+              </Box>
+            </Box>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', mb: 1 }}>
+              {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((d) => (
+                <Typography key={d} sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#94a3b8' }}>
+                  {d}
+                </Typography>
+              ))}
+            </Box>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.5, textAlign: 'center' }}>
+              {calendarCells.map((cell) => {
+                const isSelectable = cell.inCurrentMonth && !cell.isPast
+                const isSelected = cell.isoDate === selectedDateIso
+
+                if (!isSelectable) {
+                  return (
+                    <Box
+                      key={cell.key}
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mx: 'auto',
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontSize: '0.75rem',
+                          color: cell.inCurrentMonth ? '#94a3b8' : '#cbd5e1',
+                          fontWeight: 500,
+                        }}
+                      >
+                        {cell.day}
+                      </Typography>
+                    </Box>
+                  )
                 }
-              />
-            </MenuItem>
-          ))}
-        </Menu>
+
+                return (
+                  <Box
+                    key={cell.key}
+                    onClick={() => {
+                      setSelectedDateIso(cell.isoDate)
+                      setCalendarOpen(false)
+                    }}
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: '50%',
+                      backgroundColor: isSelected ? '#0f172a' : '#ffffff',
+                      color: isSelected ? '#ffffff' : '#0f172a',
+                      border: isSelected ? 'none' : '1px solid #e2e8f0',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      mx: 'auto',
+                      boxShadow: isSelected ? '0 2px 6px rgba(15,23,42,0.2)' : 'none',
+                      transition: 'all 0.15s ease',
+                      '&:hover': {
+                        borderColor: '#0f172a',
+                      },
+                    }}
+                  >
+                    <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem', lineHeight: 1 }}>
+                      {cell.day}
+                    </Typography>
+                    <Box
+                      sx={{
+                        width: 4,
+                        height: 4,
+                        borderRadius: '50%',
+                        backgroundColor: isSelected ? '#abf06b' : '#16a34a',
+                        mt: 0.2,
+                      }}
+                    />
+                  </Box>
+                )
+              })}
+            </Box>
+
+            <Divider sx={{ my: 1.25, borderColor: '#f1f5f9' }} />
+
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#0f172a' }} />
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b' }}>
+                    Selected
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#16a34a' }} />
+                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b' }}>
+                    Available
+                  </Typography>
+                </Box>
+              </Box>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem', color: '#0f172a' }}>
+                {selectedDate}
+              </Typography>
+            </Box>
+          </Card>
+        )}
 
         {/* Pick-up Windows */}
         <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#64748b', mb: 0.75 }}>

@@ -101,6 +101,7 @@ export interface SubsystemHealth {
   name: string
   status: 'OPTIMAL' | 'INTACT' | 'DEGRADED' | 'HEALTH_RISK'
   score: number
+  details?: string
 }
 
 export interface HazardAlert {
@@ -112,10 +113,32 @@ export interface HazardAlert {
 export interface DiagnosticResult {
   assessmentId: string
   deviceModel: string
+  category?: string
+  analysisSource?: 'ai_assisted' | 'rule_based_fallback'
+  aiModel?: string
+  confidenceScore?: number
   wasteClassification: string
+  estimatedMassLabel?: string
+  aiSummary?: string
+  supportingDetails?: {
+    workingStatus?: 'yes' | 'no' | 'not_sure'
+    powersOn?: boolean
+    displayIntact?: boolean
+    portsWorking?: boolean
+    visibleDamage?: string[]
+    otherDamage?: string
+    missingParts?: string[]
+    otherMissing?: string
+    notes?: string
+  }
   hazardAlert: HazardAlert | null
   subsystems: SubsystemHealth[]
   recommendedRoute: 'REUSE' | 'DROP_OFF' | 'REPAIR'
+  images?: Array<{
+    id: string
+    url: string
+    angle?: string | null
+  }>
 }
 
 export interface AssessedDeviceRecord {
@@ -128,6 +151,8 @@ export interface AssessedDeviceRecord {
   handlingRecommendation: string
   assessedAt: string
   confidenceScore?: number
+  analysisSource?: 'ai_assisted' | 'rule_based_fallback'
+  aiSummary?: string
   images?: Array<{
     id: string
     url: string
@@ -178,10 +203,13 @@ export type RequestLifecycleStatus =
   | 'Scheduled'
   | 'Collected'
   | 'Turned over'
+  | 'Cancelled'
+  | 'Missed'
 
 export interface EwasteRequestItem {
   requestId: string
   deviceTitle: string
+  deviceCategory?: string
   siteName: string
   status: RequestLifecycleStatus
   statusStage: string

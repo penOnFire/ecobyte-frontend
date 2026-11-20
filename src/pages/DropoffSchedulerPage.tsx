@@ -32,8 +32,8 @@ import NavigationRoundedIcon from '@mui/icons-material/NavigationRounded'
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { dropoffsApi, getCachedUser } from '@/lib/api'
-import type { DropOffSite, User } from '@/types'
+import { assessmentsApi, dropoffsApi, getCachedUser } from '@/lib/api'
+import type { DiagnosticResult, DropOffSite, User } from '@/types'
 import { CommonwealthLeafletMap } from '@/components/map/CommonwealthLeafletMap'
 import {
   COMMONWEALTH_FALLBACK_SITES,
@@ -41,6 +41,68 @@ import {
   findPartitionForSite,
   resolveSiteBaseNumber,
 } from '@/components/map/commonwealthData'
+
+function loadStoredDiagnosticForScheduler(assessmentIdParam: string): DiagnosticResult | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = sessionStorage.getItem('ecobyte_last_diagnostic')
+    if (raw) {
+      const parsed = JSON.parse(raw) as DiagnosticResult
+      if (parsed && (!assessmentIdParam || parsed.assessmentId === assessmentIdParam)) {
+        return parsed
+      }
+    }
+    const rawDraft = sessionStorage.getItem('ecobyte_assessment_draft')
+    if (rawDraft) {
+      const draft = JSON.parse(rawDraft) as {
+        deviceModel?: string
+        category?: string
+        workingStatus?: 'yes' | 'no' | 'notsure'
+        visibleDamage?: string[]
+        missingParts?: string[]
+        notes?: string
+      }
+      const category = draft.category || 'Electronics'
+      const deviceModel = draft.deviceModel || `${category} Unit`
+      const visibleDamage = Array.isArray(draft.visibleDamage) ? draft.visibleDamage : []
+      const hasHazard = visibleDamage.some(
+        (v) => v.includes('swollen') || v.includes('battery_leak')
+      )
+      const powersOn = draft.workingStatus === 'yes'
+      return {
+        assessmentId: assessmentIdParam || 'draft',
+        deviceModel,
+        category,
+        analysisSource: 'rule_based_fallback',
+        wasteClassification: hasHazard
+          ? 'Class III (Hazardous Lithium-Ion)'
+          : 'Class I (Recoverable Consumer Electronics)',
+        aiSummary: `Stage 1 triage for ${deviceModel}.`,
+        supportingDetails: {
+          workingStatus: draft.workingStatus === 'notsure' ? 'not_sure' : draft.workingStatus,
+          powersOn,
+          displayIntact: !visibleDamage.includes('cracked'),
+          portsWorking: true,
+          visibleDamage,
+          missingParts: draft.missingParts,
+          notes: draft.notes,
+        },
+        hazardAlert: hasHazard
+          ? {
+              level: 'CRITICAL',
+              title: 'Lithium-Ion Battery Hazard Reported',
+              instructions: 'Do not puncture or compress. Pack in a non-conductive container.',
+            }
+          : null,
+        subsystems: [],
+        recommendedRoute: hasHazard ? 'DROP_OFF' : powersOn ? 'REUSE' : 'REPAIR',
+      }
+    }
+  } catch {
+    // ignore storage errors
+  }
+  return null
+}
 
 function resolveUserBase(user: User | null): number {
   if (!user) return 1
@@ -201,9 +263,27 @@ export const DropoffSchedulerPage: FC = () => {
   const isRescheduling = Boolean(requestIdParam)
   const isUnidentified = searchParams.get('unidentified') === 'true'
   const categoryParam = searchParams.get('category') || ''
+  const deviceNameParam = searchParams.get('deviceName') || ''
+  const assessmentIdParam =
+    searchParams.get('assessmentId') ||
+    (typeof window !== 'undefined' ? sessionStorage.getItem('ecobyte_last_assessment_id') || '' : '')
+
+  const [diagnostic, setDiagnostic] = useState<DiagnosticResult | null>(() =>
+    loadStoredDiagnosticForScheduler(assessmentIdParam)
+  )
+  const [rescheduledDeviceTitle, setRescheduledDeviceTitle] = useState<string>('')
+
   const displayDeviceTitle = isUnidentified
-    ? `Unidentified Device (${categoryParam || 'General E-Waste'})`
-    : 'Samsung Galaxy S10 (Intake Inspection)'
+    ? `Unidentified Device (${categoryParam || diagnostic?.category || 'General E-Waste'})`
+    : deviceNameParam.trim() ||
+      diagnostic?.deviceModel ||
+      rescheduledDeviceTitle ||
+      'Electronic Device Drop-Off'
+  const isHazardous = diagnostic?.hazardAlert?.level === 'CRITICAL'
+  const isWarning =
+    isUnidentified ||
+    diagnostic?.hazardAlert?.level === 'WARNING' ||
+    diagnostic?.recommendedRoute === 'REPAIR'
 
   const [todayInfo] = useState(() => getTodayIso())
   const [currentUser] = useState<User | null>(() => getCachedUser())
@@ -277,6 +357,80 @@ export const DropoffSchedulerPage: FC = () => {
       isMounted = false
     }
   }, [requestedSiteParam, initialBaseSite.id, userBaseNum])
+
+  useEffect(() => {
+    let active = true
+    if (assessmentIdParam && assessmentIdParam !== 'draft') {
+      assessmentsApi
+        .getDiagnostic(assessmentIdParam)
+        .then((res) => {
+          if (!active || !res) return
+          setDiagnostic(res)
+          try {
+            sessionStorage.setItem('ecobyte_last_diagnostic', JSON.stringify(res))
+          } catch {
+            // ignore
+          }
+        })
+        .catch(() => {
+          // keep stored/draft diagnostic
+        })
+    } else if (!loadStoredDiagnosticForScheduler('') && !isRescheduling && !deviceNameParam) {
+      assessmentsApi
+        .getMyAssessedItems()
+        .then((items) => {
+          if (!active || !Array.isArray(items) || items.length === 0) return
+          const latest = items[0]
+          setDiagnostic({
+            assessmentId: latest.assessmentId,
+            deviceModel: latest.deviceTitle,
+            category: latest.category,
+            analysisSource: latest.analysisSource,
+            wasteClassification:
+              latest.hazardLevel === 'HIGH_HAZARD'
+                ? 'Class III (Hazardous Lithium-Ion)'
+                : 'Class I (Recoverable Consumer Electronics)',
+            aiSummary: latest.aiSummary || latest.notes,
+            hazardAlert:
+              latest.hazardLevel === 'HIGH_HAZARD'
+                ? {
+                    level: 'CRITICAL',
+                    title: latest.hazardTitle || 'Critical Battery Hazard',
+                    instructions:
+                      'Do not puncture or compress. Bring safely in a non-conductive container.',
+                  }
+                : null,
+            subsystems: [],
+            recommendedRoute:
+              latest.handlingRecommendation === 'REUSE'
+                ? 'REUSE'
+                : latest.handlingRecommendation === 'REPAIR'
+                  ? 'REPAIR'
+                  : 'DROP_OFF',
+          })
+        })
+        .catch(() => {})
+    }
+
+    if (isRescheduling && requestIdParam) {
+      dropoffsApi
+        .getMyRequests()
+        .then((res) => {
+          if (!active) return
+          const match = [...(res.ongoing || []), ...(res.completed || [])].find(
+            (r) => String(r.requestId) === String(requestIdParam)
+          )
+          if (match?.deviceTitle) {
+            setRescheduledDeviceTitle(match.deviceTitle)
+          }
+        })
+        .catch(() => {})
+    }
+
+    return () => {
+      active = false
+    }
+  }, [assessmentIdParam, isRescheduling, requestIdParam, deviceNameParam])
 
   const referencePoint = userLocation || {
     lat: userBasePartition.center[0],
@@ -408,32 +562,68 @@ export const DropoffSchedulerPage: FC = () => {
         const dateCode = selectedDateStr.replace(/-/g, '')
         const shortNum = Math.floor(100 + Math.random() * 900)
         const requestCode = `DO-${dateCode}-${shortNum}`
+        let storedDraft: { deviceModel?: string; category?: string } | null = null
+        let lastDiagnostic: { deviceModel?: string; category?: string } | null = null
+        try {
+          const rawDraft = sessionStorage.getItem('ecobyte_assessment_draft')
+          if (rawDraft) storedDraft = JSON.parse(rawDraft)
+          const rawDiag = sessionStorage.getItem('ecobyte_last_diagnostic')
+          if (rawDiag) lastDiagnostic = JSON.parse(rawDiag)
+        } catch {
+          // ignore
+        }
+        const resolvedItemName =
+          deviceNameParam.trim() ||
+          diagnostic?.deviceModel?.trim() ||
+          lastDiagnostic?.deviceModel?.trim() ||
+          storedDraft?.deviceModel?.trim() ||
+          rescheduledDeviceTitle.trim() ||
+          'Electronic Device Intake'
+        const resolvedCategory =
+          categoryParam.trim() ||
+          diagnostic?.category?.trim() ||
+          lastDiagnostic?.category?.trim() ||
+          storedDraft?.category?.trim() ||
+          'Electronics'
+        const resolvedHazard: 'High' | 'Medium' | 'Low' =
+          diagnostic?.hazardAlert?.level === 'CRITICAL'
+            ? 'High'
+            : diagnostic?.hazardAlert?.level === 'WARNING' || diagnostic?.recommendedRoute === 'REPAIR'
+              ? 'Medium'
+              : 'Low'
 
         const newDropoffRecord = {
           id: createdReqId,
           requestCode,
-          itemName: 'E-Waste Item Scheduled for Drop-off',
-          type: 'Electronics',
+          itemName: resolvedItemName,
+          type: resolvedCategory,
           residentId: currentUser?.id || 'res-user',
           residentName: currentUser?.fullName || 'Resident User',
           residentEmail: currentUser?.email || 'resident@ecobyte.ph',
+          residentBaseId: currentUser?.barangay?.id ? String(currentUser.barangay.id) : undefined,
+          residentBaseName: currentUser?.barangay?.name,
           siteId: siteToBook.id,
           siteName: siteToBook.name,
           date: selectedDateStr,
           slot: currentWindow.hours,
           status: 'Scheduled',
           assessment: {
-            detectedType: 'Electronic Device',
-            confidence: 94,
-            hazard: 'Low',
-            recommendation: 'Repair & Reuse',
+            detectedType: resolvedItemName,
+            confidence: Math.round((diagnostic?.confidenceScore ?? 0.9) * 100),
+            hazard: resolvedHazard,
+            recommendation:
+              diagnostic?.recommendedRoute === 'DROP_OFF' ? 'Safe Disposal' : 'Repair & Reuse',
             impact: { kg: 1.5, materials: 'Recoverable metals & components' },
             checklist: {
-              powersOn: 'Yes',
-              screen: 'Good',
-              battery: 'Standard',
-              missingParts: 'None',
-              waterDamage: 'No',
+              powersOn: diagnostic?.supportingDetails?.powersOn ? 'Yes' : 'No',
+              screen: diagnostic?.supportingDetails?.displayIntact === false ? 'Damaged' : 'Good',
+              battery: resolvedHazard === 'High' ? 'Swollen / Hazard' : 'Standard',
+              missingParts: (diagnostic?.supportingDetails?.missingParts || []).join(', ') || 'None',
+              waterDamage: (diagnostic?.supportingDetails?.visibleDamage || []).some((d) =>
+                d.includes('water')
+              )
+                ? 'Yes'
+                : 'No',
             },
           },
           history: [
@@ -510,7 +700,11 @@ export const DropoffSchedulerPage: FC = () => {
 
           <Box>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', lineHeight: 1.2 }}>
-              {isRescheduling ? `Reschedule Request #${requestIdParam}` : 'Schedule Hazardous Drop-off'}
+              {isRescheduling
+                ? `Reschedule ${displayDeviceTitle}`
+                : isHazardous
+                  ? 'Schedule Hazardous Drop-off'
+                  : 'Schedule Station Drop-off'}
             </Typography>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#64748b' }}>
               {isRescheduling
@@ -529,44 +723,70 @@ export const DropoffSchedulerPage: FC = () => {
         </Box>
       </Box>
 
-      {/* ── Hazardous Alert & Mandatory Precaution Card ── */}
+      {/* ── Intake Status & Precaution Card ── */}
       <Card
         sx={{
           p: 2,
           borderRadius: 2,
-          border: '1.5px solid #fecaca',
-          backgroundColor: '#fffaf0',
-          boxShadow: '0 2px 6px rgba(239, 68, 68, 0.08)',
+          border: isHazardous
+            ? '1.5px solid #fecaca'
+            : isWarning
+              ? '1.5px solid #fde68a'
+              : '1px solid #bbf7d0',
+          backgroundColor: isHazardous ? '#fffaf0' : isWarning ? '#fffbeb' : '#f0fdf4',
+          boxShadow: isHazardous
+            ? '0 2px 6px rgba(239, 68, 68, 0.08)'
+            : '0 2px 6px rgba(15, 23, 42, 0.05)',
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1.5 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, minWidth: 0 }}>
             <Box
               sx={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 0.5,
-                backgroundColor: isUnidentified ? '#fef3c7' : '#fee2e2',
-                color: isUnidentified ? '#b45309' : '#dc2626',
+                backgroundColor: isHazardous ? '#fee2e2' : isWarning ? '#fef3c7' : '#dcfce7',
+                color: isHazardous ? '#dc2626' : isWarning ? '#b45309' : '#15803d',
                 px: 1,
                 py: 0.25,
                 borderRadius: 9999,
                 width: 'fit-content',
               }}
             >
-              <WarningAmberRoundedIcon sx={{ fontSize: 13 }} />
+              {isHazardous || isWarning ? (
+                <WarningAmberRoundedIcon sx={{ fontSize: 13 }} />
+              ) : (
+                <CheckCircleRoundedIcon sx={{ fontSize: 13 }} />
+              )}
               <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.625rem' }}>
-                {isUnidentified ? 'Unidentified E-Waste Intake' : 'Hazardous E-Waste Intake Required'}
+                {isUnidentified
+                  ? 'Unidentified E-Waste Intake'
+                  : isHazardous
+                    ? 'Hazardous E-Waste Intake Required'
+                    : isWarning
+                      ? 'Bench Inspection & Repair Intake'
+                      : 'Stage 2 Verified Intake'}
               </Typography>
             </Box>
 
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1.125rem', color: '#0f172a' }}>
               {displayDeviceTitle}
             </Typography>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.75rem', color: isUnidentified ? '#b45309' : '#dc2626' }}>
+            <Typography
+              sx={{
+                fontFamily: "'Quicksand', sans-serif",
+                fontWeight: 700,
+                fontSize: '0.75rem',
+                color: isHazardous ? '#dc2626' : isWarning ? '#b45309' : '#166534',
+              }}
+            >
               {isUnidentified
-                ? '🔍 Physical Inspection Required at Station (Module 2 Low-Confidence Route)'
-                : '⚡ Degraded Swollen Battery • Internal Degassing Stress'}
+                ? '🔍 Physical Inspection Required at Station (Module 2 Route)'
+                : isHazardous
+                  ? `⚡ ${diagnostic?.hazardAlert?.title || 'Critical Battery Hazard Detected'}`
+                  : diagnostic?.aiSummary ||
+                    `${diagnostic?.category || categoryParam || 'Electronics'} • Ready for Barangay Commonwealth intake`}
             </Typography>
           </Box>
 
@@ -575,8 +795,8 @@ export const DropoffSchedulerPage: FC = () => {
               width: 44,
               height: 44,
               borderRadius: 1.5,
-              backgroundColor: '#fee2e2',
-              color: '#dc2626',
+              backgroundColor: isHazardous ? '#fee2e2' : isWarning ? '#fef3c7' : '#dcfce7',
+              color: isHazardous ? '#dc2626' : isWarning ? '#b45309' : '#15803d',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -587,12 +807,34 @@ export const DropoffSchedulerPage: FC = () => {
           </Box>
         </Box>
 
-        <Divider sx={{ my: 1.25, borderColor: '#fed7aa' }} />
+        <Divider
+          sx={{
+            my: 1.25,
+            borderColor: isHazardous ? '#fed7aa' : isWarning ? '#fde68a' : '#bbf7d0',
+          }}
+        />
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-          <ShieldOutlinedIcon sx={{ fontSize: 16, color: '#b45309' }} />
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#92400e', fontWeight: 600 }}>
-            Dedicated fire-safe lithium containment bin allocated upon arrival.
+          <ShieldOutlinedIcon
+            sx={{
+              fontSize: 16,
+              color: isHazardous ? '#b45309' : isWarning ? '#b45309' : '#15803d',
+            }}
+          />
+          <Typography
+            sx={{
+              fontFamily: "'Quicksand', sans-serif",
+              fontSize: '0.75rem',
+              color: isHazardous ? '#92400e' : isWarning ? '#92400e' : '#166534',
+              fontWeight: 600,
+            }}
+          >
+            {isHazardous
+              ? diagnostic?.hazardAlert?.instructions ||
+                'Dedicated fire-safe lithium containment bin allocated upon arrival.'
+              : isWarning
+                ? 'Barangay MRF official will perform a physical bench check and advise reuse or disposal.'
+                : 'Barangay MRF official will verify this device upon intake for circular Reuse Hub listing or recovery.'}
           </Typography>
         </Box>
       </Card>
@@ -1160,6 +1402,10 @@ export const DropoffSchedulerPage: FC = () => {
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, mt: 1 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
+            <span style={{ color: '#64748b' }}>Device:</span>
+            <strong style={{ color: '#0f172a' }}>{displayDeviceTitle}</strong>
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
             <span style={{ color: '#64748b' }}>Intake Base:</span>
             <strong style={{ color: '#0f172a' }}>{currentSite.name}</strong>
           </Box>
@@ -1168,8 +1414,18 @@ export const DropoffSchedulerPage: FC = () => {
             <strong style={{ color: '#0f172a' }}>{formatReadableDate(selectedDateStr, 'short')} ({currentWindow.hours})</strong>
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
-            <span style={{ color: '#64748b' }}>Hazmat Category:</span>
-            <span style={{ color: '#dc2626', fontWeight: 700 }}>Class III (Lithium Degassing)</span>
+            <span style={{ color: '#64748b' }}>Classification:</span>
+            <span
+              style={{
+                color: isHazardous ? '#dc2626' : isWarning ? '#b45309' : '#15803d',
+                fontWeight: 700,
+              }}
+            >
+              {diagnostic?.wasteClassification ||
+                (isHazardous
+                  ? 'Class III (Hazardous Lithium-Ion)'
+                  : 'Class I (Recoverable Consumer Electronics)')}
+            </span>
           </Box>
         </Box>
       </Card>

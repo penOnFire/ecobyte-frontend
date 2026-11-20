@@ -16,7 +16,7 @@ import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded'
 import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined'
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined'
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
-import { adminApi, getCachedUser, type AdminCollectionRequest, type AdminDashboardOverview } from '@/lib/api'
+import { adminApi, getCachedUser, getScopedOfficialBaseId, type AdminCollectionRequest, type AdminDashboardOverview } from '@/lib/api'
 
 const TODAY_STR = new Date().toISOString().slice(0, 10)
 
@@ -27,7 +27,11 @@ const getInitialDashboardRequests = (): AdminCollectionRequest[] => {
     if (raw) {
       const parsed = JSON.parse(raw)
       if (Array.isArray(parsed)) {
-        return parsed.map((r: any) => ({
+        const scopedBaseId = getScopedOfficialBaseId()
+        const filtered = scopedBaseId
+          ? parsed.filter((r: any) => String(r?.residentBaseId ?? '') === scopedBaseId)
+          : parsed
+        return filtered.map((r: any) => ({
           id: r.id,
           requestCode: r.requestCode || r.id,
           residentName: r.residentName || 'Resident User',
@@ -93,10 +97,7 @@ export const AdminOfficialDashboardPage: FC = () => {
       .getRequests()
       .then((data) => {
         if (data && Array.isArray(data)) {
-          setRequests((prev) => {
-            const liveIds = new Set(data.map((d) => d.id))
-            return [...data, ...prev.filter((p) => !liveIds.has(p.id))]
-          })
+          setRequests(data)
         }
       })
       .catch((err) => console.warn('Could not load requests:', err))
@@ -181,7 +182,13 @@ export const AdminOfficialDashboardPage: FC = () => {
   const reusePct = totalOutcomes > 0 ? Math.round((reuseOutcomesCount / totalOutcomes) * 100) : 0
   const disposalPct = totalOutcomes > 0 ? 100 - reusePct : 0
 
-  // Weekly series: dynamically computed from requests or real weeks
+  // Weekly series: dynamically computed from turned-over / inspected outcomes
+  const turnedOverRequestsCount = requests.filter((r) => {
+    const s = (r.status || '').toLowerCase()
+    return s === 'turned_over' || s === 'completed' || s === 'collected'
+  }).length
+  const thisWeekTurnedCount = Math.max(turnedMonthCount, turnedOverRequestsCount)
+
   const weeklySeries = [
     { label: 'Week 1', value: 0 },
     { label: 'Week 2', value: 0 },
@@ -190,21 +197,44 @@ export const AdminOfficialDashboardPage: FC = () => {
     { label: 'Week 5', value: 0 },
     { label: 'Week 6', value: 0 },
     { label: 'Last Week', value: 0 },
-    { label: 'This Week', value: requests.length },
+    { label: 'This Week', value: thisWeekTurnedCount },
   ]
   const maxWeekly = Math.max(...weeklySeries.map((w) => w.value), 1)
 
-  // Real e-waste type counts
+  // Real e-waste type counts for collected / turned-over items only
   const countByType: Record<string, number> = {}
   requests.forEach((r) => {
-    const method = (r.preferredMethod || 'Electronics').toLowerCase()
-    let label = 'Cables & Accessories'
-    if (method.includes('phone') || method.includes('mobile')) label = 'Mobile Phone'
-    else if (method.includes('laptop') || method.includes('computer')) label = 'Laptop'
-    else if (method.includes('battery') || method.includes('power')) label = 'Battery / Power Bank'
-    else if (method.includes('tv') || method.includes('monitor') || method.includes('screen')) label = 'Monitor / TV'
-    else if (method.includes('appliance') || method.includes('printer')) label = 'Small Appliance'
-    countByType[label] = (countByType[label] || 0) + 1
+    const s = (r.status || '').toLowerCase()
+    if (s !== 'turned_over' && s !== 'completed' && s !== 'collected') return
+
+    const hint = [
+      r.itemCategory,
+      r.itemName,
+      r.preferredMethod !== 'drop_off' && r.preferredMethod !== 'pickup' ? r.preferredMethod : '',
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+    if (!hint) return
+
+    let label: string | null = null
+    if (hint.includes('phone') || hint.includes('mobile') || hint.includes('tablet')) label = 'Mobile Phone'
+    else if (hint.includes('laptop') || hint.includes('computer')) label = 'Laptop'
+    else if (hint.includes('battery') || hint.includes('power')) label = 'Battery / Power Bank'
+    else if (hint.includes('tv') || hint.includes('monitor') || hint.includes('screen')) label = 'Monitor / TV'
+    else if (hint.includes('appliance') || hint.includes('printer')) label = 'Small Appliance'
+    else if (
+      hint.includes('cable') ||
+      hint.includes('charger') ||
+      hint.includes('adapter') ||
+      hint.includes('accessor') ||
+      hint.includes('peripheral')
+    ) {
+      label = 'Cables & Accessories'
+    }
+    if (label) {
+      countByType[label] = (countByType[label] || 0) + 1
+    }
   })
 
   const ewasteTypes = [

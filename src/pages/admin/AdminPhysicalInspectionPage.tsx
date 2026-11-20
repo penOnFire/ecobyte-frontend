@@ -13,7 +13,7 @@ import BatteryChargingFullRoundedIcon from '@mui/icons-material/BatteryChargingF
 import TvRoundedIcon from '@mui/icons-material/TvRounded'
 import KitchenRoundedIcon from '@mui/icons-material/KitchenRounded'
 import CableRoundedIcon from '@mui/icons-material/CableRounded'
-import { adminApi, type AdminCollectionRequest } from '@/lib/api'
+import { adminApi, getScopedOfficialBaseId, type AdminCollectionRequest } from '@/lib/api'
 
 interface DeviceDetails {
   id: string
@@ -54,8 +54,13 @@ const findLocalDevice = (targetId?: string): DeviceDetails | null => {
   try {
     const raw = localStorage.getItem('ecobyte_dropoff_requests')
     if (!raw) return null
-    const list: any[] = JSON.parse(raw)
-    if (!Array.isArray(list) || list.length === 0) return null
+    const parsed: any[] = JSON.parse(raw)
+    if (!Array.isArray(parsed) || parsed.length === 0) return null
+    const scopedBaseId = getScopedOfficialBaseId()
+    const list = scopedBaseId
+      ? parsed.filter((d) => String(d?.residentBaseId ?? '') === scopedBaseId)
+      : parsed
+    if (list.length === 0) return null
 
     let match = targetId
       ? list.find((d) => d.id === targetId || d.requestCode === targetId)
@@ -122,14 +127,17 @@ export const AdminPhysicalInspectionPage: FC = () => {
     adminApi
       .getRequests()
       .then((data: AdminCollectionRequest[]) => {
-        if (!active || !data || data.length === 0) return
+        if (!active || !Array.isArray(data)) return
         const found = id ? data.find((d) => d.id === id || d.requestCode === id) : data.find((d) => (d.status || '').toLowerCase() === 'under_inspection')
-        if (found) {
-          setDevice({
+        if (!found) {
+          setDevice(null)
+          return
+        }
+        setDevice({
             id: found.id,
             requestCode: found.requestCode || found.id,
-            itemName: found.preferredMethod || 'Resident E-Waste Device',
-            type: found.preferredMethod || 'Electronics',
+            itemName: found.itemName || found.preferredMethod || 'Resident E-Waste Device',
+            type: found.itemCategory || found.preferredMethod || 'Electronics',
             residentName: found.residentName || 'Resident User',
             siteName: found.siteName || 'Commonwealth Central MRF (Base 1)',
             receivedAt: found.requestedDate || 'Today',
@@ -153,7 +161,6 @@ export const AdminPhysicalInspectionPage: FC = () => {
               components: ['Chassis', 'Power Supply', 'Logic Board'],
             },
           })
-        }
       })
       .catch((err) => {
         console.warn('Could not load specific request from API:', err)
@@ -256,6 +263,7 @@ export const AdminPhysicalInspectionPage: FC = () => {
             : `Inspection completed! Disposal record created for ${device.itemName}.`,
         severity: 'success',
       })
+      window.dispatchEvent(new Event('ecobyte:admin-badges-refresh'))
 
       setTimeout(() => {
         navigate('/admin/to-inspect')
