@@ -169,7 +169,7 @@ export const MyRequestsPage: FC = () => {
       setOngoing((prev) => prev.filter((r) => r.requestId !== selectedRequest.requestId))
       setCancelConfirmOpen(false)
       setSelectedRequest(null)
-      setActionToast(`Drop-off request #${selectedRequest.requestId} has been cancelled and your slot released.`)
+      setActionToast(`Drop-off request for "${selectedRequest.deviceTitle}" has been cancelled and your slot released.`)
     } catch (err: any) {
       console.error('Failed to cancel request:', err)
       setActionToast(err?.message || 'Unable to cancel drop-off request. Please try again.')
@@ -206,7 +206,9 @@ export const MyRequestsPage: FC = () => {
         const localRes = getLocalReservations()
         const localClaimed = getLocalClaimed()
         const apiReservations = data.reservations || []
-        const apiCompleted = data.completed || []
+        const apiCompleted = (data.completed || []).filter(
+          (r) => r.status !== 'Cancelled' && r.status !== 'Missed'
+        )
         const seenCodes = new Set(apiReservations.map((r) => r.pickupCode))
         const seenCompletedIds = new Set(apiCompleted.map((r) => r.requestId))
         // Keep only offline-created local reservations (non-numeric IDs) not already returned by backend.
@@ -742,7 +744,7 @@ export const MyRequestsPage: FC = () => {
                           color: '#0f172a',
                         }}
                       >
-                        Request #{req.requestId}
+                        {req.deviceTitle}
                       </Typography>
                       <Typography
                         sx={{
@@ -753,7 +755,8 @@ export const MyRequestsPage: FC = () => {
                           mt: 0.25,
                         }}
                       >
-                        {req.deviceTitle} · {req.siteName}
+                        {req.deviceCategory ? `${req.deviceCategory} · ` : ''}
+                        {req.siteName}
                       </Typography>
                     </Box>
                     <StatusBadge
@@ -1238,15 +1241,43 @@ export const MyRequestsPage: FC = () => {
                       {comp.deviceTitle}
                     </Typography>
                     <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
-                      Ref #{comp.requestId} • {comp.siteName}
+                      {comp.deviceCategory ? `${comp.deviceCategory} · ` : ''}{comp.siteName}
                     </Typography>
                   </Box>
-                  <StatusBadge label="Completed" variant="electric" size="sm" />
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5, pt: 1.25, borderTop: '1px solid #f1f5f9' }}>
-                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#16a34a', fontWeight: 700 }}>
-                    ✓ Turnover Certified (+150 pts)
-                  </Typography>
+                    <StatusBadge
+                      label={
+                        comp.status === 'Cancelled'
+                          ? 'Cancelled'
+                          : comp.status === 'Missed'
+                            ? 'Missed'
+                            : 'Completed'
+                      }
+                      variant={
+                        comp.status === 'Cancelled' || comp.status === 'Missed'
+                          ? 'hazard'
+                          : 'electric'
+                      }
+                      size="sm"
+                    />
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5, pt: 1.25, borderTop: '1px solid #f1f5f9' }}>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Quicksand', sans-serif",
+                        fontSize: '0.75rem',
+                        color:
+                          comp.status === 'Cancelled' || comp.status === 'Missed'
+                            ? '#dc2626'
+                            : '#16a34a',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {comp.status === 'Cancelled'
+                        ? 'Slot released (Cancelled)'
+                        : comp.status === 'Missed'
+                          ? 'Drop-off slot missed'
+                          : '✓ Turnover Certified (+150 pts)'}
+                    </Typography>
                   <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b' }}>
                     {comp.scheduledSlot || 'Verified claim'}
                   </Typography>
@@ -1278,10 +1309,11 @@ export const MyRequestsPage: FC = () => {
             <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
               <Box>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1.0625rem', color: '#0f172a' }}>
-                  Request #{selectedRequest.requestId}
+                  {selectedRequest.deviceTitle}
                 </Typography>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
-                  {selectedRequest.deviceTitle}
+                  {selectedRequest.deviceCategory ? `${selectedRequest.deviceCategory} · ` : ''}
+                  {selectedRequest.siteName}
                 </Typography>
               </Box>
               <IconButton size="small" onClick={() => setSelectedRequest(null)} aria-label="Close details">
@@ -1435,7 +1467,8 @@ export const MyRequestsPage: FC = () => {
         </DialogTitle>
         <DialogContent dividers sx={{ py: 2 }}>
           <Typography sx={{ fontSize: '0.8125rem', color: '#475569', lineHeight: 1.5 }}>
-            Are you sure you want to cancel Drop-off Request <strong>#{selectedRequest?.requestId}</strong>?
+            Are you sure you want to cancel your drop-off request for{' '}
+            <strong>{selectedRequest?.deviceTitle}</strong>?
           </Typography>
           <Typography sx={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 600, mt: 1 }}>
             Your intake reservation at {selectedRequest?.siteName} will be released immediately and removed from incoming queue.

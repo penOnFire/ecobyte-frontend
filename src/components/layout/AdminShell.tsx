@@ -71,21 +71,31 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
         // Keep cached user if offline
       })
 
-    Promise.all([
-      adminApi.getRequests().catch(() => []),
-      adminApi.getInspectionQueue('waiting').catch(() => []),
-    ]).then(([requests, waitingItems]) => {
-      if (!active) return
-      const scheduledCount = requests.filter((r) => {
-        const s = (r.status || '').toLowerCase()
-        return s === 'pending_review' || s === 'scheduled'
-      }).length
-      setIncomingBadge(scheduledCount)
-      setToInspectBadge(waitingItems.length)
-    })
+    const refreshBadges = () => {
+      adminApi
+        .getRequests()
+        .catch(() => [])
+        .then((requests) => {
+          if (!active) return
+          const scheduledCount = requests.filter((r) => {
+            const s = (r.status || '').toLowerCase()
+            return s === 'pending_review' || s === 'scheduled'
+          }).length
+          const receivedForInspectionCount = requests.filter((r) => {
+            const s = (r.status || '').toLowerCase()
+            return s === 'under_inspection' || s === 'collected'
+          }).length
+          setIncomingBadge(scheduledCount)
+          setToInspectBadge(receivedForInspectionCount)
+        })
+    }
+
+    refreshBadges()
+    window.addEventListener('ecobyte:admin-badges-refresh', refreshBadges)
 
     return () => {
       active = false
+      window.removeEventListener('ecobyte:admin-badges-refresh', refreshBadges)
     }
   }, [path])
 

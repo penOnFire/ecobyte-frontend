@@ -71,6 +71,8 @@ export interface AdminCollectionRequest {
   residentBaseName?: string
   siteName: string
   address: string
+  itemName?: string | null
+  itemCategory?: string | null
   preferredMethod: string
   status: string
   displayStatus: string

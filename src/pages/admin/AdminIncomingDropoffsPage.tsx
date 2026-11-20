@@ -28,7 +28,7 @@ import BatteryChargingFullRoundedIcon from '@mui/icons-material/BatteryChargingF
 import TvRoundedIcon from '@mui/icons-material/TvRounded'
 import CableRoundedIcon from '@mui/icons-material/CableRounded'
 import KitchenRoundedIcon from '@mui/icons-material/KitchenRounded'
-import { adminApi, getCachedUser, type AdminCollectionRequest } from '@/lib/api'
+import { adminApi, getCachedUser, getScopedOfficialBaseId, type AdminCollectionRequest } from '@/lib/api'
 
 type DropoffTab = 'today' | 'upcoming' | 'overdue' | 'history'
 
@@ -47,6 +47,8 @@ interface DropoffRecord {
   residentId: string
   residentName: string
   residentEmail?: string
+  residentBaseId?: string
+  residentBaseName?: string
   siteId: string
   siteName: string
   date: string
@@ -79,7 +81,12 @@ const getInitialDropoffs = (): DropoffRecord[] => {
     const raw = localStorage.getItem('ecobyte_dropoff_requests')
     if (raw) {
       const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed)) return parsed
+      if (Array.isArray(parsed)) {
+        const scopedBaseId = getScopedOfficialBaseId()
+        return scopedBaseId
+          ? parsed.filter((r) => String(r?.residentBaseId ?? '') === scopedBaseId)
+          : parsed
+      }
     }
   } catch (e) {
     console.warn('Could not read local drop-offs:', e)
@@ -106,7 +113,7 @@ export const AdminIncomingDropoffsPage: FC = () => {
     adminApi
       .getRequests()
       .then((data: AdminCollectionRequest[]) => {
-        if (!active || !data || data.length === 0) return
+        if (!active || !Array.isArray(data)) return
         const mappedLive: DropoffRecord[] = data.map((d) => {
           const sLower = (d.status || '').toLowerCase()
           const normalizedStatus: DropoffRecord['status'] =
@@ -123,11 +130,13 @@ export const AdminIncomingDropoffsPage: FC = () => {
           return {
             id: d.id,
             requestCode: d.requestCode || d.id,
-            itemName: d.preferredMethod || 'Resident E-Waste Device',
-            type: d.preferredMethod || 'Electronics',
+            itemName: d.itemName || d.preferredMethod || 'Resident E-Waste Device',
+            type: d.itemCategory || d.preferredMethod || 'Electronics',
             residentId: 'res-01',
             residentName: d.residentName || 'Resident User',
             residentEmail: d.residentEmail,
+            residentBaseId: d.residentBaseId ? String(d.residentBaseId) : undefined,
+            residentBaseName: d.residentBaseName,
             siteId: 'S01',
             siteName: d.siteName || 'Commonwealth Central MRF (Base 1)',
             date: d.requestedDate || todayStr,
@@ -159,16 +168,12 @@ export const AdminIncomingDropoffsPage: FC = () => {
           }
         })
 
-        setRequests((prev) => {
-          const ids = new Set(mappedLive.map((m) => m.id))
-          const merged = [...mappedLive, ...prev.filter((p) => !ids.has(p.id))]
-          try {
-            localStorage.setItem('ecobyte_dropoff_requests', JSON.stringify(merged))
-          } catch {
-            // ignore
-          }
-          return merged
-        })
+        setRequests(mappedLive)
+        try {
+          localStorage.setItem('ecobyte_dropoff_requests', JSON.stringify(mappedLive))
+        } catch {
+          // ignore
+        }
       })
       .catch((err) => {
         console.warn('Backend requests unavailable:', err)
@@ -199,7 +204,9 @@ export const AdminIncomingDropoffsPage: FC = () => {
           r.id.toLowerCase().includes(q) ||
           r.requestCode.toLowerCase().includes(q) ||
           r.itemName.toLowerCase().includes(q) ||
-          r.residentName.toLowerCase().includes(q)
+          r.residentName.toLowerCase().includes(q) ||
+          (r.residentBaseName || '').toLowerCase().includes(q) ||
+          r.siteName.toLowerCase().includes(q)
       )
     }
     return list.sort((a, b) =>
@@ -274,6 +281,7 @@ export const AdminIncomingDropoffsPage: FC = () => {
         message: `Device marked Received! Moved to Inspection Queue (${req.requestCode}).`,
         severity: 'success',
       })
+      window.dispatchEvent(new Event('ecobyte:admin-badges-refresh'))
       setDetailModalOpen(false)
     } catch {
       setToast({
@@ -337,6 +345,7 @@ export const AdminIncomingDropoffsPage: FC = () => {
         message: `Marked as Missed. Time slot released for ${req.requestCode}.`,
         severity: 'success',
       })
+      window.dispatchEvent(new Event('ecobyte:admin-badges-refresh'))
       setDetailModalOpen(false)
     } catch {
       setToast({
@@ -479,18 +488,18 @@ export const AdminIncomingDropoffsPage: FC = () => {
         </Box>
 
         {/* Table */}
-        <Box sx={{ overflowX: 'auto', mx: -3, px: 3 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+        <Box sx={{ overflowX: { xs: 'auto', lg: 'visible' } }}>
+          <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ backgroundColor: '#f8faf6', borderBottom: '1px solid #e2e8f0' }}>
-                <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Request</th>
-                <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Item</th>
-                <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Resident</th>
-                <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Drop-off site</th>
-                <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Schedule</th>
-                <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>AI Hazard</th>
-                <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Status</th>
-                <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
+                <th style={{ width: '9%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Request</th>
+                <th style={{ width: '16%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Item</th>
+                <th style={{ width: '17%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Resident</th>
+                <th style={{ width: '17%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Drop-off site</th>
+                <th style={{ width: '15%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Schedule</th>
+                <th style={{ width: '9%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Hazard</th>
+                <th style={{ width: '9%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Status</th>
+                <th style={{ width: '8%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em', textAlign: 'right' }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -509,22 +518,22 @@ export const AdminIncomingDropoffsPage: FC = () => {
 
                   return (
                     <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
-                        <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>
+                      <td style={{ padding: '10px 8px', verticalAlign: 'middle' }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', color: '#0f172a', lineHeight: 1.2 }}>
                           {r.id}
                         </Typography>
-                        <Typography sx={{ fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
+                        <Typography sx={{ fontSize: '0.625rem', color: '#64748b', fontWeight: 600 }}>
                           {r.requestCode}
                         </Typography>
                       </td>
 
-                      <td style={{ padding: '12px 16px' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 160 }}>
+                      <td style={{ padding: '10px 8px', verticalAlign: 'middle' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
                           <Box
                             sx={{
-                              width: 32,
-                              height: 32,
-                              borderRadius: '10px',
+                              width: 28,
+                              height: 28,
+                              borderRadius: '8px',
                               backgroundColor: '#f1f4f0',
                               color: '#2e6022',
                               display: 'flex',
@@ -533,69 +542,77 @@ export const AdminIncomingDropoffsPage: FC = () => {
                               flexShrink: 0,
                             }}
                           >
-                            <ItemIcon sx={{ fontSize: 18 }} />
+                            <ItemIcon sx={{ fontSize: 16 }} />
                           </Box>
                           <Box sx={{ minWidth: 0 }}>
-                            <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a', lineHeight: 1.2 }}>
+                            <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', color: '#0f172a', lineHeight: 1.25, wordBreak: 'break-word' }}>
                               {r.itemName}
                             </Typography>
-                            <Typography sx={{ fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
+                            <Typography sx={{ fontSize: '0.625rem', color: '#64748b', fontWeight: 600 }}>
                               {r.type}
                             </Typography>
                           </Box>
                         </Box>
                       </td>
 
-                      <td style={{ padding: '12px 16px', fontWeight: 600, color: '#1e293b', whiteSpace: 'nowrap' }}>
-                        {r.residentName}
+                      <td style={{ padding: '10px 8px', verticalAlign: 'middle', fontWeight: 600, color: '#1e293b', fontSize: '0.75rem' }}>
+                        <Box sx={{ lineHeight: 1.25, wordBreak: 'break-word' }}>{r.residentName}</Box>
+                        {(r.residentBaseName || r.residentBaseId) && (
+                          <Typography sx={{ fontSize: '0.625rem', color: '#4f8a24', fontWeight: 700, lineHeight: 1.2, mt: 0.25 }}>
+                            {r.residentBaseName || `Base ${r.residentBaseId}`}
+                          </Typography>
+                        )}
                       </td>
 
-                      <td style={{ padding: '12px 16px', color: '#475569', fontWeight: 500, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '10px 8px', verticalAlign: 'middle', color: '#475569', fontWeight: 500, fontSize: '0.7rem', lineHeight: 1.3, wordBreak: 'break-word' }}>
                         {r.siteName}
                       </td>
 
-                      <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '10px 8px', verticalAlign: 'middle' }}>
                         <Typography
                           sx={{
                             fontWeight: 700,
-                            fontSize: '0.8125rem',
+                            fontSize: '0.75rem',
+                            lineHeight: 1.25,
                             color: r.date < todayStr && r.status === 'Scheduled' ? '#be123c' : '#0f172a',
                           }}
                         >
                           {r.date === todayStr ? 'Today' : r.date}
                         </Typography>
-                        <Typography sx={{ fontSize: '0.6875rem', color: '#64748b' }}>
+                        <Typography sx={{ fontSize: '0.625rem', color: '#64748b', lineHeight: 1.25 }}>
                           {r.slot}
                         </Typography>
                       </td>
 
-                      <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '10px 8px', verticalAlign: 'middle' }}>
                         <Box
                           sx={{
                             display: 'inline-block',
-                            px: 1,
+                            px: 0.75,
                             py: 0.25,
                             borderRadius: '9999px',
-                            fontSize: '0.6875rem',
+                            fontSize: '0.625rem',
                             fontWeight: 700,
+                            whiteSpace: 'nowrap',
                             backgroundColor: r.assessment.hazard === 'High' ? '#fff1f2' : r.assessment.hazard === 'Medium' ? '#fef3c7' : '#f0fdf4',
                             color: r.assessment.hazard === 'High' ? '#be123c' : r.assessment.hazard === 'Medium' ? '#b45309' : '#15803d',
                             border: `1px solid ${r.assessment.hazard === 'High' ? '#fecdd3' : r.assessment.hazard === 'Medium' ? '#fde68a' : '#bbf7d0'}`,
                           }}
                         >
-                          {r.assessment.hazard} Hazard
+                          {r.assessment.hazard}
                         </Box>
                       </td>
 
-                      <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '10px 8px', verticalAlign: 'middle' }}>
                         <Box
                           sx={{
                             display: 'inline-block',
-                            px: 1.25,
-                            py: 0.35,
+                            px: 0.9,
+                            py: 0.25,
                             borderRadius: '9999px',
-                            fontSize: '0.6875rem',
+                            fontSize: '0.625rem',
                             fontWeight: 700,
+                            whiteSpace: 'nowrap',
                             backgroundColor:
                               r.status === 'Under Inspection'
                                 ? '#f0f9ff'
@@ -627,18 +644,18 @@ export const AdminIncomingDropoffsPage: FC = () => {
                         </Box>
                       </td>
 
-                      <td style={{ padding: '12px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                      <td style={{ padding: '10px 8px', verticalAlign: 'middle', textAlign: 'right' }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5, flexWrap: 'wrap' }}>
                           <ButtonBase
                             onClick={() => handleOpenDetailModal(r)}
                             sx={{
-                              px: 1.5,
-                              py: 0.5,
+                              px: 1.1,
+                              py: 0.45,
                               borderRadius: '0.5rem',
                               border: '1px solid #dbe3d6',
                               backgroundColor: '#ffffff',
                               color: '#334155',
-                              fontSize: '0.75rem',
+                              fontSize: '0.7rem',
                               fontWeight: 700,
                               '&:hover': { backgroundColor: '#f8faf6' },
                             }}
@@ -650,19 +667,19 @@ export const AdminIncomingDropoffsPage: FC = () => {
                             <ButtonBase
                               onClick={() => handleMarkMissed(r)}
                               sx={{
-                                px: 1.5,
-                                py: 0.5,
+                                px: 1,
+                                py: 0.45,
                                 borderRadius: '0.5rem',
                                 border: '1px solid #fecdd3',
                                 backgroundColor: '#fff1f2',
                                 color: '#be123c',
-                                fontSize: '0.75rem',
+                                fontSize: '0.7rem',
                                 fontWeight: 700,
-                                gap: 0.5,
+                                gap: 0.4,
                                 '&:hover': { backgroundColor: '#ffe4e6' },
                               }}
                             >
-                              <EventBusyRoundedIcon sx={{ fontSize: 14 }} />
+                              <EventBusyRoundedIcon sx={{ fontSize: 13 }} />
                               <span>Missed</span>
                             </ButtonBase>
                           )}
@@ -754,6 +771,14 @@ export const AdminIncomingDropoffsPage: FC = () => {
                     <span style={{ color: '#64748b', fontWeight: 600 }}>Resident</span>
                     <span style={{ fontWeight: 700, color: '#0f172a' }}>{selectedReq.residentName}</span>
                   </Box>
+                  {(selectedReq.residentBaseName || selectedReq.residentBaseId) && (
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
+                      <span style={{ color: '#64748b', fontWeight: 600 }}>Resident base</span>
+                      <span style={{ fontWeight: 700, color: '#2e6022' }}>
+                        {selectedReq.residentBaseName || `Base ${selectedReq.residentBaseId}`}
+                      </span>
+                    </Box>
+                  )}
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
                     <span style={{ color: '#64748b', fontWeight: 600 }}>Drop-off site</span>
                     <span style={{ fontWeight: 700, color: '#0f172a' }}>{selectedReq.siteName}</span>

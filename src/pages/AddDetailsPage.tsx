@@ -211,12 +211,73 @@ export const AddDetailsPage: FC = () => {
 
       try {
         sessionStorage.setItem('ecobyte_last_assessment_id', result.assessmentId)
+        sessionStorage.setItem('ecobyte_last_diagnostic', JSON.stringify(result))
       } catch {
         // Ignore quota errors
       }
       navigate(`/diagnostic?assessmentId=${encodeURIComponent(result.assessmentId)}`)
     } catch (err: any) {
       console.warn('Assessment API unavailable, continuing to diagnostic preview:', err)
+      try {
+        const hasBatteryHazard = resolvedDamage.some((v) => v.includes('swollen') || v.includes('battery_leak'))
+        const fallbackDevice = deviceModel.trim() || `${deviceCategory} Unit`
+        sessionStorage.setItem(
+          'ecobyte_last_diagnostic',
+          JSON.stringify({
+            assessmentId: `local-${Date.now()}`,
+            deviceModel: fallbackDevice,
+            category: deviceCategory,
+            analysisSource: 'rule_based_fallback',
+            aiModel: 'offline-rules',
+            confidenceScore: readyAnglesCount > 0 ? 0.9 : 0.82,
+            wasteClassification: hasBatteryHazard
+              ? 'Class III (Hazardous Lithium-Ion)'
+              : 'Class I (Recoverable Consumer Electronics)',
+            aiSummary: `Stage 1 triage for ${fallbackDevice} based on your supporting details.`,
+            supportingDetails: {
+              workingStatus: workingStatus === 'notsure' ? 'not_sure' : workingStatus,
+              powersOn: workingStatus === 'yes',
+              displayIntact: !visibleDamage.includes('cracked'),
+              portsWorking: true,
+              visibleDamage: resolvedDamage,
+              missingParts: resolvedMissing,
+              notes: notes.trim() || undefined,
+            },
+            hazardAlert: hasBatteryHazard
+              ? {
+                  level: 'CRITICAL',
+                  title: 'Lithium-Ion Battery Hazard Reported',
+                  instructions: 'Do not puncture or compress. Pack in a non-conductive container.',
+                }
+              : null,
+            subsystems: [
+              {
+                name: 'Battery Cell',
+                status: hasBatteryHazard ? 'HEALTH_RISK' : workingStatus === 'yes' ? 'OPTIMAL' : 'DEGRADED',
+                score: hasBatteryHazard ? 32 : workingStatus === 'yes' ? 90 : 58,
+              },
+              {
+                name: 'Display & Glass',
+                status: !visibleDamage.includes('cracked') ? 'OPTIMAL' : 'DEGRADED',
+                score: !visibleDamage.includes('cracked') ? 95 : 42,
+              },
+              {
+                name: 'Logic Board',
+                status: workingStatus === 'yes' ? 'INTACT' : 'DEGRADED',
+                score: workingStatus === 'yes' ? 88 : 46,
+              },
+              {
+                name: 'Enclosure & Ports',
+                status: 'OPTIMAL',
+                score: 90,
+              },
+            ],
+            recommendedRoute: hasBatteryHazard ? 'DROP_OFF' : workingStatus === 'yes' ? 'REUSE' : 'REPAIR',
+          })
+        )
+      } catch {
+        // Ignore storage errors
+      }
       navigate('/diagnostic')
     } finally {
       setIsSubmitting(false)
@@ -464,8 +525,11 @@ export const AddDetailsPage: FC = () => {
             value={deviceModel}
             onChange={(e) => setDeviceModel(e.target.value)}
             placeholder="e.g., Samsung Galaxy S10, Lenovo ThinkPad T480"
-            sx={{ mb: 1, borderRadius: 1.5, fontSize: '0.8125rem', backgroundColor: '#f8fafc' }}
+            sx={{ mb: 0.75, borderRadius: 1.5, fontSize: '0.8125rem', backgroundColor: '#f8fafc' }}
           />
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', mb: 1 }}>
+            AI uses your device name &amp; answers as supporting details, and your request will show this device name.
+          </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
             {DEVICE_CATEGORIES.map((cat) => {
               const active = deviceCategory === cat
@@ -679,6 +743,8 @@ export const AddDetailsPage: FC = () => {
               <OutlinedInput
                 fullWidth
                 size="small"
+                multiline
+                minRows={2}
                 required
                 value={otherDamageText}
                 onChange={(e) => {
@@ -691,6 +757,10 @@ export const AddDetailsPage: FC = () => {
                   borderRadius: 1.5,
                   backgroundColor: '#f8fafc',
                   fontSize: '0.8125rem',
+                  '& textarea': {
+                    whiteSpace: 'pre-wrap',
+                    overflowWrap: 'anywhere',
+                  },
                 }}
               />
             </Box>
@@ -785,6 +855,8 @@ export const AddDetailsPage: FC = () => {
               <OutlinedInput
                 fullWidth
                 size="small"
+                multiline
+                minRows={2}
                 required
                 value={otherMissingText}
                 onChange={(e) => {
@@ -797,6 +869,10 @@ export const AddDetailsPage: FC = () => {
                   borderRadius: 1.5,
                   backgroundColor: '#f8fafc',
                   fontSize: '0.8125rem',
+                  '& textarea': {
+                    whiteSpace: 'pre-wrap',
+                    overflowWrap: 'anywhere',
+                  },
                 }}
               />
             </Box>
@@ -864,12 +940,12 @@ export const AddDetailsPage: FC = () => {
           <Box sx={{ flex: 1 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
-                EcoByte Vision Engine
+                AI-Assisted Triage Engine
               </Typography>
-              <StatusBadge label="ACTIVE" variant="electric" size="sm" />
+              <StatusBadge label="AI-ASSISTED" variant="electric" size="sm" />
             </Box>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.35, lineHeight: 1.4 }}>
-              Compares camera angle telemetry against 42,000+ certified hardware schematics to calculate circular reuse viability.
+              Reviews your uploaded photos alongside your device details to suggest handling and highlight safety risks before official inspection.
             </Typography>
           </Box>
         </Box>
