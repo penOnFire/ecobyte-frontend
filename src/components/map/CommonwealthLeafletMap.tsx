@@ -287,8 +287,25 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
       map.invalidateSize()
     }, 200)
 
+    let resizeObserver: ResizeObserver | null = null
+    if (typeof ResizeObserver !== 'undefined' && mapContainerRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        map.invalidateSize()
+      })
+      resizeObserver.observe(mapContainerRef.current)
+    }
+
+    const handleWindowResize = () => {
+      map.invalidateSize()
+    }
+    window.addEventListener('resize', handleWindowResize)
+
     return () => {
       clearTimeout(timer)
+      window.removeEventListener('resize', handleWindowResize)
+      if (resizeObserver) {
+        resizeObserver.disconnect()
+      }
       map.remove()
       mapInstanceRef.current = null
       markersRef.current = {}

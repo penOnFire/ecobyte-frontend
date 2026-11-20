@@ -125,6 +125,7 @@ export const ReuseHubPage: FC = () => {
   const [stats, setStats] = useState({ totalVerified: 48, divertedKgThisWeek: 18.5 })
   const [filterAnchor, setFilterAnchor] = useState<null | HTMLElement>(null)
   const [filterMode, setFilterMode] = useState<'all' | 'available' | 'nearest'>('all')
+  const [nowMs] = useState(() => Date.now())
 
   useEffect(() => {
     let isMounted = true
@@ -133,46 +134,73 @@ export const ReuseHubPage: FC = () => {
     if (selectedCategory !== 'All') params.category = selectedCategory
     if (searchQuery.trim()) params.query = searchQuery.trim()
 
-    reuseApi
-      .getItems(params)
-      .then((res) => {
-        if (!isMounted) return
-        setStats({
-          totalVerified: res.totalVerified || 48,
-          divertedKgThisWeek: res.divertedKgThisWeek || 18.5,
-        })
+    const fetchItems = () => {
+      reuseApi
+        .getItems(params)
+        .then((res) => {
+          if (!isMounted) return
+          setStats({
+            totalVerified: res.totalVerified || 48,
+            divertedKgThisWeek: res.divertedKgThisWeek || 18.5,
+          })
 
-        const mapped: UIReuseItem[] = (res.items || []).map((it: ApiReuseItem) => ({
-          id: it.id,
-          title: it.title,
-          image: resolveItemImage(it.title, it.category, it.imageUrl),
-          condition: it.condition || 'Inspected & Working',
-          subcondition: it.subcondition || 'Certified Safe',
-          location: it.location || 'Commonwealth Eco-Hub (Area 1)',
-          distance: it.distance || '0.6 km',
-          category: it.category || 'Laptops',
-          status: it.status || 'Available',
-          price: it.price || 'Free Claim',
-        }))
+          const mapped: UIReuseItem[] = (res.items || [])
+            .filter((it: ApiReuseItem) => !it.status || it.status.toLowerCase() === 'available')
+            .map((it: ApiReuseItem) => ({
+              id: it.id,
+              title: it.title,
+              image: resolveItemImage(it.title, it.category, it.imageUrl),
+              condition: it.condition || 'Inspected & Working',
+              subcondition: it.subcondition || 'Certified Safe',
+              location: it.location || 'Commonwealth Eco-Hub (Area 1)',
+              distance: it.distance || '0.6 km',
+              category: it.category || 'Laptops',
+              status: it.status || 'Available',
+              price: it.price || 'Free Claim',
+            }))
 
-        setItems(mapped)
-        setIsLoading(false)
-      })
-      .catch((err) => {
-        console.error('Failed to fetch reuse items from backend:', err)
-        if (isMounted) {
+          setItems(mapped)
           setIsLoading(false)
-        }
-      })
+        })
+        .catch((err) => {
+          console.error('Failed to fetch reuse items from backend:', err)
+          if (isMounted) {
+            setIsLoading(false)
+          }
+        })
+    }
+
+    fetchItems()
+    window.addEventListener('storage', fetchItems)
+    window.addEventListener('ecobyte:reservations-refresh', fetchItems)
 
     return () => {
       isMounted = false
+      window.removeEventListener('storage', fetchItems)
+      window.removeEventListener('ecobyte:reservations-refresh', fetchItems)
     }
   }, [selectedCategory, searchQuery])
 
   const displayedItems = items
     .filter((it) => {
-      if (filterMode === 'available') return it.status === 'Available'
+      if (it.status && it.status.toLowerCase() !== 'available') return false
+      try {
+        const stored = localStorage.getItem('ecobyte_user_reservations')
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          if (Array.isArray(parsed)) {
+            const isReserved = parsed.some((r: any) => {
+              if (String(r.itemId) !== String(it.id)) return false
+              if (r.status !== 'RESERVED') return false
+              if (r.expiresAt && new Date(r.expiresAt).getTime() <= nowMs) return false
+              return true
+            })
+            if (isReserved) return false
+          }
+        }
+      } catch {
+        // ignore
+      }
       return true
     })
     .sort((a, b) => {
@@ -419,13 +447,13 @@ export const ReuseHubPage: FC = () => {
       </Card>
 
       {/* Items List */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 1.5 }}>
         {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' }, display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress size={28} sx={{ color: '#0f172a' }} />
           </Box>
         ) : displayedItems.length === 0 ? (
-          <Card sx={{ p: 3, textAlign: 'center', borderRadius: 2, border: '1px dashed #cbd5e1' }}>
+          <Card sx={{ gridColumn: { xs: '1', sm: '1 / -1' }, p: 3, textAlign: 'center', borderRadius: 2, border: '1px dashed #cbd5e1' }}>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
               No items available in this category yet
             </Typography>

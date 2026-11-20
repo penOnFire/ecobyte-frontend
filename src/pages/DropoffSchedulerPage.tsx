@@ -1244,8 +1244,8 @@ export const DropoffSchedulerPage: FC = () => {
                   <Box
                     key={cell.key}
                     sx={{
-                      width: 32,
-                      height: 32,
+                      width: { xs: 32, sm: 38 },
+                      height: { xs: 32, sm: 38 },
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -1271,8 +1271,8 @@ export const DropoffSchedulerPage: FC = () => {
                   key={cell.key}
                   onClick={() => setSelectedDateStr(cell.isoDate)}
                   sx={{
-                    width: 32,
-                    height: 32,
+                    width: { xs: 32, sm: 38 },
+                    height: { xs: 32, sm: 38 },
                     borderRadius: '50%',
                     backgroundColor: isSelected ? '#0f172a' : '#ffffff',
                     color: isSelected ? '#ffffff' : '#0f172a',
@@ -1343,7 +1343,7 @@ export const DropoffSchedulerPage: FC = () => {
             <StatusBadge label="Certified Intake Guarded" variant="electric" size="sm" />
           </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 1 }}>
             {TIME_WINDOWS.map((item) => {
               const isSelected = selectedWindow === item.id
               return (

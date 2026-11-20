@@ -427,7 +427,7 @@ export const AddDetailsPage: FC = () => {
                 key={item.id}
                 onClick={() => navigate('/scan')}
                 sx={{
-                  height: 76,
+                  height: { xs: 76, sm: 96 },
                   borderRadius: 1.25,
                   backgroundColor: '#0f172a',
                   border: ready ? '1.5px solid #16a34a' : '1px solid #1e293b',

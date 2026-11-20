@@ -186,6 +186,7 @@ export const AdminTransactionsPage: FC = () => {
   const [isVerifying, setIsVerifying] = useState(false)
   const [verifyError, setVerifyError] = useState<string | null>(null)
   const [toast, setToast] = useState<{ message: string; severity: 'success' | 'error' } | null>(null)
+  const [refreshTick, setRefreshTick] = useState(0)
 
   const currentUser = getCachedUser()
   const isSuperAdmin =
@@ -274,7 +275,7 @@ export const AdminTransactionsPage: FC = () => {
     return () => {
       active = false
     }
-  }, [search])
+  }, [search, refreshTick])
 
   // KPI calculations
   const totalClaimsCount = claims.length
@@ -359,6 +360,27 @@ export const AdminTransactionsPage: FC = () => {
     setInputPickupCode('')
     setVerifyError(null)
     setVerifyModalOpen(true)
+  }
+
+  const handleReleaseClaim = async (claim: ClaimRecord) => {
+    try {
+      await adminApi.releaseClaim(claim.id, 'Unclaimed / Missed by resident')
+      setToast({
+        message: `${claim.itemName} has been released back to the Reuse Hub as Available.`,
+        severity: 'success',
+      })
+      setClaimModalOpen(false)
+      window.dispatchEvent(new Event('ecobyte:reservations-refresh'))
+      setClaims((prev) =>
+        prev.map((c) => (c.id === claim.id ? { ...c, status: 'Expired' } : c))
+      )
+      setRefreshTick((t) => t + 1)
+    } catch (err: any) {
+      setToast({
+        message: err?.message || 'Failed to release reservation back to Reuse Hub.',
+        severity: 'error',
+      })
+    }
   }
 
   const handleVerifySubmit = async () => {
@@ -1616,7 +1638,26 @@ export const AdminTransactionsPage: FC = () => {
           )}
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 3 }}>
+        <DialogActions sx={{ px: 3, pb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {selectedClaim?.status === 'Reserved' ? (
+            <ButtonBase
+              onClick={() => handleReleaseClaim(selectedClaim)}
+              sx={{
+                px: 2,
+                py: 0.9,
+                borderRadius: '0.75rem',
+                backgroundColor: '#fee2e2',
+                color: '#b91c1c',
+                fontWeight: 700,
+                fontSize: '0.75rem',
+                '&:hover': { backgroundColor: '#fecaca' },
+              }}
+            >
+              Release back to Reuse Hub
+            </ButtonBase>
+          ) : (
+            <Box />
+          )}
           <ButtonBase
             onClick={() => setClaimModalOpen(false)}
             sx={{

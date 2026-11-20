@@ -918,6 +918,19 @@ export const adminApi = {
     })
   },
 
+  releaseClaim: async (claimId: string, reason?: string) => {
+    return apiFetch<{
+      success: boolean
+      claimId: string
+      status: string
+      displayStatus: string
+      message: string
+    }>(`/admin/transactions/release-claim/${claimId}`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    })
+  },
+
   getTransactions: async (params?: {
     type?: 'all' | 'dropoff' | 'reuse'
     search?: string

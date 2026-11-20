@@ -184,7 +184,7 @@ export const RegisterPage: FC = () => {
         py: 4,
       }}
     >
-      <Container maxWidth="xs" disableGutters>
+      <Container maxWidth={false} disableGutters sx={{ width: '100%', maxWidth: { xs: 444, sm: 500, md: 540 } }}>
         {/* Brand */}
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
           <Box
@@ -840,7 +840,7 @@ export const RegisterPage: FC = () => {
         {/* ── Registration Success Confirmation Modal ── */}
         <Dialog
           open={successModalOpen}
-          maxWidth="xs"
+          maxWidth="sm"
           fullWidth
           slotProps={{
             paper: {

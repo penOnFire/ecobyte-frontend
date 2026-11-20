@@ -94,6 +94,7 @@ export const ConfirmReservationPage: FC = () => {
   const [liveItem, setLiveItem] = useState<ReuseItem | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [nowMs] = useState(() => Date.now())
 
   useEffect(() => {
     if (!itemId) return
@@ -110,6 +111,27 @@ export const ConfirmReservationPage: FC = () => {
       active = false
     }
   }, [itemId])
+
+  const isAlreadyReserved = useMemo(() => {
+    if (liveItem?.status && liveItem.status.toLowerCase() !== 'available') return true
+    try {
+      const stored = localStorage.getItem('ecobyte_user_reservations')
+      if (stored) {
+        const list = JSON.parse(stored)
+        if (Array.isArray(list)) {
+          return list.some((r: any) => {
+            if (String(r.itemId) !== String(itemId)) return false
+            if (r.status !== 'RESERVED') return false
+            if (r.expiresAt && new Date(r.expiresAt).getTime() <= nowMs) return false
+            return true
+          })
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return false
+  }, [liveItem, itemId, nowMs])
 
   const activeDevice = useMemo(() => {
     if (liveItem) {
@@ -175,6 +197,7 @@ export const ConfirmReservationPage: FC = () => {
           'ecobyte_user_reservations',
           JSON.stringify([newReservation, ...(Array.isArray(currentList) ? currentList.filter((r: any) => r.id !== booking.reservationId) : [])])
         )
+        window.dispatchEvent(new Event('ecobyte:reservations-refresh'))
       } catch {
         // Ignore local storage quota errors
       }
@@ -439,31 +462,35 @@ export const ConfirmReservationPage: FC = () => {
       </Card>
 
       {/* ── Action Buttons ── */}
-      {submitError && (
+      {isAlreadyReserved ? (
+        <Alert severity="warning" sx={{ borderRadius: 1.5, fontFamily: "'Quicksand', sans-serif", fontWeight: 600 }}>
+          This device has already been scheduled for pick-up by another resident. If they do not claim it on time, it will automatically return to the Reuse Hub.
+        </Alert>
+      ) : submitError ? (
         <Alert severity="error" sx={{ borderRadius: 1.5, fontFamily: "'Quicksand', sans-serif", fontWeight: 600 }}>
           {submitError}
         </Alert>
-      )}
+      ) : null}
 
       <Box sx={{ mt: 0.5, mb: 2 }}>
         <Button
           fullWidth
           variant="contained"
           size="large"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isAlreadyReserved}
           onClick={handleConfirmReservation}
           endIcon={isSubmitting ? <CircularProgress size={16} sx={{ color: '#ffffff' }} /> : <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
           sx={{
             py: 1.6,
-            backgroundColor: '#0f172a',
+            backgroundColor: isAlreadyReserved ? '#94a3b8' : '#0f172a',
             color: '#ffffff',
             fontWeight: 700,
             fontSize: '0.9375rem',
             boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
-            '&:hover': { backgroundColor: '#1e293b' },
+            '&:hover': { backgroundColor: isAlreadyReserved ? '#94a3b8' : '#1e293b' },
           }}
         >
-          {isSubmitting ? 'Reserving item...' : 'Confirm & Get Pick-up Code'}
+          {isAlreadyReserved ? 'Currently Reserved' : isSubmitting ? 'Reserving item...' : 'Confirm & Get Pick-up Code'}
         </Button>
         <Box sx={{ textAlign: 'center', mt: 1.5 }}>
           <Typography

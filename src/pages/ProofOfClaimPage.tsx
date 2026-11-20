@@ -300,7 +300,7 @@ export const ProofOfClaimPage: FC = () => {
               borderRadius: 2,
               overflow: 'hidden',
               border: '2px solid #0f172a',
-              height: 200,
+              height: { xs: 200, sm: 260 },
               mb: 1.5,
               backgroundColor: '#0f172a',
             }}
@@ -598,7 +598,7 @@ export const ProofOfClaimPage: FC = () => {
       <Dialog
         open={helpDialogOpen}
         onClose={() => setHelpDialogOpen(false)}
-        maxWidth="xs"
+        maxWidth="sm"
         fullWidth
         slotProps={{
           paper: {
@@ -732,7 +732,7 @@ export const ProofOfClaimPage: FC = () => {
           setClaimSuccessOpen(false)
           navigate('/requests?tab=completed')
         }}
-        maxWidth="xs"
+        maxWidth="sm"
         fullWidth
         slotProps={{
           paper: {

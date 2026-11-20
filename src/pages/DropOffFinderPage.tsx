@@ -357,8 +357,8 @@ export const DropOffFinderPage: FC = () => {
       </Box>
 
       {/* ── Sites List ── */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 1.25 }}>
+        <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' }, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
             Accredited Drop Sites (Commonwealth)
           </Typography>
@@ -368,7 +368,7 @@ export const DropOffFinderPage: FC = () => {
         </Box>
 
         {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' }, display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress size={28} sx={{ color: '#0f172a' }} />
           </Box>
         ) : (
@@ -504,7 +504,7 @@ export const DropOffFinderPage: FC = () => {
       <Dialog
         open={areaDialogOpen}
         onClose={() => setAreaDialogOpen(false)}
-        maxWidth="xs"
+        maxWidth="sm"
         fullWidth
         slotProps={{
           paper: {

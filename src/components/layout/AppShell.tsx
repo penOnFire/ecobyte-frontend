@@ -3,7 +3,6 @@ import {
   Avatar,
   Badge,
   Box,
-  Container,
   IconButton,
   Typography,
   Dialog,
@@ -12,6 +11,7 @@ import {
   DialogActions,
   Drawer,
   Button,
+  ButtonBase,
   OutlinedInput,
   Switch,
   FormControlLabel,
@@ -24,7 +24,6 @@ import MapRoundedIcon from '@mui/icons-material/MapRounded'
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded'
 import RecyclingRoundedIcon from '@mui/icons-material/RecyclingRounded'
 import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded'
-import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
 import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded'
@@ -37,6 +36,14 @@ import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined'
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded'
 import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded'
+import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded'
+import CropFreeRoundedIcon from '@mui/icons-material/CropFreeRounded'
+import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded'
+import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined'
+import EnergySavingsLeafOutlinedIcon from '@mui/icons-material/EnergySavingsLeafOutlined'
+import ArrowDropDownRoundedIcon from '@mui/icons-material/ArrowDropDownRounded'
+import AddRoundedIcon from '@mui/icons-material/AddRounded'
+import BookmarkBorderRoundedIcon from '@mui/icons-material/BookmarkBorderRounded'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
   authApi,
@@ -286,6 +293,12 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
     }
   }, [path])
 
+  const toggleSound = () => {
+    const next = !soundMuted
+    setNotificationSoundMuted(next)
+    setSoundMuted(next)
+  }
+
   const firstName = extractFirstName(currentUser)
   const fullName = currentUser?.fullName?.trim() || firstName
   const userEmail = currentUser?.email || 'resident@ecobyte.ph'
@@ -310,22 +323,394 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
   const isDashboard = path === '/' || path === '/dashboard'
 
   return (
-    <Box sx={{ minHeight: '100dvh', backgroundColor: '#F0ECE6', display: 'flex', justifyContent: 'center' }}>
-      <Container
-        maxWidth="xs"
-        disableGutters
+    <Box sx={{ minHeight: '100dvh', backgroundColor: '#FAF8F5', display: 'flex' }}>
+      {/* ── Left Desktop Sidebar (Image 2) ── */}
+      <Box
+        component="aside"
         sx={{
+          display: { xs: 'none', lg: 'flex' },
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          bottom: 0,
+          width: 256,
+          backgroundColor: '#0F2417',
+          color: '#ffffff',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          p: 2.25,
+          zIndex: 100,
+          borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: '4px 0 20px rgba(0, 0, 0, 0.15)',
+        }}
+      >
+        {/* Sidebar Top: Logo + Brand + Area Selector + Nav Links */}
+        <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 2.5, px: 0.5 }}>
+            <Box
+              sx={{
+                width: 34,
+                height: 34,
+                borderRadius: '9px',
+                backgroundColor: '#1E3E27',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ABF06B',
+                boxShadow: '0 2px 8px rgba(171, 240, 107, 0.25)',
+              }}
+            >
+              <EnergySavingsLeafOutlinedIcon sx={{ fontSize: 22, color: '#ABF06B' }} />
+            </Box>
+            <Box>
+              <Typography
+                sx={{
+                  fontFamily: "'Quicksand', sans-serif",
+                  fontWeight: 800,
+                  fontSize: '1.2rem',
+                  color: '#ffffff',
+                  letterSpacing: '-0.02em',
+                  lineHeight: 1.1,
+                }}
+              >
+                EcoByte
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: "'Quicksand', sans-serif",
+                  fontWeight: 700,
+                  fontSize: '0.65rem',
+                  color: '#7E9A82',
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  lineHeight: 1,
+                }}
+              >
+                RESIDENT PORTAL
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Area Selector Pill */}
+          <ButtonBase
+            onClick={() => navigate('/drop-offs')}
+            sx={{
+              width: '100%',
+              backgroundColor: '#183321',
+              border: '1px solid rgba(171, 240, 107, 0.25)',
+              borderRadius: '12px',
+              px: 1.5,
+              py: 0.9,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              color: '#ffffff',
+              mb: 2.5,
+              transition: 'all 0.15s ease',
+              '&:hover': { backgroundColor: '#1E3E27' },
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+              <LocationOnRoundedIcon sx={{ fontSize: 16, color: '#ABF06B' }} />
+              <Typography
+                sx={{
+                  fontFamily: "'Quicksand', sans-serif",
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  color: '#ffffff',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Base 8 - Pilot Area
+              </Typography>
+            </Box>
+            <ArrowDropDownRoundedIcon sx={{ fontSize: 18, color: '#ABF06B' }} />
+          </ButtonBase>
+
+          {/* Navigation Links */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+            <SidebarNavItem
+              label="Dashboard"
+              icon={<GridViewRoundedIcon sx={{ fontSize: 19 }} />}
+              active={path === '/' || path === '/dashboard'}
+              onClick={() => navigate('/dashboard')}
+            />
+            <SidebarNavItem
+              label="Scan & Assess E-Waste"
+              icon={<CropFreeRoundedIcon sx={{ fontSize: 19 }} />}
+              active={isActive('/scan') || isActive('/assess') || isActive('/diagnostic')}
+              onClick={() => navigate('/scan')}
+            />
+            <SidebarNavItem
+              label="My Requests"
+              icon={<ReceiptLongRoundedIcon sx={{ fontSize: 19 }} />}
+              active={isActive('/requests')}
+              badge={summary.activeRequestsCount || 1}
+              onClick={() => navigate('/requests')}
+            />
+            <SidebarNavItem
+              label="Reuse Hub"
+              icon={<RecyclingRoundedIcon sx={{ fontSize: 19 }} />}
+              active={
+                isActive('/reuse') ||
+                isActive('/confirm-reservation') ||
+                isActive('/reservation-code') ||
+                isActive('/proof-of-claim')
+              }
+              onClick={() => navigate('/reuse')}
+            />
+            <SidebarNavItem
+              label="Drop-off Hubs Map"
+              icon={<MapRoundedIcon sx={{ fontSize: 19 }} />}
+              active={isActive('/drop-offs')}
+              onClick={() => navigate('/drop-offs')}
+            />
+            <SidebarNavItem
+              label="Reuse & Repair Guide"
+              icon={<MenuBookOutlinedIcon sx={{ fontSize: 19 }} />}
+              active={isActive('/reuse-guide')}
+              onClick={() => navigate('/reuse-guide')}
+            />
+          </Box>
+        </Box>
+
+        {/* Sidebar Bottom: User Profile / Logout */}
+        <Box sx={{ pt: 2, borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box
+              onClick={() => setProfileOpen(true)}
+              sx={{ display: 'flex', alignItems: 'center', gap: 1.25, cursor: 'pointer', flex: 1, minWidth: 0 }}
+            >
+              <Box
+                sx={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  backgroundColor: '#1E3E27',
+                  border: '1.5px solid #ABF06B',
+                  color: '#ABF06B',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <PersonOutlineRoundedIcon sx={{ fontSize: 20 }} />
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography
+                  sx={{
+                    fontFamily: "'Quicksand', sans-serif",
+                    fontWeight: 700,
+                    fontSize: '0.8125rem',
+                    color: '#ffffff',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Resident User
+                </Typography>
+                <Typography
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setLogoutOpen(true)
+                  }}
+                  sx={{
+                    fontFamily: "'Quicksand', sans-serif",
+                    fontWeight: 600,
+                    fontSize: '0.6875rem',
+                    color: 'rgba(255, 255, 255, 0.5)',
+                    cursor: 'pointer',
+                    '&:hover': { color: '#ff8a80' },
+                  }}
+                >
+                  Logout
+                </Typography>
+              </Box>
+            </Box>
+            <IconButton
+              size="small"
+              onClick={() => setLogoutOpen(true)}
+              title="Sign out"
+              sx={{ color: 'rgba(255, 255, 255, 0.6)', '&:hover': { color: '#ffffff' } }}
+            >
+              <LogoutRoundedIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+          </Box>
+        </Box>
+      </Box>
+
+      {/* ── Main Layout Column (Pl 256px on Desktop) ── */}
+      <Box
+        sx={{
+          flex: 1,
           minHeight: '100dvh',
+          pl: { xs: 0, lg: '256px' },
+          width: '100%',
+          backgroundColor: isDashboard ? { xs: '#F0ECE6', lg: '#FAF8F5' } : '#FAF8F5',
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
-          backgroundColor: '#F0ECE6',
         }}
       >
-        {/* ── Top Header ── */}
+        {/* ── Desktop Top Header (Image 2) ── */}
         <Box
           component="header"
           sx={{
+            display: { xs: 'none', lg: 'flex' },
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            pt: 3.5,
+            pb: 2.5,
+            px: 4,
+            backgroundColor: '#FAF8F5',
+          }}
+        >
+          {/* Left: Greeting & Subtitle */}
+          <Box>
+            <Typography
+              sx={{
+                fontFamily: "'Quicksand', sans-serif",
+                fontWeight: 800,
+                fontSize: '1.75rem',
+                color: '#0F2417',
+                lineHeight: 1.15,
+                letterSpacing: '-0.02em',
+              }}
+            >
+              Hello, {firstName}
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: "'Quicksand', sans-serif",
+                fontWeight: 600,
+                fontSize: '0.875rem',
+                color: '#596556',
+                mt: 0.35,
+              }}
+            >
+              Circular lifecycle diagnostics &amp; recovery
+            </Typography>
+          </Box>
+
+          {/* Right: Controls (Hub Live, Notifications, Sound On, + Scan Device) */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            {/* Hub Live pill */}
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.75,
+                backgroundColor: '#CEEBC4',
+                color: '#266317',
+                borderRadius: 9999,
+                px: 1.5,
+                py: 0.6,
+                fontFamily: "'Quicksand', sans-serif",
+                fontWeight: 700,
+                fontSize: '0.75rem',
+              }}
+            >
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#266317' }} />
+              Hub Live
+            </Box>
+
+            {/* Notification Bell */}
+            <IconButton
+              onClick={() => setNotificationsOpen(true)}
+              aria-label="notifications"
+              sx={{
+                width: 38,
+                height: 38,
+                backgroundColor: '#ffffff',
+                border: '1px solid rgba(220, 207, 192, 0.7)',
+                borderRadius: '50%',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+              }}
+            >
+              <Badge
+                badgeContent={unreadCount > 0 ? unreadCount : undefined}
+                sx={{
+                  '& .MuiBadge-badge': {
+                    backgroundColor: '#D9534F',
+                    color: '#ffffff',
+                    fontSize: '0.625rem',
+                    fontWeight: 800,
+                    minWidth: 16,
+                    height: 16,
+                    top: -2,
+                    right: -2,
+                  },
+                }}
+              >
+                <NotificationsNoneRoundedIcon sx={{ color: '#0F2417', fontSize: 19 }} />
+              </Badge>
+            </IconButton>
+
+            {/* Sound Toggle */}
+            <ButtonBase
+              onClick={toggleSound}
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.75,
+                backgroundColor: '#ffffff',
+                border: '1px solid rgba(220, 207, 192, 0.7)',
+                borderRadius: 9999,
+                px: 1.5,
+                py: 0.7,
+                fontFamily: "'Quicksand', sans-serif",
+                fontWeight: 700,
+                fontSize: '0.75rem',
+                color: '#0F2417',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                '&:hover': { backgroundColor: '#F8F6F2' },
+              }}
+            >
+              {soundMuted ? (
+                <>
+                  <VolumeOffRoundedIcon sx={{ fontSize: 16, color: '#64748b' }} />
+                  <span>Sound Off</span>
+                </>
+              ) : (
+                <>
+                  <VolumeUpRoundedIcon sx={{ fontSize: 16, color: '#0F2417' }} />
+                  <span>Sound On</span>
+                </>
+              )}
+            </ButtonBase>
+
+            {/* + Scan Device Button */}
+            <Button
+              variant="contained"
+              onClick={() => navigate('/scan')}
+              startIcon={<AddRoundedIcon sx={{ fontSize: 18 }} />}
+              sx={{
+                backgroundColor: '#0F2417',
+                color: '#ffffff',
+                borderRadius: 9999,
+                px: 2,
+                py: 0.8,
+                fontSize: '0.8125rem',
+                fontWeight: 700,
+                textTransform: 'none',
+                boxShadow: '0 2px 8px rgba(15, 36, 23, 0.25)',
+                '&:hover': { backgroundColor: '#1A3D27' },
+              }}
+            >
+              Scan Device
+            </Button>
+          </Box>
+        </Box>
+
+        {/* ── Mobile & Tablet Top Header (Hidden on Desktop) ── */}
+        <Box
+          component="header"
+          sx={{
+            display: { xs: 'flex', lg: 'none' },
             position: isDashboard ? 'absolute' : 'sticky',
             top: 0,
             left: 0,
@@ -333,10 +718,9 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             zIndex: 50,
             backgroundColor: isDashboard ? 'transparent' : 'rgba(240, 236, 230, 0.95)',
             backdropFilter: isDashboard ? 'none' : 'blur(8px)',
-            px: 2.5,
+            px: { xs: 2.5, sm: 4 },
             pt: 1.5,
             pb: 1.25,
-            display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             borderBottom: isDashboard ? 'none' : '1px solid rgba(220, 207, 192, 0.6)',
@@ -449,22 +833,31 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
           </Box>
         </Box>
 
-        {/* ── Page Content ── */}
-        <Box component="main" sx={{ flex: 1, px: isDashboard ? 0 : 2.5, pb: 11, overflowX: 'hidden' }}>
+        {/* ── Page Content Container (Responsive Fluid Width) ── */}
+        <Box
+          component="main"
+          sx={{
+            flex: 1,
+            width: '100%',
+            px: isDashboard ? { xs: 0, lg: 4 } : { xs: 2, sm: 3.5, lg: 4 },
+            pb: { xs: 12, lg: 4 },
+            overflowX: 'hidden',
+          }}
+        >
           {children}
         </Box>
 
-        {/* ── Bottom Navigation ── */}
+        {/* ── Mobile & Tablet Bottom Navigation with Elevated Center Camera Button (Image 1) ── */}
         <Box
           component="nav"
           sx={{
+            display: { xs: 'block', lg: 'none' },
             position: 'fixed',
             bottom: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
+            left: 0,
+            right: 0,
             width: '100%',
-            maxWidth: 444,
-            zIndex: 100,
+            zIndex: 1000,
             pointerEvents: 'none',
           }}
         >
@@ -472,19 +865,20 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             sx={{
               backgroundColor: 'rgba(255, 255, 255, 0.98)',
               backdropFilter: 'blur(10px)',
-              borderTop: '1px solid rgba(220, 207, 192, 0.6)',
+              borderTop: '1px solid rgba(220, 207, 192, 0.65)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-around',
-              px: 1,
-              pt: 0.75,
-              pb: 'env(safe-area-inset-bottom, 8px)',
+              px: { xs: 1, sm: 4, md: 8 },
+              pt: 0.5,
+              pb: 'calc(env(safe-area-inset-bottom, 8px) + 4px)',
               pointerEvents: 'auto',
+              boxShadow: '0 -4px 16px rgba(0, 0, 0, 0.06)',
             }}
           >
             {/* Home */}
             <NavItem
-              icon={<HomeRoundedIcon sx={{ fontSize: 24 }} />}
+              icon={<HomeRoundedIcon sx={{ fontSize: 24, color: isActive('/dashboard') ? '#1B3B18' : '#596556' }} />}
               label="Home"
               active={isActive('/dashboard')}
               onClick={() => navigate('/dashboard')}
@@ -492,13 +886,13 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
 
             {/* Reuse */}
             <NavItem
-              icon={<RecyclingRoundedIcon sx={{ fontSize: 22 }} />}
+              icon={<RecyclingRoundedIcon sx={{ fontSize: 23, color: isActive('/reuse') ? '#1B3B18' : '#596556' }} />}
               label="Reuse"
               active={isActive('/reuse')}
               onClick={() => navigate('/reuse')}
             />
 
-            {/* Scan – center elevated black circle */}
+            {/* Scan – Center black circle elevated over the top edge of navigation bar (Image 1) */}
             <Box
               onClick={() => navigate('/scan')}
               sx={{
@@ -506,33 +900,39 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                 flexDirection: 'column',
                 alignItems: 'center',
                 cursor: 'pointer',
-                mb: 1.5,
+                position: 'relative',
+                top: -16,
+                mb: -1.75,
+                zIndex: 10,
+                px: 1,
               }}
             >
               <Box
                 sx={{
-                  width: 50,
-                  height: 50,
+                  width: 52,
+                  height: 52,
                   borderRadius: '50%',
                   backgroundColor: '#000000',
                   color: '#ffffff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)',
+                  boxShadow: '0 6px 16px rgba(0, 0, 0, 0.35)',
+                  border: '3.5px solid #ffffff',
                   transition: 'transform 0.15s ease',
-                  '&:active': { transform: 'scale(0.95)' },
+                  '&:active': { transform: 'scale(0.92)' },
+                  '&:hover': { transform: 'translateY(-2px)' },
                 }}
               >
-                <CameraAltRoundedIcon sx={{ fontSize: 24 }} />
+                <CameraAltRoundedIcon sx={{ fontSize: 25, color: '#ffffff' }} />
               </Box>
               <Typography
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 700,
                   fontSize: '0.6875rem',
-                  color: '#1F2937',
-                  mt: 0.4,
+                  color: isActive('/scan') ? '#1B3B18' : '#596556',
+                  mt: 0.35,
                 }}
               >
                 Scan
@@ -541,7 +941,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
 
             {/* Requests */}
             <NavItem
-              icon={<Inventory2OutlinedIcon sx={{ fontSize: 22 }} />}
+              icon={<BookmarkBorderRoundedIcon sx={{ fontSize: 23, color: isActive('/requests') ? '#1B3B18' : '#596556' }} />}
               label="Requests"
               active={isActive('/requests')}
               onClick={() => navigate('/requests')}
@@ -549,7 +949,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
 
             {/* Account */}
             <NavItem
-              icon={<PersonOutlineRoundedIcon sx={{ fontSize: 22 }} />}
+              icon={<PersonOutlineRoundedIcon sx={{ fontSize: 23, color: profileOpen ? '#1B3B18' : '#596556' }} />}
               label="Account"
               active={profileOpen}
               onClick={() => setProfileOpen(true)}
@@ -572,11 +972,12 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               sx: {
                 borderTopLeftRadius: '20px',
                 borderTopRightRadius: '20px',
-                maxWidth: 444,
+                maxWidth: { xs: '100%', sm: 640, md: 720 },
+                width: '100%',
                 mx: 'auto',
                 maxHeight: '90vh',
                 overflowY: 'auto',
-                p: 2.5,
+                p: { xs: 2.5, sm: 3.5 },
                 pb: 'calc(env(safe-area-inset-bottom, 16px) + 24px)',
                 backgroundColor: '#ffffff',
                 fontFamily: "'Quicksand', sans-serif",
@@ -774,11 +1175,12 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               sx: {
                 borderTopLeftRadius: '20px',
                 borderTopRightRadius: '20px',
-                maxWidth: 444,
+                maxWidth: { xs: '100%', sm: 640, md: 720 },
+                width: '100%',
                 mx: 'auto',
                 maxHeight: '85vh',
                 overflowY: 'auto',
-                p: 2.5,
+                p: { xs: 2.5, sm: 3.5 },
                 pb: 'calc(env(safe-area-inset-bottom, 16px) + 24px)',
                 backgroundColor: '#ffffff',
                 fontFamily: "'Quicksand', sans-serif",
@@ -924,7 +1326,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
         <Dialog
           open={logoutOpen}
           onClose={() => setLogoutOpen(false)}
-          maxWidth="xs"
+          maxWidth="sm"
           fullWidth
           slotProps={{
             paper: {
@@ -1004,7 +1406,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
         <Dialog
           open={editProfileOpen}
           onClose={() => setEditProfileOpen(false)}
-          maxWidth="xs"
+          maxWidth="sm"
           fullWidth
           slotProps={{
             paper: {
@@ -1170,10 +1572,67 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             </Typography>
           </Alert>
         </Snackbar>
-      </Container>
+      </Box>
     </Box>
   )
 }
+
+interface SidebarNavItemProps {
+  label: string
+  icon: ReactNode
+  active: boolean
+  badge?: number
+  onClick: () => void
+}
+
+const SidebarNavItem: FC<SidebarNavItemProps> = ({ label, icon, active, badge, onClick }) => (
+  <ButtonBase
+    onClick={onClick}
+    sx={{
+      width: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      px: 1.75,
+      py: 1.15,
+      borderRadius: '12px',
+      transition: 'all 0.15s ease',
+      backgroundColor: active ? '#ABF06B' : 'transparent',
+      color: active ? '#0F2417' : 'rgba(255, 255, 255, 0.78)',
+      fontWeight: active ? 800 : 600,
+      fontSize: '0.8125rem',
+      fontFamily: "'Quicksand', sans-serif",
+      '&:hover': {
+        backgroundColor: active ? '#B4F76E' : 'rgba(255, 255, 255, 0.08)',
+        color: active ? '#0F2417' : '#ffffff',
+      },
+    }}
+  >
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+      {icon}
+      <span>{label}</span>
+    </Box>
+    {Boolean(badge && badge > 0) && (
+      <Box
+        sx={{
+          minWidth: 20,
+          height: 20,
+          px: 0.6,
+          borderRadius: 9999,
+          backgroundColor: active ? '#0F2417' : '#ABF06B',
+          color: active ? '#ABF06B' : '#0F2417',
+          fontWeight: 800,
+          fontSize: '0.65rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {badge}
+      </Box>
+    )}
+  </ButtonBase>
+)
 
 interface NavItemProps {
   icon: ReactNode
@@ -1192,18 +1651,20 @@ const NavItem: FC<NavItemProps> = ({ icon, label, active, onClick }) => (
       cursor: 'pointer',
       px: 1.5,
       py: 0.75,
-      color: active ? '#4F5F4B' : '#596556',
+      color: active ? '#1B3B18' : '#596556',
       minWidth: 52,
       position: 'relative',
-      '&::after': active ? {
-        content: '""',
-        position: 'absolute',
-        bottom: 2,
-        width: 16,
-        height: 2.5,
-        backgroundColor: '#ABF06B',
-        borderRadius: 9999,
-      } : {},
+      '&::after': active
+        ? {
+            content: '""',
+            position: 'absolute',
+            bottom: 2,
+            width: 16,
+            height: 2.5,
+            backgroundColor: '#1B3B18',
+            borderRadius: 9999,
+          }
+        : {},
     }}
   >
     {icon}
