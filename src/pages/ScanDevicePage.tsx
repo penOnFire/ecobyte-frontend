@@ -186,7 +186,8 @@ export const ScanDevicePage: FC = () => {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          minHeight: 300,
+          minHeight: { xs: 300, sm: 380, md: 420 },
+          aspectRatio: { xs: '4 / 3', sm: '16 / 10' },
           overflow: 'hidden',
           boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
         }}
@@ -596,7 +597,7 @@ export const ScanDevicePage: FC = () => {
                   key={angle.id}
                   onClick={() => setPreviewAngle(angle.id)}
                   sx={{
-                    height: 100,
+                    height: { xs: 100, sm: 125 },
                     borderRadius: 1.5,
                     backgroundColor: '#f8fafc',
                     border: '1.5px solid #16a34a',
@@ -662,7 +663,7 @@ export const ScanDevicePage: FC = () => {
               <Box
                 key={angle.id}
                 sx={{
-                  height: 100,
+                  height: { xs: 100, sm: 125 },
                   borderRadius: 1.5,
                   backgroundColor: '#f8fafc',
                   border: '1.5px dashed #cbd5e1',
@@ -734,7 +735,7 @@ export const ScanDevicePage: FC = () => {
       <Dialog
         open={Boolean(previewAngle && capturedImages[previewAngle])}
         onClose={() => setPreviewAngle(null)}
-        maxWidth="xs"
+        maxWidth="sm"
         fullWidth
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.5 }}>

@@ -18,6 +18,7 @@ import { adminApi, getScopedOfficialBaseId, type AdminCollectionRequest } from '
 interface DeviceDetails {
   id: string
   requestCode: string
+  linkedItemId?: string | null
   itemName: string
   type: string
   residentName: string
@@ -136,6 +137,7 @@ export const AdminPhysicalInspectionPage: FC = () => {
         setDevice({
             id: found.id,
             requestCode: found.requestCode || found.id,
+            linkedItemId: found.linkedItemId || null,
             itemName: found.itemName || found.preferredMethod || 'Resident E-Waste Device',
             type: found.itemCategory || found.preferredMethod || 'Electronics',
             residentName: found.residentName || 'Resident User',
@@ -191,21 +193,25 @@ export const AdminPhysicalInspectionPage: FC = () => {
     setIsSubmitting(true)
 
     try {
-      await adminApi
-        .submitInspectionVerdict(device.id, {
-          action: decision === 'reuse' ? 'REUSE' : 'DISPOSAL',
-          conditionGrade: condition,
-          benchNotes: notes || `Inspected: Works: ${works}, Condition: ${condition}`,
-        })
-        .catch(() => {
-          // Local prototype fallback
-        })
+      const targetId = device.linkedItemId || device.id
+      await adminApi.submitInspectionVerdict(targetId, {
+        action: decision === 'reuse' ? 'REUSE' : 'DISPOSAL',
+        conditionGrade: condition,
+        benchNotes: notes || `Inspected: Works: ${works}, Condition: ${condition}`,
+      })
+
+      // Also ensure the collection request status is marked turned_over on backend
+      if (device.id) {
+        await adminApi.updateRequestStatus(device.id, 'turned_over').catch(() => {})
+      }
 
       // Sync with localStorage
       try {
         const storedReqs = JSON.parse(localStorage.getItem('ecobyte_dropoff_requests') || '[]')
         const updatedReqs = storedReqs.map((r: any) =>
-          r.id === device.id ? { ...r, status: 'Turned Over' } : r
+          r.id === device.id || r.requestCode === device.requestCode || r.id === device.requestCode || r.requestCode === device.id
+            ? { ...r, status: 'Turned Over' }
+            : r
         )
         localStorage.setItem('ecobyte_dropoff_requests', JSON.stringify(updatedReqs))
 

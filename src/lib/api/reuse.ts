@@ -33,5 +33,13 @@ export const reuseApi = {
       }
     )
   },
+
+  cancelReservation: (reservationId: string) =>
+    apiFetch<{ success: boolean; message: string }>(
+      `/reuse/reservations/${reservationId}/cancel`,
+      {
+        method: 'POST',
+      }
+    ),
 }
 

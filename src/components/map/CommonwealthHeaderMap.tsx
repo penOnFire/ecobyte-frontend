@@ -13,6 +13,7 @@ import {
 interface CommonwealthHeaderMapProps {
   userBaseNumber: number
   userName?: string
+  variant?: 'hero' | 'card'
 }
 
 const SVG_WIDTH = 440
@@ -165,6 +166,7 @@ const COMMONWEALTH_ROADS = [
 
 export const CommonwealthHeaderMap: FC<CommonwealthHeaderMapProps> = ({
   userBaseNumber,
+  variant = 'hero',
 }) => {
   const navigate = useNavigate()
   const [selectedBase, setSelectedBase] = useState<number>(userBaseNumber)
@@ -484,7 +486,9 @@ export const CommonwealthHeaderMap: FC<CommonwealthHeaderMapProps> = ({
           bottom: 0,
           pointerEvents: 'none',
           background:
-            'linear-gradient(180deg, rgba(8, 18, 10, 0.45) 0%, rgba(12, 24, 14, 0.2) 30%, rgba(10, 20, 12, 0.38) 60%, rgba(8, 16, 10, 0.88) 85%, rgba(6, 12, 8, 0.98) 100%)',
+            variant === 'card'
+              ? 'linear-gradient(180deg, rgba(8, 18, 10, 0.25) 0%, rgba(12, 24, 14, 0.1) 40%, rgba(8, 16, 10, 0.35) 100%)'
+              : 'linear-gradient(180deg, rgba(8, 18, 10, 0.45) 0%, rgba(12, 24, 14, 0.2) 30%, rgba(10, 20, 12, 0.38) 60%, rgba(8, 16, 10, 0.88) 85%, rgba(6, 12, 8, 0.98) 100%)',
         }}
       />
 
@@ -492,7 +496,7 @@ export const CommonwealthHeaderMap: FC<CommonwealthHeaderMapProps> = ({
       <Box
         sx={{
           position: 'absolute',
-          top: 60,
+          top: variant === 'card' ? 14 : 60,
           right: 14,
           zIndex: 5,
           display: 'flex',

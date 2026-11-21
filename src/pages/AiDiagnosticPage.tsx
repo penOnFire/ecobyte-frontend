@@ -372,7 +372,7 @@ export const AiDiagnosticPage: FC = () => {
           >
             <Box
               sx={{
-                height: 168,
+                height: { xs: 168, sm: 220, md: 240 },
                 backgroundColor: '#020617',
                 position: 'relative',
                 display: 'flex',

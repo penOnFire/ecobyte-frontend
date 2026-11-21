@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { FC } from 'react'
 import {
   Box,
@@ -211,6 +211,7 @@ export const ReuseItemDetailPage: FC = () => {
   const [selectedWindow, setSelectedWindow] = useState('01:00 PM')
   const [toastMsg, setToastMsg] = useState<string | null>(null)
   const [liveItem, setLiveItem] = useState<ReuseItem | null>(null)
+  const [nowMs] = useState(() => Date.now())
 
   useEffect(() => {
     if (!id) return
@@ -236,6 +237,27 @@ export const ReuseItemDetailPage: FC = () => {
   const displayDescription = liveItem?.specs?.description || 'Intel i5-8350U • 16GB RAM / 256GB SSD'
   const displayWeight = liveItem?.specs?.weightKg ? `${liveItem.specs.weightKg} kg` : '1.65 kg'
   const displayImage = resolveDetailImage(liveItem)
+
+  const isReserved = useMemo(() => {
+    if (liveItem?.status && liveItem.status.toLowerCase() !== 'available') return true
+    try {
+      const stored = localStorage.getItem('ecobyte_user_reservations')
+      if (stored) {
+        const list = JSON.parse(stored)
+        if (Array.isArray(list)) {
+          return list.some((r: any) => {
+            if (String(r.itemId) !== String(id)) return false
+            if (r.status !== 'RESERVED') return false
+            if (r.expiresAt && new Date(r.expiresAt).getTime() <= nowMs) return false
+            return true
+          })
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return false
+  }, [liveItem, id, nowMs])
 
   const handleShare = async () => {
     const shareData = {
@@ -309,7 +331,7 @@ export const ReuseItemDetailPage: FC = () => {
       {/* ── Hero Item Image ── */}
       <Card
         sx={{
-          height: 220,
+          height: { xs: 220, sm: 320, md: 360 },
           borderRadius: 2,
           backgroundColor: '#f1f5f9',
           border: '1px solid #e2e8f0',
@@ -501,16 +523,21 @@ export const ReuseItemDetailPage: FC = () => {
 
       {/* ── Reserve this device ── */}
       <Box sx={{ mb: 2 }}>
+        {isReserved && (
+          <Alert severity="warning" sx={{ mb: 2, borderRadius: 1.5, fontFamily: "'Quicksand', sans-serif", fontWeight: 600 }}>
+            This device has already been scheduled for pick-up by a resident. If they fail to claim it on time, it will automatically return to the Reuse Hub as available.
+          </Alert>
+        )}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: 1 }}>
           <Box>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#0f172a' }}>
               Reserve this device
             </Typography>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b' }}>
-              ⓘ Held for 2 days (48h) upon reservation
+              {isReserved ? 'Currently Reserved' : 'ⓘ Held for 2 days (48h) upon reservation'}
             </Typography>
           </Box>
-          <StatusBadge label="Free of charge" variant="electric" size="sm" />
+          <StatusBadge label={isReserved ? 'Reserved' : 'Free of charge'} variant={isReserved ? 'warning' : 'electric'} size="sm" />
         </Box>
 
         {/* Selected date row */}
@@ -739,6 +766,7 @@ export const ReuseItemDetailPage: FC = () => {
           fullWidth
           variant="contained"
           size="large"
+          disabled={isReserved}
           onClick={() => {
             const targetItemId = id || 'reuse-302'
             navigate(
@@ -748,15 +776,15 @@ export const ReuseItemDetailPage: FC = () => {
           startIcon={<BookmarkAddRoundedIcon sx={{ fontSize: 20 }} />}
           sx={{
             py: 1.6,
-            backgroundColor: '#0f172a',
+            backgroundColor: isReserved ? '#94a3b8' : '#0f172a',
             color: '#ffffff',
             fontWeight: 700,
             fontSize: '0.9375rem',
             boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
-            '&:hover': { backgroundColor: '#1e293b' },
+            '&:hover': { backgroundColor: isReserved ? '#94a3b8' : '#1e293b' },
           }}
         >
-          Reserve Item
+          {isReserved ? 'Currently Reserved' : 'Reserve Item'}
         </Button>
       </Box>
 

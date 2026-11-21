@@ -73,37 +73,43 @@ export const AdminToInspectPage: FC = () => {
 
   useEffect(() => {
     let active = true
-    adminApi
-      .getRequests()
-      .then((data: AdminCollectionRequest[]) => {
-        if (!active || !Array.isArray(data)) return
-        const liveUnderInspection: InspectionQueueRecord[] = data
-          .filter((d) => {
-            const s = (d.status || '').toLowerCase()
-            return s === 'under_inspection' || s === 'collected'
-          })
-          .map((d) => ({
-            id: d.id,
-            requestCode: d.requestCode || d.id,
-            itemName: d.itemName || d.preferredMethod || 'Resident E-Waste Device',
-            type: d.itemCategory || d.preferredMethod || 'Electronics',
-            residentName: d.residentName || 'Resident User',
-            siteName: d.siteName || 'Commonwealth Central MRF (Base 1)',
-            receivedAt: d.requestedDate || 'Recent',
-            assessment: {
-              hazard: ((d.preferredMethod || '').toLowerCase().includes('battery') ? 'High' : 'Low') as 'Low' | 'Medium' | 'High',
-              recommendation: 'Repair & Reuse' as const,
-            },
-          }))
+    const fetchQueue = () => {
+      adminApi
+        .getRequests()
+        .then((data: AdminCollectionRequest[]) => {
+          if (!active || !Array.isArray(data)) return
+          const liveUnderInspection: InspectionQueueRecord[] = data
+            .filter((d) => {
+              const s = (d.status || '').toLowerCase()
+              return s === 'under_inspection' || s === 'collected'
+            })
+            .map((d) => ({
+              id: d.id,
+              requestCode: d.requestCode || d.id,
+              itemName: d.itemName || d.preferredMethod || 'Resident E-Waste Device',
+              type: d.itemCategory || d.preferredMethod || 'Electronics',
+              residentName: d.residentName || 'Resident User',
+              siteName: d.siteName || 'Commonwealth Central MRF (Base 1)',
+              receivedAt: d.requestedDate || 'Recent',
+              assessment: {
+                hazard: ((d.preferredMethod || '').toLowerCase().includes('battery') ? 'High' : 'Low') as 'Low' | 'Medium' | 'High',
+                recommendation: 'Repair & Reuse' as const,
+              },
+            }))
 
-        setQueue(liveUnderInspection)
-      })
-      .catch((err) => {
-        console.warn('Backend requests unavailable:', err)
-      })
+          setQueue(liveUnderInspection)
+        })
+        .catch((err) => {
+          console.warn('Backend requests unavailable:', err)
+        })
+    }
+
+    fetchQueue()
+    window.addEventListener('ecobyte:admin-badges-refresh', fetchQueue)
 
     return () => {
       active = false
+      window.removeEventListener('ecobyte:admin-badges-refresh', fetchQueue)
     }
   }, [])
 

@@ -278,7 +278,7 @@ export const SignInPage: FC = () => {
         py: 4,
       }}
     >
-      <Container maxWidth="xs" disableGutters>
+      <Container maxWidth={false} disableGutters sx={{ width: '100%', maxWidth: { xs: 444, sm: 500, md: 540 } }}>
         {/* Back to Landing Page Link */}
         <Box sx={{ mb: 2.5 }}>
           <Link
@@ -892,7 +892,7 @@ export const SignInPage: FC = () => {
       <Dialog
         open={forgotPasswordOpen}
         onClose={() => setForgotPasswordOpen(false)}
-        maxWidth="xs"
+        maxWidth="sm"
         fullWidth
         slotProps={{
           paper: {

@@ -482,8 +482,8 @@ export const MyRequestsPage: FC = () => {
       {activeTab === 'ongoing' ? (
         <>
           {/* Active Reservations Section */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 1.25 }}>
+            <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' }, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
@@ -511,7 +511,7 @@ export const MyRequestsPage: FC = () => {
             </Box>
 
             {loadError && (
-              <Card sx={{ p: 2, borderRadius: 2, border: '1px solid #fecaca', backgroundColor: '#fef2f2' }}>
+              <Card sx={{ gridColumn: { xs: '1', sm: '1 / -1' }, p: 2, borderRadius: 2, border: '1px solid #fecaca', backgroundColor: '#fef2f2' }}>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.8125rem', color: '#b91c1c' }}>
                   {loadError}
                 </Typography>
@@ -519,7 +519,7 @@ export const MyRequestsPage: FC = () => {
             )}
 
             {isLoading ? null : reservations.length === 0 ? (
-              <Card sx={{ p: 2.5, textAlign: 'center', borderRadius: 2, border: '1px dashed #cbd5e1', backgroundColor: '#ffffff' }}>
+              <Card sx={{ gridColumn: { xs: '1', sm: '1 / -1' }, p: 2.5, textAlign: 'center', borderRadius: 2, border: '1px dashed #cbd5e1', backgroundColor: '#ffffff' }}>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
                   No active reservations
                 </Typography>
@@ -687,9 +687,10 @@ export const MyRequestsPage: FC = () => {
           </Box>
 
           {/* Ongoing Requests List Section */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, mt: 0.5 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 1.25, mt: 0.5 }}>
             <Typography
               sx={{
+                gridColumn: { xs: '1', sm: '1 / -1' },
                 fontFamily: "'Quicksand', sans-serif",
                 fontWeight: 800,
                 fontSize: '1rem',
@@ -700,11 +701,11 @@ export const MyRequestsPage: FC = () => {
             </Typography>
 
             {isLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+              <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' }, display: 'flex', justifyContent: 'center', py: 3 }}>
                 <CircularProgress size={24} sx={{ color: '#0f172a' }} />
               </Box>
             ) : filteredOngoing.length === 0 ? (
-              <Card sx={{ p: 2.5, textAlign: 'center', borderRadius: 2, border: '1px dashed #cbd5e1' }}>
+              <Card sx={{ gridColumn: { xs: '1', sm: '1 / -1' }, p: 2.5, textAlign: 'center', borderRadius: 2, border: '1px dashed #cbd5e1' }}>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
                   No ongoing drop-offs
                 </Typography>
@@ -1292,7 +1293,7 @@ export const MyRequestsPage: FC = () => {
       <Dialog
         open={Boolean(selectedRequest && !cancelConfirmOpen)}
         onClose={() => setSelectedRequest(null)}
-        maxWidth="xs"
+        maxWidth="sm"
         fullWidth
         slotProps={{
           paper: {
@@ -1447,7 +1448,7 @@ export const MyRequestsPage: FC = () => {
       <Dialog
         open={cancelConfirmOpen}
         onClose={() => !isCancelling && setCancelConfirmOpen(false)}
-        maxWidth="xs"
+        maxWidth="sm"
         fullWidth
         slotProps={{
           paper: {
