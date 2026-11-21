@@ -15,10 +15,13 @@ import TvRoundedIcon from '@mui/icons-material/TvRounded'
 import CableRoundedIcon from '@mui/icons-material/CableRounded'
 import KitchenRoundedIcon from '@mui/icons-material/KitchenRounded'
 import { adminApi, type AdminDashboardOverview } from '@/lib/api'
+import { COMMONWEALTH_BASES } from '@/components/admin/adminAccessData'
 
-interface BarangayStats {
+interface BaseStats {
   id: string
+  baseId: number
   name: string
+  facility: string
   requests: number
   turned: number
   pending: number
@@ -31,57 +34,187 @@ interface BarangayStats {
 export const AdminOverviewPage: FC = () => {
   const navigate = useNavigate()
   const [overview, setOverview] = useState<AdminDashboardOverview | null>(null)
+  const [liveRequests, setLiveRequests] = useState<any[]>([])
 
-  const localRequestsCount = (() => {
-    if (typeof window === 'undefined') return 0
+  const localRequests = (() => {
+    if (typeof window === 'undefined') return []
     try {
-      return JSON.parse(localStorage.getItem('ecobyte_dropoff_requests') || '[]').length
+      return JSON.parse(localStorage.getItem('ecobyte_dropoff_requests') || '[]')
     } catch {
-      return 0
+      return []
     }
   })()
-  const localListingsCount = (() => {
-    if (typeof window === 'undefined') return 0
+  const localListings = (() => {
+    if (typeof window === 'undefined') return []
     try {
-      return JSON.parse(localStorage.getItem('ecobyte_reuse_listings') || '[]').length
+      return JSON.parse(localStorage.getItem('ecobyte_reuse_listings') || '[]')
     } catch {
-      return 0
+      return []
     }
   })()
-  const localDisposalsCount = (() => {
-    if (typeof window === 'undefined') return 0
+  const localDisposals = (() => {
+    if (typeof window === 'undefined') return []
     try {
-      return JSON.parse(localStorage.getItem('ecobyte_disposal_records') || '[]').length
+      return JSON.parse(localStorage.getItem('ecobyte_disposal_records') || '[]')
     } catch {
-      return 0
+      return []
     }
   })()
 
   useEffect(() => {
+    let active = true
     adminApi
       .getDashboardOverview()
       .then((data) => {
-        if (data) setOverview(data)
+        if (active && data) setOverview(data)
       })
       .catch((err) => {
         console.warn('Could not load live overview:', err)
       })
+
+    adminApi
+      .getRequests()
+      .then((reqs) => {
+        if (active && Array.isArray(reqs)) setLiveRequests(reqs)
+      })
+      .catch((err) => {
+        console.warn('Could not load live requests:', err)
+      })
+
+    return () => {
+      active = false
+    }
   }, [])
 
-  const totalRequests = overview?.totalProcessed ?? localRequestsCount
-  const totalTurned = (overview?.listedReuse || 0) + (overview?.disposalCount || 0) || (localListingsCount + localDisposalsCount)
+  // Consolidate live requests and local storage records
+  const allRequests = (() => {
+    const map = new Map<string, any>()
+    for (const r of liveRequests) {
+      if (r && (r.id || r.requestCode)) {
+        map.set(String(r.requestCode || r.id), r)
+      }
+    }
+    for (const r of localRequests) {
+      if (r && (r.id || r.requestCode)) {
+        const key = String(r.requestCode || r.id)
+        if (!map.has(key)) {
+          map.set(key, r)
+        }
+      }
+    }
+    return Array.from(map.values())
+  })()
+
+  const resolveBaseId = (item: any): number => {
+    if (!item) return 1
+    const rawId = Number(item.residentBaseId ?? item.unitAreaId ?? item.baseId)
+    if (rawId >= 1 && rawId <= 9) return rawId
+
+    const str = `${item.residentBaseName || ''} ${item.siteName || ''} ${item.address || ''} ${item.location || ''} ${item.facility || ''}`.toLowerCase()
+    for (let i = 1; i <= 9; i++) {
+      if (str.includes(`base ${i}`) || str.includes(`base-${i}`) || str.includes(`area ${i}`)) {
+        return i
+      }
+    }
+    if (str.includes('martan')) return 2
+    if (str.includes('don fabian') || str.includes('fabian')) return 3
+    if (str.includes('katuparan') || str.includes('litex')) return 4
+    if (str.includes('riverside') || str.includes('mrt-7')) return 5
+    if (str.includes('kristong hari')) return 6
+    if (str.includes('upper kamias') || str.includes('kamias')) return 7
+    if (str.includes('pilot')) return 8
+    if (str.includes('lupang pangako')) return 9
+    return 1
+  }
+
+  const totalRequests = overview?.totalProcessed ?? allRequests.length
+  const totalTurned = (overview?.listedReuse || 0) + (overview?.disposalCount || 0) || (localListings.length + localDisposals.length)
   const totalKg = overview?.divertedKgTotal ?? 0
-  const totalHub = overview?.listedReuse ?? localListingsCount
+  const totalHub = overview?.listedReuse ?? localListings.length
   const activeRequestsCount = overview?.awaitingInspection ?? 0
   const activeUsers = overview?.hazardAlertsActive ?? 1
 
-  const stats: BarangayStats[] = [
-    { id: 'commonwealth', name: 'Commonwealth', requests: totalRequests, turned: totalTurned, pending: activeRequestsCount, missedRate: 0, hub: totalHub, disposed: overview?.disposalCount ?? localDisposalsCount, kg: totalKg },
-    { id: 'batasan', name: 'Batasan Hills', requests: 0, turned: 0, pending: 0, missedRate: 0, hub: 0, disposed: 0, kg: 0 },
-    { id: 'payatas', name: 'Payatas', requests: 0, turned: 0, pending: 0, missedRate: 0, hub: 0, disposed: 0, kg: 0 },
-    { id: 'holyspirit', name: 'Holy Spirit', requests: 0, turned: 0, pending: 0, missedRate: 0, hub: 0, disposed: 0, kg: 0 },
-    { id: 'bagongsilangan', name: 'Bagong Silangan', requests: 0, turned: 0, pending: 0, missedRate: 0, hub: 0, disposed: 0, kg: 0 },
-  ]
+  // Compute breakdown per Barangay Commonwealth base station (Bases 1 to 9)
+  const baseStatsMap = new Map<number, {
+    requests: number
+    turned: number
+    pending: number
+    missed: number
+    hub: number
+    disposed: number
+    kg: number
+  }>()
+
+  for (let i = 1; i <= 9; i++) {
+    baseStatsMap.set(i, { requests: 0, turned: 0, pending: 0, missed: 0, hub: 0, disposed: 0, kg: 0 })
+  }
+
+  for (const r of allRequests) {
+    const bId = resolveBaseId(r)
+    const st = baseStatsMap.get(bId) || baseStatsMap.get(1)!
+    st.requests += 1
+
+    const statusNorm = (r.status || r.displayStatus || '').toLowerCase().replace(/[\s_-]+/g, '')
+    if (statusNorm.includes('turn') || statusNorm.includes('complete')) {
+      st.turned += 1
+      const weight = Number(r.assessment?.impact?.kg || r.estimatedWeightKg || 1.5)
+      st.kg += weight
+    } else if (statusNorm.includes('sched') || statusNorm.includes('inspect') || statusNorm.includes('collect') || statusNorm.includes('progress') || statusNorm.includes('pending')) {
+      st.pending += 1
+    } else if (statusNorm.includes('miss')) {
+      st.missed += 1
+    }
+  }
+
+  for (const l of localListings) {
+    const bId = resolveBaseId(l)
+    const st = baseStatsMap.get(bId) || baseStatsMap.get(1)!
+    st.hub += 1
+  }
+
+  for (const d of localDisposals) {
+    const bId = resolveBaseId(d)
+    const st = baseStatsMap.get(bId) || baseStatsMap.get(1)!
+    st.disposed += 1
+    const weight = Number(d.kg || 1.5)
+    st.kg += weight
+  }
+
+  // Ensure Base 1 (Brgy. Hall Complex / Central MRF) captures general system-level baseline volume
+  const sumReq = Array.from(baseStatsMap.values()).reduce((sum, s) => sum + s.requests, 0)
+  const sumTurn = Array.from(baseStatsMap.values()).reduce((sum, s) => sum + s.turned, 0)
+  const sumPend = Array.from(baseStatsMap.values()).reduce((sum, s) => sum + s.pending, 0)
+  const sumHub = Array.from(baseStatsMap.values()).reduce((sum, s) => sum + s.hub, 0)
+  const sumDisp = Array.from(baseStatsMap.values()).reduce((sum, s) => sum + s.disposed, 0)
+  const sumKg = Array.from(baseStatsMap.values()).reduce((sum, s) => sum + s.kg, 0)
+
+  const base1 = baseStatsMap.get(1)!
+  if (totalRequests > sumReq) base1.requests += (totalRequests - sumReq)
+  if (totalTurned > sumTurn) base1.turned += (totalTurned - sumTurn)
+  if (activeRequestsCount > sumPend) base1.pending += (activeRequestsCount - sumPend)
+  if (totalHub > sumHub) base1.hub += (totalHub - sumHub)
+  if ((overview?.disposalCount ?? localDisposals.length) > sumDisp) {
+    base1.disposed += ((overview?.disposalCount ?? localDisposals.length) - sumDisp)
+  }
+  if (totalKg > sumKg) base1.kg += (totalKg - sumKg)
+
+  const stats: BaseStats[] = COMMONWEALTH_BASES.map((b) => {
+    const bData = baseStatsMap.get(b.id) || { requests: 0, turned: 0, pending: 0, missed: 0, hub: 0, disposed: 0, kg: 0 }
+    const missedRate = bData.requests > 0 ? Math.round((bData.missed / bData.requests) * 100) : 0
+    return {
+      id: `base-${b.id}`,
+      baseId: b.id,
+      name: b.name,
+      facility: b.facility,
+      requests: bData.requests,
+      turned: bData.turned,
+      pending: bData.pending,
+      missedRate,
+      hub: bData.hub,
+      disposed: bData.disposed,
+      kg: Number(bData.kg.toFixed(1)),
+    }
+  })
 
   const maxTurned = Math.max(...stats.map((s) => s.turned), 1)
 
@@ -113,7 +246,7 @@ export const AdminOverviewPage: FC = () => {
       {/* Scope Telemetry Notice */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#64748b', fontSize: '0.8125rem', fontWeight: 600 }}>
         <VisibilityRoundedIcon sx={{ fontSize: 18, color: '#4f8a24' }} />
-        <span>View-only dashboard across all barangays &amp; Commonwealth MRF stations</span>
+        <span>View-only dashboard across all Barangay Commonwealth base stations &amp; Central MRF</span>
       </Box>
 
       {/* 4 KPI Summary Cards */}
@@ -337,7 +470,7 @@ export const AdminOverviewPage: FC = () => {
               E-waste types collected
             </Typography>
             <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500, mt: 0.25 }}>
-              Turned over, all barangays
+              Turned over across all base stations
             </Typography>
           </Box>
 
@@ -364,15 +497,15 @@ export const AdminOverviewPage: FC = () => {
         </Box>
       </Box>
 
-      {/* Barangay Summary Table */}
+      {/* Base Stations Summary Table */}
       <Box sx={{ backgroundColor: '#ffffff', border: '1px solid #dbe3d6', borderRadius: '1.25rem', p: 3, boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
           <Box>
             <Typography sx={{ fontWeight: 700, fontSize: '1.0625rem', color: '#0f172a' }}>
-              Barangay Summary
+              Base Stations Summary
             </Typography>
             <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500, mt: 0.25 }}>
-              Operational volume and diversion metrics across Quezon City hubs
+              Operational volume and diversion metrics across Barangay Commonwealth
             </Typography>
           </Box>
           <ButtonBase
@@ -396,7 +529,7 @@ export const AdminOverviewPage: FC = () => {
           <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
             <thead>
               <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                <th style={{ padding: '12px 14px', fontWeight: 700 }}>Barangay</th>
+                <th style={{ padding: '12px 14px', fontWeight: 700 }}>Base Station</th>
                 <th style={{ padding: '12px 14px', fontWeight: 700 }}>Requests</th>
                 <th style={{ padding: '12px 14px', fontWeight: 700 }}>Turned over</th>
                 <th style={{ padding: '12px 14px', fontWeight: 700, width: 140 }}>Volume Share</th>
@@ -409,13 +542,20 @@ export const AdminOverviewPage: FC = () => {
             </thead>
             <tbody style={{ color: '#0f172a' }}>
               {stats.map((s) => {
-                const pctOfMax = (s.turned / maxTurned) * 100
+                const pctOfMax = maxTurned > 0 ? (s.turned / maxTurned) * 100 : 0
                 return (
                   <tr key={s.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                     <td style={{ padding: '12px 14px', fontWeight: 700, whiteSpace: 'nowrap' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                        <LocationOnRoundedIcon sx={{ fontSize: 16, color: '#3e6b27' }} />
-                        <span>{s.name}</span>
+                        <LocationOnRoundedIcon sx={{ fontSize: 16, color: '#3e6b27', flexShrink: 0 }} />
+                        <Box>
+                          <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>
+                            {s.name}
+                          </Typography>
+                          <Typography sx={{ fontSize: '0.6875rem', color: '#64748b', fontWeight: 500 }}>
+                            {s.facility}
+                          </Typography>
+                        </Box>
                       </Box>
                     </td>
                     <td style={{ padding: '12px 14px', fontWeight: 600 }}>{s.requests}</td>
