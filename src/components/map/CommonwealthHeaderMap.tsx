@@ -169,10 +169,16 @@ export const CommonwealthHeaderMap: FC<CommonwealthHeaderMapProps> = ({
   variant = 'hero',
 }) => {
   const navigate = useNavigate()
-  const [selectedBase, setSelectedBase] = useState<number>(userBaseNumber)
+  const [manualSelection, setManualSelection] = useState<{
+    forUserBase: number
+    baseNum: number
+  } | null>(null)
   const [isZoomed, setIsZoomed] = useState<boolean>(true)
 
-  const activeBaseNum = selectedBase || userBaseNumber || 1
+  const activeBaseNum =
+    manualSelection?.forUserBase === userBaseNumber
+      ? manualSelection.baseNum
+      : userBaseNumber || 1
   const activePartition =
     COMMONWEALTH_PARTITIONS.find((p) => p.num === activeBaseNum) ?? COMMONWEALTH_PARTITIONS[0]
   const activeSite =
@@ -322,7 +328,7 @@ export const CommonwealthHeaderMap: FC<CommonwealthHeaderMapProps> = ({
           return (
             <g
               key={part.id}
-              onClick={() => setSelectedBase(part.num)}
+              onClick={() => setManualSelection({ forUserBase: userBaseNumber, baseNum: part.num })}
               style={{ cursor: 'pointer', transition: 'all 0.25s ease' }}
             >
               <path

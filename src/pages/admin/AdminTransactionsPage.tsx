@@ -28,18 +28,35 @@ import CableRoundedIcon from '@mui/icons-material/CableRounded'
 import KitchenRoundedIcon from '@mui/icons-material/KitchenRounded'
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded'
 import DeleteForeverRoundedIcon from '@mui/icons-material/DeleteForeverRounded'
-import { adminApi, getCachedUser, type AdminTransactionItem } from '@/lib/api'
+import VerifiedUserRoundedIcon from '@mui/icons-material/VerifiedUserRounded'
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
+import BadgeRoundedIcon from '@mui/icons-material/BadgeRounded'
+import {
+  adminApi,
+  getCachedUser,
+  isNetworkError,
+  resolveMediaUrl,
+  type AdminTransactionItem,
+  type PickupLookupResponse,
+} from '@/lib/api'
 
 type TxTab = 'claims' | 'listings' | 'disposals'
 
 interface ClaimRecord {
   id: string
+  rawId?: string
   listingId: string
   itemName: string
   type: string
   condition: string
   residentName: string
   residentEmail: string
+  residentPhone?: string
+  residentAddress?: string
+  residentIdCode?: string
+  validIdType?: string
+  validIdNumber?: string
   barangay: string
   siteName: string
   pickupDate: string
@@ -47,8 +64,10 @@ interface ClaimRecord {
   pickupCode: string
   status: 'Reserved' | 'Picked Up' | 'Expired'
   reservedAt: string
+  expiresAt?: string | null
   resolvedAt?: string | null
   proofPhoto?: boolean
+  proofUrl?: string | null
 }
 
 interface ListingRecord {
@@ -183,6 +202,10 @@ export const AdminTransactionsPage: FC = () => {
   const [verifyModalOpen, setVerifyModalOpen] = useState(false)
   const [verifyingClaim, setVerifyingClaim] = useState<ClaimRecord | null>(null)
   const [inputPickupCode, setInputPickupCode] = useState('')
+  const [verifyStep, setVerifyStep] = useState<'code' | 'identity'>('code')
+  const [lookupResult, setLookupResult] = useState<PickupLookupResponse | null>(null)
+  const [identityConfirmed, setIdentityConfirmed] = useState(false)
+  const [isLookingUp, setIsLookingUp] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
   const [verifyError, setVerifyError] = useState<string | null>(null)
   const [toast, setToast] = useState<{ message: string; severity: 'success' | 'error' } | null>(null)
@@ -198,32 +221,51 @@ export const AdminTransactionsPage: FC = () => {
     let active = true
 
     adminApi
-      .getTransactions({ search })
+      .getTransactions({ type: 'reuse', search })
       .then((data: AdminTransactionItem[]) => {
         if (!active || !Array.isArray(data)) return
-        const mappedLiveClaims: ClaimRecord[] = data.map((d) => ({
-          id: d.transactionNumber || d.id,
-          listingId: d.rawId || 'RH-LIVE',
-          itemName: d.itemName,
-          type: d.category || 'Electronic',
-          condition: 'Inspected',
-          residentName: d.residentName,
-          residentEmail: d.residentEmail,
-          barangay: 'Commonwealth',
-          siteName: d.siteName,
-          pickupDate: d.dateSlot?.split(' ')[0] || new Date().toISOString().slice(0, 10),
-          slot: d.dateSlot?.split(' ').slice(1).join(' ') || '10:00 AM – 12:00 PM',
-          pickupCode: d.pickupCode || '',
-          status:
-            (d.status || '').toLowerCase() === 'completed'
-              ? 'Picked Up'
-              : (d.status || '').toLowerCase() === 'expired'
-                ? 'Expired'
-                : 'Reserved',
-          reservedAt: d.createdAt || 'Recent',
-          resolvedAt: (d.status || '').toLowerCase() === 'completed' ? 'Verified' : null,
-          proofPhoto: (d.status || '').toLowerCase() === 'completed',
-        }))
+        const mappedLiveClaims: ClaimRecord[] = data.map((d) => {
+          const normalizedStatus = (d.status || '').toLowerCase()
+          const isPickedUp =
+            normalizedStatus === 'claimed' ||
+            normalizedStatus === 'completed' ||
+            normalizedStatus === 'picked_up' ||
+            d.displayStatus === 'Picked Up'
+          const isExpired =
+            normalizedStatus === 'expired' ||
+            normalizedStatus === 'cancelled' ||
+            d.displayStatus === 'Expired'
+          return {
+            id: d.transactionNumber || d.id,
+            rawId: d.rawId,
+            listingId: d.rawId || 'RH-LIVE',
+            itemName: d.itemName,
+            type: d.category || 'Electronic',
+            condition: d.condition || 'Inspected',
+            residentName: d.residentName,
+            residentEmail: d.residentEmail,
+            residentPhone: d.residentPhone || '',
+            residentAddress: d.residentAddress || '',
+            residentIdCode: d.residentIdCode || '',
+            validIdType: d.validIdType || '',
+            validIdNumber: d.validIdNumber || '',
+            barangay: d.residentBaseName || 'Commonwealth',
+            siteName: d.siteName,
+            pickupDate: d.dateSlot?.split(' ')[0] || new Date().toISOString().slice(0, 10),
+            slot: d.dateSlot?.split(' ').slice(1).join(' ') || '10:00 AM – 12:00 PM',
+            pickupCode: d.pickupCode || '',
+            status: isPickedUp ? 'Picked Up' : isExpired ? 'Expired' : 'Reserved',
+            reservedAt: d.createdAt || 'Recent',
+            expiresAt: d.expiresAt || null,
+            resolvedAt: d.resolvedAt
+              ? new Date(d.resolvedAt).toLocaleString()
+              : isPickedUp
+                ? 'Verified'
+                : null,
+            proofPhoto: Boolean(d.proofPhoto),
+            proofUrl: d.proofUrl || null,
+          }
+        })
 
         setClaims(mappedLiveClaims)
       })
@@ -355,11 +397,94 @@ export const AdminTransactionsPage: FC = () => {
     setClaimModalOpen(true)
   }
 
-  const handleOpenVerifyModal = (claim: ClaimRecord) => {
-    setVerifyingClaim(claim)
+  const handleOpenVerifyModal = (claim?: ClaimRecord) => {
+    setVerifyingClaim(claim ?? null)
     setInputPickupCode('')
+    setVerifyStep('code')
+    setLookupResult(null)
+    setIdentityConfirmed(false)
     setVerifyError(null)
     setVerifyModalOpen(true)
+  }
+
+  const normalizeVerifyCode = (rawInput: string) => {
+    const raw = rawInput.trim().toUpperCase()
+    if (!raw) return ''
+    if (/^\d{4}$/.test(raw)) return `ECO-${raw}`
+    if (/^ECO\d{4}$/.test(raw)) return `ECO-${raw.slice(3)}`
+    return raw
+  }
+
+  const handleLookupCode = async () => {
+    const normalized = normalizeVerifyCode(inputPickupCode)
+    if (!normalized) {
+      setVerifyError('Please enter the verification code.')
+      return
+    }
+
+    setIsLookingUp(true)
+    setVerifyError(null)
+
+    try {
+      const res = await adminApi.lookupPickupCode({
+        claimId: verifyingClaim?.id,
+        pickupCode: normalized,
+      })
+
+      if (!res.matched || !res.success) {
+        setVerifyError(res.error || res.message || 'Reject: Verification code does not match.')
+        return
+      }
+
+      setLookupResult(res)
+      setIdentityConfirmed(false)
+      setVerifyStep('identity')
+    } catch (err: unknown) {
+      if (isNetworkError(err) && verifyingClaim) {
+        const cleanInput = normalized.replace(/[^A-Z0-9]/g, '')
+        const cleanTarget = (verifyingClaim.pickupCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+        if (cleanTarget && cleanInput === cleanTarget) {
+          setLookupResult({
+            success: true,
+            matched: true,
+            claimId: verifyingClaim.rawId || verifyingClaim.id,
+            transactionNumber: verifyingClaim.id,
+            pickupCode: normalized,
+            item: {
+              id: verifyingClaim.listingId,
+              title: verifyingClaim.itemName,
+              category: verifyingClaim.type,
+              condition: verifyingClaim.condition,
+            },
+            reservation: {
+              reservedAt: verifyingClaim.reservedAt,
+              expiresAt: verifyingClaim.expiresAt ?? null,
+              siteName: verifyingClaim.siteName,
+            },
+            claimant: {
+              id: '',
+              fullName: verifyingClaim.residentName,
+              email: verifyingClaim.residentEmail,
+              phone: verifyingClaim.residentPhone || '',
+              address: verifyingClaim.residentAddress || '',
+              idCode: verifyingClaim.residentIdCode || '',
+              validIdType: verifyingClaim.validIdType || '',
+              validIdNumber: verifyingClaim.validIdNumber || '',
+              baseName: verifyingClaim.barangay,
+            },
+          })
+          setIdentityConfirmed(false)
+          setVerifyStep('identity')
+          return
+        }
+      }
+      setVerifyError(
+        (err as { message?: string })?.message ||
+          'Reject: Verification code does not match this reservation.'
+      )
+    } finally {
+      setIsLookingUp(false)
+    }
   }
 
   const handleReleaseClaim = async (claim: ClaimRecord) => {
@@ -384,46 +509,14 @@ export const AdminTransactionsPage: FC = () => {
   }
 
   const handleVerifySubmit = async () => {
-    if (!verifyingClaim) return
-    const raw = inputPickupCode.trim().toUpperCase()
-    if (!raw) {
-      setVerifyError('Please enter the verification code.')
+    const normalized = normalizeVerifyCode(lookupResult?.pickupCode || inputPickupCode)
+    const targetClaimId = verifyingClaim?.id || lookupResult?.transactionNumber || lookupResult?.claimId
+    if (!normalized || !targetClaimId) {
+      setVerifyError('Please look up and verify the pick-up code first.')
       return
     }
-
-    // Auto-normalize if user typed without hyphen or only digits
-    let normalized = raw
-    if (/^\d{4}$/.test(raw)) {
-      normalized = `ECO-${raw}`
-    } else if (/^ECO\d{4}$/.test(raw)) {
-      normalized = `ECO-${raw.slice(3)}`
-    }
-
-    const cleanInput = raw.replace(/[^A-Z0-9]/g, '')
-    const cleanTarget = (verifyingClaim.pickupCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
-    const inputDigits = cleanInput.replace(/^ECO/, '')
-    const targetDigits = cleanTarget.replace(/^ECO/, '')
-
-    // Check if the input code matches another reservation in the system
-    const matchingOtherClaim = claims.find((c) => {
-      if (c.id === verifyingClaim.id || !c.pickupCode) return false
-      const cClean = c.pickupCode.toUpperCase().replace(/[^A-Z0-9]/g, '')
-      const cDigits = cClean.replace(/^ECO/, '')
-      return (
-        cClean === cleanInput ||
-        (cleanInput.length === 4 && cDigits === cleanInput) ||
-        (cDigits.length === 4 && inputDigits === cDigits)
-      )
-    })
-
-    const isTargetMatch =
-      Boolean(cleanTarget) &&
-      (cleanInput === cleanTarget ||
-        (cleanInput.length === 4 && targetDigits === cleanInput) ||
-        (inputDigits.length === 4 && targetDigits === inputDigits))
-
-    if (matchingOtherClaim || !isTargetMatch) {
-      setVerifyError('Reject: Verification code does not match this reservation.')
+    if (!identityConfirmed) {
+      setVerifyError('Please confirm that you checked the reserving resident’s identity.')
       return
     }
 
@@ -432,24 +525,27 @@ export const AdminTransactionsPage: FC = () => {
 
     try {
       const res = await adminApi.verifyPickupCode({
-        claimId: verifyingClaim.id,
+        claimId: lookupResult?.claimId || verifyingClaim?.id,
         pickupCode: normalized,
+        identityConfirmed: true,
       })
 
       if (!res.matched || !res.success) {
-        setVerifyError(res.error || 'Reject: Verification code does not match this reservation.')
+        setVerifyError(res.error || res.message || 'Reject: Verification code does not match this reservation.')
         setIsVerifying(false)
         return
       }
 
+      const resolvedClaimTx = lookupResult?.transactionNumber || verifyingClaim?.id
+      const resolvedRawId = res.claimId || lookupResult?.claimId || verifyingClaim?.rawId
+
       setClaims((prev) =>
         prev.map((c) =>
-          c.id === verifyingClaim.id
+          c.id === resolvedClaimTx || (resolvedRawId && c.rawId === resolvedRawId)
             ? {
                 ...c,
                 status: 'Picked Up',
                 resolvedAt: 'Verified Just Now',
-                proofPhoto: true,
               }
             : c
         )
@@ -460,9 +556,9 @@ export const AdminTransactionsPage: FC = () => {
         if (stored) {
           const list = JSON.parse(stored)
           const updated = list.map((r: any) =>
-            r.pickupCode === verifyingClaim.pickupCode ||
-            r.id === verifyingClaim.listingId ||
-            `CLAIM-${r.id}` === verifyingClaim.id
+            r.pickupCode === normalized ||
+            r.pickupCode === verifyingClaim?.pickupCode ||
+            (resolvedRawId && String(r.reservationId ?? r.id) === String(resolvedRawId))
               ? { ...r, status: 'CLAIMED' }
               : r
           )
@@ -472,14 +568,16 @@ export const AdminTransactionsPage: FC = () => {
         // Ignore local storage errors
       }
 
+      const confirmedItemName =
+        lookupResult?.item?.title || verifyingClaim?.itemName || 'Reserved Item'
       setToast({
-        message: `Pick-up verified for ${verifyingClaim.itemName}! Status updated to Picked Up.`,
+        message: `Pick-up & identity confirmed for ${confirmedItemName}! Status updated to Picked Up.`,
         severity: 'success',
       })
       setVerifyModalOpen(false)
-    } catch {
-      // Local check fallback
-      if (isTargetMatch) {
+      setRefreshTick((t) => t + 1)
+    } catch (err: unknown) {
+      if (isNetworkError(err) && verifyingClaim) {
         setClaims((prev) =>
           prev.map((c) =>
             c.id === verifyingClaim.id
@@ -487,36 +585,20 @@ export const AdminTransactionsPage: FC = () => {
                   ...c,
                   status: 'Picked Up',
                   resolvedAt: 'Verified Just Now',
-                  proofPhoto: true,
                 }
               : c
           )
         )
-
-        try {
-          const stored = localStorage.getItem('ecobyte_user_reservations')
-          if (stored) {
-            const list = JSON.parse(stored)
-            const updated = list.map((r: any) =>
-              r.pickupCode === verifyingClaim.pickupCode ||
-              r.id === verifyingClaim.listingId ||
-              `CLAIM-${r.id}` === verifyingClaim.id
-                ? { ...r, status: 'CLAIMED' }
-                : r
-            )
-            localStorage.setItem('ecobyte_user_reservations', JSON.stringify(updated))
-          }
-        } catch {
-          // Ignore local storage errors
-        }
-
         setToast({
           message: `Pick-up verified for ${verifyingClaim.itemName}! Status updated to Picked Up.`,
           severity: 'success',
         })
         setVerifyModalOpen(false)
       } else {
-        setVerifyError('Reject: Verification code does not match this reservation.')
+        setVerifyError(
+          (err as { message?: string })?.message ||
+            'Unable to confirm pick-up right now. Please try again.'
+        )
       }
     } finally {
       setIsVerifying(false)
@@ -920,11 +1002,33 @@ export const AdminTransactionsPage: FC = () => {
             </ButtonBase>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#64748b', fontSize: '0.8125rem', fontWeight: 600 }}>
-            <VisibilityRoundedIcon sx={{ fontSize: 18, color: '#4f8a24' }} />
-            <span>
-              {isSuperAdmin ? 'View-only · Super Admin Scope' : 'Official Portal Scope'}
-            </span>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+            {tab === 'claims' && !isSuperAdmin && (
+              <ButtonBase
+                onClick={() => handleOpenVerifyModal()}
+                sx={{
+                  px: 1.75,
+                  py: 0.85,
+                  borderRadius: '0.65rem',
+                  background: 'linear-gradient(135deg, #2e6022 0%, #70b822 100%)',
+                  color: '#ffffff',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  gap: 0.65,
+                  boxShadow: '0 2px 6px rgba(46, 96, 34, 0.18)',
+                  '&:hover': { opacity: 0.95 },
+                }}
+              >
+                <QrCodeScannerRoundedIcon sx={{ fontSize: 16 }} />
+                <span>Verify Pick-Up Code</span>
+              </ButtonBase>
+            )}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#64748b', fontSize: '0.8125rem', fontWeight: 600 }}>
+              <VisibilityRoundedIcon sx={{ fontSize: 18, color: '#4f8a24' }} />
+              <span>
+                {isSuperAdmin ? 'View-only · Super Admin Scope' : 'Official Portal Scope'}
+              </span>
+            </Box>
           </Box>
         </Box>
 
@@ -1031,7 +1135,7 @@ export const AdminTransactionsPage: FC = () => {
               />
               <input
                 type="text"
-                placeholder={tab === 'claims' ? 'Search TX, item, resident…' : 'Search keyword…'}
+                placeholder={tab === 'claims' ? 'Search item, resident…' : 'Search keyword…'}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 style={{
@@ -1067,18 +1171,16 @@ export const AdminTransactionsPage: FC = () => {
               }}
             >
               <colgroup>
-                <col style={{ width: '10%' }} />
-                <col style={{ width: '20%' }} />
-                <col style={{ width: '12%' }} />
-                <col style={{ width: '10%' }} />
+                <col style={{ width: '24%' }} />
                 <col style={{ width: '14%' }} />
-                <col style={{ width: '12%' }} />
+                <col style={{ width: '11%' }} />
+                <col style={{ width: '16%' }} />
+                <col style={{ width: '13%' }} />
                 <col style={{ width: '9%' }} />
                 <col style={{ width: '13%' }} />
               </colgroup>
               <thead>
                 <tr style={{ backgroundColor: '#f8faf6', borderBottom: '1px solid #e2e8f0' }}>
-                  <th style={HEADER_CELL_STYLE}>Transaction</th>
                   <th style={HEADER_CELL_STYLE}>Item</th>
                   <th style={HEADER_CELL_STYLE}>Resident</th>
                   <th style={HEADER_CELL_STYLE}>Barangay</th>
@@ -1091,7 +1193,7 @@ export const AdminTransactionsPage: FC = () => {
               <tbody>
                 {filteredClaims.length === 0 ? (
                   <tr>
-                    <td colSpan={8} style={{ textAlign: 'center', padding: '40px 16px', color: '#94a3b8' }}>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '40px 16px', color: '#94a3b8' }}>
                       <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>No transactions match your filters.</Typography>
                     </td>
                   </tr>
@@ -1100,9 +1202,6 @@ export const AdminTransactionsPage: FC = () => {
                     const ItemIcon = getTypeIcon(c.type)
                     return (
                       <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ ...BODY_CELL_STYLE, fontWeight: 700, fontSize: '0.75rem', color: '#0f172a' }}>
-                          {c.id}
-                        </td>
                         <td style={BODY_CELL_STYLE}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
                             <Box
@@ -1125,7 +1224,7 @@ export const AdminTransactionsPage: FC = () => {
                                 {c.itemName}
                               </Typography>
                               <Typography sx={{ fontSize: '0.6875rem', color: '#64748b', fontWeight: 600, lineHeight: 1.25 }}>
-                                {c.listingId} · {c.condition}
+                                {c.type} · {c.condition}
                               </Typography>
                             </Box>
                           </Box>
@@ -1200,7 +1299,7 @@ export const AdminTransactionsPage: FC = () => {
                               View
                             </ButtonBase>
 
-                            {c.status === 'Reserved' && (
+                            {!isSuperAdmin && c.status === 'Reserved' && (
                               <ButtonBase
                                 onClick={() => handleOpenVerifyModal(c)}
                                 sx={{
@@ -1608,8 +1707,24 @@ export const AdminTransactionsPage: FC = () => {
                   {
                     label: 'Proof Photo',
                     value: selectedClaim.proofPhoto ? (
-                      <span key="photo-proof" style={{ color: '#2e6022', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                        <PhotoCameraRoundedIcon sx={{ fontSize: 16 }} /> Uploaded &amp; Stored
+                      <Box key="photo-proof" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
+                        <span style={{ color: '#2e6022', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <PhotoCameraRoundedIcon sx={{ fontSize: 16 }} /> Uploaded &amp; Stored
+                        </span>
+                        {selectedClaim.proofUrl && (
+                          <a
+                            href={resolveMediaUrl(selectedClaim.proofUrl)}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{ fontSize: '0.75rem', color: '#0369a1', fontWeight: 700, textDecoration: 'underline' }}
+                          >
+                            View Photo
+                          </a>
+                        )}
+                      </Box>
+                    ) : selectedClaim.status === 'Picked Up' ? (
+                      <span key="photo-pending" style={{ color: '#b45309', fontWeight: 700, fontSize: '0.78rem' }}>
+                        Awaiting resident upload
                       </span>
                     ) : (
                       '—'
@@ -1639,7 +1754,7 @@ export const AdminTransactionsPage: FC = () => {
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {selectedClaim?.status === 'Reserved' ? (
+          {!isSuperAdmin && selectedClaim?.status === 'Reserved' ? (
             <ButtonBase
               onClick={() => handleReleaseClaim(selectedClaim)}
               sx={{
@@ -1676,11 +1791,11 @@ export const AdminTransactionsPage: FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* ── Verify Pick-Up PIN Modal ── */}
+      {/* ── Verify Pick-Up PIN + Resident Identity Confirmation Modal ── */}
       <Dialog
         open={verifyModalOpen}
-        onClose={() => !isVerifying && setVerifyModalOpen(false)}
-        maxWidth="xs"
+        onClose={() => !isVerifying && !isLookingUp && setVerifyModalOpen(false)}
+        maxWidth="sm"
         fullWidth
         slotProps={{
           paper: {
@@ -1708,31 +1823,59 @@ export const AdminTransactionsPage: FC = () => {
                 flexShrink: 0,
               }}
             >
-              <QrCodeScannerRoundedIcon sx={{ fontSize: 20 }} />
+              {verifyStep === 'identity' ? (
+                <VerifiedUserRoundedIcon sx={{ fontSize: 20 }} />
+              ) : (
+                <QrCodeScannerRoundedIcon sx={{ fontSize: 20 }} />
+              )}
             </Box>
-            <Typography sx={{ fontWeight: 800, fontSize: '1.125rem', color: '#0f172a' }}>
-              Verify Resident Pick-Up
-            </Typography>
+            <Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '1.125rem', color: '#0f172a', lineHeight: 1.2 }}>
+                {verifyStep === 'identity'
+                  ? 'Confirm Resident Identity'
+                  : 'Verify Resident Pick-Up'}
+              </Typography>
+              <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                {verifyStep === 'identity'
+                  ? 'Step 2 of 2 • Match claimant identity before releasing item'
+                  : 'Step 1 of 2 • Enter pick-up code to verify reservation'}
+              </Typography>
+            </Box>
           </Box>
-          <IconButton size="small" onClick={() => setVerifyModalOpen(false)} disabled={isVerifying}>
+          <IconButton
+            size="small"
+            onClick={() => setVerifyModalOpen(false)}
+            disabled={isVerifying || isLookingUp}
+          >
             <CloseRoundedIcon sx={{ fontSize: 20 }} />
           </IconButton>
         </DialogTitle>
 
         <DialogContent sx={{ px: 3, py: 2 }}>
-          {verifyingClaim && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-              <Box sx={{ p: 2, borderRadius: '0.75rem', backgroundColor: '#f8faf6', border: '1px solid #dbe3d6' }}>
-                <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
-                  {verifyingClaim.itemName}
-                </Typography>
-                <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.5 }}>
-                  Reserving Resident: <b>{verifyingClaim.residentName}</b>
-                </Typography>
-                <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
-                  Pickup Facility: <b>{verifyingClaim.siteName}</b>
-                </Typography>
-              </Box>
+          {verifyStep === 'code' ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25 }}>
+              {verifyingClaim ? (
+                <Box sx={{ p: 2, borderRadius: '0.75rem', backgroundColor: '#f8faf6', border: '1px solid #dbe3d6' }}>
+                  <Typography sx={{ fontSize: '0.6875rem', fontWeight: 800, color: '#4f8a24', textTransform: 'uppercase', letterSpacing: '0.06em', mb: 0.5 }}>
+                    Selected Transaction · {verifyingClaim.id}
+                  </Typography>
+                  <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a' }}>
+                    {verifyingClaim.itemName}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.35 }}>
+                    Pickup Facility: <b>{verifyingClaim.siteName}</b>
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.72rem', color: '#64748b', mt: 0.35 }}>
+                    Resident details will be revealed after the pick-up code matches.
+                  </Typography>
+                </Box>
+              ) : (
+                <Box sx={{ p: 1.75, borderRadius: '0.75rem', backgroundColor: '#f8faf6', border: '1px solid #dbe3d6' }}>
+                  <Typography sx={{ fontSize: '0.78rem', color: '#334155', fontWeight: 600 }}>
+                    Enter any resident&apos;s reservation code (e.g. <b>ECO-4821</b>) to look up the reserved item and confirm their identity.
+                  </Typography>
+                </Box>
+              )}
 
               <Box>
                 <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#334155', mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
@@ -1746,7 +1889,16 @@ export const AdminTransactionsPage: FC = () => {
                   maxLength={10}
                   placeholder="ECO-XXXX"
                   value={inputPickupCode}
-                  onChange={(e) => setInputPickupCode(e.target.value.toUpperCase())}
+                  onChange={(e) => {
+                    setInputPickupCode(e.target.value.toUpperCase())
+                    if (verifyError) setVerifyError(null)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !isLookingUp) {
+                      e.preventDefault()
+                      void handleLookupCode()
+                    }
+                  }}
                   style={{
                     width: '100%',
                     height: 52,
@@ -1771,44 +1923,235 @@ export const AdminTransactionsPage: FC = () => {
                 </Alert>
               )}
             </Box>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box
+                sx={{
+                  p: 1.5,
+                  borderRadius: '0.75rem',
+                  backgroundColor: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 1,
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CheckCircleRoundedIcon sx={{ fontSize: 20, color: '#16a34a' }} />
+                  <Box>
+                    <Typography sx={{ fontSize: '0.8125rem', fontWeight: 800, color: '#166534' }}>
+                      Code Verified: {lookupResult?.pickupCode || normalizeVerifyCode(inputPickupCode)}
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.72rem', color: '#15803d', fontWeight: 600 }}>
+                      {lookupResult?.item?.title || verifyingClaim?.itemName} ({lookupResult?.transactionNumber || verifyingClaim?.id})
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: '0.9rem',
+                  border: '1px solid #dbe3d6',
+                  backgroundColor: '#f8faf6',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1.25,
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#2e6022' }}>
+                  <BadgeRoundedIcon sx={{ fontSize: 18 }} />
+                  <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    Reserving Resident Identity Check
+                  </Typography>
+                </Box>
+
+                {[
+                  {
+                    label: 'Full Name',
+                    value: lookupResult?.claimant?.fullName || verifyingClaim?.residentName || '—',
+                    highlight: true,
+                  },
+                  {
+                    label: 'Email',
+                    value: lookupResult?.claimant?.email || verifyingClaim?.residentEmail || '—',
+                  },
+                  {
+                    label: 'Contact Number',
+                    value: lookupResult?.claimant?.phone || verifyingClaim?.residentPhone || 'Not provided',
+                  },
+                  {
+                    label: 'Barangay / Base',
+                    value: lookupResult?.claimant?.baseName || verifyingClaim?.barangay || 'Barangay Commonwealth',
+                  },
+                  {
+                    label: 'Address',
+                    value: lookupResult?.claimant?.address || verifyingClaim?.residentAddress || 'Not provided',
+                  },
+                  {
+                    label: 'ID / Account Code',
+                    value:
+                      lookupResult?.claimant?.validIdType && lookupResult?.claimant?.validIdNumber
+                        ? `${lookupResult.claimant.validIdType}: ${lookupResult.claimant.validIdNumber}`
+                        : lookupResult?.claimant?.idCode ||
+                          verifyingClaim?.residentIdCode ||
+                          'Ask for valid Barangay/Gov ID',
+                  },
+                  {
+                    label: 'Pickup Facility',
+                    value: lookupResult?.reservation?.siteName || verifyingClaim?.siteName || 'Commonwealth Area 1 Eco-Hub',
+                  },
+                ].map((row) => (
+                  <Box
+                    key={row.label}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      gap: 1.5,
+                      py: 0.5,
+                      borderBottom: '1px solid #e7ede3',
+                      '&:last-child': { borderBottom: 'none' },
+                    }}
+                  >
+                    <Typography sx={{ fontSize: '0.76rem', color: '#64748b', fontWeight: 600, flexShrink: 0 }}>
+                      {row.label}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: '0.78rem',
+                        color: row.highlight ? '#0f172a' : '#1e293b',
+                        fontWeight: row.highlight ? 800 : 700,
+                        textAlign: 'right',
+                      }}
+                    >
+                      {row.value}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+
+              <Box
+                component="label"
+                sx={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 1.25,
+                  p: 1.5,
+                  borderRadius: '0.75rem',
+                  border: identityConfirmed ? '1.5px solid #4f8a24' : '1.5px solid #dbe3d6',
+                  backgroundColor: identityConfirmed ? '#f0fdf4' : '#ffffff',
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={identityConfirmed}
+                  onChange={(e) => {
+                    setIdentityConfirmed(e.target.checked)
+                    if (verifyError) setVerifyError(null)
+                  }}
+                  style={{ marginTop: 3, width: 16, height: 16, accentColor: '#2e6022', cursor: 'pointer' }}
+                />
+                <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.4 }}>
+                  I checked the resident&apos;s ID / account details and confirmed this is the same person who reserved the item.
+                </Typography>
+              </Box>
+
+              {verifyError && (
+                <Alert severity="error" sx={{ borderRadius: '0.75rem', fontSize: '0.8125rem' }}>
+                  {verifyError}
+                </Alert>
+              )}
+            </Box>
           )}
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
-          <ButtonBase
-            onClick={() => setVerifyModalOpen(false)}
-            disabled={isVerifying}
-            sx={{
-              px: 2.5,
-              py: 1,
-              borderRadius: '0.75rem',
-              backgroundColor: '#f1f5f9',
-              color: '#475569',
-              fontWeight: 700,
-              fontSize: '0.8125rem',
-              '&:hover': { backgroundColor: '#e2e8f0' },
-            }}
-          >
-            Cancel
-          </ButtonBase>
+        <DialogActions sx={{ px: 3, pb: 3, gap: 1, justifyContent: 'space-between' }}>
+          {verifyStep === 'identity' ? (
+            <ButtonBase
+              onClick={() => {
+                setVerifyStep('code')
+                setVerifyError(null)
+              }}
+              disabled={isVerifying}
+              sx={{
+                px: 2,
+                py: 1,
+                borderRadius: '0.75rem',
+                backgroundColor: '#f1f5f9',
+                color: '#475569',
+                fontWeight: 700,
+                fontSize: '0.8125rem',
+                gap: 0.5,
+                '&:hover': { backgroundColor: '#e2e8f0' },
+              }}
+            >
+              <ArrowBackRoundedIcon sx={{ fontSize: 16 }} />
+              <span>Re-enter Code</span>
+            </ButtonBase>
+          ) : (
+            <ButtonBase
+              onClick={() => setVerifyModalOpen(false)}
+              disabled={isLookingUp}
+              sx={{
+                px: 2.5,
+                py: 1,
+                borderRadius: '0.75rem',
+                backgroundColor: '#f1f5f9',
+                color: '#475569',
+                fontWeight: 700,
+                fontSize: '0.8125rem',
+                '&:hover': { backgroundColor: '#e2e8f0' },
+              }}
+            >
+              Cancel
+            </ButtonBase>
+          )}
 
-          <ButtonBase
-            onClick={handleVerifySubmit}
-            disabled={isVerifying}
-            sx={{
-              px: 3,
-              py: 1,
-              borderRadius: '0.75rem',
-              background: 'linear-gradient(135deg, #2e6022 0%, #70b822 100%)',
-              color: '#ffffff',
-              fontWeight: 700,
-              fontSize: '0.8125rem',
-              '&:hover': { opacity: 0.95 },
-              '&:disabled': { opacity: 0.5 },
-            }}
-          >
-            {isVerifying ? <CircularProgress size={16} sx={{ color: '#fff' }} /> : 'Confirm Pick-Up'}
-          </ButtonBase>
+          {verifyStep === 'code' ? (
+            <ButtonBase
+              onClick={handleLookupCode}
+              disabled={isLookingUp}
+              sx={{
+                px: 3,
+                py: 1,
+                borderRadius: '0.75rem',
+                background: 'linear-gradient(135deg, #2e6022 0%, #70b822 100%)',
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: '0.8125rem',
+                '&:hover': { opacity: 0.95 },
+                '&:disabled': { opacity: 0.5 },
+              }}
+            >
+              {isLookingUp ? <CircularProgress size={16} sx={{ color: '#fff' }} /> : 'Check Code & Resident'}
+            </ButtonBase>
+          ) : (
+            <ButtonBase
+              onClick={handleVerifySubmit}
+              disabled={isVerifying || !identityConfirmed}
+              sx={{
+                px: 3,
+                py: 1,
+                borderRadius: '0.75rem',
+                background: 'linear-gradient(135deg, #2e6022 0%, #70b822 100%)',
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: '0.8125rem',
+                '&:hover': { opacity: 0.95 },
+                '&:disabled': { opacity: 0.45 },
+              }}
+            >
+              {isVerifying ? (
+                <CircularProgress size={16} sx={{ color: '#fff' }} />
+              ) : (
+                'Confirm Identity & Mark Picked Up'
+              )}
+            </ButtonBase>
+          )}
         </DialogActions>
       </Dialog>
 

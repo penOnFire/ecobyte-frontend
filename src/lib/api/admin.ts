@@ -107,15 +107,60 @@ export interface AdminTransactionItem {
   type: 'Drop-Off' | 'Reuse Pick-Up'
   itemName: string
   category: string
+  condition?: string
   residentName: string
   residentEmail: string
   residentPhone?: string
+  residentAddress?: string
+  residentIdCode?: string
+  validIdType?: string
+  validIdNumber?: string
+  residentBaseName?: string
   siteName: string
   dateSlot: string
   status: string
   displayStatus: string
   pickupCode?: string
+  proofPhoto?: boolean
+  proofUrl?: string | null
+  resolvedAt?: string | null
+  expiresAt?: string | null
   createdAt: string
+}
+
+export interface PickupClaimantIdentity {
+  id: string
+  fullName: string
+  email: string
+  phone: string
+  address: string
+  idCode: string
+  validIdType: string
+  validIdNumber: string
+  baseName: string
+}
+
+export interface PickupLookupResponse {
+  success: boolean
+  matched: boolean
+  claimId?: string
+  transactionNumber?: string
+  pickupCode?: string
+  hasProofOfClaim?: boolean
+  item?: {
+    id: string
+    title: string
+    category: string
+    condition: string
+  }
+  reservation?: {
+    reservedAt: string | null
+    expiresAt: string | null
+    siteName: string
+  }
+  claimant?: PickupClaimantIdentity
+  message?: string
+  error?: string
 }
 
 export interface AdminReportsData {
@@ -131,10 +176,19 @@ export interface AdminReportsData {
   ewasteType: Array<{
     name: string
     units: number
+    turnedOverUnits: number
+    reuseUnits: number
+    disposalUnits: number
     weightKg: number
     hazardUnits: number
     reuseRatePercent: number
   }>
+  hazardRisk: {
+    total: number
+    low: { count: number; pct: number }
+    medium: { count: number; pct: number }
+    high: { count: number; pct: number }
+  }
   requests: {
     total: number
     scheduled: number
@@ -147,6 +201,10 @@ export interface AdminReportsData {
   }
   slotUsage: Array<{
     facility: string
+    baseName: string
+    morning: number
+    afternoon: number
+    evening: number
     capacity: number
     booked: number
     available: number
@@ -899,10 +957,22 @@ export const adminApi = {
     })
   },
 
+  lookupPickupCode: async (payload: {
+    listingId?: string
+    claimId?: string
+    pickupCode: string
+  }) => {
+    return apiFetch<PickupLookupResponse>('/admin/transactions/lookup-pickup', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  },
+
   verifyPickupCode: async (payload: {
     listingId?: string
     claimId?: string
     pickupCode: string
+    identityConfirmed?: boolean
   }) => {
     return apiFetch<{
       success: boolean
@@ -910,6 +980,8 @@ export const adminApi = {
       claimId?: string
       status?: string
       displayStatus?: string
+      collectedAt?: string
+      claimant?: PickupClaimantIdentity
       message?: string
       error?: string
     }>('/admin/transactions/verify-pickup', {
@@ -942,8 +1014,12 @@ export const adminApi = {
     return apiFetch<AdminTransactionItem[]>(`/admin/transactions${queryStr}`)
   },
 
-  getReportsData: async () => {
-    return apiFetch<AdminReportsData>('/admin/reports')
+  getReportsData: async (params?: { baseId?: string; days?: string }) => {
+    const qs = new URLSearchParams()
+    if (params?.baseId && params.baseId !== 'all') qs.set('baseId', params.baseId)
+    if (params?.days) qs.set('days', params.days)
+    const queryStr = qs.toString() ? `?${qs.toString()}` : ''
+    return apiFetch<AdminReportsData>(`/admin/reports${queryStr}`)
   },
 
   getActivityLogs: async (params?: {

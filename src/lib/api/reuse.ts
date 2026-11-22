@@ -25,7 +25,13 @@ export const reuseApi = {
     const formData = new FormData()
     formData.append('pickupCode', pickupCode)
     formData.append('photo', file)
-    return apiFetch<{ reservationId: string; status: string; divertedKg: number }>(
+    return apiFetch<{
+      reservationId: string
+      status: string
+      divertedKg: number
+      claimedAt?: string
+      proofUrl?: string
+    }>(
       `/reuse/reservations/${reservationId}/proof-of-claim`,
       {
         method: 'POST',

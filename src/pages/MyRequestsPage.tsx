@@ -1261,7 +1261,7 @@ export const MyRequestsPage: FC = () => {
                       size="sm"
                     />
                   </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5, pt: 1.25, borderTop: '1px solid #f1f5f9' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, flexWrap: 'wrap', mt: 1.5, pt: 1.25, borderTop: '1px solid #f1f5f9' }}>
                     <Typography
                       sx={{
                         fontFamily: "'Quicksand', sans-serif",
@@ -1269,7 +1269,9 @@ export const MyRequestsPage: FC = () => {
                         color:
                           comp.status === 'Cancelled' || comp.status === 'Missed'
                             ? '#dc2626'
-                            : '#16a34a',
+                            : comp.requestId.startsWith('CLM-') && comp.hasProofOfClaim === false
+                              ? '#b45309'
+                              : '#16a34a',
                         fontWeight: 700,
                       }}
                     >
@@ -1277,12 +1279,46 @@ export const MyRequestsPage: FC = () => {
                         ? 'Slot released (Cancelled)'
                         : comp.status === 'Missed'
                           ? 'Drop-off slot missed'
-                          : '✓ Turnover Certified (+150 pts)'}
+                          : comp.requestId.startsWith('CLM-') && comp.hasProofOfClaim === false
+                            ? '✓ Picked up at hub • Upload handover proof photo'
+                            : comp.requestId.startsWith('CLM-')
+                              ? '✓ Handover Photo Verified (+150 pts)'
+                              : '✓ Turnover Certified (+150 pts)'}
                     </Typography>
-                  <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b' }}>
-                    {comp.scheduledSlot || 'Verified claim'}
-                  </Typography>
-                </Box>
+                    {comp.requestId.startsWith('CLM-') && comp.hasProofOfClaim === false && comp.reservationId ? (
+                      <Button
+                        size="small"
+                        variant="contained"
+                        startIcon={<FileUploadOutlinedIcon sx={{ fontSize: 16, color: '#abf06b' }} />}
+                        onClick={() => {
+                          const params = new URLSearchParams({
+                            reservationId: comp.reservationId!,
+                            code: comp.pickupCode || '',
+                            title: comp.deviceTitle,
+                            site: comp.siteName,
+                          })
+                          navigate(`/proof-of-claim?${params.toString()}`)
+                        }}
+                        sx={{
+                          backgroundColor: '#0f172a',
+                          color: '#ffffff',
+                          fontWeight: 700,
+                          fontSize: '0.725rem',
+                          borderRadius: 9999,
+                          px: 1.75,
+                          py: 0.5,
+                          textTransform: 'none',
+                          '&:hover': { backgroundColor: '#1e293b' },
+                        }}
+                      >
+                        Upload Proof
+                      </Button>
+                    ) : (
+                      <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b' }}>
+                        {comp.scheduledSlot || 'Verified claim'}
+                      </Typography>
+                    )}
+                  </Box>
               </Card>
             ))
           )}

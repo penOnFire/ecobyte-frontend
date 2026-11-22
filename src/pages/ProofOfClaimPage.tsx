@@ -72,14 +72,46 @@ export const ProofOfClaimPage: FC = () => {
     dropoffsApi
       .getMyRequests()
       .then((res) => {
-        if (!active || !Array.isArray(res?.reservations)) return
-        const matched =
+        if (!active) return
+        const reservationsList = Array.isArray(res?.reservations) ? res.reservations : []
+        const completedList = Array.isArray(res?.completed) ? res.completed : []
+
+        const matchedReservation =
           (paramReservationId &&
-            res.reservations.find((r) => r.reservationId === paramReservationId)) ||
-          (paramCode && res.reservations.find((r) => r.pickupCode === paramCode)) ||
-          res.reservations[0] ||
+            reservationsList.find((r) => r.reservationId === paramReservationId)) ||
+          (paramCode && reservationsList.find((r) => r.pickupCode === paramCode)) ||
           null
-        if (matched) setActiveReservation(matched)
+
+        if (matchedReservation) {
+          setActiveReservation(matchedReservation)
+          return
+        }
+
+        const matchedCompleted =
+          completedList.find(
+            (c) =>
+              c.requestId?.startsWith('CLM-') &&
+              ((paramReservationId && c.reservationId === paramReservationId) ||
+                (paramCode && c.pickupCode === paramCode))
+          ) || null
+
+        if (matchedCompleted) {
+          setActiveReservation({
+            reservationId: matchedCompleted.reservationId || paramReservationId,
+            itemTitle: matchedCompleted.deviceTitle,
+            pickupCode: matchedCompleted.pickupCode || paramCode,
+            siteName: matchedCompleted.siteName,
+            expiresAt: null,
+            status: 'Claimed',
+            hasProofOfClaim: matchedCompleted.hasProofOfClaim,
+            proofUrl: matchedCompleted.proofUrl,
+          })
+          return
+        }
+
+        if (reservationsList[0]) {
+          setActiveReservation(reservationsList[0])
+        }
       })
       .catch(() => {
         // Keep URL query params if backend request cannot complete
@@ -93,6 +125,7 @@ export const ProofOfClaimPage: FC = () => {
   const pickupCode = activeReservation?.pickupCode || paramCode
   const itemTitle = activeReservation?.itemTitle || paramTitle || 'Reserved Reuse Item'
   const siteName = activeReservation?.siteName || paramSite || 'Commonwealth Area 1 Eco-Hub'
+  const alreadyHasProof = Boolean(activeReservation?.hasProofOfClaim)
   const itemImage = resolveClaimItemImage(itemTitle)
   const [todayLabel] = useState(() =>
     new Intl.DateTimeFormat('en-US', {
@@ -554,45 +587,56 @@ export const ProofOfClaimPage: FC = () => {
       </Card>
 
       {/* ── Submit Proof Button ── */}
-      {submitError && (
-        <Alert severity="error" sx={{ borderRadius: 1.5, fontFamily: "'Quicksand', sans-serif", fontWeight: 600 }}>
-          {submitError}
+      {alreadyHasProof ? (
+        <Alert
+          severity="success"
+          sx={{ borderRadius: 1.5, fontFamily: "'Quicksand', sans-serif", fontWeight: 600 }}
+        >
+          Your handover proof photo has already been uploaded and stored for this reservation.
         </Alert>
-      )}
+      ) : (
+        <>
+          {submitError && (
+            <Alert severity="error" sx={{ borderRadius: 1.5, fontFamily: "'Quicksand', sans-serif", fontWeight: 600 }}>
+              {submitError}
+            </Alert>
+          )}
 
-      <Box sx={{ mt: 0.5, mb: 2 }}>
-        <Button
-          fullWidth
-          variant="contained"
-          size="large"
-          disabled={isSubmitting}
-          onClick={handleCompleteClaim}
-          endIcon={isSubmitting ? <CircularProgress size={16} sx={{ color: '#ffffff' }} /> : <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
-          sx={{
-            py: 1.6,
-            backgroundColor: '#0f172a',
-            color: '#ffffff',
-            fontWeight: 800,
-            fontSize: '0.9375rem',
-            textTransform: 'none',
-            boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
-            '&:hover': { backgroundColor: '#1e293b' },
-          }}
-        >
-          {isSubmitting ? 'Submitting verification...' : 'Submit proof & complete claim'}
-        </Button>
-        <Typography
-          sx={{
-            fontFamily: "'Quicksand', sans-serif",
-            fontSize: '0.6875rem',
-            color: '#64748b',
-            textAlign: 'center',
-            mt: 1,
-          }}
-        >
-          Status becomes Claimed automatically and adds to Completed requests.
-        </Typography>
-      </Box>
+          <Box sx={{ mt: 0.5, mb: 2 }}>
+            <Button
+              fullWidth
+              variant="contained"
+              size="large"
+              disabled={isSubmitting}
+              onClick={handleCompleteClaim}
+              endIcon={isSubmitting ? <CircularProgress size={16} sx={{ color: '#ffffff' }} /> : <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
+              sx={{
+                py: 1.6,
+                backgroundColor: '#0f172a',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.9375rem',
+                textTransform: 'none',
+                boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
+                '&:hover': { backgroundColor: '#1e293b' },
+              }}
+            >
+              {isSubmitting ? 'Submitting verification...' : 'Submit handover proof'}
+            </Button>
+            <Typography
+              sx={{
+                fontFamily: "'Quicksand', sans-serif",
+                fontSize: '0.6875rem',
+                color: '#64748b',
+                textAlign: 'center',
+                mt: 1,
+              }}
+            >
+              You can upload your handover photo during or right after station pickup verification.
+            </Typography>
+          </Box>
+        </>
+      )}
 
       {/* ── Help Dialog ── */}
       <Dialog

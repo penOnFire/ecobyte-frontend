@@ -36,8 +36,8 @@ export const FeatureShowcases: FC = () => {
         component="section"
         aria-labelledby="feature-showcases-heading"
         sx={{
-          backgroundColor: '#ffffff',
-          borderTop: '2px solid #dce4dc',
+          backgroundColor: 'var(--eco-white)',
+          borderTop: '2px solid var(--eco-border)',
           py: { xs: 8, md: 11 },
         }}
       >
@@ -54,18 +54,18 @@ export const FeatureShowcases: FC = () => {
                 fontFamily: "'Inter', sans-serif",
                 fontWeight: 500,
                 fontSize: { xs: '0.975rem', md: '1.0625rem' },
-                color: '#475569',
+                color: 'var(--eco-ink-muted)',
                 mt: 1.5,
                 lineHeight: 1.6,
               }}
             >
               Every stage of EcoByte is built around physical accountability, from guided camera
-              diagnostics to neighborhood locker handoffs.
+              diagnostics to neighborhood hub handoffs.
             </Typography>
           </Box>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 7, md: 10 } }}>
-            {/* Showcase A: 6-Angle AI Device Diagnostic (Phone Left | Copy Right) */}
+            {/* Showcase A: 4-Angle AI Device Diagnostic (Phone Left | Copy Right) */}
             <div id="ai-triage" className="eco-showcase-block eco-showcase-block--phone-left">
               <div className="eco-showcase-phone-col" data-scroll-reveal="phone">
                 <PhoneFrame>
@@ -109,7 +109,7 @@ export const FeatureShowcases: FC = () => {
                       <Box
                         component="img"
                         src={LANDING_ASSETS.diagnosticViewImg}
-                        alt="6-angle diagnostic camera frame"
+                        alt="4-angle diagnostic camera frame"
                         sx={{
                           width: '100%',
                           height: '100%',
@@ -148,7 +148,7 @@ export const FeatureShowcases: FC = () => {
                           borderRadius: '6px',
                         }}
                       >
-                        6/6 ANGLES
+                        4/4 ANGLES
                       </Box>
                     </Box>
 
@@ -194,9 +194,9 @@ export const FeatureShowcases: FC = () => {
                       ))}
                     </Box>
 
-                    {/* Additional Verified Slots Strip */}
+                    {/* 4-Angle Capture Readiness Strip */}
                     <Box sx={{ display: 'flex', gap: 0.75 }}>
-                      {['Top View ✓', 'Bottom Serial ✓'].map((slot) => (
+                      {['Front & Back Required ✓', 'Left & Right Side ✓'].map((slot) => (
                         <Box
                           key={slot}
                           sx={{
@@ -208,7 +208,7 @@ export const FeatureShowcases: FC = () => {
                             textAlign: 'center',
                             fontFamily: "'Quicksand', sans-serif",
                             fontWeight: 700,
-                            fontSize: '0.6875rem',
+                            fontSize: '0.65rem',
                             color: '#2d3e2c',
                           }}
                         >
@@ -266,20 +266,20 @@ export const FeatureShowcases: FC = () => {
               </div>
 
               <div className="eco-showcase-copy-col" data-scroll-reveal="header">
-                <h3 className="eco-display-h3">6-Angle AI Device Diagnostic</h3>
+                <h3 className="eco-display-h3">4-Angle AI Device Diagnostic</h3>
                 <Typography
                   sx={{
                     fontFamily: "'Inter', sans-serif",
                     fontWeight: 500,
                     fontSize: { xs: '0.975rem', md: '1.05rem' },
-                    color: '#475569',
+                    color: 'var(--eco-ink-muted)',
                     mt: 1.75,
                     lineHeight: 1.65,
                   }}
                 >
-                  Snap Front, Back, Left, Right, Top, and Bottom views using guided camera framing.
-                  EcoByte checks casing stress, screen integrity, and lithium battery swelling
-                  before you walk to a drop-off bin.
+                  Snap Front, Back, Left, and Right views using guided camera framing. EcoByte checks
+                  casing stress, screen integrity, and lithium battery swelling before you walk to a
+                  drop-off bin.
                 </Typography>
 
                 <Box
@@ -287,7 +287,7 @@ export const FeatureShowcases: FC = () => {
                   sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, mt: 2.5, mb: 3 }}
                 >
                   {[
-                    'Guided 6-slot capture covering Front, Back, Left, Right, Top, and Bottom',
+                    'Guided 4-slot capture covering Front, Back, Left, and Right',
                     'Lithium battery swelling and thermal hazard screening',
                     'Instant route recommendation for Reuse, Repair, or Safe Recovery',
                   ].map((item) => (
@@ -296,13 +296,13 @@ export const FeatureShowcases: FC = () => {
                       className="eco-stagger-item"
                       sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}
                     >
-                      <CheckCircleRoundedIcon sx={{ fontSize: 20, color: '#4f5f4b', flexShrink: 0 }} />
+                      <CheckCircleRoundedIcon sx={{ fontSize: 20, color: 'var(--eco-mint-ink)', flexShrink: 0 }} />
                       <Typography
                         sx={{
                           fontFamily: "'Quicksand', sans-serif",
                           fontWeight: 700,
                           fontSize: '0.9375rem',
-                          color: '#0f172a',
+                          color: 'var(--eco-ink)',
                         }}
                       >
                         {item}
@@ -313,7 +313,7 @@ export const FeatureShowcases: FC = () => {
 
                 <RouterLink to={getAuthHref('/scan')} className="eco-btn eco-btn-moss">
                   <CameraAltRoundedIcon sx={{ fontSize: 18 }} />
-                  <span>Try 6-Angle Scanner</span>
+                  <span>Try 4-Angle Scanner</span>
                 </RouterLink>
               </div>
             </div>
@@ -328,7 +328,7 @@ export const FeatureShowcases: FC = () => {
                       fontFamily: "'Inter', sans-serif",
                       fontWeight: 500,
                       fontSize: { xs: '0.975rem', md: '1.05rem' },
-                      color: '#475569',
+                      color: 'var(--eco-ink-muted)',
                       mt: 1.75,
                       lineHeight: 1.65,
                     }}
@@ -356,9 +356,9 @@ export const FeatureShowcases: FC = () => {
                       <Box
                         className="eco-mono"
                         sx={{
-                          backgroundColor: '#eef3ed',
-                          color: '#2d3e2c',
-                          border: '1.5px solid #c4d9c0',
+                          backgroundColor: 'var(--eco-mint-pill)',
+                          color: 'var(--eco-mint-ink)',
+                          border: '1.5px solid var(--eco-border)',
                           borderRadius: '10px',
                           px: 1.1,
                           py: 0.6,
@@ -375,7 +375,7 @@ export const FeatureShowcases: FC = () => {
                             fontFamily: "'Rethink Sans', sans-serif",
                             fontWeight: 800,
                             fontSize: '1.025rem',
-                            color: '#0f172a',
+                            color: 'var(--eco-ink)',
                           }}
                         >
                           {step.title}
@@ -385,7 +385,7 @@ export const FeatureShowcases: FC = () => {
                             fontFamily: "'Inter', sans-serif",
                             fontWeight: 500,
                             fontSize: '0.875rem',
-                            color: '#475569',
+                            color: 'var(--eco-ink-muted)',
                             mt: 0.4,
                             lineHeight: 1.55,
                           }}
@@ -472,12 +472,12 @@ export const FeatureShowcases: FC = () => {
                       <StepperTracker steps={LANDING_TRACKER_STEPS} currentStep={3} />
                     </Box>
 
-                    {/* Digital Locker Pass Card */}
+                    {/* Digital Pickup Pass Card */}
                     <Box
                       sx={{
                         mt: 'auto',
-                        backgroundColor: '#eef3ed',
-                        border: '2px dashed #4f5f4b',
+                        backgroundColor: '#f1f4f0',
+                        border: '2px dashed #266317',
                         borderRadius: '16px',
                         p: 1.75,
                       }}
@@ -494,10 +494,10 @@ export const FeatureShowcases: FC = () => {
                             fontFamily: "'Quicksand', sans-serif",
                             fontWeight: 700,
                             fontSize: '0.72rem',
-                            color: '#2d3e2c',
+                            color: '#266317',
                           }}
                         >
-                          Digital Locker Pass
+                          Digital Pickup Pass
                         </Typography>
                         <StatusBadge label="Reserved" variant="available" size="sm" />
                       </Box>
@@ -506,7 +506,7 @@ export const FeatureShowcases: FC = () => {
                         sx={{
                           fontWeight: 800,
                           fontSize: '1.35rem',
-                          color: '#0f172a',
+                          color: '#0F2417',
                           mt: 0.6,
                           letterSpacing: '0.04em',
                         }}
@@ -520,7 +520,7 @@ export const FeatureShowcases: FC = () => {
                           justifyContent: 'space-between',
                           mt: 1,
                           pt: 1,
-                          borderTop: '1px solid #c4d9c0',
+                          borderTop: '1px solid #c5dcba',
                         }}
                       >
                         <Typography
@@ -528,14 +528,14 @@ export const FeatureShowcases: FC = () => {
                             fontFamily: "'Quicksand', sans-serif",
                             fontWeight: 700,
                             fontSize: '0.75rem',
-                            color: '#2d3e2c',
+                            color: '#266317',
                           }}
                         >
-                          Area 1 Eco-Hub Desk 2
+                          Base 1 - Brgy. Hall Complex Eco-Hub
                         </Typography>
                         <Typography
                           className="eco-mono"
-                          sx={{ fontWeight: 700, fontSize: '0.72rem', color: '#1a3311' }}
+                          sx={{ fontWeight: 700, fontSize: '0.72rem', color: '#0F2417' }}
                         >
                           +180 pts
                         </Typography>
@@ -657,25 +657,25 @@ export const FeatureShowcases: FC = () => {
               </div>
 
               <div className="eco-showcase-copy-col" data-scroll-reveal="header">
-                <h3 className="eco-display-h3">Commonwealth 9-Area Drop-Off Finder</h3>
+                <h3 className="eco-display-h3">Commonwealth 9-Base Drop-Off Finder</h3>
                 <Typography
                   sx={{
                     fontFamily: "'Inter', sans-serif",
                     fontWeight: 500,
                     fontSize: { xs: '0.975rem', md: '1.05rem' },
-                    color: '#475569',
+                    color: 'var(--eco-ink-muted)',
                     mt: 1.75,
                     mb: 3,
                     lineHeight: 1.65,
                   }}
                 >
                   Filter staffed Material Recovery Facilities and 24/7 Smart Bins across all nine
-                  Barangay Commonwealth clusters, sorted by distance and hazardous-battery
-                  accreditation.
+                  Barangay Commonwealth bases by Open Now, Staffed, 24/7 Smart Bin, and live
+                  distance.
                 </Typography>
 
                 <RouterLink to={getAuthHref('/drop-offs')} className="eco-btn eco-btn-white">
-                  <MapRoundedIcon sx={{ fontSize: 18, color: '#4f5f4b' }} />
+                  <MapRoundedIcon sx={{ fontSize: 18, color: 'var(--eco-mint-ink)' }} />
                   <span>Open Live Drop-Off Map</span>
                 </RouterLink>
               </div>
@@ -689,9 +689,9 @@ export const FeatureShowcases: FC = () => {
         component="section"
         aria-labelledby="walkthrough-heading"
         sx={{
-          backgroundColor: '#eef3ed',
-          borderTop: '2px solid #dce4dc',
-          borderBottom: '2px solid #dce4dc',
+          backgroundColor: 'var(--eco-moss-tint)',
+          borderTop: '2px solid var(--eco-border)',
+          borderBottom: '2px solid var(--eco-border)',
           py: { xs: 8, md: 10 },
         }}
       >
@@ -705,7 +705,7 @@ export const FeatureShowcases: FC = () => {
                 fontFamily: "'Inter', sans-serif",
                 fontWeight: 500,
                 fontSize: { xs: '0.975rem', md: '1.05rem' },
-                color: '#475569',
+                color: 'var(--eco-ink-muted)',
                 mt: 1.5,
                 lineHeight: 1.6,
               }}
@@ -756,7 +756,7 @@ export const FeatureShowcases: FC = () => {
                       >
                         #SCAN-9042
                       </Typography>
-                      <StatusBadge label="6/6 Angles Verified" variant="available" size="sm" />
+                      <StatusBadge label="4/4 Angles Verified" variant="available" size="sm" />
                     </Box>
 
                     <Box
@@ -809,11 +809,11 @@ export const FeatureShowcases: FC = () => {
 
                     <Box sx={{ mt: 'auto' }}>
                       <RouterLink
-                        to={getAuthHref('/diagnostic')}
+                        to={getAuthHref('/scan')}
                         className="eco-btn eco-btn-moss eco-btn-sm"
                         style={{ width: '100%' }}
                       >
-                        Route to Safe Recovery
+                        Start 4-Angle Scan
                       </RouterLink>
                     </Box>
                   </>
@@ -873,30 +873,30 @@ export const FeatureShowcases: FC = () => {
                             fontFamily: "'Quicksand', sans-serif",
                             fontWeight: 600,
                             fontSize: '0.72rem',
-                            color: '#475569',
+                            color: '#425243',
                           }}
                         >
-                          Barangay Commonwealth MRF Desk 2
+                          Base 1 - Brgy. Hall Complex Eco-Hub
                         </Typography>
                       </Box>
                     </Box>
 
                     <Box
                       sx={{
-                        backgroundColor: '#eef3ed',
-                        border: '2px dashed #4f5f4b',
+                        backgroundColor: '#f1f4f0',
+                        border: '2px dashed #266317',
                         borderRadius: '16px',
                         p: 1.75,
                         textAlign: 'center',
                       }}
                     >
-                      <QrCode2RoundedIcon sx={{ fontSize: 56, color: '#0f172a' }} />
+                      <QrCode2RoundedIcon sx={{ fontSize: 56, color: '#0F2417' }} />
                       <Typography
                         className="eco-mono"
                         sx={{
                           fontWeight: 800,
                           fontSize: '1.35rem',
-                          color: '#0f172a',
+                          color: '#0F2417',
                           letterSpacing: '0.06em',
                           mt: 0.4,
                         }}
@@ -907,11 +907,11 @@ export const FeatureShowcases: FC = () => {
 
                     <Box sx={{ mt: 'auto' }}>
                       <RouterLink
-                        to={getAuthHref('/reservation-code')}
+                        to={getAuthHref('/reuse')}
                         className="eco-btn eco-btn-moss eco-btn-sm"
                         style={{ width: '100%' }}
                       >
-                        Open Reservation Pass
+                        Browse Reuse Hub
                       </RouterLink>
                     </Box>
                   </>
@@ -933,14 +933,14 @@ export const FeatureShowcases: FC = () => {
                         height: 132,
                         objectFit: 'cover',
                         borderRadius: '14px',
-                        border: '1.5px solid #dce4dc',
+                        border: '1.5px solid #dbe3d6',
                       }}
                     />
 
                     <Box
                       sx={{
                         backgroundColor: '#ffffff',
-                        border: '1.5px solid #dce4dc',
+                        border: '1.5px solid #dbe3d6',
                         borderRadius: '12px',
                         p: 1.15,
                       }}
@@ -951,10 +951,10 @@ export const FeatureShowcases: FC = () => {
                             fontFamily: "'Rethink Sans', sans-serif",
                             fontWeight: 800,
                             fontSize: '0.82rem',
-                            color: '#0f172a',
+                            color: '#0F2417',
                           }}
                         >
-                          Area 1 Eco-Hub
+                          Base 1 - Brgy. Hall Complex
                         </Typography>
                         <StatusBadge label="Open Now" variant="available" size="sm" />
                       </Box>
@@ -963,18 +963,18 @@ export const FeatureShowcases: FC = () => {
                           fontFamily: "'Quicksand', sans-serif",
                           fontWeight: 600,
                           fontSize: '0.72rem',
-                          color: '#475569',
+                          color: '#425243',
                           mt: 0.3,
                         }}
                       >
-                        Katuparan St, Barangay Hall Complex
+                        Commonwealth Area 1 Eco-Hub
                       </Typography>
                     </Box>
 
                     <Box
                       sx={{
                         backgroundColor: '#ffffff',
-                        border: '1.5px solid #dce4dc',
+                        border: '1.5px solid #dbe3d6',
                         borderRadius: '12px',
                         p: 1.15,
                         display: 'flex',
@@ -983,21 +983,21 @@ export const FeatureShowcases: FC = () => {
                       }}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                        <LocationOnRoundedIcon sx={{ fontSize: 16, color: '#4f5f4b' }} />
+                        <LocationOnRoundedIcon sx={{ fontSize: 16, color: '#266317' }} />
                         <Typography
                           sx={{
                             fontFamily: "'Quicksand', sans-serif",
                             fontWeight: 700,
                             fontSize: '0.75rem',
-                            color: '#0f172a',
+                            color: '#0F2417',
                           }}
                         >
-                          Area 4 Litex Smart Bin
+                          Base 3 - Don Fabian Smart Bin
                         </Typography>
                       </Box>
                       <Typography
                         className="eco-mono"
-                        sx={{ fontWeight: 700, fontSize: '0.7rem', color: '#4f5f4b' }}
+                        sx={{ fontWeight: 700, fontSize: '0.7rem', color: '#266317' }}
                       >
                         24/7
                       </Typography>
@@ -1009,7 +1009,7 @@ export const FeatureShowcases: FC = () => {
                         className="eco-btn eco-btn-moss eco-btn-sm"
                         style={{ width: '100%' }}
                       >
-                        Browse All 9 Areas
+                        Browse All 9 Bases
                       </RouterLink>
                     </Box>
                   </>
@@ -1025,7 +1025,7 @@ export const FeatureShowcases: FC = () => {
                   fontFamily: "'Inter', sans-serif",
                   fontWeight: 500,
                   fontSize: '0.975rem',
-                  color: '#475569',
+                  color: 'var(--eco-ink-muted)',
                   mt: 1.5,
                   lineHeight: 1.65,
                 }}
@@ -1036,13 +1036,13 @@ export const FeatureShowcases: FC = () => {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, mt: 2.5, mb: 3 }}>
                 {activeMode.highlights.map((pt) => (
                   <Box key={pt} sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-                    <CheckCircleRoundedIcon sx={{ fontSize: 19, color: '#4f5f4b', flexShrink: 0 }} />
+                    <CheckCircleRoundedIcon sx={{ fontSize: 19, color: 'var(--eco-mint-ink)', flexShrink: 0 }} />
                     <Typography
                       sx={{
                         fontFamily: "'Quicksand', sans-serif",
                         fontWeight: 700,
                         fontSize: '0.9rem',
-                        color: '#0f172a',
+                        color: 'var(--eco-ink)',
                       }}
                     >
                       {pt}

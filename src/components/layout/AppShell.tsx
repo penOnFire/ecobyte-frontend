@@ -50,9 +50,11 @@ import {
   dropoffsApi,
   extractFirstName,
   getCachedUser,
+  resolveAuthRole,
   setCachedUser,
   type DashboardSummary,
 } from '@/lib/api'
+import { ForcePasswordResetModal } from '@/components/auth/ForcePasswordResetModal'
 import {
   installAudioUnlockListener,
   isNotificationSoundMuted,
@@ -413,6 +415,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
               <LocationOnRoundedIcon sx={{ fontSize: 16, color: '#ABF06B' }} />
               <Typography
+                title={areaLabel}
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 700,
@@ -423,7 +426,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                   whiteSpace: 'nowrap',
                 }}
               >
-                Base 8 - Pilot Area
+                {areaLabel}
               </Typography>
             </Box>
             <ArrowDropDownRoundedIcon sx={{ fontSize: 18, color: '#ABF06B' }} />
@@ -447,7 +450,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               label="My Requests"
               icon={<ReceiptLongRoundedIcon sx={{ fontSize: 19 }} />}
               active={isActive('/requests')}
-              badge={summary.activeRequestsCount || 1}
+              badge={summary.activeRequestsCount > 0 ? summary.activeRequestsCount : undefined}
               onClick={() => navigate('/requests')}
             />
             <SidebarNavItem
@@ -501,6 +504,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               </Box>
               <Box sx={{ minWidth: 0 }}>
                 <Typography
+                  title={fullName}
                   sx={{
                     fontFamily: "'Quicksand', sans-serif",
                     fontWeight: 700,
@@ -511,7 +515,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  Resident User
+                  {fullName}
                 </Typography>
                 <Typography
                   onClick={(e) => {
@@ -1573,6 +1577,24 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
           </Alert>
         </Snackbar>
       </Box>
+
+      <ForcePasswordResetModal
+        open={Boolean(currentUser?.mustChangePassword)}
+        userEmail={currentUser?.email}
+        onSuccess={(updatedUser) => {
+          const normalized = {
+            ...updatedUser,
+            role: resolveAuthRole(updatedUser.role, updatedUser.email).toLowerCase(),
+            mustChangePassword: false,
+          }
+          setCachedUser(normalized)
+          setCurrentUser(normalized)
+        }}
+        onSignOut={() => {
+          authApi.logout()
+          navigate('/signin', { replace: true })
+        }}
+      />
     </Box>
   )
 }

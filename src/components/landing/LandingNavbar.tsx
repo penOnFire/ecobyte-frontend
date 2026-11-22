@@ -64,7 +64,7 @@ export const LandingNavbar: FC = () => {
                 width: 36,
                 height: 36,
                 borderRadius: '10px',
-                border: '1.5px solid #dce4dc',
+                border: '1.5px solid var(--eco-border)',
                 backgroundColor: '#ffffff',
               }}
             />
@@ -75,7 +75,7 @@ export const LandingNavbar: FC = () => {
                 fontWeight: 800,
                 fontSize: '1.35rem',
                 letterSpacing: '-0.02em',
-                color: '#0f172a',
+                color: 'var(--eco-ink)',
               }}
             >
               EcoByte
@@ -154,14 +154,14 @@ export const LandingNavbar: FC = () => {
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 700,
                   fontSize: '0.95rem',
-                  color: '#0f172a',
+                  color: 'var(--eco-ink)',
                   textDecoration: 'none',
                   px: 1.5,
                   py: 1.1,
                   borderRadius: '12px',
                   '&:hover': {
-                    backgroundColor: '#eef3ed',
-                    color: '#4f5f4b',
+                    backgroundColor: 'var(--eco-moss-tint)',
+                    color: 'var(--eco-mint-ink)',
                   },
                 }}
               >
@@ -176,7 +176,7 @@ export const LandingNavbar: FC = () => {
                 gap: 1.25,
                 mt: 1,
                 pt: 1.5,
-                borderTop: '1px solid #dce4dc',
+                borderTop: '1px solid var(--eco-border)',
               }}
             >
               <RouterLink

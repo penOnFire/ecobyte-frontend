@@ -3,6 +3,7 @@ import {
   Alert,
   Box,
   ButtonBase,
+  CircularProgress,
   Snackbar,
   Typography,
 } from '@mui/material'
@@ -13,118 +14,109 @@ import TvRoundedIcon from '@mui/icons-material/TvRounded'
 import BatteryChargingFullRoundedIcon from '@mui/icons-material/BatteryChargingFullRounded'
 import CableRoundedIcon from '@mui/icons-material/CableRounded'
 import KitchenRoundedIcon from '@mui/icons-material/KitchenRounded'
+import { COMMONWEALTH_BASES } from '@/components/admin/adminAccessData'
 import { adminApi, type AdminReportsData } from '@/lib/api'
 
 type ReportTab = 'totals' | 'requests' | 'reuse'
 
-const BARANGAYS = [
-  { id: '', name: 'All barangays' },
-  { id: 'commonwealth', name: 'Commonwealth' },
-  { id: 'batasan', name: 'Batasan Hills' },
-  { id: 'payatas', name: 'Payatas' },
-  { id: 'holyspirit', name: 'Holy Spirit' },
-  { id: 'bagongsilangan', name: 'Bagong Silangan' },
+const BASE_FILTERS = [
+  { id: '', name: 'All 9 bases (Commonwealth)' },
+  ...COMMONWEALTH_BASES.map((b) => ({ id: String(b.id), name: b.name })),
 ]
 
-const getInitialReportsData = (): AdminReportsData => {
-  const localRequests: any[] = (() => {
-    try {
-      return JSON.parse(localStorage.getItem('ecobyte_dropoff_requests') || '[]')
-    } catch {
-      return []
-    }
-  })()
-  const localListings: any[] = (() => {
-    try {
-      return JSON.parse(localStorage.getItem('ecobyte_reuse_listings') || '[]')
-    } catch {
-      return []
-    }
-  })()
-  const localClaims: any[] = (() => {
-    try {
-      return JSON.parse(localStorage.getItem('ecobyte_user_reservations') || '[]')
-    } catch {
-      return []
-    }
-  })()
-
-  const scheduled = localRequests.filter((r) => (r.status || '').toLowerCase() === 'scheduled').length
-  const underInspection = localRequests.filter((r) => (r.status || '').toLowerCase().includes('inspect')).length
-  const turnedOver = localRequests.filter((r) => (r.status || '').toLowerCase().includes('turned')).length
-  const missed = localRequests.filter((r) => (r.status || '').toLowerCase() === 'missed').length
-  const completed = turnedOver
-
-  const reservedClaims = localClaims.filter((c) => c.status === 'RESERVED' || c.status === 'Reserved').length
-  const pickedUpClaims = localClaims.filter((c) => c.status === 'CLAIMED' || c.status === 'Picked Up').length
-
-  return {
-    totals: {
-      totalVolumeProcessed: localRequests.length,
-      totalWeightKg: localRequests.length * 2.0,
-      divertedKgTotal: turnedOver * 2.0,
-      activeRequests: scheduled + underInspection,
-      completedRequests: completed,
-      missedRequests: missed,
-      diversionRatePct: localRequests.length > 0 ? Math.round((completed / localRequests.length) * 100) : 0,
-    },
-    ewasteType: [
-      { name: 'Mobile Phone', units: 0, weightKg: 0, hazardUnits: 0, reuseRatePercent: 0 },
-      { name: 'Laptop', units: 0, weightKg: 0, hazardUnits: 0, reuseRatePercent: 0 },
-      { name: 'Battery / Power Bank', units: 0, weightKg: 0, hazardUnits: 0, reuseRatePercent: 0 },
-      { name: 'Monitor / TV', units: 0, weightKg: 0, hazardUnits: 0, reuseRatePercent: 0 },
-      { name: 'Charger & Cables', units: 0, weightKg: 0, hazardUnits: 0, reuseRatePercent: 0 },
-      { name: 'Small Appliance', units: 0, weightKg: 0, hazardUnits: 0, reuseRatePercent: 0 },
-    ],
-    requests: {
-      total: localRequests.length,
-      scheduled,
-      underInspection,
-      turnedOver,
-      completed,
-      missed,
-      cancelled: 0,
-      fulfillmentRatePct: localRequests.length > 0 ? Math.round((completed / localRequests.length) * 100) : 0,
-    },
-    slotUsage: [
-      { facility: 'Commonwealth Central MRF (Base 1)', capacity: 40, booked: scheduled, available: Math.max(0, 40 - scheduled), utilizationPct: Math.round((scheduled / 40) * 100) },
-      { facility: 'Ecoville Covered Court', capacity: 25, booked: 0, available: 25, utilizationPct: 0 },
-      { facility: 'Litex Market Drop Point', capacity: 30, booked: 0, available: 30, utilizationPct: 0 },
-      { facility: 'Batasan Hills MRF Annex', capacity: 30, booked: 0, available: 30, utilizationPct: 0 },
-      { facility: 'Payatas Solid Waste Hub', capacity: 30, booked: 0, available: 30, utilizationPct: 0 },
-    ],
-    reuseHub: {
-      totalListed: localListings.length,
-      reserved: reservedClaims,
-      claimed: pickedUpClaims,
-      conversionRatePct: localListings.length > 0 ? Math.round((pickedUpClaims / localListings.length) * 100) : 0,
-      avgHoldDays: '3.0 days',
-    },
-  }
+const EMPTY_REPORTS_DATA: AdminReportsData = {
+  totals: {
+    totalVolumeProcessed: 0,
+    totalWeightKg: 0,
+    divertedKgTotal: 0,
+    activeRequests: 0,
+    completedRequests: 0,
+    missedRequests: 0,
+    diversionRatePct: 0,
+  },
+  ewasteType: [],
+  hazardRisk: {
+    total: 0,
+    low: { count: 0, pct: 0 },
+    medium: { count: 0, pct: 0 },
+    high: { count: 0, pct: 0 },
+  },
+  requests: {
+    total: 0,
+    scheduled: 0,
+    underInspection: 0,
+    turnedOver: 0,
+    completed: 0,
+    missed: 0,
+    cancelled: 0,
+    fulfillmentRatePct: 0,
+  },
+  slotUsage: [],
+  reuseHub: {
+    totalListed: 0,
+    reserved: 0,
+    claimed: 0,
+    conversionRatePct: 0,
+    avgHoldDays: '0.0 days',
+  },
 }
 
 export const AdminReportsPage: FC = () => {
   const [activeTab, setActiveTab] = useState<ReportTab>('totals')
-  const [selectedBrgy, setSelectedBrgy] = useState<string>('')
+  const [selectedBaseId, setSelectedBaseId] = useState<string>('')
   const [selectedRange, setSelectedRange] = useState<string>('56')
-  const [reportsData, setReportsData] = useState<AdminReportsData>(getInitialReportsData)
+  const [reportsData, setReportsData] = useState<AdminReportsData>(EMPTY_REPORTS_DATA)
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [exportToast, setExportToast] = useState(false)
 
   useEffect(() => {
-    adminApi
-      .getReportsData()
-      .then((res: AdminReportsData) => {
-        if (res) setReportsData(res)
-      })
-      .catch((err: unknown) => {
-        console.warn('Could not load reports, using standard dataset:', err)
-      })
-  }, [selectedBrgy, selectedRange])
+    let active = true
 
-  const data = reportsData || getInitialReportsData()
+    adminApi
+      .getReportsData({
+        baseId: selectedBaseId || undefined,
+        days: selectedRange,
+      })
+      .then((res) => {
+        if (active && res) {
+          setReportsData(res)
+          setLoadError(null)
+        }
+      })
+      .catch((err: any) => {
+        if (active) {
+          console.warn('Could not load reports from database:', err)
+          setLoadError(err?.message || 'Unable to load reports from database.')
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setIsLoading(false)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [selectedBaseId, selectedRange])
+
+  const handleBaseChange = (nextBaseId: string) => {
+    setIsLoading(true)
+    setLoadError(null)
+    setSelectedBaseId(nextBaseId)
+  }
+
+  const handleRangeChange = (nextRange: string) => {
+    setIsLoading(true)
+    setLoadError(null)
+    setSelectedRange(nextRange)
+  }
+
+  const data = reportsData
 
   const handleExportCSV = () => {
-    let filename = `ecobyte-${activeTab}-${new Date().toISOString().slice(0, 10)}.csv`
+    const filename = `ecobyte-${activeTab}-${new Date().toISOString().slice(0, 10)}.csv`
     let rows: string[][] = []
 
     if (activeTab === 'totals') {
@@ -133,22 +125,30 @@ export const AdminReportsPage: FC = () => {
         ...data.ewasteType.map((c) => [
           c.name,
           String(c.units),
-          String(Math.round(c.units * 0.85)),
-          String(Math.round(c.units * 0.85 * (c.reuseRatePercent / 100))),
-          String(Math.round(c.units * 0.85 * (1 - c.reuseRatePercent / 100))),
+          String(c.turnedOverUnits),
+          String(c.reuseUnits),
+          String(c.disposalUnits),
           String(c.weightKg.toFixed(1)),
         ]),
       ]
     } else if (activeTab === 'requests') {
       rows = [
-        ['Drop-off site', 'Barangay', '8-10 AM', '10-12 PM', '1-3 PM', '3-5 PM', 'Booked', 'Capacity (7d)', 'Utilization'],
+        [
+          'Drop-off site',
+          'Base',
+          'Morning (8-11:30 AM)',
+          'Afternoon (1-3:30 PM)',
+          'Evening (4-6 PM)',
+          'Booked',
+          'Capacity',
+          'Utilization',
+        ],
         ...data.slotUsage.map((s) => [
           s.facility,
-          'Commonwealth',
-          String(Math.round(s.booked * 0.3)),
-          String(Math.round(s.booked * 0.35)),
-          String(Math.round(s.booked * 0.2)),
-          String(Math.round(s.booked * 0.15)),
+          s.baseName,
+          String(s.morning),
+          String(s.afternoon),
+          String(s.evening),
           String(s.booked),
           String(s.capacity),
           `${s.utilizationPct}%`,
@@ -160,7 +160,7 @@ export const AdminReportsPage: FC = () => {
         ['Items Listed in Reuse Hub', String(data.reuseHub.totalListed)],
         ['Active Reservations', String(data.reuseHub.reserved)],
         ['Claimed Devices', String(data.reuseHub.claimed)],
-        ['Claim Conversion Rate', `${data.reuseHub.conversionRatePct}%`],
+        ['Pick-Up Conversion Rate', `${data.reuseHub.conversionRatePct}%`],
         ['Average Hold Duration', data.reuseHub.avgHoldDays],
       ]
     }
@@ -189,9 +189,29 @@ export const AdminReportsPage: FC = () => {
     return KitchenRoundedIcon
   }
 
+  const hazardBars = [
+    {
+      label: 'Low risk (Safe Handling)',
+      value: data.hazardRisk.low.count,
+      pct: data.hazardRisk.low.pct,
+      color: '#70b822',
+    },
+    {
+      label: 'Medium risk (Cathode/LCD)',
+      value: data.hazardRisk.medium.count,
+      pct: data.hazardRisk.medium.pct,
+      color: '#f59e0b',
+    },
+    {
+      label: 'High risk (Swollen Li-Ion)',
+      value: data.hazardRisk.high.count,
+      pct: data.hazardRisk.high.pct,
+      color: '#e11d48',
+    },
+  ]
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pb: 4, fontFamily: "'Quicksand', sans-serif" }}>
-      {/* Header card matching prototype */}
       <Box
         sx={{
           backgroundColor: '#ffffff',
@@ -201,7 +221,7 @@ export const AdminReportsPage: FC = () => {
           boxShadow: '0 1px 3px rgba(30, 46, 26, 0.04)',
         }}
       >
-        {/* Top Controls: 3 Tabs on left, Barangay + Range + Export CSV on right */}
+        {/* Top Controls: 3 Tabs on left, Base + Range + Export CSV on right */}
         <Box
           sx={{
             display: 'flex',
@@ -255,10 +275,13 @@ export const AdminReportsPage: FC = () => {
 
           {/* Filters & Export */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-            {/* Barangay selector */}
+            {isLoading && <CircularProgress size={18} sx={{ color: '#2e6022' }} />}
+
+            {/* Base selector */}
             <select
-              value={selectedBrgy}
-              onChange={(e) => setSelectedBrgy(e.target.value)}
+              aria-label="Filter reports by Commonwealth base"
+              value={selectedBaseId}
+              onChange={(e) => handleBaseChange(e.target.value)}
               style={{
                 height: '2.5rem',
                 borderRadius: '0.75rem',
@@ -271,7 +294,7 @@ export const AdminReportsPage: FC = () => {
                 outline: 'none',
               }}
             >
-              {BARANGAYS.map((b) => (
+              {BASE_FILTERS.map((b) => (
                 <option key={b.id} value={b.id}>
                   {b.name}
                 </option>
@@ -280,8 +303,9 @@ export const AdminReportsPage: FC = () => {
 
             {/* Date range selector */}
             <select
+              aria-label="Filter reports by date range"
               value={selectedRange}
-              onChange={(e) => setSelectedRange(e.target.value)}
+              onChange={(e) => handleRangeChange(e.target.value)}
               style={{
                 height: '2.5rem',
                 borderRadius: '0.75rem',
@@ -324,6 +348,12 @@ export const AdminReportsPage: FC = () => {
           </Box>
         </Box>
 
+        {loadError && (
+          <Alert severity="error" sx={{ mb: 3, borderRadius: '0.75rem' }}>
+            {loadError}
+          </Alert>
+        )}
+
         {/* Tab 1: Totals & E-Waste Types */}
         {activeTab === 'totals' && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5 }}>
@@ -363,7 +393,7 @@ export const AdminReportsPage: FC = () => {
               </Box>
             </Box>
 
-            {/* Split: Table on left, Hazard Donut Breakdown on right */}
+            {/* Split: Table on left, Hazard Breakdown on right */}
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', xl: '8fr 4fr' }, gap: 3, alignItems: 'start' }}>
               {/* Types Breakdown Table */}
               <Box sx={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '0.75rem' }}>
@@ -371,7 +401,7 @@ export const AdminReportsPage: FC = () => {
                   <thead>
                     <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                       <th style={{ padding: '10px 14px', fontWeight: 700 }}>E-waste type</th>
-                      <th style={{ padding: '10px 14px', fontWeight: 700 }}>Requests</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 700 }}>Submitted</th>
                       <th style={{ padding: '10px 14px', fontWeight: 700 }}>Turned over</th>
                       <th style={{ padding: '10px 14px', fontWeight: 700 }}>Reuse</th>
                       <th style={{ padding: '10px 14px', fontWeight: 700 }}>Disposal</th>
@@ -379,42 +409,48 @@ export const AdminReportsPage: FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.ewasteType.map((t) => {
-                      const Icon = getTypeIcon(t.name)
-                      const turned = Math.round(t.units * 0.85)
-                      const reuse = Math.round(turned * (t.reuseRatePercent / 100))
-                      const disposal = turned - reuse
-                      return (
-                        <tr key={t.name} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '10px 14px', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Icon sx={{ fontSize: 16, color: '#64748b' }} />
-                              <span>{t.name}</span>
-                            </Box>
-                          </td>
-                          <td style={{ padding: '10px 14px', fontWeight: 600 }}>{t.units}</td>
-                          <td style={{ padding: '10px 14px', fontWeight: 700 }}>{turned}</td>
-                          <td style={{ padding: '10px 14px', fontWeight: 700, color: '#4f8a24' }}>{reuse}</td>
-                          <td style={{ padding: '10px 14px', fontWeight: 700, color: '#b45309' }}>{disposal}</td>
-                          <td style={{ padding: '10px 14px', fontWeight: 700, whiteSpace: 'nowrap' }}>{t.weightKg.toFixed(1)} kg</td>
-                        </tr>
-                      )
-                    })}
+                    {data.ewasteType.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} style={{ padding: '24px 14px', textAlign: 'center', color: '#64748b', fontWeight: 600 }}>
+                          No e-waste records found for the selected base and timeframe.
+                        </td>
+                      </tr>
+                    ) : (
+                      data.ewasteType.map((t) => {
+                        const Icon = getTypeIcon(t.name)
+                        return (
+                          <tr key={t.name} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '10px 14px', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Icon sx={{ fontSize: 16, color: '#64748b' }} />
+                                <span>{t.name}</span>
+                              </Box>
+                            </td>
+                            <td style={{ padding: '10px 14px', fontWeight: 600 }}>{t.units}</td>
+                            <td style={{ padding: '10px 14px', fontWeight: 700 }}>{t.turnedOverUnits}</td>
+                            <td style={{ padding: '10px 14px', fontWeight: 700, color: '#4f8a24' }}>{t.reuseUnits}</td>
+                            <td style={{ padding: '10px 14px', fontWeight: 700, color: '#b45309' }}>{t.disposalUnits}</td>
+                            <td style={{ padding: '10px 14px', fontWeight: 700, whiteSpace: 'nowrap' }}>{t.weightKg.toFixed(1)} kg</td>
+                          </tr>
+                        )
+                      })
+                    )}
                   </tbody>
                 </table>
               </Box>
 
               {/* AI Hazard Risk Distribution */}
               <Box sx={{ p: 2.5, borderRadius: '0.75rem', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
-                <Typography sx={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a', mb: 2 }}>
-                  AI hazard risk distribution
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography sx={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a' }}>
+                    AI hazard risk distribution
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b' }}>
+                    {data.hazardRisk.total} assessed
+                  </Typography>
+                </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  {[
-                    { label: 'Low risk (Safe Handling)', value: 182, pct: 57, color: '#70b822' },
-                    { label: 'Medium risk (Cathode/LCD)', value: 94, pct: 29, color: '#f59e0b' },
-                    { label: 'High risk (Swollen Li-Ion)', value: 44, pct: 14, color: '#e11d48' },
-                  ].map((h) => (
+                  {hazardBars.map((h) => (
                     <Box key={h.label}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', mb: 0.5 }}>
                         <span style={{ fontWeight: 600, color: '#334155' }}>{h.label}</span>
@@ -436,10 +472,10 @@ export const AdminReportsPage: FC = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <Box>
               <Typography sx={{ fontSize: '0.9375rem', fontWeight: 700, color: '#0f172a' }}>
-                Slot usage · next 7 days
+                Drop-off slot usage across Commonwealth stations
               </Typography>
               <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500, mt: 0.25 }}>
-                Booked drop-offs per time slot vs. station capacity (per slot per day)
+                Actual booked drop-off requests per time window vs. station capacity
               </Typography>
             </Box>
 
@@ -448,43 +484,43 @@ export const AdminReportsPage: FC = () => {
                 <thead>
                   <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     <th style={{ padding: '10px 14px', fontWeight: 700 }}>Drop-off site</th>
-                    <th style={{ padding: '10px 14px', fontWeight: 700 }}>Barangay</th>
-                    <th style={{ padding: '10px 14px', fontWeight: 700 }}>8–10 AM</th>
-                    <th style={{ padding: '10px 14px', fontWeight: 700 }}>10 AM–12 PM</th>
-                    <th style={{ padding: '10px 14px', fontWeight: 700 }}>1–3 PM</th>
-                    <th style={{ padding: '10px 14px', fontWeight: 700 }}>3–5 PM</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 700 }}>Base</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 700 }}>Morning</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 700 }}>Afternoon</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 700 }}>Evening</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 700 }}>Booked</th>
                     <th style={{ padding: '10px 14px', fontWeight: 700 }}>Utilization</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.slotUsage.map((s, idx) => {
-                    const slot1 = Math.round(s.booked * 0.3)
-                    const slot2 = Math.round(s.booked * 0.35)
-                    const slot3 = Math.round(s.booked * 0.2)
-                    const slot4 = s.booked - slot1 - slot2 - slot3
-                    return (
-                      <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  {data.slotUsage.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} style={{ padding: '24px 14px', textAlign: 'center', color: '#64748b', fontWeight: 600 }}>
+                        No drop-off station records found for the selected filter.
+                      </td>
+                    </tr>
+                  ) : (
+                    data.slotUsage.map((s) => (
+                      <tr key={s.facility} style={{ borderBottom: '1px solid #f1f5f9' }}>
                         <td style={{ padding: '10px 14px', fontWeight: 700, whiteSpace: 'nowrap' }}>{s.facility}</td>
-                        <td style={{ padding: '10px 14px', fontWeight: 600 }}>Commonwealth</td>
+                        <td style={{ padding: '10px 14px', fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>{s.baseName}</td>
                         <td style={{ padding: '10px 14px' }}>
                           <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, backgroundColor: '#f1f4f0', color: '#3e6b27' }}>
-                            {slot1}
+                            {s.morning}
                           </span>
                         </td>
                         <td style={{ padding: '10px 14px' }}>
                           <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, backgroundColor: '#70b822', color: '#ffffff' }}>
-                            {slot2}
-                          </span>
-                        </td>
-                        <td style={{ padding: '10px 14px' }}>
-                          <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, backgroundColor: '#f1f4f0', color: '#3e6b27' }}>
-                            {slot3}
+                            {s.afternoon}
                           </span>
                         </td>
                         <td style={{ padding: '10px 14px' }}>
                           <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, backgroundColor: '#f1f5f9', color: '#475569' }}>
-                            {slot4}
+                            {s.evening}
                           </span>
+                        </td>
+                        <td style={{ padding: '10px 14px', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap' }}>
+                          {s.booked} / {s.capacity}
                         </td>
                         <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -495,8 +531,8 @@ export const AdminReportsPage: FC = () => {
                           </Box>
                         </td>
                       </tr>
-                    )
-                  })}
+                    ))
+                  )}
                 </tbody>
               </table>
             </Box>
@@ -549,7 +585,7 @@ export const AdminReportsPage: FC = () => {
         open={exportToast}
         autoHideDuration={3000}
         onClose={() => setExportToast(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert severity="success" variant="filled" onClose={() => setExportToast(false)}>
           CSV exported successfully!

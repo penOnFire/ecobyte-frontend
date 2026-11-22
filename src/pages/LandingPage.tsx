@@ -120,12 +120,12 @@ export const LandingPage: FC = () => {
                     fontWeight: 500,
                     fontSize: 'clamp(1rem, 1.5vw, 1.1875rem)',
                     lineHeight: 1.6,
-                    color: '#334155',
+                    color: 'var(--eco-ink-muted)',
                     maxWidth: 540,
                     mt: 2.5,
                   }}
                 >
-                  Scan a laptop, phone, or charger in six angles, verify battery safety in seconds,
+                  Scan a laptop, phone, or charger in four angles, verify battery safety in seconds,
                   and drop it off or claim working gear across Barangay Commonwealth.
                 </Typography>
 
@@ -142,10 +142,10 @@ export const LandingPage: FC = () => {
                   >
                     <RouterLink to={getAuthHref('/scan')} className="eco-btn eco-btn-lime eco-btn-lg">
                       <CameraAltRoundedIcon sx={{ fontSize: 20 }} />
-                      <span>Start 6-Angle Scan</span>
+                      <span>Start 4-Angle Scan</span>
                     </RouterLink>
                     <RouterLink to={getAuthHref('/reuse')} className="eco-btn eco-btn-white eco-btn-lg">
-                      <StorefrontRoundedIcon sx={{ fontSize: 20, color: '#4f5f4b' }} />
+                      <StorefrontRoundedIcon sx={{ fontSize: 20, color: 'var(--eco-mint-ink)' }} />
                       <span>Browse Reuse Hub</span>
                     </RouterLink>
                   </Box>
@@ -161,11 +161,11 @@ export const LandingPage: FC = () => {
                         fontFamily: "'Quicksand', sans-serif",
                         fontWeight: 700,
                         fontSize: '0.9rem',
-                        color: '#2d3e2c',
+                        color: 'var(--eco-mint-ink)',
                         textDecoration: 'none',
                       }}
                     >
-                      <span>Already have a resident or MRF account? Sign In</span>
+                      <span>Already have an account? Sign In</span>
                       <ArrowForwardRoundedIcon sx={{ fontSize: 16 }} />
                     </RouterLink>
                   </Box>
@@ -194,10 +194,10 @@ export const LandingPage: FC = () => {
                           height: 38,
                           borderRadius: '10px',
                           objectFit: 'cover',
-                          border: '2px solid #ffffff',
-                          boxShadow: '0 2px 6px rgba(15, 23, 42, 0.12)',
+                          border: '2px solid var(--eco-white)',
+                          boxShadow: '0 2px 6px rgba(15, 36, 23, 0.14)',
                           ml: idx === 0 ? -1 : -1.25,
-                          backgroundColor: '#ffffff',
+                          backgroundColor: 'var(--eco-white)',
                         }}
                       />
                     ))}
@@ -207,10 +207,10 @@ export const LandingPage: FC = () => {
                       fontFamily: "'Quicksand', sans-serif",
                       fontWeight: 700,
                       fontSize: '0.875rem',
-                      color: '#2d3e2c',
+                      color: 'var(--eco-ink)',
                     }}
                   >
-                    9 Barangay Eco-Depots serving Commonwealth, Quezon City
+                    9 Barangay Bases serving Commonwealth, Quezon City
                   </Typography>
                 </Box>
               </div>
@@ -245,7 +245,7 @@ export const LandingPage: FC = () => {
                             fontFamily: "'Rethink Sans', sans-serif",
                             fontWeight: 800,
                             fontSize: '0.85rem',
-                            color: '#0f172a',
+                            color: '#0F2417',
                           }}
                         >
                           Commonwealth Hub
@@ -254,11 +254,11 @@ export const LandingPage: FC = () => {
                       <StatusBadge label="Hub Live" variant="live" size="sm" />
                     </Box>
 
-                    {/* Active Locker Pass Card */}
+                    {/* Active Pickup Pass Card */}
                     <Box
                       sx={{
                         backgroundColor: '#ffffff',
-                        border: '1.5px solid #dce4dc',
+                        border: '1.5px solid #dbe3d6',
                         borderRadius: '14px',
                         p: 1.25,
                         display: 'flex',
@@ -275,7 +275,7 @@ export const LandingPage: FC = () => {
                           height: 52,
                           borderRadius: '10px',
                           objectFit: 'cover',
-                          border: '1px solid #dce4dc',
+                          border: '1px solid #dbe3d6',
                           flexShrink: 0,
                         }}
                       />
@@ -283,7 +283,7 @@ export const LandingPage: FC = () => {
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <Typography
                             className="eco-mono"
-                            sx={{ fontWeight: 700, fontSize: '0.72rem', color: '#2d3e2c' }}
+                            sx={{ fontWeight: 700, fontSize: '0.72rem', color: '#266317' }}
                           >
                             #ECO-4821
                           </Typography>
@@ -294,7 +294,7 @@ export const LandingPage: FC = () => {
                             fontFamily: "'Rethink Sans', sans-serif",
                             fontWeight: 800,
                             fontSize: '0.9rem',
-                            color: '#0f172a',
+                            color: '#0F2417',
                             mt: 0.2,
                           }}
                         >
@@ -305,10 +305,10 @@ export const LandingPage: FC = () => {
                             fontFamily: "'Quicksand', sans-serif",
                             fontWeight: 600,
                             fontSize: '0.7rem',
-                            color: '#475569',
+                            color: '#425243',
                           }}
                         >
-                          Area 1 Eco-Hub Locker
+                          Base 1 - Brgy. Hall Complex Eco-Hub
                         </Typography>
                       </Box>
                     </Box>
@@ -317,7 +317,7 @@ export const LandingPage: FC = () => {
                     <Box
                       sx={{
                         backgroundColor: '#ffffff',
-                        border: '1.5px solid #dce4dc',
+                        border: '1.5px solid #dbe3d6',
                         borderRadius: '14px',
                         p: 1.25,
                       }}
@@ -332,7 +332,7 @@ export const LandingPage: FC = () => {
                             height: 56,
                             borderRadius: '10px',
                             objectFit: 'cover',
-                            border: '1px solid #dce4dc',
+                            border: '1px solid #dbe3d6',
                             flexShrink: 0,
                           }}
                         />
@@ -349,7 +349,7 @@ export const LandingPage: FC = () => {
                                 fontFamily: "'Rethink Sans', sans-serif",
                                 fontWeight: 800,
                                 fontSize: '0.9rem',
-                                color: '#0f172a',
+                                color: '#0F2417',
                               }}
                             >
                               iPad Air 64GB
@@ -358,8 +358,8 @@ export const LandingPage: FC = () => {
                               component="span"
                               className="eco-mono"
                               sx={{
-                                backgroundColor: '#e8ffbf',
-                                color: '#1a3311',
+                                backgroundColor: '#CEEBC4',
+                                color: '#266317',
                                 borderRadius: '6px',
                                 px: 0.75,
                                 py: 0.2,
@@ -375,7 +375,7 @@ export const LandingPage: FC = () => {
                               fontFamily: "'Quicksand', sans-serif",
                               fontWeight: 600,
                               fontSize: '0.72rem',
-                              color: '#475569',
+                              color: '#425243',
                               mt: 0.35,
                             }}
                           >
@@ -389,7 +389,7 @@ export const LandingPage: FC = () => {
                     <Box
                       sx={{
                         backgroundColor: '#ffffff',
-                        border: '1.5px solid #dce4dc',
+                        border: '1.5px solid #dbe3d6',
                         borderRadius: '14px',
                         p: 1.25,
                       }}
@@ -399,7 +399,7 @@ export const LandingPage: FC = () => {
                           fontFamily: "'Quicksand', sans-serif",
                           fontWeight: 700,
                           fontSize: '0.6875rem',
-                          color: '#64748b',
+                          color: '#596556',
                           mb: 1,
                         }}
                       >

@@ -39,6 +39,8 @@ import {
   resolveAuthRole,
   setCachedUser,
 } from '@/lib/api'
+import type { User } from '@/types'
+import { ForcePasswordResetModal } from '@/components/auth/ForcePasswordResetModal'
 
 type DetectedAccountType = 'resident' | 'official' | 'admin'
 
@@ -111,6 +113,9 @@ export const SignInPage: FC = () => {
   const [forgotEmail, setForgotEmail] = useState('')
   const [forgotSubmitted, setForgotSubmitted] = useState(false)
   const [privacyOpen, setPrivacyOpen] = useState(false)
+  const [forceResetUser, setForceResetUser] = useState<User | null>(null)
+  const [pendingRedirect, setPendingRedirect] = useState<string>('/dashboard')
+  const [pendingTempPassword, setPendingTempPassword] = useState<string>('')
 
   // Countdown timer for 15-minute temporary lockout
   useEffect(() => {
@@ -184,29 +189,33 @@ export const SignInPage: FC = () => {
 
       localStorage.setItem('ecobyte_user_role', effectiveRole)
 
-      if (res?.user) {
-        setCachedUser({
-          ...res.user,
-          role: effectiveRole.toLowerCase(),
-        })
-      } else {
-        setCachedUser({
-          ...buildFallbackMockUser(effectiveRole, email),
-          role: effectiveRole.toLowerCase(),
-        })
+      const cachedSessionUser = res?.user
+        ? {
+            ...res.user,
+            role: effectiveRole.toLowerCase(),
+          }
+        : {
+            ...buildFallbackMockUser(effectiveRole, email),
+            role: effectiveRole.toLowerCase(),
+          }
+      setCachedUser(cachedSessionUser)
+
+      const targetRoute = safeRedirect
+        ? !isSuperAdmin && !isOfficial && safeRedirect.startsWith('/admin')
+          ? '/dashboard'
+          : safeRedirect
+        : isSuperAdmin || isOfficial
+          ? '/admin'
+          : '/dashboard'
+
+      if (res?.user?.mustChangePassword) {
+        setPendingTempPassword(password.trim())
+        setPendingRedirect(targetRoute)
+        setForceResetUser(cachedSessionUser)
+        return
       }
 
-      if (safeRedirect) {
-        if (!isSuperAdmin && !isOfficial && safeRedirect.startsWith('/admin')) {
-          navigate('/dashboard', { replace: true })
-        } else {
-          navigate(safeRedirect, { replace: true })
-        }
-      } else if (isSuperAdmin || isOfficial) {
-        navigate('/admin', { replace: true })
-      } else {
-        navigate('/dashboard', { replace: true })
-      }
+      navigate(targetRoute, { replace: true })
     } catch (err: any) {
       console.error('Authentication rejected by backend:', err)
 
@@ -1004,6 +1013,28 @@ export const SignInPage: FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <ForcePasswordResetModal
+        open={Boolean(forceResetUser)}
+        userEmail={forceResetUser?.email}
+        initialCurrentPassword={pendingTempPassword}
+        onSuccess={(updatedUser) => {
+          const effectiveRole = resolveAuthRole(updatedUser.role, updatedUser.email)
+          setCachedUser({
+            ...updatedUser,
+            role: effectiveRole.toLowerCase(),
+            mustChangePassword: false,
+          })
+          setForceResetUser(null)
+          navigate(pendingRedirect || '/dashboard', { replace: true })
+        }}
+        onSignOut={() => {
+          authApi.logout()
+          setForceResetUser(null)
+          setPendingTempPassword('')
+          setPassword('')
+        }}
+      />
     </Box>
   )
 }
