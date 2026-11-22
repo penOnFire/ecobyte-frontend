@@ -1,23 +1,37 @@
 :root {
-  --eco-moss: #4f5f4b;
-  --eco-moss-deep: #2d3e2c;
-  --eco-moss-hover: #43523f;
-  --eco-moss-tint: #eef3ed;
-  --eco-lime: #abf06b;
-  --eco-lime-lip: #6ea832;
+  /* Unified Resident (#0F2417 / #ABF06B / #FAF8F5) + Official (#2e6022 / #70b822 / #f1f4f0) Palette */
+  --eco-forest-dark: #0F2417;
+  --eco-forest-mid: #1E3E27;
+  --eco-moss: #266317;
+  --eco-moss-deep: #183321;
+  --eco-moss-hover: #1e4f12;
+  --eco-moss-tint: #f1f4f0;
+  --eco-mint-pill: #CEEBC4;
+  --eco-mint-ink: #266317;
+  --eco-lime: #ABF06B;
+  --eco-lime-bright: #70b822;
+  --eco-lime-lip: #58931b;
   --eco-lime-tint: #e8ffbf;
-  --eco-alabaster: #faf8f5;
+  --eco-alabaster: #FAF8F5;
+  --eco-sage-surface: #f6f8f4;
   --eco-white: #ffffff;
-  --eco-ink: #0f172a;
-  --eco-ink-muted: #475569;
-  --eco-ink-subtle: #64748b;
-  --eco-border: #dce4dc;
-  --eco-border-lip: #c1cdc1;
+  --eco-ink: #0F2417;
+  --eco-ink-muted: #425243;
+  --eco-ink-subtle: #596556;
+  --eco-border: #dbe3d6;
+  --eco-border-lip: #b6c6af;
   --eco-amber: #d97706;
   --eco-amber-bg: #fef3c7;
-  --eco-sky-top: #d7ece0;
-  --eco-sky-mid: #e7f2ea;
-  --eco-sky-bottom: #faf8f5;
+  --eco-sky-top: #dcefe0;
+  --eco-sky-mid: #ebf5ec;
+  --eco-sky-bottom: #FAF8F5;
+  --eco-navbar-glass: rgba(255, 255, 255, 0.96);
+  --eco-cloud-fill: rgba(255, 255, 255, 0.82);
+  --eco-cloud-mid-fill: #f4f9f5;
+  --eco-ridge-far: rgba(206, 235, 196, 0.68);
+  --eco-ridge-mid: #b6d9ad;
+  --eco-viaduct: #78957a;
+  --eco-viaduct-cap: #2e6022;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
@@ -130,25 +144,25 @@
 }
 
 .eco-btn-moss {
-  background-color: var(--eco-moss);
+  background: linear-gradient(135deg, #2e6022 0%, #4d8a22 100%);
   color: #ffffff;
   border-color: var(--eco-moss-deep);
-  border-bottom-color: var(--eco-moss-deep);
+  border-bottom-color: var(--eco-forest-dark);
 }
 
 .eco-btn-moss:hover {
-  background-color: var(--eco-moss-hover);
+  background: linear-gradient(135deg, #26521b 0%, #41771b 100%);
 }
 
 .eco-btn-lime {
-  background-color: var(--eco-lime);
-  color: var(--eco-ink);
+  background: linear-gradient(135deg, #ABF06B 0%, #95e14d 100%);
+  color: var(--eco-forest-dark);
   border-color: var(--eco-lime-lip);
-  border-bottom-color: var(--eco-lime-lip);
+  border-bottom-color: #3f6f12;
 }
 
 .eco-btn-lime:hover {
-  background-color: #9de55a;
+  background: linear-gradient(135deg, #9fe75a 0%, #86d63c 100%);
 }
 
 .eco-btn-lime:focus-visible,
@@ -247,7 +261,7 @@
 }
 
 .eco-navbar.is-scrolled {
-  background-color: rgba(255, 255, 255, 0.96);
+  background-color: var(--eco-navbar-glass);
   backdrop-filter: blur(8px);
   border-bottom-color: var(--eco-border);
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
@@ -277,7 +291,7 @@
   font-family: 'Quicksand', sans-serif;
   font-weight: 700;
   font-size: 0.9375rem;
-  color: #334155;
+  color: var(--eco-ink-muted);
   text-decoration: none;
   padding: 6px 8px;
   border-radius: 8px;
@@ -285,8 +299,8 @@
 }
 
 .eco-nav-link:hover {
-  color: var(--eco-moss);
-  background-color: rgba(79, 95, 75, 0.08);
+  color: var(--eco-mint-ink);
+  background-color: var(--eco-moss-tint);
 }
 
 .eco-nav-actions {
@@ -364,12 +378,15 @@
 .eco-hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(
-    180deg,
-    var(--eco-sky-top) 0%,
-    var(--eco-sky-mid) 58%,
-    var(--eco-sky-bottom) 100%
-  );
+  background:
+    radial-gradient(circle at 82% 18%, rgba(171, 240, 107, 0.22) 0%, transparent 45%),
+    radial-gradient(circle at 12% 12%, rgba(46, 96, 34, 0.1) 0%, transparent 42%),
+    linear-gradient(
+      180deg,
+      var(--eco-sky-top) 0%,
+      var(--eco-sky-mid) 56%,
+      var(--eco-sky-bottom) 100%
+    );
   padding-top: 108px;
   padding-bottom: 48px;
 }
@@ -421,11 +438,11 @@
   width: 100%;
   max-width: 336px;
   margin: 0 auto;
-  background-color: var(--eco-ink);
+  background: linear-gradient(180deg, #183321 0%, #0F2417 100%);
   border-radius: 42px;
   padding: 11px;
-  border: 3px solid #1e293b;
-  box-shadow: 0 22px 48px rgba(15, 23, 42, 0.18);
+  border: 3px solid #24462f;
+  box-shadow: 0 22px 48px rgba(15, 36, 23, 0.24);
   position: relative;
 }
 
@@ -440,6 +457,7 @@
 
 .eco-phone-screen {
   background-color: var(--eco-alabaster);
+  color: var(--eco-ink);
   border-radius: 32px;
   overflow: hidden;
   min-height: 470px;
@@ -704,7 +722,9 @@
 
 /* Bottom CTA Banner + Footer */
 .eco-cta-banner {
-  background: linear-gradient(180deg, var(--eco-moss) 0%, var(--eco-moss-deep) 100%);
+  background:
+    radial-gradient(circle at 80% 25%, rgba(171, 240, 107, 0.14) 0%, transparent 50%),
+    linear-gradient(160deg, #1e2e1a 0%, #0F2417 55%, #121c10 100%);
   padding: 64px 0 48px;
   overflow: hidden;
   position: relative;
@@ -1033,5 +1053,39 @@
 
   .eco-marquee-clone {
     display: none;
+  }
+}
+
+/* Forced Colors Mode Fallbacks (Windows High Contrast) */
+@media (forced-colors: active) {
+  .eco-btn,
+  .eco-card,
+  .eco-category-pill,
+  .eco-marquee-badge,
+  .eco-walkthrough-tab,
+  .eco-hamburger-btn,
+  .eco-phone-chassis {
+    background: Canvas;
+    color: CanvasText;
+    border-color: ButtonText;
+    box-shadow: none;
+  }
+
+  .eco-btn-moss,
+  .eco-btn-lime,
+  .eco-walkthrough-tab.is-active,
+  .eco-category-pill.is-active,
+  .eco-card-interactive.is-active {
+    background: Highlight;
+    color: HighlightText;
+    border-color: ButtonText;
+  }
+
+  .eco-btn:focus-visible,
+  .eco-card-interactive:focus-visible,
+  .eco-category-pill:focus-visible,
+  .eco-walkthrough-tab:focus-visible,
+  .eco-nav-link:focus-visible {
+    outline: 3px solid Highlight;
   }
 }

@@ -33,15 +33,15 @@ interface DeviceShowcaseSectionProps {
 const renderCategoryIcon = (icon: CategoryPillIconKey): ReactNode => {
   switch (icon) {
     case 'laptop':
-      return <LaptopMacRoundedIcon sx={{ fontSize: 18, color: '#4f5f4b' }} />
+      return <LaptopMacRoundedIcon sx={{ fontSize: 18, color: 'var(--eco-mint-ink)' }} />
     case 'smartphone':
-      return <SmartphoneRoundedIcon sx={{ fontSize: 18, color: '#4f5f4b' }} />
+      return <SmartphoneRoundedIcon sx={{ fontSize: 18, color: 'var(--eco-mint-ink)' }} />
     case 'tablet':
-      return <TabletMacRoundedIcon sx={{ fontSize: 18, color: '#4f5f4b' }} />
+      return <TabletMacRoundedIcon sx={{ fontSize: 18, color: 'var(--eco-mint-ink)' }} />
     case 'keyboard':
-      return <KeyboardRoundedIcon sx={{ fontSize: 18, color: '#4f5f4b' }} />
+      return <KeyboardRoundedIcon sx={{ fontSize: 18, color: 'var(--eco-mint-ink)' }} />
     case 'charger':
-      return <PowerRoundedIcon sx={{ fontSize: 18, color: '#4f5f4b' }} />
+      return <PowerRoundedIcon sx={{ fontSize: 18, color: 'var(--eco-mint-ink)' }} />
     case 'battery':
       return <BatteryAlertRoundedIcon sx={{ fontSize: 18, color: '#d97706' }} />
   }
@@ -101,13 +101,13 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                 fontFamily: "'Inter', sans-serif",
                 fontWeight: 500,
                 fontSize: { xs: '0.95rem', md: '1.05rem' },
-                color: '#475569',
+                color: 'var(--eco-ink-muted)',
                 mt: 1.25,
                 lineHeight: 1.6,
               }}
             >
-              Nine neighborhood eco-depots, 24/7 Smart Lockers, and MRF Central connected in one
-              Barangay Commonwealth loop.
+              Nine neighborhood bases, 24/7 Smart Bins, and MRF Central connected in one Barangay
+              Commonwealth loop.
             </Typography>
           </Box>
         </div>
@@ -121,9 +121,9 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                   <Box
                     component="span"
                     sx={{
-                      backgroundColor: '#eef3ed',
-                      color: '#2d3e2c',
-                      border: '1px solid #c4d9c0',
+                      backgroundColor: 'var(--eco-mint-pill)',
+                      color: 'var(--eco-mint-ink)',
+                      border: '1px solid var(--eco-border)',
                       borderRadius: '8px',
                       px: 1,
                       py: 0.25,
@@ -145,9 +145,9 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                   <Box
                     component="span"
                     sx={{
-                      backgroundColor: '#eef3ed',
-                      color: '#2d3e2c',
-                      border: '1px solid #c4d9c0',
+                      backgroundColor: 'var(--eco-mint-pill)',
+                      color: 'var(--eco-mint-ink)',
+                      border: '1px solid var(--eco-border)',
                       borderRadius: '8px',
                       px: 1,
                       py: 0.25,
@@ -174,14 +174,14 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                       width: 8,
                       height: 8,
                       borderRadius: '50%',
-                      backgroundColor: '#4f5f4b',
+                      backgroundColor: 'var(--eco-mint-ink)',
                       flexShrink: 0,
                     }}
                   />
                   <Box
                     component="span"
                     sx={{
-                      color: '#475569',
+                      color: 'var(--eco-ink-muted)',
                       fontSize: '0.8125rem',
                       fontWeight: 700,
                     }}
@@ -203,14 +203,14 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                       width: 8,
                       height: 8,
                       borderRadius: '50%',
-                      backgroundColor: '#4f5f4b',
+                      backgroundColor: 'var(--eco-mint-ink)',
                       flexShrink: 0,
                     }}
                   />
                   <Box
                     component="span"
                     sx={{
-                      color: '#475569',
+                      color: 'var(--eco-ink-muted)',
                       fontSize: '0.8125rem',
                       fontWeight: 700,
                     }}
@@ -231,7 +231,7 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
         id="device-switcher"
         aria-labelledby="device-switcher-heading"
         sx={{
-          backgroundColor: '#faf8f5',
+          backgroundColor: 'var(--eco-alabaster)',
           py: { xs: 7, md: 10 },
         }}
       >
@@ -249,7 +249,7 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                 fontFamily: "'Inter', sans-serif",
                 fontWeight: 500,
                 fontSize: { xs: '0.975rem', md: '1.0625rem' },
-                color: '#475569',
+                color: 'var(--eco-ink-muted)',
                 mt: 1.5,
                 lineHeight: 1.6,
               }}
@@ -284,9 +284,9 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                         height: 64,
                         borderRadius: '14px',
                         objectFit: 'cover',
-                        border: '1.5px solid #dce4dc',
+                        border: '1.5px solid var(--eco-border)',
                         flexShrink: 0,
-                        backgroundColor: '#f8fafc',
+                        backgroundColor: 'var(--eco-alabaster)',
                       }}
                     />
 
@@ -305,7 +305,7 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                             fontFamily: "'Rethink Sans', sans-serif",
                             fontWeight: 800,
                             fontSize: '1.05rem',
-                            color: '#0f172a',
+                            color: 'var(--eco-ink)',
                           }}
                         >
                           {device.name}
@@ -322,7 +322,7 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                           fontFamily: "'Quicksand', sans-serif",
                           fontWeight: 600,
                           fontSize: '0.8125rem',
-                          color: '#475569',
+                          color: 'var(--eco-ink-muted)',
                           mt: 0.25,
                         }}
                       >
@@ -341,15 +341,15 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                         <Box
                           component="span"
                           sx={{
-                            backgroundColor: isSelected ? '#ffffff' : '#f1f5f9',
-                            border: '1px solid #dce4dc',
+                            backgroundColor: isSelected ? 'var(--eco-white)' : 'var(--eco-alabaster)',
+                            border: '1px solid var(--eco-border)',
                             borderRadius: '8px',
                             px: 1,
                             py: 0.25,
                             fontFamily: "'Quicksand', sans-serif",
                             fontWeight: 700,
                             fontSize: '0.75rem',
-                            color: '#0f172a',
+                            color: 'var(--eco-ink)',
                           }}
                         >
                           {device.conditionGrade}
@@ -358,14 +358,14 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                           component="span"
                           className="eco-mono"
                           sx={{
-                            backgroundColor: '#e8ffbf',
-                            border: '1px solid #bde59e',
+                            backgroundColor: 'var(--eco-mint-pill)',
+                            border: '1px solid var(--eco-border)',
                             borderRadius: '8px',
                             px: 1,
                             py: 0.25,
                             fontWeight: 700,
                             fontSize: '0.75rem',
-                            color: '#1a3311',
+                            color: 'var(--eco-mint-ink)',
                           }}
                         >
                           {device.ecoPoints}
@@ -549,7 +549,7 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                         sx={{
                           width: `${selectedDevice.batteryPercent}%`,
                           height: '100%',
-                          backgroundColor: '#4f5f4b',
+                          backgroundColor: '#266317',
                           borderRadius: 9999,
                         }}
                       />
@@ -558,8 +558,8 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
 
                   <Box
                     sx={{
-                      backgroundColor: '#eef3ed',
-                      border: '1.5px solid #c4d9c0',
+                      backgroundColor: '#f1f4f0',
+                      border: '1.5px solid #c5dcba',
                       borderRadius: '12px',
                       p: 1.25,
                       display: 'flex',
@@ -572,7 +572,7 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                         fontFamily: "'Quicksand', sans-serif",
                         fontWeight: 700,
                         fontSize: '0.6875rem',
-                        color: '#2d3e2c',
+                        color: '#266317',
                       }}
                     >
                       Reward Estimate
@@ -582,7 +582,7 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                       sx={{
                         fontWeight: 700,
                         fontSize: '0.875rem',
-                        color: '#1a3311',
+                        color: '#0F2417',
                         mt: 0.5,
                       }}
                     >
@@ -598,20 +598,20 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     backgroundColor: '#ffffff',
-                    border: '1.5px solid #dce4dc',
+                    border: '1.5px solid #dbe3d6',
                     borderRadius: '12px',
                     px: 1.25,
                     py: 1,
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                    <LocationOnRoundedIcon sx={{ fontSize: 16, color: '#4f5f4b' }} />
+                    <LocationOnRoundedIcon sx={{ fontSize: 16, color: '#266317' }} />
                     <Typography
                       sx={{
                         fontFamily: "'Quicksand', sans-serif",
                         fontWeight: 700,
                         fontSize: '0.75rem',
-                        color: '#0f172a',
+                        color: '#0F2417',
                       }}
                     >
                       {selectedDevice.recommendedHub}
@@ -622,8 +622,8 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                     sx={{
                       fontWeight: 700,
                       fontSize: '0.72rem',
-                      color: '#4f5f4b',
-                      backgroundColor: '#eef3ed',
+                      color: '#266317',
+                      backgroundColor: '#CEEBC4',
                       px: 0.8,
                       py: 0.2,
                       borderRadius: '6px',

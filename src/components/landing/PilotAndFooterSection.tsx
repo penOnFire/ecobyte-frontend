@@ -24,7 +24,7 @@ export const PilotAndFooterSection: FC = () => {
         id="pilot"
         aria-labelledby="pilot-heading"
         sx={{
-          backgroundColor: '#faf8f5',
+          backgroundColor: 'var(--eco-alabaster)',
           py: { xs: 8, md: 10 },
         }}
       >
@@ -41,7 +41,7 @@ export const PilotAndFooterSection: FC = () => {
                 fontFamily: "'Inter', sans-serif",
                 fontWeight: 500,
                 fontSize: { xs: '0.975rem', md: '1.05rem' },
-                color: '#475569',
+                color: 'var(--eco-ink-muted)',
                 mt: 1.5,
                 lineHeight: 1.6,
               }}
@@ -56,9 +56,9 @@ export const PilotAndFooterSection: FC = () => {
             <Box
               className="eco-stagger-item"
               sx={{
-                backgroundColor: '#eef3ed',
-                border: '2px solid #c4d9c0',
-                borderBottom: '4px solid #78957a',
+                backgroundColor: 'var(--eco-moss-tint)',
+                border: '2px solid var(--eco-border)',
+                borderBottom: '4px solid var(--eco-border-lip)',
                 borderRadius: '22px',
                 p: { xs: 3, md: 4 },
                 display: 'flex',
@@ -74,30 +74,29 @@ export const PilotAndFooterSection: FC = () => {
                   fontFamily: "'Inter', sans-serif",
                   fontWeight: 500,
                   fontSize: '0.975rem',
-                  color: '#334155',
+                  color: 'var(--eco-ink-muted)',
                   mt: 1.5,
                   lineHeight: 1.65,
                 }}
               >
                 Equip MRF Central and barangay desk officers with intake inspection queues, lithium
-                hazard segregation logs, and live Smart Locker occupancy tracking across Areas 1 to
-                9.
+                hazard segregation logs, and live drop-off tracking across Bases 1 to 9.
               </Typography>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2, mt: 2.5, mb: 3.5 }}>
                 {[
                   'Physical Inspection Queue for MRF desk officers',
                   'DENR-EMB aligned hazardous battery disposal manifests',
-                  'Area 1 to 9 Smart Locker occupancy telemetry',
+                  'Base 1 to 9 intake and Reuse Hub reservation tracking',
                 ].map((item) => (
                   <Box key={item} sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-                    <CheckCircleRoundedIcon sx={{ fontSize: 19, color: '#2d3e2c', flexShrink: 0 }} />
+                    <CheckCircleRoundedIcon sx={{ fontSize: 19, color: 'var(--eco-mint-ink)', flexShrink: 0 }} />
                     <Typography
                       sx={{
                         fontFamily: "'Quicksand', sans-serif",
                         fontWeight: 700,
                         fontSize: '0.9rem',
-                        color: '#0f172a',
+                        color: 'var(--eco-ink)',
                       }}
                     >
                       {item}
@@ -114,13 +113,13 @@ export const PilotAndFooterSection: FC = () => {
               </Box>
             </Box>
 
-            {/* Card 2: Commonwealth Resident Program (Areas 1-9) */}
+            {/* Card 2: Commonwealth Resident Program (Bases 1-9) */}
             <Box
               className="eco-stagger-item"
               sx={{
-                backgroundColor: '#ffffff',
-                border: '2px solid #dce4dc',
-                borderBottom: '4px solid #c1cdc1',
+                backgroundColor: 'var(--eco-white)',
+                border: '2px solid var(--eco-border)',
+                borderBottom: '4px solid var(--eco-border-lip)',
                 borderRadius: '22px',
                 p: { xs: 3, md: 4 },
                 display: 'flex',
@@ -130,35 +129,35 @@ export const PilotAndFooterSection: FC = () => {
               <Box sx={{ mb: 1.5 }}>
                 <StatusBadge label="Verified Barangay Residents" variant="available" size="md" />
               </Box>
-              <h3 className="eco-display-h3">Commonwealth Resident Program (Areas 1–9)</h3>
+              <h3 className="eco-display-h3">Commonwealth Resident Program (Bases 1–9)</h3>
               <Typography
                 sx={{
                   fontFamily: "'Inter', sans-serif",
                   fontWeight: 500,
                   fontSize: '0.975rem',
-                  color: '#475569',
+                  color: 'var(--eco-ink-muted)',
                   mt: 1.5,
                   lineHeight: 1.65,
                 }}
               >
-                Exclusive household access across Katuparan, Lupang Pangako, Payatas Border, Litex,
-                Commonwealth Market, Pilot Area, Kasunduan, Holy Spirit, and Veterans Village.
+                Exclusive household access across Brgy. Hall Complex, Martan St., Don Fabian,
+                Katuparan, Riverside, Kristong Hari, Upper Kamias, Pilot Area, and Lupang Pangako.
               </Typography>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2, mt: 2.5, mb: 3.5 }}>
                 {[
-                  '6-angle device triage before drop-off or locker booking',
+                  '4-angle device triage before drop-off or hub scheduling',
                   'Verified Reuse Hub claims with Reservation Pass #ECO-4821',
                   'Household EcoPoints ledger credited at MRF turn-over',
                 ].map((item) => (
                   <Box key={item} sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-                    <CheckCircleRoundedIcon sx={{ fontSize: 19, color: '#4f5f4b', flexShrink: 0 }} />
+                    <CheckCircleRoundedIcon sx={{ fontSize: 19, color: 'var(--eco-mint-ink)', flexShrink: 0 }} />
                     <Typography
                       sx={{
                         fontFamily: "'Quicksand', sans-serif",
                         fontWeight: 700,
                         fontSize: '0.9rem',
-                        color: '#0f172a',
+                        color: 'var(--eco-ink)',
                       }}
                     >
                       {item}
@@ -211,7 +210,7 @@ export const PilotAndFooterSection: FC = () => {
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.75, mt: 3.5 }}>
                 <RouterLink to={getAuthHref('/scan')} className="eco-btn eco-btn-lime eco-btn-lg">
                   <CameraAltRoundedIcon sx={{ fontSize: 20 }} />
-                  <span>Start 6-Angle Scan</span>
+                  <span>Start 4-Angle Scan</span>
                 </RouterLink>
                 <RouterLink
                   to={getAuthHref('/drop-offs')}
@@ -271,7 +270,7 @@ export const PilotAndFooterSection: FC = () => {
                       fontFamily: "'Rethink Sans', sans-serif",
                       fontWeight: 800,
                       fontSize: '1rem',
-                      color: '#0f172a',
+                      color: '#0F2417',
                     }}
                   >
                     Lenovo ThinkPad T480
@@ -281,17 +280,17 @@ export const PilotAndFooterSection: FC = () => {
                       fontFamily: "'Quicksand', sans-serif",
                       fontWeight: 600,
                       fontSize: '0.75rem',
-                      color: '#475569',
+                      color: '#425243',
                       mt: 0.3,
                     }}
                   >
-                    Turned over at Area 1 Eco-Hub
+                    Turned over at Base 1 - Brgy. Hall Complex Eco-Hub
                   </Typography>
                   <Box
                     sx={{
                       mt: 1,
                       pt: 1,
-                      borderTop: '1px solid #e2e8f0',
+                      borderTop: '1px solid #dbe3d6',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
@@ -299,7 +298,7 @@ export const PilotAndFooterSection: FC = () => {
                   >
                     <Typography
                       className="eco-mono"
-                      sx={{ fontWeight: 700, fontSize: '0.75rem', color: '#2d3e2c' }}
+                      sx={{ fontWeight: 700, fontSize: '0.75rem', color: '#266317' }}
                     >
                       Pass #ECO-4821
                     </Typography>
@@ -318,8 +317,8 @@ export const PilotAndFooterSection: FC = () => {
         component="footer"
         aria-label="Footer"
         sx={{
-          backgroundColor: '#ffffff',
-          borderTop: '2px solid #dce4dc',
+          backgroundColor: 'var(--eco-white)',
+          borderTop: '2px solid var(--eco-border)',
           pt: { xs: 6, md: 7 },
           pb: 5,
         }}
@@ -337,7 +336,8 @@ export const PilotAndFooterSection: FC = () => {
                     width: 36,
                     height: 36,
                     borderRadius: '10px',
-                    border: '1.5px solid #dce4dc',
+                    border: '1.5px solid var(--eco-border)',
+                    backgroundColor: '#ffffff',
                   }}
                 />
                 <Typography
@@ -345,7 +345,7 @@ export const PilotAndFooterSection: FC = () => {
                     fontFamily: "'Rethink Sans', sans-serif",
                     fontWeight: 800,
                     fontSize: '1.35rem',
-                    color: '#0f172a',
+                    color: 'var(--eco-ink)',
                   }}
                 >
                   EcoByte
@@ -356,7 +356,7 @@ export const PilotAndFooterSection: FC = () => {
                   fontFamily: "'Inter', sans-serif",
                   fontWeight: 500,
                   fontSize: '0.9rem',
-                  color: '#475569',
+                  color: 'var(--eco-ink-muted)',
                   mt: 1.5,
                   maxWidth: 300,
                   lineHeight: 1.6,
@@ -375,7 +375,7 @@ export const PilotAndFooterSection: FC = () => {
                     fontFamily: "'Rethink Sans', sans-serif",
                     fontWeight: 800,
                     fontSize: '0.975rem',
-                    color: '#0f172a',
+                    color: 'var(--eco-ink)',
                     mb: 1.75,
                   }}
                 >
@@ -411,7 +411,7 @@ export const PilotAndFooterSection: FC = () => {
           {/* Bottom Legal & Alignment Strip */}
           <Box
             sx={{
-              borderTop: '1px solid #e2e8f0',
+              borderTop: '1px solid var(--eco-border)',
               mt: 5,
               pt: 3,
               display: 'flex',
@@ -426,7 +426,7 @@ export const PilotAndFooterSection: FC = () => {
                 fontFamily: "'Quicksand', sans-serif",
                 fontWeight: 600,
                 fontSize: '0.8125rem',
-                color: '#64748b',
+                color: 'var(--eco-ink-subtle)',
               }}
             >
               EcoByte Circular Electronics Lifecycle, Barangay Commonwealth, Quezon City

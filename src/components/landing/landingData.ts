@@ -126,9 +126,6 @@ export function getAuthHref(targetRoute: string): string {
   if (hasActiveSession()) {
     return targetRoute
   }
-  if (targetRoute.startsWith('/admin')) {
-    return `/admin/signin?redirect=${encodeURIComponent(targetRoute)}`
-  }
   return `/signin?redirect=${encodeURIComponent(targetRoute)}`
 }
 
@@ -137,7 +134,7 @@ export const NAV_LINKS: NavLinkItem[] = [
   { label: 'AI Triage', href: '#ai-triage' },
   { label: 'Reuse Hub', href: '#device-switcher' },
   { label: 'Commonwealth Map', href: '#commonwealth-map' },
-  { label: 'Barangay Pilot', href: '#pilot' },
+  { label: 'Program', href: '#pilot' },
 ]
 
 export const HERO_PROOF_THUMBNAILS: { src: string; alt: string }[] = [
@@ -192,23 +189,23 @@ export const DEVICE_CATEGORY_PILLS: CategoryPillItem[] = [
 ]
 
 export const MARQUEE_ROW_ONE: MarqueeLocationBadge[] = [
-  { id: 'm1-area1', zoneTag: 'Area 1', label: 'Brgy Hall Complex' },
-  { id: 'm1-area2', zoneTag: 'Area 2', label: 'Lupang Pangako' },
-  { id: 'm1-area3', zoneTag: 'Area 3', label: 'Payatas Border' },
-  { id: 'm1-area4', zoneTag: 'Area 4', label: 'Don Fabian / Litex' },
-  { id: 'm1-area5', zoneTag: 'Area 5', label: 'Commonwealth Market / MRT-7' },
-  { id: 'm1-area6', zoneTag: 'Area 6', label: 'Pilot Area Eco-Depot' },
-  { id: 'm1-area7', zoneTag: 'Area 7', label: 'Kasunduan / Batasan Rd' },
+  { id: 'm1-base1', zoneTag: 'Base 1', label: 'Brgy. Hall Complex' },
+  { id: 'm1-base2', zoneTag: 'Base 2', label: 'Martan St.' },
+  { id: 'm1-base3', zoneTag: 'Base 3', label: 'Don Fabian' },
+  { id: 'm1-base4', zoneTag: 'Base 4', label: 'Katuparan' },
+  { id: 'm1-base5', zoneTag: 'Base 5', label: 'Riverside' },
+  { id: 'm1-base6', zoneTag: 'Base 6', label: 'Kristong Hari' },
+  { id: 'm1-base7', zoneTag: 'Base 7', label: 'Upper Kamias' },
 ]
 
 export const MARQUEE_ROW_TWO: MarqueeLocationBadge[] = [
-  { id: 'm2-area8', zoneTag: 'Area 8', label: 'Holy Spirit Junction' },
-  { id: 'm2-area9', zoneTag: 'Area 9', label: 'Veterans Village' },
+  { id: 'm2-base8', zoneTag: 'Base 8', label: 'Pilot Area' },
+  { id: 'm2-base9', zoneTag: 'Base 9', label: 'Lupang Pangako' },
   { id: 'm2-mrf', zoneTag: 'Central', label: 'MRF Central Commonwealth' },
   { id: 'm2-epwmd', zoneTag: 'Quezon City', label: 'QC EPWMD Partner' },
   { id: 'm2-denr', zoneTag: 'Accredited', label: 'DENR-EMB Recovery Line' },
   { id: 'm2-residents', zoneTag: 'Exclusive', label: 'Barangay Commonwealth Residents' },
-  { id: 'm2-lockers', zoneTag: '24/7 Access', label: 'Smart Locker Hubs' },
+  { id: 'm2-bins', zoneTag: '24/7 Access', label: 'Smart Bin Stations' },
 ]
 
 export const SHOWCASE_DEVICES: ShowcaseDeviceItem[] = [
@@ -225,7 +222,7 @@ export const SHOWCASE_DEVICES: ShowcaseDeviceItem[] = [
     ecoPoints: '+180 EcoPoints',
     routingVerdict: 'Community Reuse',
     badgeVariant: 'available',
-    recommendedHub: 'Area 1 Eco-Hub',
+    recommendedHub: 'Base 1 - Brgy. Hall Complex',
     hubDistance: '0.8 km',
     ctaLabel: 'View in Reuse Hub',
     ctaRoute: '/reuse',
@@ -242,7 +239,7 @@ export const SHOWCASE_DEVICES: ShowcaseDeviceItem[] = [
     ecoPoints: '+140 EcoPoints',
     routingVerdict: 'Community Reuse',
     badgeVariant: 'available',
-    recommendedHub: 'Area 5 MRT-7 Base',
+    recommendedHub: 'Base 5 - Riverside',
     hubDistance: '1.8 km',
     ctaLabel: 'View in Reuse Hub',
     ctaRoute: '/reuse',
@@ -259,7 +256,7 @@ export const SHOWCASE_DEVICES: ShowcaseDeviceItem[] = [
     ecoPoints: '+150 EcoPoints',
     routingVerdict: 'Community Reuse',
     badgeVariant: 'available',
-    recommendedHub: 'Area 1 Eco-Hub',
+    recommendedHub: 'Base 1 - Brgy. Hall Complex',
     hubDistance: '0.8 km',
     ctaLabel: 'Claim in Reuse Hub',
     ctaRoute: '/reuse',
@@ -276,7 +273,7 @@ export const SHOWCASE_DEVICES: ShowcaseDeviceItem[] = [
     ecoPoints: '+95 EcoPoints',
     routingVerdict: 'Repair Guide / Reuse',
     badgeVariant: 'green-pill',
-    recommendedHub: 'Area 1 Eco-Hub Desk 2',
+    recommendedHub: 'Base 1 - Brgy. Hall Complex',
     hubDistance: '0.8 km',
     ctaLabel: 'Open Repair Guide',
     ctaRoute: '/reuse-guide',
@@ -293,7 +290,7 @@ export const SHOWCASE_DEVICES: ShowcaseDeviceItem[] = [
     ecoPoints: '+45 EcoPoints',
     routingVerdict: 'Safe Recovery',
     badgeVariant: 'electric',
-    recommendedHub: 'Area 2 Lupang Pangako Bin',
+    recommendedHub: 'Base 3 - Don Fabian Smart Bin',
     hubDistance: '1.1 km',
     ctaLabel: 'Scan Similar Accessory',
     ctaRoute: '/scan',
@@ -303,15 +300,15 @@ export const SHOWCASE_DEVICES: ShowcaseDeviceItem[] = [
 export const RECOVERY_LOOP_STEPS: RecoveryLoopStep[] = [
   {
     stepNumber: '01',
-    title: '6-Angle Scan & AI Triage',
+    title: '4-Angle Scan & AI Triage',
     description:
-      'Capture Front, Back, Left, Right, Top, and Bottom views to receive a condition grade and lithium battery safety check.',
+      'Capture Front, Back, Left, and Right views to receive a condition grade and lithium battery safety check.',
   },
   {
     stepNumber: '02',
-    title: 'Smart Locker or MRF Schedule',
+    title: 'Drop-Off Hub or Smart Bin Schedule',
     description:
-      'Reserve a 24/7 Smart Bin slot or book a staffed drop-off desk across Barangay Commonwealth with pass #ECO-4821.',
+      'Schedule a staffed Eco-Hub slot or drop off at a 24/7 Smart Bin across Barangay Commonwealth.',
   },
   {
     stepNumber: '03',
@@ -339,24 +336,24 @@ export const SHOWCASE_ANGLE_THUMBS: { label: string; src: string }[] = [
 export const COMMONWEALTH_SHOWCASE_SITES: CommonwealthSiteSummary[] = [
   {
     id: 'cw-site-1',
-    name: 'Area 1 Eco-Hub (Brgy Hall Complex)',
+    name: 'Base 1 - Brgy. Hall Complex Eco-Hub',
     distance: '0.8 km',
     hours: '8:00 AM - 5:00 PM',
-    accessType: 'Staffed & Smart Bin',
+    accessType: 'Staffed Hub',
   },
   {
-    id: 'cw-site-2',
-    name: 'Area 2 Lupang Pangako E-Collection Base',
+    id: 'cw-site-3',
+    name: 'Base 3 - Don Fabian Smart Bin',
     distance: '1.1 km',
     hours: '24/7 Smart Bin Access',
     accessType: '24/7 Smart Bin',
   },
   {
     id: 'cw-site-5',
-    name: 'Area 5 Commonwealth Market / MRT-7 Base',
+    name: 'Base 5 - Riverside Eco-Station',
     distance: '1.8 km',
-    hours: '6:00 AM - 8:00 PM',
-    accessType: 'Staffed & Smart Bin',
+    hours: '8:00 AM - 5:00 PM',
+    accessType: 'Staffed Hub',
   },
 ]
 
@@ -366,38 +363,38 @@ export const WALKTHROUGH_MODES: WalkthroughModeItem[] = [
     tabLabel: 'Diagnostic Report',
     title: 'Screen Battery Hazards Before Transport',
     summary:
-      'Six guided angles let EcoByte inspect casing gaps, port wear, and lithium swelling risk before an item enters a neighborhood bin.',
+      'Four guided angles let EcoByte inspect casing gaps, port wear, and lithium swelling risk before an item enters a neighborhood bin.',
     highlights: [
-      'Session #SCAN-9042 verifies all 6 exterior angles',
+      'Session #SCAN-9042 verifies all 4 exterior angles',
       'Flags 68% battery wear for isolated MRF handling',
       'Assigns fair EcoPoints before you leave home',
     ],
-    ctaLabel: 'Open AI Diagnostic View',
-    ctaRoute: '/diagnostic',
+    ctaLabel: 'Start 4-Angle Scan',
+    ctaRoute: '/scan',
   },
   {
     id: 'pass',
     tabLabel: 'Reuse Pass #ECO-4821',
-    title: 'Claim Working Tech with a Verified Locker Pass',
+    title: 'Claim Working Tech with a Verified Pickup Pass',
     summary:
-      'Verified Barangay Commonwealth residents reserve tested hardware from the Community Reuse Hub and present a digital pass at Desk 2 for accountable handoff.',
+      'Verified Barangay Commonwealth residents reserve tested hardware from the Community Reuse Hub and present a digital pass at the Base 1 Eco-Hub desk for accountable handoff.',
     highlights: [
       'Digital pass #ECO-4821 locked to your resident account',
       '48-hour reservation window at Barangay Commonwealth MRF',
       'Photo proof-of-claim closes the circular loop',
     ],
-    ctaLabel: 'View Sample Reservation Pass',
-    ctaRoute: '/reservation-code',
+    ctaLabel: 'Browse Reuse Hub',
+    ctaRoute: '/reuse',
   },
   {
     id: 'dropoff',
     tabLabel: 'Barangay Drop-Off',
-    title: 'Nine Commonwealth Areas Within Walking Reach',
+    title: 'Nine Commonwealth Bases Within Walking Reach',
     summary:
-      'Locate the closest staffed Material Recovery Facility or 24/7 Smart Locker cluster across Katuparan, Litex, Lupang Pangako, and Batasan.',
+      'Locate the closest staffed Material Recovery Facility or 24/7 Smart Bin cluster across Brgy. Hall Complex, Katuparan, Don Fabian, and Lupang Pangako.',
     highlights: [
-      'Live distance sorting across all 9 barangay clusters',
-      'Filter by 24/7 Smart Bin or lithium-accredited desk',
+      'Live distance sorting across all 9 barangay bases',
+      'Filter by Open Now, Staffed desk, or 24/7 Smart Bin',
       'One-tap slot scheduling synced with MRF intake queues',
     ],
     ctaLabel: 'Launch Drop-Off Finder',
@@ -409,28 +406,28 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
   {
     heading: 'Resident Tools',
     links: [
-      { label: '6-Angle Device Scanner', to: '/scan' },
-      { label: 'AI Diagnostic Results', to: '/diagnostic' },
+      { label: '4-Angle Device Scanner', to: '/scan' },
+      { label: 'Schedule a Drop-Off', to: '/dropoff-schedule' },
       { label: 'Community Reuse Hub', to: '/reuse' },
-      { label: '9-Area Drop-Off Finder', to: '/drop-offs' },
+      { label: '9-Base Drop-Off Finder', to: '/drop-offs' },
     ],
   },
   {
     heading: 'Account & Passes',
     links: [
       { label: 'Resident Dashboard', to: '/dashboard' },
+      { label: 'My Requests & Passes', to: '/requests' },
       { label: 'Sign In', to: '/signin' },
       { label: 'Create Account', to: '/register' },
-      { label: 'Reservation Pass', to: '/reservation-code' },
     ],
   },
   {
     heading: 'MRF Operations',
     links: [
       { label: 'Admin Overview', to: '/admin' },
+      { label: 'Incoming Drop-Offs', to: '/admin/incoming' },
       { label: 'Inspection Queue', to: '/admin/to-inspect' },
-      { label: 'Reuse Inventory', to: '/admin/reuse-hub' },
-      { label: 'Hazardous Disposal', to: '/admin/disposal' },
+      { label: 'Transactions & Reuse', to: '/admin/transactions' },
     ],
   },
 ]

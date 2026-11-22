@@ -64,8 +64,8 @@ export const App: FC = () => {
         <Route path="/register" element={<RegisterPage />} />
 
         {/* Legacy Admin Auth Redirects -> unified /signin */}
-        <Route path="/admin/signin" element={<Navigate to="/signin" replace />} />
-        <Route path="/admin/login" element={<Navigate to="/signin" replace />} />
+        <Route path="/admin/signin" element={<PreserveQueryRedirect to="/signin" />} />
+        <Route path="/admin/login" element={<PreserveQueryRedirect to="/signin" />} />
 
         {/* Core Mobile Application Routes (Wrapped in RequireAuth + AppShell) */}
         <Route

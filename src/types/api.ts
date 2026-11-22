@@ -32,7 +32,16 @@ export interface User {
   email: string
   phone: string
   role?: string
+  idCode?: string | null
+  department?: string | null
+  mustChangePassword?: boolean
+  twoFactorEnabled?: boolean
   barangay: Barangay
+}
+
+export interface ChangePasswordPayload {
+  currentPassword: string
+  newPassword: string
 }
 
 export interface AuthSession {
@@ -208,6 +217,10 @@ export type RequestLifecycleStatus =
 
 export interface EwasteRequestItem {
   requestId: string
+  reservationId?: string
+  pickupCode?: string
+  hasProofOfClaim?: boolean
+  proofUrl?: string
   deviceTitle: string
   deviceCategory?: string
   siteName: string
@@ -225,6 +238,8 @@ export interface UserReservationItem {
   siteName: string
   expiresAt: string | null
   status: 'Reserved' | 'Claimed' | 'Expired'
+  hasProofOfClaim?: boolean
+  proofUrl?: string
 }
 
 // ── Reuse Hub Marketplace & Reservations ──

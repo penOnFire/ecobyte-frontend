@@ -446,7 +446,7 @@ export const AdminIncomingDropoffsPage: FC = () => {
             />
             <input
               type="text"
-              placeholder="Search item, resident, code…"
+              placeholder="Search item, resident, site…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               style={{
@@ -492,20 +492,19 @@ export const AdminIncomingDropoffsPage: FC = () => {
           <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ backgroundColor: '#f8faf6', borderBottom: '1px solid #e2e8f0' }}>
-                <th style={{ width: '9%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Request</th>
-                <th style={{ width: '16%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Item</th>
-                <th style={{ width: '17%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Resident</th>
-                <th style={{ width: '17%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Drop-off site</th>
-                <th style={{ width: '15%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Schedule</th>
+                <th style={{ width: '19%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Item</th>
+                <th style={{ width: '19%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Resident</th>
+                <th style={{ width: '19%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Drop-off site</th>
+                <th style={{ width: '16%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Schedule</th>
                 <th style={{ width: '9%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Hazard</th>
                 <th style={{ width: '9%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Status</th>
-                <th style={{ width: '8%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em', textAlign: 'right' }}>Action</th>
+                <th style={{ width: '9%', padding: '10px 8px', fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em', textAlign: 'right' }}>Action</th>
               </tr>
             </thead>
             <tbody>
               {filteredRows.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', padding: '40px 16px', color: '#94a3b8' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '40px 16px', color: '#94a3b8' }}>
                     <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
                       {tab === 'overdue' ? 'No overdue drop-offs.' : 'No drop-offs here.'}
                     </Typography>
@@ -518,14 +517,6 @@ export const AdminIncomingDropoffsPage: FC = () => {
 
                   return (
                     <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '10px 8px', verticalAlign: 'middle' }}>
-                        <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', color: '#0f172a', lineHeight: 1.2 }}>
-                          {r.id}
-                        </Typography>
-                        <Typography sx={{ fontSize: '0.625rem', color: '#64748b', fontWeight: 600 }}>
-                          {r.requestCode}
-                        </Typography>
-                      </td>
 
                       <td style={{ padding: '10px 8px', verticalAlign: 'middle' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>

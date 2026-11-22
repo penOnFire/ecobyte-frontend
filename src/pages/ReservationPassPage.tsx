@@ -116,6 +116,26 @@ export const ReservationPassPage: FC = () => {
             : res.reservations[0]
           if (matched) {
             setReservation(matched)
+            return
+          }
+        }
+        if (Array.isArray(res?.completed) && res.completed.length > 0) {
+          const claimedMatch = res.completed.find(
+            (c) =>
+              c.requestId?.startsWith('CLM-') &&
+              (!paramCode || c.pickupCode === paramCode)
+          )
+          if (claimedMatch) {
+            setReservation({
+              reservationId: claimedMatch.reservationId || '',
+              itemTitle: claimedMatch.deviceTitle,
+              pickupCode: claimedMatch.pickupCode || paramCode || '',
+              siteName: claimedMatch.siteName,
+              expiresAt: null,
+              status: 'Claimed',
+              hasProofOfClaim: claimedMatch.hasProofOfClaim,
+              proofUrl: claimedMatch.proofUrl,
+            })
           }
         }
       })
@@ -138,11 +158,14 @@ export const ReservationPassPage: FC = () => {
     nowMs,
     reservation?.status === 'Expired'
   )
+  const isClaimed = reservation?.status === 'Claimed'
   const statusLabel = isExpired
     ? 'Expired (Returned to Reuse Hub)'
-    : reservation?.status
-      ? `${reservation.status} (Active)`
-      : 'Reserved (Active)'
+    : isClaimed
+      ? 'Claimed (Verified at Hub)'
+      : reservation?.status
+        ? `${reservation.status} (Active)`
+        : 'Reserved (Active)'
 
   const playedExpirySoundRef = useRef(false)
   useEffect(() => {
@@ -611,57 +634,94 @@ export const ReservationPassPage: FC = () => {
         </Card>
       ) : (
         <>
-          <Card sx={{ p: 1.75, borderRadius: 1.5, backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+          <Card
+            sx={{
+              p: 1.75,
+              borderRadius: 1.5,
+              backgroundColor: reservation?.hasProofOfClaim ? '#f0fdf4' : '#f8fafc',
+              border: reservation?.hasProofOfClaim ? '1px solid #bbf7d0' : '1px solid #e2e8f0',
+            }}
+          >
             <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'flex-start' }}>
-              <InfoOutlinedIcon sx={{ fontSize: 18, color: '#0f172a', mt: 0.2 }} />
-              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#0f172a', lineHeight: 1.5, fontWeight: 500 }}>
-                <strong>Next step:</strong> When receiving the item at the hub, take a quick proof photo to complete your claim.
+              <InfoOutlinedIcon
+                sx={{
+                  fontSize: 18,
+                  color: reservation?.hasProofOfClaim ? '#15803d' : '#0f172a',
+                  mt: 0.2,
+                }}
+              />
+              <Typography
+                sx={{
+                  fontFamily: "'Quicksand', sans-serif",
+                  fontSize: '0.75rem',
+                  color: reservation?.hasProofOfClaim ? '#166534' : '#0f172a',
+                  lineHeight: 1.5,
+                  fontWeight: 500,
+                }}
+              >
+                {reservation?.hasProofOfClaim ? (
+                  <>
+                    <strong>Complete:</strong> Your handover proof photo has already been uploaded and verified.
+                  </>
+                ) : isClaimed ? (
+                  <>
+                    <strong>Next step:</strong> Your pick-up has been verified by hub staff. Upload a quick handover photo below to attach your proof of claim.
+                  </>
+                ) : (
+                  <>
+                    <strong>Next step:</strong> Present your code at the hub for verification, then take a quick handover proof photo.
+                  </>
+                )}
               </Typography>
             </Box>
           </Card>
 
           {/* ── Action CTA Button ── */}
-          <Box sx={{ mt: 0.5, mb: 2 }}>
-            <Button
-              fullWidth
-              variant="contained"
-              size="large"
-              onClick={() => {
-                const activeReservationId = reservation?.reservationId || searchParams.get('reservationId') || ''
-                const params = new URLSearchParams({
-                  code: pickupCode,
-                  title: itemTitle,
-                  site: collectionPlace,
-                })
-                if (activeReservationId) params.set('reservationId', activeReservationId)
-                navigate(`/proof-of-claim?${params.toString()}`)
-              }}
-              startIcon={<CameraAltRoundedIcon sx={{ fontSize: 20, color: '#abf06b' }} />}
-              endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
-              sx={{
-                py: 1.6,
-                backgroundColor: '#0f172a',
-                color: '#ffffff',
-                fontWeight: 700,
-                fontSize: '0.9375rem',
-                boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
-                '&:hover': { backgroundColor: '#1e293b' },
-              }}
-            >
-              Upload Proof Photo
-            </Button>
-            <Typography
-              sx={{
-                fontFamily: "'Quicksand', sans-serif",
-                fontSize: '0.6875rem',
-                color: '#64748b',
-                textAlign: 'center',
-                mt: 1,
-              }}
-            >
-              🕒 Unclaimed items are released automatically after 48 hours.
-            </Typography>
-          </Box>
+          {!reservation?.hasProofOfClaim && (
+            <Box sx={{ mt: 0.5, mb: 2 }}>
+              <Button
+                fullWidth
+                variant="contained"
+                size="large"
+                onClick={() => {
+                  const activeReservationId = reservation?.reservationId || searchParams.get('reservationId') || ''
+                  const params = new URLSearchParams({
+                    code: pickupCode,
+                    title: itemTitle,
+                    site: collectionPlace,
+                  })
+                  if (activeReservationId) params.set('reservationId', activeReservationId)
+                  navigate(`/proof-of-claim?${params.toString()}`)
+                }}
+                startIcon={<CameraAltRoundedIcon sx={{ fontSize: 20, color: '#abf06b' }} />}
+                endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
+                sx={{
+                  py: 1.6,
+                  backgroundColor: '#0f172a',
+                  color: '#ffffff',
+                  fontWeight: 700,
+                  fontSize: '0.9375rem',
+                  boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
+                  '&:hover': { backgroundColor: '#1e293b' },
+                }}
+              >
+                Upload Proof Photo
+              </Button>
+              {!isClaimed && (
+                <Typography
+                  sx={{
+                    fontFamily: "'Quicksand', sans-serif",
+                    fontSize: '0.6875rem',
+                    color: '#64748b',
+                    textAlign: 'center',
+                    mt: 1,
+                  }}
+                >
+                  🕒 Unclaimed items are released automatically after 48 hours.
+                </Typography>
+              )}
+            </Box>
+          )}
         </>
       )}
 

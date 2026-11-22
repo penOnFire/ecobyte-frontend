@@ -16,9 +16,101 @@ interface LogEntry {
   userName: string
   role: 'superadmin' | 'official' | 'resident' | 'system'
   action: string
+  rawAction: string
   target: string
   details: string
   barangay: string | null
+}
+
+function toTitleCaseLabel(value: string): string {
+  return value
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (ch) => ch.toUpperCase())
+}
+
+function formatActivityActionLabel(record: Pick<AdminActivityLogItem, 'entityType' | 'newStatus' | 'oldStatus' | 'action' | 'notes'>): string {
+  const entity = (record.entityType || '').toUpperCase()
+  const status = (record.newStatus || record.action || '').toLowerCase().trim()
+  const oldStatus = (record.oldStatus || '').toLowerCase().trim()
+  const notes = (record.notes || '').toLowerCase()
+
+  if (entity === 'REUSE_CLAIM') {
+    if (status === 'claimed') return 'Pick-Up Claimed'
+    if (status === 'expired') return 'Reservation Expired'
+    if (status === 'reserved') return 'Item Reserved'
+    if (status === 'cancelled') return 'Reservation Cancelled'
+  }
+
+  if (entity === 'REQUEST') {
+    if (status === 'pending_review') return 'Drop-Off Submitted'
+    if (status === 'scheduled') return 'Drop-Off Scheduled'
+    if (status === 'collected') return 'Drop-Off Collected'
+    if (status === 'under_inspection') return 'Received for Inspection'
+    if (status === 'turned_over' || status === 'completed') return 'Drop-Off Completed'
+    if (status === 'missed') return 'Drop-Off Marked Missed'
+    if (status === 'cancelled') return 'Drop-Off Cancelled'
+  }
+
+  if (entity === 'INSPECTION') {
+    if (status === 'available_for_reuse') return 'Routed to Reuse Hub'
+    if (status === 'repair_queued') return 'Routed to Repair'
+    if (status === 'disposal_queued') return 'Routed to Disposal'
+    if (status === 'hazardous_isolated') return 'Hazardous Isolated'
+    if (status === 'pending_inspection') return 'Pending Further Inspection'
+  }
+
+  if (entity === 'USER') {
+    if (notes.includes('created new')) return 'Account Created'
+    if (notes.includes('updated user profile')) return 'User Profile Updated'
+    if (notes.includes('changed user role')) return 'User Role Changed'
+    if (status === 'active') {
+      return oldStatus === 'inactive' || oldStatus === 'suspended'
+        ? 'Account Reactivated'
+        : 'Account Activated'
+    }
+    if (status === 'inactive') return 'Account Deactivated'
+    if (status === 'suspended') return 'Account Suspended'
+  }
+
+  if (status === 'available_for_reuse') return 'Routed to Reuse Hub'
+  if (status === 'under_inspection') return 'Received for Inspection'
+  if (status === 'pending_inspection') return 'Pending Further Inspection'
+  if (status === 'repair_queued') return 'Routed to Repair'
+  if (status === 'disposal_queued') return 'Routed to Disposal'
+  if (status === 'hazardous_isolated') return 'Hazardous Isolated'
+  if (status === 'claimed') return 'Pick-Up Claimed'
+  if (status === 'expired') return 'Reservation Expired'
+  if (status === 'active') return 'Account Activated'
+  if (status === 'inactive') return 'Account Deactivated'
+  if (status === 'suspended') return 'Account Suspended'
+  if (status === 'missed') return 'Drop-Off Marked Missed'
+
+  return status ? toTitleCaseLabel(status) : 'Activity Logged'
+}
+
+const FILTER_LABEL_STYLE = {
+  fontSize: '0.6875rem',
+  fontWeight: 700,
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.05em',
+  color: '#64748b',
+  mb: 0.6,
+}
+
+const FILTER_CONTROL_STYLE = {
+  width: '100%',
+  height: 40,
+  padding: '0 12px',
+  borderRadius: '0.75rem',
+  border: '1px solid #dbe3d6',
+  backgroundColor: '#ffffff',
+  fontSize: '0.8125rem',
+  fontWeight: 600,
+  color: '#334155',
+  outline: 'none',
+  fontFamily: "'Quicksand', sans-serif",
+  boxSizing: 'border-box' as const,
 }
 
 const getInitialActivityLogs = (): LogEntry[] => {
@@ -27,7 +119,19 @@ const getInitialActivityLogs = (): LogEntry[] => {
     const raw = localStorage.getItem('ecobyte_activity_logs')
     if (raw) {
       const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed)) return parsed
+      if (Array.isArray(parsed)) {
+        return parsed.map((entry) => ({
+          ...entry,
+          rawAction: entry.rawAction || entry.action || '',
+          action: formatActivityActionLabel({
+            entityType: '',
+            newStatus: entry.action || '',
+            oldStatus: null,
+            action: entry.action || '',
+            notes: entry.details || '',
+          }),
+        }))
+      }
     }
   } catch {
     // ignore
@@ -65,12 +169,10 @@ export const AdminActivityLogsPage: FC = () => {
     let active = true
     adminApi
       .getActivityLogs({
-        userId: filterUser || undefined,
-        action: filterAction || undefined,
         search: search || undefined,
       })
       .then((records: AdminActivityLogItem[]) => {
-        if (!active || !records || records.length === 0) return
+        if (!active || !Array.isArray(records)) return
         const mappedLive: LogEntry[] = records.map((r) => {
           const roleUpper = (r.operator?.role || '').toLowerCase()
           const matchedRole: 'superadmin' | 'official' | 'resident' | 'system' =
@@ -88,17 +190,15 @@ export const AdminActivityLogsPage: FC = () => {
             userId: r.operator?.id || 'SYS',
             userName: r.operator?.name || 'System Operator',
             role: matchedRole,
-            action: r.action || `${r.entityType}: ${r.newStatus}`,
+            action: formatActivityActionLabel(r),
+            rawAction: r.action || `${r.entityType}: ${r.newStatus}`,
             target: r.entityId || '—',
             details: r.notes || `${r.entityType} status transitioned to ${r.newStatus}`,
             barangay: 'Commonwealth',
           }
         })
 
-        setLogs((prev) => {
-          const liveIds = new Set(mappedLive.map((m) => m.id))
-          return [...mappedLive, ...prev.filter((p) => !liveIds.has(p.id))]
-        })
+        setLogs(mappedLive)
       })
       .catch((err) => {
         console.warn('Using prototype activity logs:', err)
@@ -110,7 +210,7 @@ export const AdminActivityLogsPage: FC = () => {
     return () => {
       active = false
     }
-  }, [filterUser, filterAction, search])
+  }, [search])
 
   // Extract distinct staff users and actions for filter options
   const staffUsers = useMemo(() => {
@@ -124,7 +224,13 @@ export const AdminActivityLogsPage: FC = () => {
   }, [logs])
 
   const distinctActions = useMemo(() => {
-    return Array.from(new Set(logs.map((l) => l.action))).sort()
+    return Array.from(
+      new Set(
+        logs
+          .map((l) => (l.action.includes('_') ? toTitleCaseLabel(l.action) : l.action))
+          .filter(Boolean)
+      )
+    ).sort()
   }, [logs])
 
   // Filter logic
@@ -152,6 +258,7 @@ export const AdminActivityLogsPage: FC = () => {
         (l) =>
           l.userName.toLowerCase().includes(q) ||
           l.action.toLowerCase().includes(q) ||
+          (l.rawAction && l.rawAction.toLowerCase().includes(q)) ||
           l.target.toLowerCase().includes(q) ||
           l.details.toLowerCase().includes(q)
       )
@@ -200,118 +307,92 @@ export const AdminActivityLogsPage: FC = () => {
           }}
         >
           {/* 1. Role Filter */}
-          <select
-            value={filterRole}
-            onChange={(e) => setFilterRole(e.target.value)}
-            style={{
-              height: 40,
-              padding: '0 12px',
-              borderRadius: '0.75rem',
-              border: '1px solid #dbe3d6',
-              backgroundColor: '#ffffff',
-              fontSize: '0.8125rem',
-              fontWeight: 600,
-              color: '#334155',
-              outline: 'none',
-              fontFamily: "'Quicksand', sans-serif",
-            }}
-          >
-            <option value="">All roles</option>
-            <option value="superadmin">Super Admin</option>
-            <option value="official">Barangay Official</option>
-            <option value="resident">Resident</option>
-            <option value="system">System</option>
-          </select>
+          <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <Typography component="label" htmlFor="activity-filter-role" sx={FILTER_LABEL_STYLE}>
+              Role
+            </Typography>
+            <select
+              id="activity-filter-role"
+              value={filterRole}
+              onChange={(e) => setFilterRole(e.target.value)}
+              style={FILTER_CONTROL_STYLE}
+            >
+              <option value="">All roles</option>
+              <option value="superadmin">Super Admin</option>
+              <option value="official">Barangay Official</option>
+              <option value="resident">Resident</option>
+            </select>
+          </Box>
 
           {/* 2. Staff Operator Dropdown */}
-          <select
-            value={filterUser}
-            onChange={(e) => setFilterUser(e.target.value)}
-            style={{
-              height: 40,
-              padding: '0 12px',
-              borderRadius: '0.75rem',
-              border: '1px solid #dbe3d6',
-              backgroundColor: '#ffffff',
-              fontSize: '0.8125rem',
-              fontWeight: 600,
-              color: '#334155',
-              outline: 'none',
-              fontFamily: "'Quicksand', sans-serif",
-            }}
-          >
-            <option value="">All staff users</option>
-            {staffUsers.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-              </option>
-            ))}
-          </select>
+          <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <Typography component="label" htmlFor="activity-filter-user" sx={FILTER_LABEL_STYLE}>
+              Staff User
+            </Typography>
+            <select
+              id="activity-filter-user"
+              value={filterUser}
+              onChange={(e) => setFilterUser(e.target.value)}
+              style={FILTER_CONTROL_STYLE}
+            >
+              <option value="">All staff users</option>
+              {staffUsers.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name}
+                </option>
+              ))}
+            </select>
+          </Box>
 
           {/* 3. Action Dropdown */}
-          <select
-            value={filterAction}
-            onChange={(e) => setFilterAction(e.target.value)}
-            style={{
-              height: 40,
-              padding: '0 12px',
-              borderRadius: '0.75rem',
-              border: '1px solid #dbe3d6',
-              backgroundColor: '#ffffff',
-              fontSize: '0.8125rem',
-              fontWeight: 600,
-              color: '#334155',
-              outline: 'none',
-              fontFamily: "'Quicksand', sans-serif",
-            }}
-          >
-            <option value="">All actions</option>
-            {distinctActions.map((a) => (
-              <option key={a} value={a}>
-                {a}
-              </option>
-            ))}
-          </select>
+          <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <Typography component="label" htmlFor="activity-filter-action" sx={FILTER_LABEL_STYLE}>
+              Action
+            </Typography>
+            <select
+              id="activity-filter-action"
+              value={filterAction}
+              onChange={(e) => setFilterAction(e.target.value)}
+              style={FILTER_CONTROL_STYLE}
+            >
+              <option value="">All actions</option>
+              {distinctActions.map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
+            </select>
+          </Box>
 
           {/* 4. Date From */}
-          <input
-            type="date"
-            title="From"
-            value={filterFrom}
-            onChange={(e) => setFilterFrom(e.target.value)}
-            style={{
-              height: 40,
-              padding: '0 12px',
-              borderRadius: '0.75rem',
-              border: '1px solid #dbe3d6',
-              backgroundColor: '#ffffff',
-              fontSize: '0.8125rem',
-              fontWeight: 600,
-              color: '#334155',
-              outline: 'none',
-              fontFamily: "'Quicksand', sans-serif",
-            }}
-          />
+          <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <Typography component="label" htmlFor="activity-filter-from" sx={FILTER_LABEL_STYLE}>
+              From Date
+            </Typography>
+            <input
+              id="activity-filter-from"
+              type="date"
+              title="From Date"
+              value={filterFrom}
+              onChange={(e) => setFilterFrom(e.target.value)}
+              style={FILTER_CONTROL_STYLE}
+            />
+          </Box>
 
           {/* 5. Date To */}
-          <input
-            type="date"
-            title="To"
-            value={filterTo}
-            onChange={(e) => setFilterTo(e.target.value)}
-            style={{
-              height: 40,
-              padding: '0 12px',
-              borderRadius: '0.75rem',
-              border: '1px solid #dbe3d6',
-              backgroundColor: '#ffffff',
-              fontSize: '0.8125rem',
-              fontWeight: 600,
-              color: '#334155',
-              outline: 'none',
-              fontFamily: "'Quicksand', sans-serif",
-            }}
-          />
+          <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <Typography component="label" htmlFor="activity-filter-to" sx={FILTER_LABEL_STYLE}>
+              To Date
+            </Typography>
+            <input
+              id="activity-filter-to"
+              type="date"
+              title="To Date"
+              value={filterTo}
+              onChange={(e) => setFilterTo(e.target.value)}
+              style={FILTER_CONTROL_STYLE}
+            />
+          </Box>
         </Box>
 
         {/* ── Search Bar & Filter Summary Bar ── */}
@@ -457,7 +538,7 @@ export const AdminActivityLogsPage: FC = () => {
 
                       {/* Action */}
                       <td style={{ padding: '12px 16px', fontWeight: 700, fontSize: '0.8125rem', color: '#1e293b' }}>
-                        {l.action}
+                        {l.action.includes('_') ? toTitleCaseLabel(l.action) : l.action}
                       </td>
 
                       {/* Target */}

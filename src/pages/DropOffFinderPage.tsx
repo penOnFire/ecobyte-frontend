@@ -37,16 +37,16 @@ import {
 const FILTERS = ['All Sites (9)', 'Open Now', 'Staffed', '24/7 Smart Bin']
 
 const COMMONWEALTH_AREAS = [
-  'Commonwealth, Quezon City (9 Areas)',
-  'Area 1 (Brgy Hall Complex / Katuparan)',
-  'Area 2 (Lupang Pangako / Riverside)',
-  'Area 3 (Payatas Border / Market)',
-  'Area 4 (Don Fabian / Litex)',
-  'Area 5 (Commonwealth Market / MRT-7)',
-  'Area 6 (Pilot Area / Eco-Depot)',
-  'Area 7 (Kasunduan / Batasan Road)',
-  'Area 8 (Holy Spirit / Commonwealth Ave)',
-  'Area 9 (Veterans Village / Sandigan)',
+  'Commonwealth, Quezon City (All 9 Bases)',
+  'Base 1 (Brgy. Hall Complex)',
+  'Base 2 (Martan St.)',
+  'Base 3 (Don Fabian)',
+  'Base 4 (Katuparan)',
+  'Base 5 (Riverside)',
+  'Base 6 (Kristong Hari)',
+  'Base 7 (Upper Kamias)',
+  'Base 8 (Pilot Area)',
+  'Base 9 (Lupang Pangako)',
 ]
 
 // Haversine distance in km
@@ -96,7 +96,7 @@ export const DropOffFinderPage: FC = () => {
   const [sites, setSites] = useState<DropOffSite[]>(COMMONWEALTH_FALLBACK_SITES)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedSiteId, setSelectedSiteId] = useState<string>(initialBaseSite.id)
-  const [selectedArea, setSelectedArea] = useState('Commonwealth, Quezon City (9 Areas)')
+  const [selectedArea, setSelectedArea] = useState('Commonwealth, Quezon City (All 9 Bases)')
   const [areaDialogOpen, setAreaDialogOpen] = useState(false)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [isLocating, setIsLocating] = useState(false)

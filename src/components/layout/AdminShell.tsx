@@ -12,7 +12,8 @@ import {
   Drawer,
 } from '@mui/material'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { adminApi, authApi, getCachedUser } from '@/lib/api'
+import { adminApi, authApi, getCachedUser, resolveAuthRole, setCachedUser } from '@/lib/api'
+import { ForcePasswordResetModal } from '@/components/auth/ForcePasswordResetModal'
 import type { User } from '@/types'
 import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded'
 import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined'
@@ -966,6 +967,24 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <ForcePasswordResetModal
+        open={Boolean(currentUser?.mustChangePassword)}
+        userEmail={currentUser?.email}
+        onSuccess={(updatedUser) => {
+          const normalized = {
+            ...updatedUser,
+            role: resolveAuthRole(updatedUser.role, updatedUser.email),
+            mustChangePassword: false,
+          }
+          setCachedUser(normalized)
+          setCurrentUser(normalized)
+        }}
+        onSignOut={() => {
+          authApi.logout()
+          navigate('/signin', { replace: true })
+        }}
+      />
     </Box>
   )
 }

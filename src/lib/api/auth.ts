@@ -1,5 +1,12 @@
 import { apiFetch } from './client'
-import type { AuthSession, Barangay, LoginPayload, RegisterPayload, User } from '@/types'
+import type {
+  AuthSession,
+  Barangay,
+  ChangePasswordPayload,
+  LoginPayload,
+  RegisterPayload,
+  User,
+} from '@/types'
 
 const DEFAULT_BARANGAY: Barangay = {
   id: '1',
@@ -240,6 +247,43 @@ export const authApi = {
       return Array.isArray(list) && list.length > 0 ? list : COMMONWEALTH_BASES_FALLBACK
     } catch {
       return COMMONWEALTH_BASES_FALLBACK
+    }
+  },
+
+  changePassword: async (
+    payload: ChangePasswordPayload
+  ): Promise<{ message: string; user: User }> => {
+    try {
+      const res = await apiFetch<{ message: string; user: User }>('/auth/change-password', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      })
+      if (res?.user) {
+        setCachedUser(res.user)
+      }
+      return res
+    } catch (err: any) {
+      const isNetworkError =
+        err?.message?.includes('fetch') ||
+        err?.message?.includes('NetworkError') ||
+        err?.status === 502 ||
+        err?.status === 503 ||
+        err?.status === 504 ||
+        !err?.status
+
+      if (isNetworkError) {
+        const cached = getCachedUser()
+        const updatedUser: User = {
+          ...(cached || buildFallbackMockUser('RESIDENT')),
+          mustChangePassword: false,
+        }
+        setCachedUser(updatedUser)
+        return {
+          message: 'Password updated locally in offline mode.',
+          user: updatedUser,
+        }
+      }
+      throw err
     }
   },
 
