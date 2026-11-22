@@ -22,7 +22,7 @@ import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded'
 import BookmarkAddRoundedIcon from '@mui/icons-material/BookmarkAddRounded'
 import { useNavigate, useParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { reuseApi } from '@/lib/api'
+import { resolveMediaUrl, reuseApi } from '@/lib/api'
 import type { ReuseItem } from '@/types'
 import thinkpadDetailImg from '@/assets/ui/thinkpad_detail.jpeg'
 import galaxyImg from '@/assets/ui/galaxy_s10.jpeg'
@@ -33,7 +33,7 @@ import keychronImg from '@/assets/ui/keychron.jpeg'
 function resolveDetailImage(item: ReuseItem | null): string {
   if (!item) return thinkpadDetailImg
   if (item.imageUrl && !item.imageUrl.includes('placeholder') && !item.imageUrl.includes('unsplash')) {
-    return item.imageUrl
+    return resolveMediaUrl(item.imageUrl)
   }
   const lower = `${item.title} ${item.category}`.toLowerCase()
   if (lower.includes('galaxy') || lower.includes('phone') || lower.includes('s10')) return galaxyImg

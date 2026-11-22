@@ -23,7 +23,7 @@ import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
 import VolunteerActivismOutlinedIcon from '@mui/icons-material/VolunteerActivismOutlined'
 import { useNavigate } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { reuseApi } from '@/lib/api'
+import { resolveMediaUrl, reuseApi } from '@/lib/api'
 import type { ReuseItem as ApiReuseItem } from '@/types'
 
 import thinkpadImg from '@/assets/ui/thinkpad.jpeg'
@@ -107,7 +107,7 @@ const REUSE_ITEMS: UIReuseItem[] = [
  */
 
 function resolveItemImage(title: string, category: string, imageUrl?: string): string {
-  if (imageUrl && !imageUrl.includes('placeholder')) return imageUrl
+  if (imageUrl && !imageUrl.includes('placeholder')) return resolveMediaUrl(imageUrl)
   const lower = (title + ' ' + category).toLowerCase()
   if (lower.includes('thinkpad') || lower.includes('laptop')) return thinkpadImg
   if (lower.includes('galaxy') || lower.includes('phone') || lower.includes('s10')) return galaxyImg

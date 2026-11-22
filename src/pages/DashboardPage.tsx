@@ -19,6 +19,7 @@ import {
   dropoffsApi,
   extractFirstName,
   getCachedUser,
+  resolveMediaUrl,
   reuseApi,
   type DashboardSummary,
 } from '@/lib/api'
@@ -53,7 +54,7 @@ function resolveReuseThumbnail(item: ReuseItem): string {
   if (lower.includes('thinkpad') || lower.includes('laptop')) return thinkpadImg
   if (lower.includes('galaxy') || lower.includes('phone')) return galaxyImg
   if (lower.includes('charger') || lower.includes('usb')) return chargerImg
-  return item.imageUrl || ipadImg
+  return resolveMediaUrl(item.imageUrl) || ipadImg
 }
 
 function resolveUserBase(user: User | null): number {
