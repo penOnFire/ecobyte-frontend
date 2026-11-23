@@ -40,7 +40,7 @@ export interface User {
 }
 
 export interface ChangePasswordPayload {
-  currentPassword: string
+  currentPassword?: string
   newPassword: string
 }
 
@@ -111,6 +111,7 @@ export interface SubsystemHealth {
   status: 'OPTIMAL' | 'INTACT' | 'DEGRADED' | 'HEALTH_RISK'
   score: number
   details?: string
+  description?: string
 }
 
 export interface HazardAlert {
@@ -175,6 +176,7 @@ export interface AssessedDeviceRecord {
     status: string
     score: number
     details?: string
+    description?: string
   }>
 }
 

@@ -19,7 +19,6 @@ import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded'
 import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined'
 import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined'
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded'
-import SmartphoneRoundedIcon from '@mui/icons-material/SmartphoneRounded'
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded'
 import RecyclingRoundedIcon from '@mui/icons-material/RecyclingRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
@@ -490,33 +489,6 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
             </Typography>
           </Box>
         </Box>
-
-        {/* Switch to Resident Portal */}
-        <ButtonBase
-          onClick={() => {
-            navigate('/')
-            if (isMobile) setMobileNavOpen(false)
-          }}
-          sx={{
-            width: '100%',
-            height: 32,
-            borderRadius: '0.75rem',
-            color: 'rgba(255, 255, 255, 0.70)',
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 1,
-            '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.06)',
-              color: '#ffffff',
-            },
-          }}
-        >
-          <SmartphoneRoundedIcon sx={{ fontSize: 16 }} />
-          <span>Resident View (Mobile)</span>
-        </ButtonBase>
 
         {/* Log Out Button */}
         <ButtonBase

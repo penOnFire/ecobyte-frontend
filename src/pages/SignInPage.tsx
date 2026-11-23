@@ -3,7 +3,6 @@ import type { FC, FormEvent } from 'react'
 import {
   Box,
   Button,
-  ButtonBase,
   Card,
   Checkbox,
   CircularProgress,
@@ -27,9 +26,6 @@ import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import LockRoundedIcon from '@mui/icons-material/LockRounded'
 import LockClockRoundedIcon from '@mui/icons-material/LockClockRounded'
-import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined'
-import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
-import YardOutlinedIcon from '@mui/icons-material/YardOutlined'
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom'
 import ecobyteLogo from '@/assets/ui/ecobyte_logo.svg'
 import {
@@ -41,23 +37,6 @@ import {
 } from '@/lib/api'
 import type { User } from '@/types'
 import { ForcePasswordResetModal } from '@/components/auth/ForcePasswordResetModal'
-
-type DetectedAccountType = 'resident' | 'official' | 'admin'
-
-function detectAccountType(email: string): DetectedAccountType {
-  const lower = email.trim().toLowerCase()
-  if (lower.includes('admin') || lower === 'admin@ecobyte.gov') {
-    return 'admin'
-  }
-  if (
-    lower.includes('official') ||
-    lower.includes('barangay.gov.ph') ||
-    lower.includes('gov.ph')
-  ) {
-    return 'official'
-  }
-  return 'resident'
-}
 
 const LOCKOUT_KEY = 'ecobyte_login_lockout'
 const MAX_FAILED_ATTEMPTS = 5
@@ -191,13 +170,13 @@ export const SignInPage: FC = () => {
 
       const cachedSessionUser = res?.user
         ? {
-            ...res.user,
-            role: effectiveRole.toLowerCase(),
-          }
+          ...res.user,
+          role: effectiveRole.toLowerCase(),
+        }
         : {
-            ...buildFallbackMockUser(effectiveRole, email),
-            role: effectiveRole.toLowerCase(),
-          }
+          ...buildFallbackMockUser(effectiveRole, email),
+          role: effectiveRole.toLowerCase(),
+        }
       setCachedUser(cachedSessionUser)
 
       const targetRoute = safeRedirect
@@ -505,87 +484,6 @@ export const SignInPage: FC = () => {
             </Box>
           ) : null}
 
-          {/* Dynamic Account Type Detection Badge */}
-          {(() => {
-            const detected = detectAccountType(email)
-            if (detected === 'admin') {
-              return (
-                <Box
-                  sx={{
-                    mb: 2,
-                    p: 1.25,
-                    borderRadius: '10px',
-                    backgroundColor: '#f0fdf4',
-                    border: '1px solid #86efac',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                  }}
-                >
-                  <ShieldOutlinedIcon sx={{ fontSize: 18, color: '#15803d' }} />
-                  <Box>
-                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#14532d', lineHeight: 1.2 }}>
-                      Super Admin Central Account
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.6875rem', color: '#166534', fontWeight: 600 }}>
-                      Auto-redirects to Central System-Wide Oversight (/admin)
-                    </Typography>
-                  </Box>
-                </Box>
-              )
-            }
-            if (detected === 'official') {
-              return (
-                <Box
-                  sx={{
-                    mb: 2,
-                    p: 1.25,
-                    borderRadius: '10px',
-                    backgroundColor: '#f0fdf4',
-                    border: '1px solid #86efac',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                  }}
-                >
-                  <LocationOnOutlinedIcon sx={{ fontSize: 18, color: '#16a34a' }} />
-                  <Box>
-                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#14532d', lineHeight: 1.2 }}>
-                      Barangay Official Account
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.6875rem', color: '#166534', fontWeight: 600 }}>
-                      Auto-redirects to Station Operations Portal (/admin)
-                    </Typography>
-                  </Box>
-                </Box>
-              )
-            }
-            return (
-              <Box
-                sx={{
-                  mb: 2,
-                  p: 1.25,
-                  borderRadius: '10px',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                }}
-              >
-                <YardOutlinedIcon sx={{ fontSize: 18, color: '#0f172a' }} />
-                <Box>
-                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
-                    Resident Account
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
-                    Auto-redirects to Circular E-Waste Portal (/dashboard)
-                  </Typography>
-                </Box>
-              </Box>
-            )
-          })()}
-
           <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {/* Email */}
             <Box>
@@ -608,7 +506,7 @@ export const SignInPage: FC = () => {
                 value={email}
                 disabled={isLockedOut}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="alex.resident@ecobyte.ph"
+                placeholder="name@example.com"
                 inputProps={{ required: true }}
                 startAdornment={
                   <InputAdornment position="start">
@@ -746,94 +644,6 @@ export const SignInPage: FC = () => {
                 </>
               )}
             </Button>
-
-            {/* Quick Testing Presets for Resident, Official, Super Admin */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, mt: 1 }}>
-              <Typography
-                sx={{
-                  fontFamily: "'Quicksand', sans-serif",
-                  fontSize: '0.6875rem',
-                  fontWeight: 700,
-                  color: '#94a3b8',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                  textAlign: 'center',
-                }}
-              >
-                Quick Testing Presets
-              </Typography>
-              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0.75 }}>
-                <ButtonBase
-                  type="button"
-                  onClick={() => {
-                    setEmail('alex.resident@ecobyte.ph')
-                    setPassword('resident123')
-                    setErrorMessage(null)
-                  }}
-                  sx={{
-                    py: 0.75,
-                    px: 0.5,
-                    borderRadius: '8px',
-                    backgroundColor: '#f8fafc',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.6875rem',
-                    fontWeight: 700,
-                    color: '#334155',
-                    fontFamily: "'Quicksand', sans-serif",
-                    transition: 'all 0.15s ease',
-                    '&:hover': { backgroundColor: '#f1f5f9', borderColor: '#94a3b8' },
-                  }}
-                >
-                  🌱 Resident
-                </ButtonBase>
-                <ButtonBase
-                  type="button"
-                  onClick={() => {
-                    setEmail('official@barangay.gov.ph')
-                    setPassword('official123')
-                    setErrorMessage(null)
-                  }}
-                  sx={{
-                    py: 0.75,
-                    px: 0.5,
-                    borderRadius: '8px',
-                    backgroundColor: '#f0fdf4',
-                    border: '1px solid #86efac',
-                    fontSize: '0.6875rem',
-                    fontWeight: 700,
-                    color: '#166534',
-                    fontFamily: "'Quicksand', sans-serif",
-                    transition: 'all 0.15s ease',
-                    '&:hover': { backgroundColor: '#dcfce7', borderColor: '#4ade80' },
-                  }}
-                >
-                  📍 Official
-                </ButtonBase>
-                <ButtonBase
-                  type="button"
-                  onClick={() => {
-                    setEmail('admin@ecobyte.gov')
-                    setPassword('admin123')
-                    setErrorMessage(null)
-                  }}
-                  sx={{
-                    py: 0.75,
-                    px: 0.5,
-                    borderRadius: '8px',
-                    backgroundColor: '#f0fdf4',
-                    border: '1px solid #86efac',
-                    fontSize: '0.6875rem',
-                    fontWeight: 700,
-                    color: '#15803d',
-                    fontFamily: "'Quicksand', sans-serif",
-                    transition: 'all 0.15s ease',
-                    '&:hover': { backgroundColor: '#dcfce7', borderColor: '#4ade80' },
-                  }}
-                >
-                  🛡️ Admin
-                </ButtonBase>
-              </Box>
-            </Box>
           </Box>
         </Card>
 

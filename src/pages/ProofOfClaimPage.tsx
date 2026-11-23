@@ -30,6 +30,7 @@ import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { dropoffsApi, reuseApi } from '@/lib/api'
+import { ALLOWED_IMAGE_ACCEPT, validateResidentImageFile } from '@/lib/imageUploadValidation'
 import thinkpadImg from '@/assets/ui/thinkpad.jpeg'
 import galaxyImg from '@/assets/ui/galaxy_s10.jpeg'
 import chargerImg from '@/assets/ui/charger.jpeg'
@@ -137,15 +138,23 @@ export const ProofOfClaimPage: FC = () => {
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      setSelectedFile(file)
-      setSubmitError(null)
-      const reader = new FileReader()
-      reader.onload = () => {
-        setPreviewImage(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+    if (!file) return
+
+    const validationErr = validateResidentImageFile(file)
+    if (validationErr) {
+      setSubmitError(validationErr)
+      e.target.value = ''
+      return
     }
+
+    setSelectedFile(file)
+    setSubmitError(null)
+    const reader = new FileReader()
+    reader.onload = () => {
+      setPreviewImage(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
   }
 
   const handleShare = async () => {
@@ -216,7 +225,7 @@ export const ProofOfClaimPage: FC = () => {
       <input
         ref={cameraInputRef}
         type="file"
-        accept="image/*"
+        accept={ALLOWED_IMAGE_ACCEPT}
         capture="environment"
         style={{ display: 'none' }}
         onChange={handleImageChange}
@@ -224,7 +233,7 @@ export const ProofOfClaimPage: FC = () => {
       <input
         ref={galleryInputRef}
         type="file"
-        accept="image/*"
+        accept={ALLOWED_IMAGE_ACCEPT}
         style={{ display: 'none' }}
         onChange={handleImageChange}
       />
@@ -428,7 +437,7 @@ export const ProofOfClaimPage: FC = () => {
               Drag &amp; drop or click to upload
             </Typography>
             <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b' }}>
-              Supports JPG, PNG up to 10MB
+              Supports JPG, JPEG, PNG up to 10MB
             </Typography>
           </Box>
         )}
@@ -774,7 +783,7 @@ export const ProofOfClaimPage: FC = () => {
         open={claimSuccessOpen}
         onClose={() => {
           setClaimSuccessOpen(false)
-          navigate('/requests?tab=completed')
+          navigate('/requests?tab=history')
         }}
         maxWidth="sm"
         fullWidth
@@ -823,7 +832,7 @@ export const ProofOfClaimPage: FC = () => {
             variant="contained"
             onClick={() => {
               setClaimSuccessOpen(false)
-              navigate('/requests?tab=completed')
+              navigate('/requests?tab=history')
             }}
             sx={{
               backgroundColor: '#0f172a',
@@ -836,7 +845,7 @@ export const ProofOfClaimPage: FC = () => {
               '&:hover': { backgroundColor: '#1e293b' },
             }}
           >
-            View in Completed Requests
+            View in History
           </Button>
           <Button
             fullWidth
