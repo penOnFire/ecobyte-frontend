@@ -1,9 +1,11 @@
-import { useEffect, useState, useRef, type FC, type ChangeEvent } from 'react'
+import { useEffect, useState, useRef, useCallback, type FC, type ChangeEvent } from 'react'
 import {
   Alert,
   Box,
   Button,
+  ButtonBase,
   Card,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -23,9 +25,65 @@ import PhotoLibraryRoundedIcon from '@mui/icons-material/PhotoLibraryRounded'
 import ZoomInRoundedIcon from '@mui/icons-material/ZoomInRounded'
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
+import CameraswitchRoundedIcon from '@mui/icons-material/CameraswitchRounded'
+import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded'
+import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded'
 import { useNavigate } from 'react-router-dom'
 
 export const SCAN_ANGLES_STORAGE_KEY = 'ecobyte_scan_angles'
+
+type CameraState =
+  | 'idle'
+  | 'starting'
+  | 'active'
+  | 'needs_gesture'
+  | 'permission_denied'
+  | 'unsupported'
+  | 'error'
+
+const getMediaStreamWithFallback = async (mode: 'environment' | 'user'): Promise<MediaStream> => {
+  const nav = typeof navigator !== 'undefined' ? (navigator as any) : {}
+  const getUserMediaFn =
+    navigator.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices) ||
+    nav.getUserMedia?.bind(nav) ||
+    nav.webkitGetUserMedia?.bind(nav) ||
+    nav.mozGetUserMedia?.bind(nav) ||
+    nav.msGetUserMedia?.bind(nav)
+
+  if (!getUserMediaFn) {
+    throw new Error('getUserMedia not supported in this browser environment')
+  }
+
+  // Attempt 1: Ideal facingMode with 1280x720 standard resolution
+  try {
+    return await getUserMediaFn({
+      video: {
+        facingMode: { ideal: mode },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+      audio: false,
+    })
+  } catch (err1) {
+    console.warn('Constraint attempt 1 (ideal mode + resolution) failed:', err1)
+  }
+
+  // Attempt 2: Simple facingMode constraint
+  try {
+    return await getUserMediaFn({
+      video: { facingMode: mode },
+      audio: false,
+    })
+  } catch (err2) {
+    console.warn('Constraint attempt 2 (facingMode) failed:', err2)
+  }
+
+  // Attempt 3: Any available video stream
+  return await getUserMediaFn({
+    video: true,
+    audio: false,
+  })
+}
 
 interface AngleConfig {
   id: 'front' | 'back' | 'left' | 'right'
@@ -45,9 +103,18 @@ export const ScanDevicePage: FC = () => {
   const navigate = useNavigate()
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
 
   const [currentAngle, setCurrentAngle] = useState<AngleConfig['id']>('front')
   const [flashOn, setFlashOn] = useState(false)
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment')
+  const [cameraActive, setCameraActive] = useState(false)
+  const [cameraState, setCameraState] = useState<CameraState>('idle')
+  const [cameraError, setCameraError] = useState<string | null>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [shutterFlash, setShutterFlash] = useState(false)
   const [previewAngle, setPreviewAngle] = useState<AngleConfig['id'] | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
   const [capturedImages, setCapturedImages] = useState<Record<string, string>>(() => {
@@ -59,6 +126,95 @@ export const ScanDevicePage: FC = () => {
     }
   })
 
+  const toggleFullscreen = () => {
+    setIsFullscreen((prev) => !prev)
+  }
+
+  // Handle ESC key to exit full screen mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isFullscreen])
+
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop())
+      streamRef.current = null
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
+    }
+    setCameraActive(false)
+  }, [])
+
+  const startCamera = useCallback(
+    async (mode: 'environment' | 'user' = facingMode, isAutoStart = false) => {
+      stopCamera()
+      setCameraError(null)
+
+      try {
+        setCameraState('starting')
+        const stream = await getMediaStreamWithFallback(mode)
+        streamRef.current = stream
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream
+          videoRef.current.muted = true
+          videoRef.current.setAttribute('playsinline', 'true')
+          videoRef.current.setAttribute('webkit-playsinline', 'true')
+          try {
+            await videoRef.current.play()
+          } catch (playErr) {
+            console.warn('Video play error:', playErr)
+          }
+        }
+        setCameraActive(true)
+        setCameraState('active')
+      } catch (err: any) {
+        console.warn('Camera stream error:', err)
+        setCameraActive(false)
+
+        if (isAutoStart) {
+          // If auto-start is rejected on page mount because the browser enforces a user gesture (e.g. iOS Safari),
+          // transition to needs_gesture so tapping Enable Camera prompts the user.
+          setCameraState('needs_gesture')
+          return
+        }
+
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          setCameraState('permission_denied')
+          setCameraError(
+            'Camera permission was not granted. Please allow camera permissions in your browser to scan live.'
+          )
+        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+          setCameraState('unsupported')
+          setCameraError('No camera hardware found on this device.')
+        } else {
+          setCameraState('error')
+          setCameraError(
+            err.message?.includes('getUserMedia not supported')
+              ? 'In-app live camera is not supported over HTTP by this mobile browser.'
+              : 'Unable to start live camera feed. Tap Retry to try again.'
+          )
+        }
+      }
+    },
+    [facingMode, stopCamera]
+  )
+
+  // Automatically attempt opening the camera when entering the scan device module
+  useEffect(() => {
+    startCamera(facingMode, true)
+    return () => {
+      stopCamera()
+    }
+  }, [facingMode, startCamera, stopCamera])
+
   useEffect(() => {
     try {
       sessionStorage.setItem(SCAN_ANGLES_STORAGE_KEY, JSON.stringify(capturedImages))
@@ -66,6 +222,89 @@ export const ScanDevicePage: FC = () => {
       // Ignore storage quota errors cleanly
     }
   }, [capturedImages])
+
+  const toggleFacingMode = () => {
+    const nextMode = facingMode === 'environment' ? 'user' : 'environment'
+    setFacingMode(nextMode)
+    startCamera(nextMode, false)
+  }
+
+  const toggleFlash = async () => {
+    const nextState = !flashOn
+    setFlashOn(nextState)
+    if (streamRef.current) {
+      const track = streamRef.current.getVideoTracks()[0]
+      if (track) {
+        try {
+          const capabilities = (track.getCapabilities?.() as any) || {}
+          if (capabilities.torch) {
+            await (track as any).applyConstraints({
+              advanced: [{ torch: nextState }],
+            })
+          }
+        } catch {
+          // torch constraint not supported on some platforms
+        }
+      }
+    }
+  }
+
+  // Snap photo from the live video feed OR launch phone camera fallback
+  const handleCaptureClick = () => {
+    if (cameraActive && videoRef.current) {
+      // Trigger visual shutter feedback
+      setShutterFlash(true)
+      setTimeout(() => setShutterFlash(false), 140)
+
+      const video = videoRef.current
+      const canvas = canvasRef.current || document.createElement('canvas')
+      let width = video.videoWidth || 1280
+      let height = video.videoHeight || 720
+
+      // Constrain snapshot dimensions to keep within safe sessionStorage limits
+      const maxDimension = 1280
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width)
+          width = maxDimension
+        } else {
+          width = Math.round((width * maxDimension) / height)
+          height = maxDimension
+        }
+      }
+
+      canvas.width = width
+      canvas.height = height
+
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+
+      // If using user-facing camera, mirror the frame
+      if (facingMode === 'user') {
+        ctx.translate(width, 0)
+        ctx.scale(-1, 1)
+      }
+
+      ctx.drawImage(video, 0, 0, width, height)
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
+
+      const angleToSave = currentAngle
+      setCapturedImages((prev) => {
+        const next = {
+          ...prev,
+          [angleToSave]: dataUrl,
+        }
+        const nextPending = DEFAULT_ANGLES.find((a) => a.id !== angleToSave && !next[a.id])
+        if (nextPending) {
+          setCurrentAngle(nextPending.id)
+        }
+        return next
+      })
+    } else {
+      // When camera is not active yet, tapping Capture starts the in-app camera!
+      startCamera(facingMode, false)
+    }
+  }
 
   const completedCount = DEFAULT_ANGLES.filter((a) => Boolean(capturedImages[a.id])).length
   const activeConfig = DEFAULT_ANGLES.find((a) => a.id === currentAngle) ?? DEFAULT_ANGLES[0]
@@ -106,11 +345,14 @@ export const ScanDevicePage: FC = () => {
     if (previewAngle === angleId) {
       setPreviewAngle(null)
     }
+    if (!cameraActive) {
+      startCamera(facingMode)
+    }
   }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5 }}>
-      {/* Hidden file inputs for Live Camera and Gallery */}
+      {/* Hidden file inputs for manual Fallback Camera and Gallery */}
       <input
         ref={cameraInputRef}
         type="file"
@@ -126,6 +368,9 @@ export const ScanDevicePage: FC = () => {
         style={{ display: 'none' }}
         onChange={handleFileCapture}
       />
+
+      {/* Hidden canvas for taking instant snapshots from live video */}
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
 
       {/* ── Header ── */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -152,48 +397,146 @@ export const ScanDevicePage: FC = () => {
             Scan Device
           </Typography>
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#64748b' }}>
-            Multi-Angle AI Camera
+            Multi-Angle In-App Camera
           </Typography>
         </Box>
 
-        <IconButton
-          size="small"
-          onClick={() => setFlashOn((v) => !v)}
-          aria-label="Toggle flash"
-          sx={{
-            width: 38,
-            height: 38,
-            backgroundColor: flashOn ? '#0f172a' : '#ffffff',
-            border: '1px solid #e2e8f0',
-            borderRadius: '50%',
-            color: flashOn ? '#abf06b' : '#0f172a',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-            '&:hover': { backgroundColor: flashOn ? '#1e293b' : '#f8fafc' },
-          }}
-        >
-          {flashOn ? <FlashOnRoundedIcon sx={{ fontSize: 18 }} /> : <FlashOffRoundedIcon sx={{ fontSize: 18 }} />}
-        </IconButton>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+          {/* Flip camera button */}
+          <IconButton
+            size="small"
+            onClick={toggleFacingMode}
+            aria-label="Switch camera"
+            title={facingMode === 'environment' ? 'Switch to Front Camera' : 'Switch to Rear Camera'}
+            sx={{
+              width: 38,
+              height: 38,
+              backgroundColor: '#ffffff',
+              border: '1px solid #e2e8f0',
+              borderRadius: '50%',
+              color: '#0f172a',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              '&:hover': { backgroundColor: '#f8fafc' },
+            }}
+          >
+            <CameraswitchRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+
+          {/* Flash / Torch toggle button */}
+          <IconButton
+            size="small"
+            onClick={toggleFlash}
+            aria-label="Toggle flash"
+            sx={{
+              width: 38,
+              height: 38,
+              backgroundColor: flashOn ? '#0f172a' : '#ffffff',
+              border: '1px solid #e2e8f0',
+              borderRadius: '50%',
+              color: flashOn ? '#abf06b' : '#0f172a',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              '&:hover': { backgroundColor: flashOn ? '#1e293b' : '#f8fafc' },
+            }}
+          >
+            {flashOn ? <FlashOnRoundedIcon sx={{ fontSize: 18 }} /> : <FlashOffRoundedIcon sx={{ fontSize: 18 }} />}
+          </IconButton>
+
+          {/* Full Screen toggle button */}
+          <IconButton
+            size="small"
+            onClick={toggleFullscreen}
+            aria-label="Full screen camera"
+            title="Open full screen camera"
+            sx={{
+              width: 38,
+              height: 38,
+              backgroundColor: isFullscreen ? '#0f172a' : '#ffffff',
+              border: '1px solid #e2e8f0',
+              borderRadius: '50%',
+              color: isFullscreen ? '#abf06b' : '#0f172a',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              '&:hover': { backgroundColor: isFullscreen ? '#1e293b' : '#f8fafc' },
+            }}
+          >
+            <FullscreenRoundedIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        </Box>
       </Box>
 
-      {/* ── Camera Viewport Card ── */}
+      {/* ── Camera Viewport Window ── */}
       <Box
         sx={{
-          borderRadius: 2,
-          backgroundColor: '#020617',
-          border: '1.5px solid #1e293b',
-          p: 2,
-          position: 'relative',
+          ...(isFullscreen
+            ? {
+                position: 'fixed',
+                inset: 0,
+                zIndex: 1400,
+                borderRadius: 0,
+                border: 'none',
+                width: '100vw',
+                height: '100vh',
+                minHeight: '100vh',
+                aspectRatio: 'unset',
+                pt: { xs: 'calc(14px + env(safe-area-inset-top, 0px))', sm: 2.5 },
+                pb: { xs: 'calc(16px + env(safe-area-inset-bottom, 0px))', sm: 2.5 },
+                px: { xs: 2, sm: 3 },
+                boxShadow: 'none',
+              }
+            : {
+                borderRadius: 2,
+                backgroundColor: '#020617',
+                border: '1.5px solid #1e293b',
+                p: 2,
+                position: 'relative',
+                minHeight: { xs: 300, sm: 380, md: 420 },
+                aspectRatio: { xs: '4 / 3', sm: '16 / 10' },
+                overflow: 'hidden',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+              }),
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          minHeight: { xs: 300, sm: 380, md: 420 },
-          aspectRatio: { xs: '4 / 3', sm: '16 / 10' },
+          backgroundColor: '#020617',
           overflow: 'hidden',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+          transition: 'all 0.2s ease',
         }}
       >
-        {/* If image captured for active angle, show preview */}
-        {capturedImages[currentAngle] ? (
+        {/* Live Video Feed Element */}
+        <Box
+          component="video"
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 0,
+            display: capturedImages[currentAngle] ? 'none' : 'block',
+            transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
+          }}
+        />
+
+        {/* Shutter flash animation on capture */}
+        {shutterFlash && (
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: '#ffffff',
+              opacity: 0.85,
+              zIndex: 30,
+              pointerEvents: 'none',
+              transition: 'opacity 0.14s ease-out',
+            }}
+          />
+        )}
+
+        {/* Captured Photo Overlay (Shown if active angle has a saved photo) */}
+        {capturedImages[currentAngle] && (
           <Box
             component="img"
             src={capturedImages[currentAngle]}
@@ -207,187 +550,750 @@ export const ScanDevicePage: FC = () => {
               zIndex: 1,
             }}
           />
-        ) : (
-          /* Subtle grid background */
+        )}
+
+        {/* ── Dynamic Camera State Banners (Clean, Non-blocking, Friendly) ── */}
+
+        {/* 1. Connecting State */}
+        {cameraState === 'starting' && !capturedImages[currentAngle] && (
           <Box
             sx={{
               position: 'absolute',
               inset: 0,
-              backgroundImage: 'radial-gradient(#1e293b 1px, transparent 1px)',
-              backgroundSize: '20px 20px',
-              opacity: 0.6,
-              pointerEvents: 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              p: 3,
+              backgroundColor: 'rgba(2, 6, 23, 0.95)',
+              zIndex: 2,
+              textAlign: 'center',
+              gap: 1.5,
             }}
-          />
+          >
+            <CircularProgress size={36} sx={{ color: '#abf06b' }} />
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#ffffff' }}>
+              Starting Camera...
+            </Typography>
+          </Box>
         )}
 
-        {/* Decorative electric lime corner brackets */}
-        <Box sx={{ position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderTop: '2.5px solid #abf06b', borderLeft: '2.5px solid #abf06b', borderRadius: '3px 0 0 0', zIndex: 2 }} />
-        <Box sx={{ position: 'absolute', top: 12, right: 12, width: 22, height: 22, borderTop: '2.5px solid #abf06b', borderRight: '2.5px solid #abf06b', borderRadius: '0 3px 0 0', zIndex: 2 }} />
-        <Box sx={{ position: 'absolute', bottom: 12, left: 12, width: 22, height: 22, borderBottom: '2.5px solid #abf06b', borderLeft: '2.5px solid #abf06b', borderRadius: '0 0 0 3px', zIndex: 2 }} />
-        <Box sx={{ position: 'absolute', bottom: 12, right: 12, width: 22, height: 22, borderBottom: '2.5px solid #abf06b', borderRight: '2.5px solid #abf06b', borderRadius: '0 0 3px 0', zIndex: 2 }} />
+        {/* 2. Needs User Gesture (e.g. iOS Safari / Mobile Browser User Interaction Required) */}
+        {cameraState === 'needs_gesture' && !capturedImages[currentAngle] && (
+          <Box
+            onClick={() => startCamera(facingMode, false)}
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              p: 3,
+              backgroundColor: 'rgba(2, 6, 23, 0.92)',
+              zIndex: 2,
+              textAlign: 'center',
+              gap: 1.25,
+              cursor: 'pointer',
+            }}
+          >
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                backgroundColor: 'rgba(171, 240, 107, 0.15)',
+                border: '2px solid #abf06b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mb: 0.5,
+                boxShadow: '0 0 20px rgba(171, 240, 107, 0.3)',
+              }}
+            >
+              <TouchAppRoundedIcon sx={{ fontSize: 32, color: '#abf06b' }} />
+            </Box>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '1rem', color: '#ffffff' }}>
+              Tap to Enable Camera
+            </Typography>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#94a3b8', maxWidth: 300 }}>
+              Tap here to grant camera permission and stream your device live.
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  startCamera(facingMode, false)
+                }}
+                startIcon={<CameraAltRoundedIcon sx={{ fontSize: 18 }} />}
+                sx={{
+                  backgroundColor: '#abf06b',
+                  color: '#0f172a',
+                  fontWeight: 800,
+                  fontSize: '0.8125rem',
+                  px: 2.5,
+                  py: 0.75,
+                  '&:hover': { backgroundColor: '#8ce442' },
+                }}
+              >
+                Enable Camera
+              </Button>
+            </Box>
+          </Box>
+        )}
 
-        {/* Top HUD badge */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', zIndex: 2 }}>
+        {/* 3. Permission Denied State */}
+        {cameraState === 'permission_denied' && !capturedImages[currentAngle] && (
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              p: 3,
+              backgroundColor: 'rgba(2, 6, 23, 0.95)',
+              zIndex: 2,
+              textAlign: 'center',
+              gap: 1.25,
+            }}
+          >
+            <Box
+              sx={{
+                width: 56,
+                height: 56,
+                borderRadius: '50%',
+                backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                border: '2px solid #f59e0b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <CameraAltRoundedIcon sx={{ fontSize: 28, color: '#f59e0b' }} />
+            </Box>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#ffffff' }}>
+              Camera Permission Needed
+            </Typography>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#94a3b8', maxWidth: 320 }}>
+              {cameraError || 'Camera permission was not granted. Tap below to retry or take photos using your phone camera.'}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => startCamera(facingMode, false)}
+                startIcon={<RefreshRoundedIcon sx={{ fontSize: 16 }} />}
+                sx={{
+                  backgroundColor: '#abf06b',
+                  color: '#0f172a',
+                  fontWeight: 800,
+                  fontSize: '0.75rem',
+                  '&:hover': { backgroundColor: '#8ce442' },
+                }}
+              >
+                Retry Permission
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => cameraInputRef.current?.click()}
+                startIcon={<CameraAltRoundedIcon sx={{ fontSize: 16 }} />}
+                sx={{
+                  borderColor: '#475569',
+                  color: '#e2e8f0',
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  '&:hover': { borderColor: '#94a3b8', backgroundColor: 'rgba(255,255,255,0.05)' },
+                }}
+              >
+                Use Phone Camera
+              </Button>
+            </Box>
+          </Box>
+        )}
+
+        {/* 5. Unsupported / Hardware Error State */}
+        {(cameraState === 'unsupported' || cameraState === 'error') && !capturedImages[currentAngle] && (
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              p: 3,
+              backgroundColor: 'rgba(2, 6, 23, 0.95)',
+              zIndex: 2,
+              textAlign: 'center',
+              gap: 1.25,
+            }}
+          >
+            <CameraAltRoundedIcon sx={{ fontSize: 40, color: '#94a3b8' }} />
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.9375rem', color: '#ffffff' }}>
+              In-App Camera Unavailable
+            </Typography>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#94a3b8', maxWidth: 320 }}>
+              {cameraError || 'You can still take device photos with your phone camera or upload from your gallery.'}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => cameraInputRef.current?.click()}
+                startIcon={<CameraAltRoundedIcon sx={{ fontSize: 16 }} />}
+                sx={{
+                  backgroundColor: '#abf06b',
+                  color: '#0f172a',
+                  fontWeight: 800,
+                  fontSize: '0.75rem',
+                  '&:hover': { backgroundColor: '#8ce442' },
+                }}
+              >
+                Take Photo
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => galleryInputRef.current?.click()}
+                startIcon={<PhotoLibraryRoundedIcon sx={{ fontSize: 16 }} />}
+                sx={{
+                  borderColor: '#475569',
+                  color: '#e2e8f0',
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  '&:hover': { borderColor: '#94a3b8', backgroundColor: 'rgba(255,255,255,0.05)' },
+                }}
+              >
+                Gallery
+              </Button>
+            </Box>
+          </Box>
+        )}
+
+        {/* Live Alignment Guide Overlay & Sweep Beam (Shown when camera is live) */}
+        {!capturedImages[currentAngle] && cameraActive && (
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none',
+              zIndex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {/* Viewfinder Target Frame */}
+            <Box
+              sx={{
+                width: isFullscreen ? { xs: '78%', sm: '56%', md: '42%' } : { xs: '76%', sm: '65%' },
+                height: isFullscreen ? { xs: '40%', sm: '44%' } : { xs: '72%', sm: '70%' },
+                maxHeight: isFullscreen ? { xs: 290, sm: 360 } : 'none',
+                border: '1.5px dashed rgba(171, 240, 107, 0.75)',
+                borderRadius: 2.5,
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.32)',
+              }}
+            >
+              {/* Center reticle */}
+              <Box sx={{ width: 10, height: 10, borderRadius: '50%', border: '2px solid #abf06b', opacity: 0.85 }} />
+
+              {/* Animated laser scan beam */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: 2,
+                  backgroundColor: '#abf06b',
+                  boxShadow: '0 0 10px #abf06b, 0 0 4px #abf06b',
+                  top: '50%',
+                  animation: 'scanSweep 2.2s ease-in-out infinite alternate',
+                  '@keyframes scanSweep': {
+                    '0%': { top: '8%' },
+                    '100%': { top: '92%' },
+                  },
+                }}
+              />
+            </Box>
+          </Box>
+        )}
+
+        {/* Decorative electric lime corner brackets (Standard mode only to prevent fullscreen clutter) */}
+        {!isFullscreen && (
+          <>
+            <Box sx={{ position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderTop: '2.5px solid #abf06b', borderLeft: '2.5px solid #abf06b', borderRadius: '3px 0 0 0', zIndex: 2 }} />
+            <Box sx={{ position: 'absolute', top: 12, right: 12, width: 22, height: 22, borderTop: '2.5px solid #abf06b', borderRight: '2.5px solid #abf06b', borderRadius: '0 3px 0 0', zIndex: 2 }} />
+            <Box sx={{ position: 'absolute', bottom: 12, left: 12, width: 22, height: 22, borderBottom: '2.5px solid #abf06b', borderLeft: '2.5px solid #abf06b', borderRadius: '0 0 0 3px', zIndex: 2 }} />
+            <Box sx={{ position: 'absolute', bottom: 12, right: 12, width: 22, height: 22, borderBottom: '2.5px solid #abf06b', borderRight: '2.5px solid #abf06b', borderRadius: '0 0 3px 0', zIndex: 2 }} />
+          </>
+        )}
+
+        {/* ── Top Bar inside Viewport ── */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '100%',
+            zIndex: 10,
+            px: { xs: 0.5, sm: 1 },
+          }}
+        >
+          {isFullscreen ? (
+            /* Exit Full Screen Circular Icon Button in Fullscreen Mode */
+            <IconButton
+              onClick={toggleFullscreen}
+              aria-label="Exit full screen"
+              sx={{
+                width: 38,
+                height: 38,
+                backgroundColor: 'rgba(15, 23, 42, 0.75)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(10px)',
+                color: '#ffffff',
+                '&:hover': { backgroundColor: '#0f172a', color: '#abf06b', borderColor: '#abf06b' },
+              }}
+            >
+              <CloseRoundedIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          ) : (
+            /* Left spacer when not in fullscreen */
+            <Box sx={{ width: 38 }} />
+          )}
+
+          {/* Center HUD status badge */}
           <Box
             sx={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 0.75,
-              backgroundColor: 'rgba(15, 23, 42, 0.85)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              backdropFilter: 'blur(8px)',
+              backgroundColor: 'rgba(15, 23, 42, 0.75)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(10px)',
               color: '#ffffff',
-              px: 1.75,
-              py: 0.6,
+              px: { xs: 1.25, sm: 1.75 },
+              py: 0.5,
               borderRadius: 9999,
               boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
             }}
           >
             <Box
               sx={{
-                width: 7,
-                height: 7,
+                width: 6,
+                height: 6,
                 borderRadius: '50%',
-                backgroundColor: capturedImages[currentAngle] ? '#16a34a' : flashOn ? '#abf06b' : '#22c55e',
-                boxShadow: '0 0 8px #abf06b',
+                backgroundColor: capturedImages[currentAngle]
+                  ? '#16a34a'
+                  : cameraActive
+                    ? '#22c55e'
+                    : cameraState === 'needs_gesture'
+                      ? '#38bdf8'
+                      : '#f59e0b',
+                boxShadow: capturedImages[currentAngle]
+                  ? '0 0 8px #22c55e'
+                  : cameraActive
+                    ? '0 0 8px #abf06b'
+                    : 'none',
               }}
             />
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', letterSpacing: '0.06em' }}>
-              {capturedImages[currentAngle] ? `CAPTURED: ${currentAngle.toUpperCase()} VIEW` : 'OPTICAL SCANNER READY'}
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: { xs: '0.625rem', sm: '0.6875rem' }, letterSpacing: '0.04em' }}>
+              {capturedImages[currentAngle]
+                ? `CAPTURED: ${currentAngle.toUpperCase()}`
+                : cameraActive
+                  ? isFullscreen
+                    ? `ALIGN ${currentAngle.toUpperCase()}`
+                    : `LIVE • ${currentAngle.toUpperCase()}`
+                  : cameraState === 'needs_gesture'
+                    ? `TAP TO START`
+                    : `READY • ${currentAngle.toUpperCase()}`}
             </Typography>
           </Box>
+
+          {/* Right controls: Full Screen button (Windowed) OR Quick Flip & Flash (Fullscreen) */}
+          {!isFullscreen ? (
+            <ButtonBase
+              onClick={toggleFullscreen}
+              aria-label="Full screen camera"
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.5,
+                backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(8px)',
+                color: '#ffffff',
+                px: 1.25,
+                py: 0.5,
+                borderRadius: 9999,
+                transition: 'all 0.15s ease',
+                '&:hover': {
+                  backgroundColor: '#0f172a',
+                  color: '#abf06b',
+                  borderColor: '#abf06b',
+                },
+              }}
+            >
+              <FullscreenRoundedIcon sx={{ fontSize: 16, color: '#abf06b' }} />
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem' }}>
+                Full screen
+              </Typography>
+            </ButtonBase>
+          ) : (
+            /* In Fullscreen mode: Quick Flip & Flash toggles */
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              <IconButton
+                size="small"
+                onClick={toggleFacingMode}
+                sx={{
+                  width: 38,
+                  height: 38,
+                  backgroundColor: 'rgba(15, 23, 42, 0.75)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(10px)',
+                  color: '#ffffff',
+                  '&:hover': { backgroundColor: '#0f172a', color: '#abf06b' },
+                }}
+                aria-label="Flip camera"
+              >
+                <CameraswitchRoundedIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+              <IconButton
+                size="small"
+                onClick={toggleFlash}
+                sx={{
+                  width: 38,
+                  height: 38,
+                  backgroundColor: flashOn ? '#0f172a' : 'rgba(15, 23, 42, 0.75)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(10px)',
+                  color: flashOn ? '#abf06b' : '#ffffff',
+                  '&:hover': { backgroundColor: '#0f172a' },
+                }}
+                aria-label="Toggle flash"
+              >
+                {flashOn ? <FlashOnRoundedIcon sx={{ fontSize: 18 }} /> : <FlashOffRoundedIcon sx={{ fontSize: 18 }} />}
+              </IconButton>
+            </Box>
+          )}
         </Box>
 
-        {/* Center device representation & reticle (shown when no photo captured yet) */}
-        {!capturedImages[currentAngle] && (
+        {/* ── Bottom HUD Bar (Standard Mode) OR Shutter Deck (Fullscreen Mode) ── */}
+        {!isFullscreen ? (
           <Box
             sx={{
+              backgroundColor: 'rgba(15, 23, 42, 0.85)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(8px)',
+              borderRadius: 9999,
+              px: 1.75,
+              py: 0.75,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              zIndex: 2,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+              <AspectRatioRoundedIcon sx={{ fontSize: 16, color: '#abf06b' }} />
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#abf06b' }}>
+                {cameraActive
+                  ? 'In-App Live Stream'
+                  : cameraState === 'needs_gesture'
+                    ? 'Tap to Activate'
+                    : 'Camera Ready'}
+              </Typography>
+            </Box>
+            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.6875rem', color: '#ffffff' }}>
+              Target: {currentAngle.toUpperCase()} ({activeConfig.required ? 'Required' : 'Optional'})
+            </Typography>
+          </Box>
+        ) : (
+          /* Fullscreen Bottom Shutter Control Deck */
+          <Box
+            sx={{
+              zIndex: 10,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
-              my: 'auto',
-              position: 'relative',
-              zIndex: 1,
-              py: 2,
+              gap: 1.25,
+              width: '100%',
+              pb: { xs: 1, sm: 2 },
             }}
           >
-            {/* Laser scanning beam */}
+            {/* Guidance prompt capsule */}
             <Box
               sx={{
-                position: 'absolute',
-                width: '100%',
-                height: 2,
-                backgroundColor: '#abf06b',
-                boxShadow: '0 0 12px #abf06b, 0 0 4px #abf06b',
-                top: '48%',
-                zIndex: 3,
-              }}
-            />
-
-            {/* Smartphone outline */}
-            <Box
-              sx={{
-                width: 124,
-                height: 184,
-                backgroundColor: '#0f172a',
-                borderRadius: 2,
-                border: '2px solid #334155',
-                position: 'relative',
-                p: 1.25,
-                boxShadow: '0 8px 28px rgba(0,0,0,0.4)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'rgba(15, 23, 42, 0.75)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: 9999,
+                px: { xs: 1.5, sm: 2 },
+                py: 0.5,
+                maxWidth: { xs: '92%', sm: 400 },
+                textAlign: 'center',
               }}
             >
-              {/* Camera bump */}
-              <Box
+              <Typography
                 sx={{
-                  width: 46,
-                  height: 50,
-                  borderRadius: 1.25,
-                  backgroundColor: '#020617',
-                  border: '1.5px solid #334155',
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: 0.5,
-                  p: 0.5,
+                  fontFamily: "'Quicksand', sans-serif",
+                  fontWeight: 600,
+                  fontSize: { xs: '0.6875rem', sm: '0.75rem' },
+                  color: '#e2e8f0',
+                  lineHeight: 1.3,
                 }}
               >
-                <Box sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: '#0f172a', border: '1.5px solid #475569' }} />
-                <Box sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: '#0f172a', border: '1.5px solid #475569' }} />
-                <Box sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: '#0f172a', border: '1.5px solid #475569' }} />
-              </Box>
+                {activeConfig.prompt}
+              </Typography>
+            </Box>
 
-              {/* Target reticle */}
-              <Box
+            {/* 4 Angle selector pills (Single horizontal row, no wrap) */}
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 0.75,
+                flexWrap: 'nowrap',
+                justifyContent: 'center',
+                width: '100%',
+                maxWidth: 380,
+                px: 1,
+              }}
+            >
+              {DEFAULT_ANGLES.map((angle) => {
+                const isCompleted = Boolean(capturedImages[angle.id])
+                const isActive = angle.id === currentAngle
+                return (
+                  <ButtonBase
+                    key={angle.id}
+                    onClick={() => setCurrentAngle(angle.id)}
+                    sx={{
+                      flex: '1 1 0',
+                      minWidth: 0,
+                      py: 0.5,
+                      px: { xs: 0.75, sm: 1.25 },
+                      borderRadius: 9999,
+                      border: isActive
+                        ? '2px solid #abf06b'
+                        : isCompleted
+                          ? '1.5px solid #16a34a'
+                          : '1px solid rgba(255,255,255,0.2)',
+                      backgroundColor: isActive
+                        ? '#abf06b'
+                        : isCompleted
+                          ? 'rgba(22, 163, 74, 0.35)'
+                          : 'rgba(15, 23, 42, 0.75)',
+                      color: isActive ? '#0f172a' : '#ffffff',
+                      backdropFilter: 'blur(10px)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 0.4,
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontFamily: "'Quicksand', sans-serif",
+                        fontWeight: 700,
+                        fontSize: { xs: '0.625rem', sm: '0.6875rem' },
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {angle.label}
+                    </Typography>
+                    {isCompleted ? (
+                      <CheckRoundedIcon sx={{ fontSize: 13, color: isActive ? '#0f172a' : '#22c55e' }} />
+                    ) : angle.required ? (
+                      <Box
+                        sx={{
+                          width: 5,
+                          height: 5,
+                          borderRadius: '50%',
+                          backgroundColor: isActive ? '#0f172a' : '#f59e0b',
+                          flexShrink: 0,
+                        }}
+                      />
+                    ) : null}
+                  </ButtonBase>
+                )
+              })}
+            </Box>
+
+            {/* Shutter controls bar */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: { xs: 3, sm: 4.5 },
+                width: '100%',
+                pt: 0.5,
+              }}
+            >
+              {/* Gallery button */}
+              <IconButton
+                onClick={() => galleryInputRef.current?.click()}
                 sx={{
-                  alignSelf: 'center',
-                  my: 'auto',
-                  width: 52,
-                  height: 52,
+                  width: 44,
+                  height: 44,
+                  backgroundColor: 'rgba(15, 23, 42, 0.75)',
+                  border: '1.5px solid rgba(255,255,255,0.2)',
+                  backdropFilter: 'blur(10px)',
+                  color: '#ffffff',
+                  '&:hover': { backgroundColor: 'rgba(15, 23, 42, 1)', color: '#abf06b' },
+                }}
+                title="Upload from gallery"
+                aria-label="Upload from gallery"
+              >
+                <PhotoLibraryRoundedIcon sx={{ fontSize: 20 }} />
+              </IconButton>
+
+              {/* Circular Capture Shutter Button */}
+              <Box
+                onClick={handleCaptureClick}
+                role="button"
+                tabIndex={0}
+                aria-label="Capture photo"
+                sx={{
+                  width: 66,
+                  height: 66,
                   borderRadius: '50%',
-                  border: '1.5px dashed rgba(171, 240, 107, 0.7)',
+                  border: '3.5px solid #abf06b',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  cursor: 'pointer',
+                  backgroundColor: 'rgba(15, 23, 42, 0.4)',
+                  backdropFilter: 'blur(4px)',
+                  transition: 'transform 0.1s ease, box-shadow 0.2s ease',
+                  boxShadow: '0 0 20px rgba(171, 240, 107, 0.35)',
+                  '&:hover': {
+                    transform: 'scale(1.04)',
+                    boxShadow: '0 0 26px rgba(171, 240, 107, 0.55)',
+                  },
+                  '&:active': { transform: 'scale(0.92)' },
                 }}
               >
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#abf06b' }} />
+                <Box
+                  sx={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: '50%',
+                    backgroundColor: '#abf06b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <CameraAltRoundedIcon sx={{ fontSize: 26, color: '#0f172a' }} />
+                </Box>
               </Box>
+
+              {/* Retake or Done / Exit button */}
+              {capturedImages[currentAngle] ? (
+                <IconButton
+                  onClick={() => handleRetake(currentAngle)}
+                  sx={{
+                    width: 44,
+                    height: 44,
+                    backgroundColor: 'rgba(220, 38, 38, 0.85)',
+                    border: '1.5px solid rgba(255,255,255,0.2)',
+                    backdropFilter: 'blur(10px)',
+                    color: '#ffffff',
+                    '&:hover': { backgroundColor: '#dc2626' },
+                  }}
+                  title="Retake photo"
+                  aria-label="Retake photo"
+                >
+                  <RefreshRoundedIcon sx={{ fontSize: 20 }} />
+                </IconButton>
+              ) : (
+                <IconButton
+                  onClick={toggleFullscreen}
+                  sx={{
+                    width: 44,
+                    height: 44,
+                    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+                    border: '1.5px solid rgba(255,255,255,0.2)',
+                    backdropFilter: 'blur(10px)',
+                    color: '#ffffff',
+                    '&:hover': { backgroundColor: 'rgba(15, 23, 42, 1)', color: '#abf06b' },
+                  }}
+                  title="Done full screen"
+                  aria-label="Done full screen"
+                >
+                  <CheckRoundedIcon sx={{ fontSize: 20, color: '#abf06b' }} />
+                </IconButton>
+              )}
             </Box>
           </Box>
         )}
-
-        {/* Bottom HUD bar */}
-        <Box
-          sx={{
-            backgroundColor: 'rgba(15, 23, 42, 0.85)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(8px)',
-            borderRadius: 9999,
-            px: 1.75,
-            py: 0.75,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            zIndex: 2,
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-            <AspectRatioRoundedIcon sx={{ fontSize: 16, color: '#abf06b' }} />
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#abf06b' }}>
-              4:3 Auto-Focus
-            </Typography>
-          </Box>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.6875rem', color: '#ffffff' }}>
-            Angle: {currentAngle.toUpperCase()} view
-          </Typography>
-        </Box>
       </Box>
 
-      {/* ── Capture & Retake Controls ── */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.25 }}>
+      {/* ── Camera Action Controls (Uniform & Clean) ── */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: '2fr 1fr 1fr' },
+            gap: 1.25,
+          }}
+        >
+          {/* Primary Capture Photo Button */}
           <Button
             variant="contained"
             size="large"
-            onClick={() => cameraInputRef.current?.click()}
-            startIcon={<CameraAltRoundedIcon sx={{ fontSize: 20, color: '#abf06b' }} />}
+            onClick={handleCaptureClick}
+            startIcon={<CameraAltRoundedIcon sx={{ fontSize: 22, color: '#abf06b' }} />}
             sx={{
               py: 1.4,
               backgroundColor: '#0f172a',
               color: '#ffffff',
-              fontSize: '0.8125rem',
-              fontWeight: 700,
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              fontSize: '0.875rem',
+              fontWeight: 800,
+              boxShadow: '0 2px 6px rgba(15,23,42,0.18)',
               '&:hover': { backgroundColor: '#1e293b' },
             }}
           >
-            Take photo
+            {capturedImages[currentAngle]
+              ? `Capture ${activeConfig.label} Again`
+              : cameraActive
+                ? 'Capture Photo'
+                : 'Take Photo'}
           </Button>
+
+          {/* Full Screen Button */}
+          <Button
+            variant="outlined"
+            size="large"
+            onClick={toggleFullscreen}
+            startIcon={<FullscreenRoundedIcon sx={{ fontSize: 20, color: '#0f172a' }} />}
+            sx={{
+              py: 1.4,
+              borderColor: '#cbd5e1',
+              color: '#0f172a',
+              backgroundColor: '#ffffff',
+              fontSize: '0.8125rem',
+              fontWeight: 700,
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              '&:hover': { backgroundColor: '#f8fafc', borderColor: '#94a3b8' },
+            }}
+          >
+            Full screen
+          </Button>
+
+          {/* Upload Gallery Button */}
           <Button
             variant="outlined"
             size="large"
@@ -404,7 +1310,7 @@ export const ScanDevicePage: FC = () => {
               '&:hover': { backgroundColor: '#f8fafc', borderColor: '#94a3b8' },
             }}
           >
-            Upload gallery
+            Gallery
           </Button>
         </Box>
 
@@ -773,9 +1679,9 @@ export const ScanDevicePage: FC = () => {
               startIcon={<RefreshRoundedIcon />}
               onClick={() => {
                 if (!previewAngle) return
-                setCurrentAngle(previewAngle)
+                const angleToRetake = previewAngle
                 setPreviewAngle(null)
-                cameraInputRef.current?.click()
+                handleRetake(angleToRetake)
               }}
               sx={{ fontWeight: 700, textTransform: 'none', borderColor: '#0f172a', color: '#0f172a' }}
             >
