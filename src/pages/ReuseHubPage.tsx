@@ -144,7 +144,7 @@ const REUSE_ITEMS: UIReuseItem[] = [
  * ==============================================================================
  */
 
-function resolveItemImage(title: string, category: string, imageUrl?: string): string {
+function resolveItemImage(title: string, category: string, imageUrl?: string | null): string {
   if (imageUrl && !imageUrl.includes('placeholder')) return resolveMediaUrl(imageUrl)
   const lower = (title + ' ' + category).toLowerCase()
   if (lower.includes('thinkpad') || lower.includes('laptop')) return thinkpadImg

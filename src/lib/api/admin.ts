@@ -82,6 +82,12 @@ export interface AdminCollectionRequest {
   relativeDate: string
   linkedItemId: string | null
   linkedItemStatus: string | null
+  imageUrl?: string | null
+  photos?: Array<{
+    id: string
+    angleLabel: string
+    imageUrl: string
+  }>
 }
 
 export interface AdminInspectionQueueItem {
@@ -98,6 +104,12 @@ export interface AdminInspectionQueueItem {
   relativeDate: string
   risk: 'High Risk' | 'Medium Risk' | 'Low Risk'
   suggestion: string
+  imageUrl?: string | null
+  photos?: Array<{
+    id: string
+    angleLabel: string
+    imageUrl: string
+  }>
 }
 
 export interface AdminTransactionItem {
@@ -288,6 +300,27 @@ export interface AdminInspectionDetails {
     notes: string
     recommendedRoute: string
     hazardLevel: string
+    aiAnalysis?: {
+      detectedModel?: string
+      deviceCategory?: string
+      wasteClassification?: string
+      hazardLevel?: string
+      hazardTitle?: string
+      hazardInstructions?: string | null
+      recommendedRoute?: string
+      confidenceScore?: number
+      summary?: string
+      estimatedMassLabel?: string
+      subsystems?: Array<{
+        name: string
+        status: string
+        score: number
+        details?: string
+        description?: string
+      }>
+      analysisSource?: string
+      aiModel?: string
+    } | null
     photos: Array<{
       id: string
       angleLabel: string
@@ -350,6 +383,8 @@ export interface AdminReuseInventoryItem {
   status: 'Available' | 'Reserved' | 'Claimed'
   condition: string
   createdAt?: string
+  imageUrl?: string | null
+  images?: string[]
   claimId?: string
   pickupCode?: string
   reservedBy?: string

@@ -17,7 +17,7 @@ import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded'
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded'
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
-import { adminApi, type AdminReuseInventoryItem } from '@/lib/api'
+import { adminApi, resolveMediaUrl, type AdminReuseInventoryItem } from '@/lib/api'
 
 interface HubItem {
   id: string
@@ -28,6 +28,7 @@ interface HubItem {
   locker: string
   status: 'Available' | 'Reserved' | 'Claimed'
   pickupDate: string
+  imageUrl?: string | null
   reservedBy?: string
   pickupCode?: string
   icon: typeof LaptopMacRoundedIcon
@@ -59,6 +60,7 @@ function mapInventoryItem(item: AdminReuseInventoryItem): HubItem {
     locker: item.lockerBay,
     status: item.status,
     pickupDate: isRes && expiresLabel ? expiresLabel : item.createdAt || '—',
+    imageUrl: item.imageUrl ?? null,
     reservedBy: item.reservedBy,
     pickupCode: item.pickupCode,
     icon,
@@ -384,21 +386,36 @@ export const AdminReuseHubPage: FC = () => {
                       {/* Item */}
                       <td style={{ padding: '12px 16px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                          <div
-                            style={{
-                              width: 34,
-                              height: 34,
-                              borderRadius: 8,
-                              backgroundColor: item.colorBg,
-                              color: item.colorText,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              flexShrink: 0,
-                            }}
-                          >
-                            <Icon sx={{ fontSize: 18 }} />
-                          </div>
+                          {item.imageUrl ? (
+                            <img
+                              src={resolveMediaUrl(item.imageUrl)}
+                              alt={item.name}
+                              style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 8,
+                                objectFit: 'cover',
+                                border: '1px solid #e2e8f0',
+                                flexShrink: 0,
+                              }}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                width: 34,
+                                height: 34,
+                                borderRadius: 8,
+                                backgroundColor: item.colorBg,
+                                color: item.colorText,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                              }}
+                            >
+                              <Icon sx={{ fontSize: 18 }} />
+                            </div>
+                          )}
                           <div>
                             <div style={{ fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>
                               {item.name}

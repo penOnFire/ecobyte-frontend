@@ -28,7 +28,7 @@ import BatteryChargingFullRoundedIcon from '@mui/icons-material/BatteryChargingF
 import TvRoundedIcon from '@mui/icons-material/TvRounded'
 import CableRoundedIcon from '@mui/icons-material/CableRounded'
 import KitchenRoundedIcon from '@mui/icons-material/KitchenRounded'
-import { adminApi, getCachedUser, getScopedOfficialBaseId, type AdminCollectionRequest } from '@/lib/api'
+import { adminApi, getCachedUser, getScopedOfficialBaseId, resolveMediaUrl, type AdminCollectionRequest } from '@/lib/api'
 
 type DropoffTab = 'today' | 'upcoming' | 'overdue' | 'history'
 
@@ -54,6 +54,12 @@ interface DropoffRecord {
   date: string
   slot: string
   status: 'Scheduled' | 'Under Inspection' | 'Turned Over' | 'Missed' | 'Cancelled'
+  imageUrl?: string | null
+  photos?: Array<{
+    id: string
+    angleLabel: string
+    imageUrl: string
+  }>
   assessment: {
     detectedType: string
     confidence: number
@@ -142,6 +148,8 @@ export const AdminIncomingDropoffsPage: FC = () => {
             date: d.requestedDate || todayStr,
             slot: d.scheduledSlot || '10:00 AM – 12:00 PM',
             status: normalizedStatus,
+            imageUrl: d.imageUrl ?? d.photos?.[0]?.imageUrl ?? null,
+            photos: d.photos ?? [],
             assessment: {
               detectedType: 'Electronic Hardware',
               confidence: 90,
@@ -720,12 +728,29 @@ export const AdminIncomingDropoffsPage: FC = () => {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               {/* Header Box */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, borderRadius: '1rem', backgroundColor: '#f8faf6', border: '1px solid #dbe3d6' }}>
-                <Box sx={{ width: 48, height: 48, borderRadius: '14px', backgroundColor: '#ffffff', border: '1px solid #dbe3d6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2e6022' }}>
-                  {(() => {
-                    const IconComp = getTypeIcon(selectedReq.type)
-                    return <IconComp sx={{ fontSize: 26 }} />
-                  })()}
-                </Box>
+                {selectedReq.imageUrl || selectedReq.photos?.[0]?.imageUrl ? (
+                  <Box
+                    component="img"
+                    src={resolveMediaUrl(selectedReq.imageUrl || selectedReq.photos?.[0]?.imageUrl)}
+                    alt={selectedReq.itemName}
+                    sx={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: '14px',
+                      objectFit: 'cover',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#ffffff',
+                      flexShrink: 0,
+                    }}
+                  />
+                ) : (
+                  <Box sx={{ width: 48, height: 48, borderRadius: '14px', backgroundColor: '#ffffff', border: '1px solid #dbe3d6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2e6022', flexShrink: 0 }}>
+                    {(() => {
+                      const IconComp = getTypeIcon(selectedReq.type)
+                      return <IconComp sx={{ fontSize: 26 }} />
+                    })()}
+                  </Box>
+                )}
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a', lineHeight: 1.2 }}>
                     {selectedReq.itemName}
@@ -817,6 +842,57 @@ export const AdminIncomingDropoffsPage: FC = () => {
                     <span style={{ fontWeight: 600, color: '#475569', fontSize: '0.75rem' }}>{selectedReq.assessment.impact.materials}</span>
                   </Box>
                 </Box>
+              </Box>
+
+              {/* Resident Device Photos */}
+              <Box sx={{ p: 2, borderRadius: '1rem', border: '1px solid #dbe3d6', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+                <Typography sx={{ fontSize: '0.6875rem', fontWeight: 800, color: '#2e6022', textTransform: 'uppercase' }}>
+                  Resident Uploaded Device Photos
+                </Typography>
+                {selectedReq.photos && selectedReq.photos.length > 0 ? (
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 1.25 }}>
+                    {selectedReq.photos.map((photo) => (
+                      <Box
+                        key={photo.id}
+                        sx={{
+                          borderRadius: '0.75rem',
+                          overflow: 'hidden',
+                          border: '1px solid #dbe3d6',
+                          backgroundColor: '#f8faf6',
+                        }}
+                      >
+                        <Box
+                          component="img"
+                          src={resolveMediaUrl(photo.imageUrl)}
+                          alt={`${selectedReq.itemName} ${photo.angleLabel}`}
+                          sx={{
+                            width: '100%',
+                            height: 96,
+                            objectFit: 'cover',
+                            display: 'block',
+                          }}
+                        />
+                        <Typography
+                          sx={{
+                            px: 1,
+                            py: 0.4,
+                            fontSize: '0.625rem',
+                            fontWeight: 800,
+                            color: '#475569',
+                            textTransform: 'uppercase',
+                            textAlign: 'center',
+                          }}
+                        >
+                          {photo.angleLabel || 'Photo'}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                ) : (
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                    No device photos attached by the resident.
+                  </Typography>
+                )}
               </Box>
 
               {/* Resident Condition Checklist */}

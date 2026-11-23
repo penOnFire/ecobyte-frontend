@@ -13,16 +13,19 @@ import CableRoundedIcon from '@mui/icons-material/CableRounded'
 import KitchenRoundedIcon from '@mui/icons-material/KitchenRounded'
 import TaskAltRoundedIcon from '@mui/icons-material/TaskAltRounded'
 import { AdminDisposalPage } from '@/pages/admin/AdminDisposalPage'
-import { adminApi, getScopedOfficialBaseId, type AdminCollectionRequest } from '@/lib/api'
+import { adminApi, getScopedOfficialBaseId, resolveMediaUrl, type AdminCollectionRequest } from '@/lib/api'
 
 export interface InspectionQueueRecord {
   id: string
+  linkedItemId?: string | null
   requestCode: string
   itemName: string
   type: string
   residentName: string
   siteName: string
   receivedAt: string
+  imageUrl?: string | null
+  photosCount?: number
   assessment: {
     hazard: 'Low' | 'Medium' | 'High'
     recommendation: 'Repair & Reuse' | 'Safe Disposal' | 'Refurbish'
@@ -51,6 +54,8 @@ const getInitialQueue = (): InspectionQueueRecord[] => {
             residentName: r.residentName || 'Resident User',
             siteName: r.siteName || 'Commonwealth Central MRF (Base 1)',
             receivedAt: r.receivedAt || r.date || 'Recent',
+            imageUrl: r.imageUrl ?? r.photos?.[0]?.imageUrl ?? null,
+            photosCount: Array.isArray(r.photos) ? r.photos.length : r.imageUrl ? 1 : 0,
             assessment: {
               hazard: (r.assessment?.hazard || 'Low') as 'Low' | 'Medium' | 'High',
               recommendation: (r.assessment?.recommendation || 'Repair & Reuse') as 'Repair & Reuse' | 'Safe Disposal' | 'Refurbish',
@@ -85,12 +90,15 @@ export const AdminToInspectPage: FC = () => {
             })
             .map((d) => ({
               id: d.id,
+              linkedItemId: d.linkedItemId || null,
               requestCode: d.requestCode || d.id,
               itemName: d.itemName || d.preferredMethod || 'Resident E-Waste Device',
               type: d.itemCategory || d.preferredMethod || 'Electronics',
               residentName: d.residentName || 'Resident User',
               siteName: d.siteName || 'Commonwealth Central MRF (Base 1)',
               receivedAt: d.requestedDate || 'Recent',
+              imageUrl: d.imageUrl ?? d.photos?.[0]?.imageUrl ?? null,
+              photosCount: Array.isArray(d.photos) ? d.photos.length : d.imageUrl ? 1 : 0,
               assessment: {
                 hazard: ((d.preferredMethod || '').toLowerCase().includes('battery') ? 'High' : 'Low') as 'Low' | 'Medium' | 'High',
                 recommendation: 'Repair & Reuse' as const,
@@ -201,6 +209,51 @@ export const AdminToInspectPage: FC = () => {
                   },
                 }}
               >
+                {/* Device Photo Preview (if uploaded) */}
+                {r.imageUrl && (
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      width: '100%',
+                      height: 150,
+                      borderRadius: '0.875rem',
+                      overflow: 'hidden',
+                      border: '1px solid #dbe3d6',
+                      backgroundColor: '#f8faf6',
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src={resolveMediaUrl(r.imageUrl)}
+                      alt={r.itemName}
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                      }}
+                    />
+                    {r.photosCount && r.photosCount > 1 && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          bottom: 8,
+                          right: 8,
+                          px: 1,
+                          py: 0.25,
+                          borderRadius: '9999px',
+                          backgroundColor: 'rgba(15, 23, 42, 0.75)',
+                          color: '#ffffff',
+                          fontSize: '0.625rem',
+                          fontWeight: 700,
+                        }}
+                      >
+                        {r.photosCount} photos
+                      </Box>
+                    )}
+                  </Box>
+                )}
+
                 {/* Header row */}
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
                   <Box
@@ -292,7 +345,7 @@ export const AdminToInspectPage: FC = () => {
 
                 {/* Action button */}
                 <ButtonBase
-                  onClick={() => navigate(`/admin/inspect/${r.id}`)}
+                  onClick={() => navigate(`/admin/inspect/${r.linkedItemId || r.id}`)}
                   sx={{
                     width: '100%',
                     height: 42,

@@ -18,7 +18,6 @@ import DeviceThermostatRoundedIcon from '@mui/icons-material/DeviceThermostatRou
 import CleaningServicesRoundedIcon from '@mui/icons-material/CleaningServicesRounded'
 import VolunteerActivismRoundedIcon from '@mui/icons-material/VolunteerActivismRounded'
 import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded'
-import NavigationRoundedIcon from '@mui/icons-material/NavigationRounded'
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded'
 import BuildRoundedIcon from '@mui/icons-material/BuildRounded'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -403,35 +402,11 @@ export const ReuseRepairGuidePage: FC = () => {
     }
   }
 
-  const scheduleUrl = `/dropoff-schedule?${new URLSearchParams({
-    ...(diagnostic?.assessmentId && diagnostic.assessmentId !== 'draft'
-      ? { assessmentId: diagnostic.assessmentId }
-      : {}),
-    ...(diagnostic?.deviceModel ? { deviceName: diagnostic.deviceModel } : {}),
-    ...(diagnostic?.category ? { category: diagnostic.category } : {}),
-  }).toString()}`
-
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5 }}>
       {/* ── Top Bar ── */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <IconButton
-          size="small"
-          onClick={() => navigate(-1)}
-          aria-label="Back"
-          sx={{
-            width: 38,
-            height: 38,
-            backgroundColor: '#ffffff',
-            border: '1px solid #e2e8f0',
-            borderRadius: '50%',
-            color: '#0f172a',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-            '&:hover': { backgroundColor: '#f8fafc' },
-          }}
-        >
-          <ArrowBackRoundedIcon sx={{ fontSize: 18 }} />
-        </IconButton>
+        <Box sx={{ width: 38, height: 38, flexShrink: 0 }} />
 
         <Box sx={{ textAlign: 'center' }}>
           <Typography
@@ -1477,8 +1452,8 @@ export const ReuseRepairGuidePage: FC = () => {
               fullWidth
               variant="contained"
               size="large"
-              onClick={() => navigate(scheduleUrl)}
-              startIcon={<NavigationRoundedIcon sx={{ fontSize: 18, color: '#abf06b' }} />}
+              onClick={() => navigate(-1)}
+              startIcon={<ArrowBackRoundedIcon sx={{ fontSize: 18, color: '#abf06b' }} />}
               sx={{
                 py: 1.6,
                 backgroundColor: '#0f172a',
@@ -1491,7 +1466,7 @@ export const ReuseRepairGuidePage: FC = () => {
                 },
               }}
             >
-              Schedule Station Drop-Off ({diagnostic.deviceModel})
+              Back
             </Button>
             <Button
               fullWidth
