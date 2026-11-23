@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import type { FC } from 'react'
 import {
   Alert,
@@ -6,7 +6,6 @@ import {
   Button,
   Card,
   Chip,
-  CircularProgress,
   IconButton,
   ListItemIcon,
   ListItemText,
@@ -81,8 +80,22 @@ export const AddDetailsPage: FC = () => {
   const [otherMissingText, setOtherMissingText] = useState('')
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [analysisProgress, setAnalysisProgress] = useState(0)
+  const [analysisStage, setAnalysisStage] = useState('Preparing scan & details...')
   const [validationError, setValidationError] = useState<string | null>(null)
   const [tuneMenuAnchor, setTuneMenuAnchor] = useState<null | HTMLElement>(null)
+
+  useEffect(() => {
+    if (!isSubmitting) return
+    const timer = window.setInterval(() => {
+      setAnalysisProgress((prev) => {
+        if (prev >= 92) return prev
+        const step = prev < 50 ? 4 : prev < 78 ? 2.5 : 1
+        return Math.min(92, prev + step)
+      })
+    }, 160)
+    return () => window.clearInterval(timer)
+  }, [isSubmitting])
 
   const handleApplyPreset = (preset: 'clean' | 'hazard' | 'clear') => {
     setValidationError(null)
@@ -182,9 +195,15 @@ export const AddDetailsPage: FC = () => {
     }
 
     setIsSubmitting(true)
+    setAnalysisProgress(10)
+    const uploadableAngles = FOUR_ANGLES.filter((angle) => Boolean(capturedAngles[angle.id]))
+    setAnalysisStage(
+      uploadableAngles.length > 0 ? 'Uploading device photos...' : 'Preparing AI e-waste screening...'
+    )
     try {
       const sessionId = `scan_${Date.now()}`
-      for (const angle of FOUR_ANGLES) {
+      for (let i = 0; i < uploadableAngles.length; i += 1) {
+        const angle = uploadableAngles[i]
         const dataUrl = capturedAngles[angle.id]
         if (!dataUrl) continue
         try {
@@ -193,7 +212,12 @@ export const AddDetailsPage: FC = () => {
         } catch (uploadErr) {
           console.warn(`Could not upload ${angle.id} photo:`, uploadErr)
         }
+        const uploadRatio = (i + 1) / uploadableAngles.length
+        setAnalysisProgress((prev) => Math.max(prev, Math.round(15 + uploadRatio * 35)))
       }
+
+      setAnalysisStage('Analyzing e-waste condition with AI...')
+      setAnalysisProgress((prev) => Math.max(prev, 55))
 
       const result = await assessmentsApi.submitDetails({
         sessionId,
@@ -210,15 +234,21 @@ export const AddDetailsPage: FC = () => {
         notes: notes.trim() || undefined,
       })
 
+      setAnalysisStage('Completed!')
+      setAnalysisProgress(100)
+
       try {
         sessionStorage.setItem('ecobyte_last_assessment_id', result.assessmentId)
         sessionStorage.setItem('ecobyte_last_diagnostic', JSON.stringify(result))
       } catch {
         // Ignore quota errors
       }
+      await new Promise((resolve) => window.setTimeout(resolve, 2000))
       navigate(`/diagnostic?assessmentId=${encodeURIComponent(result.assessmentId)}`)
     } catch (err: any) {
       console.warn('Assessment API unavailable, continuing to diagnostic preview:', err)
+      setAnalysisStage('Completed!')
+      setAnalysisProgress(100)
       try {
         const hasBatteryHazard = resolvedDamage.some((v) => v.includes('swollen') || v.includes('battery_leak'))
         const fallbackDevice = deviceModel.trim() || `${deviceCategory} Unit`
@@ -279,6 +309,7 @@ export const AddDetailsPage: FC = () => {
       } catch {
         // Ignore storage errors
       }
+      await new Promise((resolve) => window.setTimeout(resolve, 2000))
       navigate('/diagnostic')
     } finally {
       setIsSubmitting(false)
@@ -959,36 +990,158 @@ export const AddDetailsPage: FC = () => {
         </Alert>
       )}
 
-      {/* ── Analyze CTA Button ── */}
+      {/* ── Analyze CTA Button / Animated Progress Bar ── */}
       <Box sx={{ mt: 0.5, mb: 2 }}>
-        <Button
-          fullWidth
-          variant="contained"
-          size="large"
-          disabled={isSubmitting}
-          onClick={handleAnalyzeSubmit}
-          startIcon={
-            isSubmitting ? (
-              <CircularProgress size={16} sx={{ color: '#abf06b' }} />
-            ) : (
-              <AutoAwesomeRoundedIcon sx={{ fontSize: 20, color: '#abf06b' }} />
-            )
-          }
-          endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
-          sx={{
-            py: 1.6,
-            backgroundColor: '#0f172a',
-            color: '#ffffff',
-            fontWeight: 700,
-            fontSize: '0.9375rem',
-            boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
-            '&:hover': {
-              backgroundColor: '#1e293b',
-            },
-          }}
-        >
-          {isSubmitting ? 'Uploading scan & analyzing...' : 'Analyze e-waste'}
-        </Button>
+        {isSubmitting ? (
+          <Box
+            role="progressbar"
+            aria-label={analysisStage}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(analysisProgress)}
+            sx={{
+              position: 'relative',
+              width: '100%',
+              minHeight: 52,
+              borderRadius: 2,
+              backgroundColor: '#0f172a',
+              border: '1px solid #1e293b',
+              overflow: 'hidden',
+              boxShadow: '0 4px 12px rgba(15,23,42,0.18)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              px: 7,
+              '@keyframes ecobyteBarShimmer': {
+                '0%': { transform: 'translateX(-100%)' },
+                '100%': { transform: 'translateX(220%)' },
+              },
+              '@keyframes ecobyteSparklePulse': {
+                '0%, 100%': { transform: 'scale(1)', opacity: 1 },
+                '50%': { transform: 'scale(1.18)', opacity: 0.78 },
+              },
+            }}
+          >
+            {/* Animated progress fill */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                bottom: 0,
+                width: `${Math.min(100, Math.max(8, analysisProgress))}%`,
+                background: 'linear-gradient(90deg, #166534 0%, #22c55e 58%, #abf06b 100%)',
+                transition: 'width 220ms ease-out',
+                overflow: 'hidden',
+              }}
+            >
+              {/* Moving glossy shimmer wave */}
+              {analysisProgress < 100 && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    bottom: 0,
+                    width: '45%',
+                    background:
+                      'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.28) 50%, rgba(255,255,255,0) 100%)',
+                    animation: 'ecobyteBarShimmer 1.35s ease-in-out infinite',
+                  }}
+                />
+              )}
+            </Box>
+
+            {/* Centered foreground status text + icon */}
+            <Box
+              sx={{
+                position: 'relative',
+                zIndex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1,
+                minWidth: 0,
+                textAlign: 'center',
+              }}
+            >
+              {analysisProgress >= 100 ? (
+                <CheckRoundedIcon
+                  sx={{
+                    fontSize: 20,
+                    color: '#ffffff',
+                    filter: 'drop-shadow(0 1px 2px rgba(15,23,42,0.45))',
+                    flexShrink: 0,
+                  }}
+                />
+              ) : (
+                <AutoAwesomeRoundedIcon
+                  sx={{
+                    fontSize: 19,
+                    color: '#ffffff',
+                    filter: 'drop-shadow(0 1px 2px rgba(15,23,42,0.45))',
+                    animation: 'ecobyteSparklePulse 1.2s ease-in-out infinite',
+                    flexShrink: 0,
+                  }}
+                />
+              )}
+              <Typography
+                sx={{
+                  fontFamily: "'Quicksand', sans-serif",
+                  fontWeight: 800,
+                  fontSize: '0.875rem',
+                  color: '#ffffff',
+                  textShadow: '0 1px 2px rgba(15,23,42,0.55)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {analysisProgress >= 100 ? 'Completed' : analysisStage}
+              </Typography>
+            </Box>
+
+            <Typography
+              sx={{
+                position: 'absolute',
+                right: 12,
+                zIndex: 1,
+                fontFamily: "'Quicksand', sans-serif",
+                fontWeight: 800,
+                fontSize: '0.8125rem',
+                color: '#ffffff',
+                backgroundColor: 'rgba(15, 23, 42, 0.55)',
+                px: 1,
+                py: 0.25,
+                borderRadius: 1,
+                flexShrink: 0,
+              }}
+            >
+              {Math.round(analysisProgress)}%
+            </Typography>
+          </Box>
+        ) : (
+          <Button
+            fullWidth
+            variant="contained"
+            size="large"
+            onClick={handleAnalyzeSubmit}
+            startIcon={<AutoAwesomeRoundedIcon sx={{ fontSize: 20, color: '#abf06b' }} />}
+            endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
+            sx={{
+              py: 1.6,
+              backgroundColor: '#0f172a',
+              color: '#ffffff',
+              fontWeight: 700,
+              fontSize: '0.9375rem',
+              boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
+              '&:hover': {
+                backgroundColor: '#1e293b',
+              },
+            }}
+          >
+            Analyze e-waste
+          </Button>
+        )}
         <Typography
           sx={{
             fontFamily: "'Quicksand', sans-serif",

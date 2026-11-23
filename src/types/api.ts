@@ -259,7 +259,8 @@ export interface ReuseItem {
   distance?: string
   price?: string
   status?: 'Available' | 'Reserved' | 'Claimed'
-  imageUrl?: string
+  imageUrl?: string | null
+  photos?: string[]
   guaranteeDays?: number
   pickupHub?: {
     id: string
