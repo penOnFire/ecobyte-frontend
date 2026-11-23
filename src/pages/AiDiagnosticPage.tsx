@@ -45,12 +45,13 @@ import { assessmentsApi } from '@/lib/api'
 import type { DiagnosticResult, SubsystemHealth } from '@/types'
 
 const MANUAL_CATEGORIES = [
-  'Mobile Phones & Tablets',
-  'Laptops & Desktop Computers',
-  'Small Household Appliances',
-  'Batteries, Cables & Adapters',
-  'Audio & Entertainment Devices',
-  'Unidentified / General Electronic Waste',
+  'mobile phones and tablets',
+  'computers, laptops, and accessories',
+  'batteries and power banks',
+  'televisions and monitors',
+  'small household electronic appliences',
+  'cables, chargers, and other electronic accessories',
+  'radios and audio devices',
 ]
 
 function loadInitialDiagnostic(assessmentIdParam: string | null): DiagnosticResult | null {
@@ -897,17 +898,17 @@ export const AiDiagnosticPage: FC = () => {
                 </Box>
 
                 <FormControl fullWidth size="small" sx={{ mb: 2, backgroundColor: '#ffffff', borderRadius: 1.5 }}>
-                  <Select
-                    value={manualCategory}
-                    onChange={(e) => setManualCategory(e.target.value)}
-                    sx={{ borderRadius: 1.5, fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.875rem' }}
-                  >
-                    {MANUAL_CATEGORIES.map((cat) => (
-                      <MenuItem key={cat} value={cat}>
-                        {cat}
-                      </MenuItem>
-                    ))}
-                  </Select>
+                    <Select
+                      value={manualCategory}
+                      onChange={(e) => setManualCategory(e.target.value)}
+                      sx={{ borderRadius: 1.5, fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.875rem', textTransform: 'capitalize' }}
+                    >
+                      {MANUAL_CATEGORIES.map((cat) => (
+                        <MenuItem key={cat} value={cat} sx={{ textTransform: 'capitalize' }}>
+                          {cat}
+                        </MenuItem>
+                      ))}
+                    </Select>
                 </FormControl>
 
                 <Button

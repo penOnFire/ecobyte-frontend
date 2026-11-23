@@ -148,7 +148,7 @@ export const PilotAndFooterSection: FC = () => {
                 {[
                   '4-angle device triage before drop-off or hub scheduling',
                   'Verified Reuse Hub claims with Reservation Pass #ECO-4821',
-                  'Household EcoPoints ledger credited at MRF turn-over',
+                  'Household diversion ledger credited at MRF turn-over',
                 ].map((item) => (
                   <Box key={item} sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
                     <CheckCircleRoundedIcon sx={{ fontSize: 19, color: 'var(--eco-mint-ink)', flexShrink: 0 }} />
@@ -240,7 +240,7 @@ export const PilotAndFooterSection: FC = () => {
                       Turn-Over Complete
                     </Typography>
                   </Box>
-                  <StatusBadge label="+180 EcoPoints" variant="electric" size="sm" />
+                  <StatusBadge label="Verified Intake" variant="electric" size="sm" />
                 </Box>
 
                 <Box

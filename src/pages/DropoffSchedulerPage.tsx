@@ -318,6 +318,7 @@ export const DropoffSchedulerPage: FC = () => {
   const [isLocating, setIsLocating] = useState(false)
   const [confirmModalOpen, setConfirmModalOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [activeRouteTarget, setActiveRouteTarget] = useState<DropOffSite | null>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -515,15 +516,8 @@ export const DropoffSchedulerPage: FC = () => {
   }
 
   const handleGetDirections = (site: DropOffSite) => {
-    if (site.coordinates) {
-      const url = `https://www.google.com/maps/dir/?api=1&destination=${site.coordinates.lat},${site.coordinates.lng}`
-      window.open(url, '_blank')
-    } else {
-      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-        `${site.name}, Commonwealth, Quezon City`
-      )}`
-      window.open(url, '_blank')
-    }
+    setSelectedHub(site.id)
+    setActiveRouteTarget(site)
   }
 
   const currentSite = sites.find((s) => s.id === selectedHub) || sites[0] || COMMONWEALTH_FALLBACK_SITES[0]
@@ -1055,6 +1049,8 @@ export const DropoffSchedulerPage: FC = () => {
             selectedSiteId={selectedHub}
             onSelectSite={(id) => setSelectedHub(id)}
             onGetDirections={handleGetDirections}
+            activeRouteSite={activeRouteTarget}
+            onClearRoute={() => setActiveRouteTarget(null)}
             userLocation={userLocation}
             onLocateUser={handleLocateUser}
             height={340}

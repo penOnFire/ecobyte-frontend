@@ -893,7 +893,7 @@ export const RegisterPage: FC = () => {
             </Box>
 
             <Typography sx={{ fontSize: '0.8125rem', color: '#475569', lineHeight: 1.5 }}>
-              Your account has been registered. You can now log in to schedule hazardous drop-offs, access the reuse hub, and track eco-points.
+              Your account has been registered. You can now log in to schedule hazardous drop-offs, access the reuse hub, and track your requests.
             </Typography>
           </DialogContent>
 
