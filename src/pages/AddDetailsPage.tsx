@@ -37,12 +37,13 @@ import { assessmentsApi } from '@/lib/api'
 import type { CameraAngle } from '@/types'
 
 const DEVICE_CATEGORIES = [
-  'Phones',
-  'Laptops',
-  'Tablets',
-  'Chargers',
-  'Peripherals',
-  'Electronics',
+  'mobile phones and tablets',
+  'computers, laptops, and accessories',
+  'batteries and power banks',
+  'televisions and monitors',
+  'small household electronic appliences',
+  'cables, chargers, and other electronic accessories',
+  'radios and audio devices',
 ]
 
 async function dataUrlToFile(dataUrl: string, filename: string): Promise<File> {
@@ -72,7 +73,7 @@ export const AddDetailsPage: FC = () => {
 
   // Guided questions state
   const [deviceModel, setDeviceModel] = useState('')
-  const [deviceCategory, setDeviceCategory] = useState('Phones')
+  const [deviceCategory, setDeviceCategory] = useState('mobile phones and tablets')
   const [workingStatus, setWorkingStatus] = useState<'yes' | 'no' | 'notsure'>('no')
   const [visibleDamage, setVisibleDamage] = useState<string[]>(['none'])
   const [otherDamageText, setOtherDamageText] = useState('')
@@ -378,7 +379,7 @@ export const AddDetailsPage: FC = () => {
           <MenuItem
             onClick={() => {
               setTuneMenuAnchor(null)
-              navigate('/scan')
+              navigate('/scan', { state: { fromAssess: true } })
             }}
             sx={{ py: 1.25, borderTop: '1px solid #f1f5f9' }}
           >
@@ -425,7 +426,7 @@ export const AddDetailsPage: FC = () => {
             return (
               <Box
                 key={item.id}
-                onClick={() => navigate('/scan')}
+                onClick={() => navigate('/scan', { state: { fromAssess: true } })}
                 sx={{
                   height: { xs: 76, sm: 96 },
                   borderRadius: 1.25,
@@ -543,6 +544,7 @@ export const AddDetailsPage: FC = () => {
                     fontFamily: "'Quicksand', sans-serif",
                     fontWeight: 700,
                     fontSize: '0.75rem',
+                    textTransform: 'capitalize',
                     backgroundColor: active ? '#0f172a' : '#ffffff',
                     color: active ? '#abf06b' : '#475569',
                     border: '1px solid',

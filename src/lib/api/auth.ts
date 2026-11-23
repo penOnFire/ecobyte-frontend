@@ -290,6 +290,9 @@ export const authApi = {
   logout: () => {
     localStorage.removeItem('ecobyte_token')
     localStorage.removeItem('ecobyte_user_role')
+    try {
+      sessionStorage.removeItem('ecobyte_scan_angles')
+    } catch {}
     setCachedUser(null)
   },
 }

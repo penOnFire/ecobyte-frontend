@@ -20,10 +20,11 @@ import {
 import NavigationRoundedIcon from '@mui/icons-material/NavigationRounded'
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 import MyLocationRoundedIcon from '@mui/icons-material/MyLocationRounded'
-import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded'
+import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded'
+import { useNavigate } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { dropoffsApi, getCachedUser } from '@/lib/api'
 import type { DropOffSite, User } from '@/types'
@@ -71,7 +72,6 @@ function calculateHaversineDistanceKm(
 
 export const DropOffFinderPage: FC = () => {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
   const [currentUser] = useState<User | null>(() => getCachedUser())
   const userBaseNum = (() => {
     if (!currentUser) return 1
@@ -96,6 +96,8 @@ export const DropOffFinderPage: FC = () => {
   const [sites, setSites] = useState<DropOffSite[]>(COMMONWEALTH_FALLBACK_SITES)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedSiteId, setSelectedSiteId] = useState<string>(initialBaseSite.id)
+  const [showAllBases, setShowAllBases] = useState(false)
+  const [activeRouteTarget, setActiveRouteTarget] = useState<DropOffSite | null>(null)
   const [selectedArea, setSelectedArea] = useState('Commonwealth, Quezon City (All 9 Bases)')
   const [areaDialogOpen, setAreaDialogOpen] = useState(false)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
@@ -141,18 +143,21 @@ export const DropOffFinderPage: FC = () => {
   }, [userBaseNum])
 
   const handleGetDirections = (site: DropOffSite) => {
-    let destinationQuery = encodeURIComponent(
-      `${site.name}, ${site.address}, Barangay Commonwealth, Quezon City`
-    )
-    if (site.coordinates) {
-      destinationQuery = `${site.coordinates.lat},${site.coordinates.lng}`
+    setSelectedSiteId(site.id)
+    setActiveRouteTarget(site)
+    // Smooth scroll directly to the Commonwealth map so user observes the route immediately
+    const mapEl = document.getElementById('commonwealth-map-container')
+    if (mapEl) {
+      mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
-    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destinationQuery}`
-    window.open(mapsUrl, '_blank', 'noopener,noreferrer')
   }
 
   const handlePinClick = (siteId: string) => {
     setSelectedSiteId(siteId)
+    const siteIdx = filteredSites.findIndex((s) => s.id === siteId)
+    if (siteIdx >= 3) {
+      setShowAllBases(true)
+    }
   }
 
   const handleLocateUser = () => {
@@ -227,6 +232,8 @@ export const DropOffFinderPage: FC = () => {
     if (activeFilter === '24/7 Smart Bin') return isSmartBin
     return true
   })
+
+  const displayedSites = showAllBases ? filteredSites : filteredSites.slice(0, 3)
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5 }}>
@@ -320,15 +327,19 @@ export const DropOffFinderPage: FC = () => {
       </Box>
 
       {/* ── Live Interactive Leaflet Map for Commonwealth ── */}
-      <CommonwealthLeafletMap
-        sites={filteredSites}
-        selectedSiteId={selectedSiteId}
-        onSelectSite={handlePinClick}
-        onGetDirections={handleGetDirections}
-        userLocation={userLocation}
-        onLocateUser={handleLocateUser}
-        height={360}
-      />
+      <Box id="commonwealth-map-container" sx={{ width: '100%' }}>
+        <CommonwealthLeafletMap
+          sites={filteredSites}
+          selectedSiteId={selectedSiteId}
+          onSelectSite={handlePinClick}
+          onGetDirections={handleGetDirections}
+          activeRouteSite={activeRouteTarget}
+          onClearRoute={() => setActiveRouteTarget(null)}
+          userLocation={userLocation}
+          onLocateUser={handleLocateUser}
+          height={450}
+        />
+      </Box>
 
       {/* ── Filter Chips ── */}
       <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', py: 0.25 }}>
@@ -357,19 +368,22 @@ export const DropOffFinderPage: FC = () => {
       </Box>
 
       {/* ── Sites List ── */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 1.25 }}>
-        <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' }, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
             Accredited Drop Sites (Commonwealth)
+          </Typography>
+          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 600, fontSize: '0.75rem', color: '#64748b' }}>
+            Showing {displayedSites.length} of {filteredSites.length} bases
           </Typography>
         </Box>
 
         {isLoading ? (
-          <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1' }, display: 'flex', justifyContent: 'center', py: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress size={28} sx={{ color: '#0f172a' }} />
           </Box>
         ) : (
-          filteredSites.map((site, index) => (
+          displayedSites.map((site, index) => (
             <Card
               key={site.id}
               id={`site-card-${site.id}`}
@@ -442,58 +456,70 @@ export const DropOffFinderPage: FC = () => {
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      const nextParams = new URLSearchParams(searchParams)
-                      nextParams.set('siteId', site.id)
-                      navigate(`/dropoff-schedule?${nextParams.toString()}`)
-                    }}
-                    startIcon={<CalendarMonthRoundedIcon sx={{ fontSize: 16 }} />}
-                    sx={{
-                      borderColor: '#e2e8f0',
-                      color: '#0f172a',
-                      backgroundColor: '#ffffff',
-                      fontSize: '0.75rem',
-                      py: 0.5,
-                      px: 1.5,
-                      textTransform: 'none',
-                      fontWeight: 700,
-                      '&:hover': {
-                        backgroundColor: '#f8fafc',
-                        borderColor: '#cbd5e1',
-                      },
-                    }}
-                  >
-                    Schedule
-                  </Button>
-                  <Button
                     variant="contained"
                     size="small"
                     onClick={(e) => {
                       e.stopPropagation()
                       handleGetDirections(site)
                     }}
-                    startIcon={<NavigationRoundedIcon sx={{ fontSize: 16 }} />}
+                    startIcon={
+                      <NavigationRoundedIcon
+                        sx={{
+                          fontSize: 16,
+                          color: activeRouteTarget?.id === site.id ? '#abf06b' : '#ffffff',
+                          transform: 'rotate(45deg)',
+                        }}
+                      />
+                    }
                     sx={{
                       backgroundColor: '#0f172a',
-                      color: '#ffffff',
+                      color: activeRouteTarget?.id === site.id ? '#abf06b' : '#ffffff',
                       fontSize: '0.75rem',
                       py: 0.5,
                       px: 1.5,
                       textTransform: 'none',
                       fontWeight: 700,
+                      border: activeRouteTarget?.id === site.id ? '1.5px solid #10b981' : 'none',
                       boxShadow: '0 1px 3px rgba(15,23,42,0.15)',
                       '&:hover': { backgroundColor: '#1e293b' },
                     }}
                   >
-                    Directions
+                    {activeRouteTarget?.id === site.id ? 'Viewing Route' : 'Directions'}
                   </Button>
                 </Box>
               </Box>
             </Card>
           ))
+        )}
+
+        {!isLoading && filteredSites.length > 3 && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', pt: 0.5 }}>
+            <Button
+              variant="outlined"
+              onClick={() => setShowAllBases((prev) => !prev)}
+              endIcon={showAllBases ? <ExpandLessRoundedIcon /> : <ExpandMoreRoundedIcon />}
+              sx={{
+                borderRadius: 2,
+                py: 0.85,
+                px: 3,
+                borderColor: '#cbd5e1',
+                backgroundColor: '#ffffff',
+                color: '#0f172a',
+                fontSize: '0.8125rem',
+                fontWeight: 800,
+                fontFamily: "'Quicksand', sans-serif",
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                '&:hover': {
+                  borderColor: '#0f172a',
+                  backgroundColor: '#f8fafc',
+                },
+              }}
+            >
+              {showAllBases ? 'SHOW LESS' : 'VIEW MORE...'}
+            </Button>
+          </Box>
         )}
       </Box>
 

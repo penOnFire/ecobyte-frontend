@@ -367,7 +367,7 @@ export const LandingPage: FC = () => {
                                 fontSize: '0.6875rem',
                               }}
                             >
-                              +150 EcoPoints
+                              Verified Reuse
                             </Box>
                           </Box>
                           <Typography

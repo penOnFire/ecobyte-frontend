@@ -749,10 +749,10 @@ export const ProofOfClaimPage: FC = () => {
               </Box>
               <Box>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
-                  Get +150 Points &amp; Certificate
+                  Get Official Claim Certificate
                 </Typography>
                 <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
-                  Your claim is marked Completed in your requests list and Eco-Points are instantly credited.
+                  Your claim is marked Completed in your requests list and verified on the barangay ledger.
                 </Typography>
               </Box>
             </Box>
@@ -823,7 +823,7 @@ export const ProofOfClaimPage: FC = () => {
           {claimedDivertedKg !== null && claimedDivertedKg > 0
             ? ` (${claimedDivertedKg} kg diverted)`
             : ''}
-          . <strong>+150 Eco-Points</strong> have been awarded to your resident profile.
+          . Your device claim is now officially verified and complete.
         </Typography>
 
         <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>

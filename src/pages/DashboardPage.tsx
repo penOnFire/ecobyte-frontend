@@ -300,7 +300,12 @@ export const DashboardPage: FC = () => {
           <Button
             variant="contained"
             size="small"
-            onClick={() => navigate('/scan')}
+            onClick={() => {
+              try {
+                sessionStorage.removeItem('ecobyte_scan_angles')
+              } catch {}
+              navigate('/scan')
+            }}
             startIcon={<CameraAltRoundedIcon sx={{ fontSize: 15 }} />}
             sx={{
               borderRadius: 9999,
@@ -543,14 +548,13 @@ export const DashboardPage: FC = () => {
         overflow: 'hidden',
       }}
     >
-      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
         {/* Active Requests */}
         <Box
           onClick={() => navigate('/requests?tab=ongoing')}
           sx={{
             p: 2.25,
             borderRight: '1px solid #F1F5F9',
-            borderBottom: '1px solid #F1F5F9',
             cursor: 'pointer',
             transition: 'background-color 0.15s ease',
             '&:hover': { backgroundColor: '#FAF8F5' },
@@ -584,7 +588,7 @@ export const DashboardPage: FC = () => {
           onClick={() => navigate('/requests?tab=assessed')}
           sx={{
             p: 2.25,
-            borderBottom: '1px solid #F1F5F9',
+            borderRight: '1px solid #F1F5F9',
             cursor: 'pointer',
             transition: 'background-color 0.15s ease',
             '&:hover': { backgroundColor: '#FAF8F5' },
@@ -618,7 +622,6 @@ export const DashboardPage: FC = () => {
           onClick={() => navigate('/requests?tab=ongoing')}
           sx={{
             p: 2.25,
-            borderRight: '1px solid #F1F5F9',
             cursor: 'pointer',
             transition: 'background-color 0.15s ease',
             '&:hover': { backgroundColor: '#FAF8F5' },
@@ -644,50 +647,6 @@ export const DashboardPage: FC = () => {
             }}
           >
             Pending
-          </Box>
-        </Box>
-
-        {/* EcoPoints */}
-        <Box sx={{ p: 2.25 }}>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>
-            EcoPoints:
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.35 }}>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '1.6rem', fontWeight: 800, color: '#0F2417' }}>
-              {summary.ecoPoints}
-            </Typography>
-            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', fontWeight: 700, color: '#64748B' }}>
-              pts
-            </Typography>
-            <Box
-              sx={{
-                backgroundColor: '#C2783E',
-                color: '#ffffff',
-                borderRadius: 9999,
-                px: 0.85,
-                py: 0.2,
-                fontSize: '0.625rem',
-                fontWeight: 800,
-                fontFamily: "'Quicksand', sans-serif",
-              }}
-            >
-              {summary.ecoTier || 'Bronze'}
-            </Box>
-          </Box>
-          <Box
-            sx={{
-              display: 'inline-block',
-              backgroundColor: '#DCFCE7',
-              color: '#15803D',
-              borderRadius: 9999,
-              px: 1,
-              py: 0.2,
-              fontSize: '0.625rem',
-              fontWeight: 700,
-              mt: 0.5,
-            }}
-          >
-            Verified Rewards
           </Box>
         </Box>
       </Box>

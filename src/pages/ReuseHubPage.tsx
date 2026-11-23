@@ -4,14 +4,15 @@ import {
   Box,
   Button,
   Card,
-  Chip,
   CircularProgress,
+  FormControl,
   InputAdornment,
   ListItemIcon,
   ListItemText,
   Menu,
   MenuItem,
   OutlinedInput,
+  Select,
   Typography,
 } from '@mui/material'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
@@ -31,7 +32,44 @@ import galaxyImg from '@/assets/ui/galaxy_s10.jpeg'
 import chargerImg from '@/assets/ui/charger.jpeg'
 import ipadImg from '@/assets/ui/ipad.jpeg'
 
-const CATEGORIES = ['All', 'Laptops', 'Phones', 'Chargers', 'Peripherals']
+const CATEGORIES = [
+  'All',
+  'mobile phones and tablets',
+  'computers, laptops, and accessories',
+  'batteries and power banks',
+  'televisions and monitors',
+  'small household electronic appliences',
+  'cables, chargers, and other electronic accessories',
+  'radios and audio devices',
+]
+
+function itemMatchesCategory(item: UIReuseItem, selectedCat: string): boolean {
+  if (selectedCat === 'All') return true
+  const lowerCat = selectedCat.toLowerCase()
+  const lowerItem = (item.title + ' ' + item.category).toLowerCase()
+  if (lowerCat.includes('phone') || lowerCat.includes('tablet')) {
+    return lowerItem.includes('phone') || lowerItem.includes('tablet') || lowerItem.includes('galaxy') || lowerItem.includes('mobile') || lowerItem.includes('ipad')
+  }
+  if (lowerCat.includes('computer') || lowerCat.includes('laptop')) {
+    return lowerItem.includes('laptop') || lowerItem.includes('computer') || lowerItem.includes('thinkpad') || lowerItem.includes('pc') || lowerItem.includes('desktop')
+  }
+  if (lowerCat.includes('battery') || lowerCat.includes('power bank')) {
+    return lowerItem.includes('battery') || lowerItem.includes('power')
+  }
+  if (lowerCat.includes('television') || lowerCat.includes('monitor')) {
+    return lowerItem.includes('television') || lowerItem.includes('monitor') || lowerItem.includes('tv') || lowerItem.includes('screen') || lowerItem.includes('display')
+  }
+  if (lowerCat.includes('household') || lowerCat.includes('applience') || lowerCat.includes('appliance')) {
+    return lowerItem.includes('household') || lowerItem.includes('appliance') || lowerItem.includes('applience')
+  }
+  if (lowerCat.includes('cable') || lowerCat.includes('charger') || lowerCat.includes('accessories')) {
+    return lowerItem.includes('cable') || lowerItem.includes('charger') || lowerItem.includes('usb') || lowerItem.includes('adapter') || lowerItem.includes('accessory') || lowerItem.includes('peripherals')
+  }
+  if (lowerCat.includes('radio') || lowerCat.includes('audio')) {
+    return lowerItem.includes('radio') || lowerItem.includes('audio') || lowerItem.includes('speaker') || lowerItem.includes('sound') || lowerItem.includes('headphone')
+  }
+  return lowerItem.includes(lowerCat)
+}
 
 interface UIReuseItem {
   id: string
@@ -184,6 +222,7 @@ export const ReuseHubPage: FC = () => {
   const displayedItems = items
     .filter((it) => {
       if (it.status && it.status.toLowerCase() !== 'available') return false
+      if (!itemMatchesCategory(it, selectedCategory)) return false
       try {
         const stored = localStorage.getItem('ecobyte_user_reservations')
         if (stored) {
@@ -368,41 +407,95 @@ export const ReuseHubPage: FC = () => {
         </Menu>
       </Box>
 
-      {/* Category Filter Chips */}
-      <Box
-        sx={{
-          display: 'flex',
-          gap: 1,
-          overflowX: 'auto',
-          py: 0.25,
-          '::-webkit-scrollbar': { display: 'none' },
-        }}
-      >
-        {CATEGORIES.map((cat) => {
-          const isSel = selectedCategory === cat
-          return (
-            <Chip
-              key={cat}
-              label={cat}
-              onClick={() => setSelectedCategory(cat)}
+      {/* Category Dropdown Filter */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, width: { xs: '100%', sm: 'auto' } }}>
+          <Typography
+            sx={{
+              fontFamily: "'Quicksand', sans-serif",
+              fontWeight: 700,
+              fontSize: '0.8125rem',
+              color: '#475569',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Category:
+          </Typography>
+          <FormControl size="small" sx={{ width: { xs: '100%', sm: 320 } }}>
+            <Select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              displayEmpty
               sx={{
+                height: 40,
+                borderRadius: 2,
+                backgroundColor: '#ffffff',
                 fontFamily: "'Quicksand', sans-serif",
                 fontWeight: 700,
                 fontSize: '0.8125rem',
-                backgroundColor: isSel ? '#0f172a' : '#ffffff',
-                color: isSel ? '#ffffff' : '#0f172a',
-                border: isSel ? '1px solid #0f172a' : '1px solid #e2e8f0',
-                cursor: 'pointer',
-                borderRadius: 9999,
-                px: 0.5,
-                boxShadow: isSel ? '0 1px 3px rgba(15,23,42,0.15)' : 'none',
-                '&:hover': {
-                  backgroundColor: isSel ? '#1e293b' : '#f8fafc',
+                color: '#0f172a',
+                textTransform: 'capitalize',
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: selectedCategory !== 'All' ? '#0f172a' : '#cbd5e1',
+                  borderWidth: selectedCategory !== 'All' ? '1.5px' : '1px',
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#0f172a',
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#0f172a',
                 },
               }}
-            />
-          )
-        })}
+              MenuProps={{
+                slotProps: {
+                  paper: {
+                    sx: {
+                      borderRadius: 2,
+                      maxHeight: 380,
+                      boxShadow: '0 10px 30px rgba(15, 23, 42, 0.14)',
+                      fontFamily: "'Quicksand', sans-serif",
+                      '& .MuiMenuItem-root': {
+                        fontSize: '0.8125rem',
+                        fontFamily: "'Quicksand', sans-serif",
+                        fontWeight: 600,
+                        py: 1,
+                        textTransform: 'capitalize',
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          fontWeight: 800,
+                          color: '#0f172a',
+                        },
+                      },
+                    },
+                  },
+                },
+              }}
+            >
+              {CATEGORIES.map((cat) => (
+                <MenuItem key={cat} value={cat}>
+                  {cat === 'All' ? 'All' : cat}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+
+        {selectedCategory !== 'All' && (
+          <Button
+            size="small"
+            onClick={() => setSelectedCategory('All')}
+            sx={{
+              textTransform: 'none',
+              fontFamily: "'Quicksand', sans-serif",
+              fontWeight: 700,
+              fontSize: '0.75rem',
+              color: '#64748b',
+              '&:hover': { color: '#0f172a' },
+            }}
+          >
+            Clear Filter
+          </Button>
+        )}
       </Box>
 
       {/* Eco Impact Notice Banner */}

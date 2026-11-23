@@ -28,7 +28,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import CameraswitchRoundedIcon from '@mui/icons-material/CameraswitchRounded'
 import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded'
 import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { ALLOWED_IMAGE_ACCEPT, validateResidentImageFile } from '@/lib/imageUploadValidation'
 
 export const SCAN_ANGLES_STORAGE_KEY = 'ecobyte_scan_angles'
@@ -102,6 +102,10 @@ const DEFAULT_ANGLES: AngleConfig[] = [
 
 export const ScanDevicePage: FC = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const isFromAssess = Boolean((location.state as any)?.fromAssess)
+  const isProceedingToAssessRef = useRef(false)
+
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -118,7 +122,18 @@ export const ScanDevicePage: FC = () => {
   const [shutterFlash, setShutterFlash] = useState(false)
   const [previewAngle, setPreviewAngle] = useState<AngleConfig['id'] | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
+  const [unsupportedPreviewAngles, setUnsupportedPreviewAngles] = useState<Record<string, boolean>>({})
+
+  // Initialize captured images:
+  // If user entered Scan afresh (e.g. from Home, switching modules, or logging in),
+  // clean sessionStorage and start with completely empty image slots.
   const [capturedImages, setCapturedImages] = useState<Record<string, string>>(() => {
+    if (!isFromAssess) {
+      try {
+        sessionStorage.removeItem(SCAN_ANGLES_STORAGE_KEY)
+      } catch {}
+      return {}
+    }
     try {
       const saved = sessionStorage.getItem(SCAN_ANGLES_STORAGE_KEY)
       return saved ? (JSON.parse(saved) as Record<string, string>) : {}
@@ -126,6 +141,19 @@ export const ScanDevicePage: FC = () => {
       return {}
     }
   })
+
+  // Clean up on component unmount:
+  // If the user navigates away from Scan without proceeding to /assess (e.g. Back to home, switching modules, or logging out),
+  // ensure the scan session is cleared completely.
+  useEffect(() => {
+    return () => {
+      if (!isProceedingToAssessRef.current) {
+        try {
+          sessionStorage.removeItem(SCAN_ANGLES_STORAGE_KEY)
+        } catch {}
+      }
+    }
+  }, [])
 
   const toggleFullscreen = () => {
     setIsFullscreen((prev) => !prev)
@@ -217,10 +245,12 @@ export const ScanDevicePage: FC = () => {
   }, [facingMode, startCamera, stopCamera])
 
   useEffect(() => {
-    try {
-      sessionStorage.setItem(SCAN_ANGLES_STORAGE_KEY, JSON.stringify(capturedImages))
-    } catch {
-      // Ignore storage quota errors cleanly
+    if (Object.keys(capturedImages).length > 0) {
+      try {
+        sessionStorage.setItem(SCAN_ANGLES_STORAGE_KEY, JSON.stringify(capturedImages))
+      } catch {
+        // Ignore storage quota errors cleanly
+      }
     }
   }, [capturedImages])
 
@@ -385,7 +415,14 @@ export const ScanDevicePage: FC = () => {
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <IconButton
           size="small"
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            isProceedingToAssessRef.current = false
+            try {
+              sessionStorage.removeItem(SCAN_ANGLES_STORAGE_KEY)
+            } catch {}
+            setCapturedImages({})
+            navigate(-1)
+          }}
           aria-label="Back"
           sx={{
             width: 38,
@@ -546,19 +583,45 @@ export const ScanDevicePage: FC = () => {
 
         {/* Captured Photo Overlay (Shown if active angle has a saved photo) */}
         {capturedImages[currentAngle] && (
-          <Box
-            component="img"
-            src={capturedImages[currentAngle]}
-            alt={`Angle ${currentAngle}`}
-            sx={{
-              position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              zIndex: 1,
-            }}
-          />
+          unsupportedPreviewAngles[currentAngle] ? (
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#0f172a',
+                zIndex: 1,
+                p: 2,
+                gap: 1,
+              }}
+            >
+              <PhotoLibraryRoundedIcon sx={{ fontSize: 48, color: '#abf06b' }} />
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.9375rem', color: '#ffffff' }}>
+                {currentAngle.toUpperCase()} Image File Attached
+              </Typography>
+              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#94a3b8' }}>
+                RAW / High-resolution format uploaded
+              </Typography>
+            </Box>
+          ) : (
+            <Box
+              component="img"
+              src={capturedImages[currentAngle]}
+              alt={`Angle ${currentAngle}`}
+              onError={() => setUnsupportedPreviewAngles((prev) => ({ ...prev, [currentAngle]: true }))}
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                zIndex: 1,
+              }}
+            />
+          )
         )}
 
         {/* ── Dynamic Camera State Banners (Clean, Non-blocking, Friendly) ── */}
@@ -994,6 +1057,29 @@ export const ScanDevicePage: FC = () => {
             </Box>
           )}
         </Box>
+
+        {/* Fullscreen Validation Warning Banner */}
+        {validationError && isFullscreen && (
+          <Alert
+            severity="warning"
+            onClose={() => setValidationError(null)}
+            sx={{
+              position: 'absolute',
+              top: { xs: 56, sm: 64 },
+              left: 16,
+              right: 16,
+              zIndex: 35,
+              borderRadius: 2,
+              fontWeight: 600,
+              fontSize: '0.75rem',
+              backgroundColor: 'rgba(254, 243, 199, 0.95)',
+              backdropFilter: 'blur(8px)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+            }}
+          >
+            {validationError}
+          </Alert>
+        )}
 
         {/* ── Bottom HUD Bar (Standard Mode) OR Shutter Deck (Fullscreen Mode) ── */}
         {!isFullscreen ? (
@@ -1526,18 +1612,43 @@ export const ScanDevicePage: FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  <Box
-                    component="img"
-                    src={img}
-                    alt={`${angle.label} capture`}
-                    sx={{
-                      position: 'absolute',
-                      inset: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                    }}
-                  />
+                  {unsupportedPreviewAngles[angle.id] ? (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#0f172a',
+                        p: 0.5,
+                        gap: 0.25,
+                      }}
+                    >
+                      <PhotoLibraryRoundedIcon sx={{ fontSize: 22, color: '#abf06b' }} />
+                      <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.625rem', color: '#ffffff' }}>
+                        {angle.label}
+                      </Typography>
+                      <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.5625rem', color: '#abf06b' }}>
+                        File Attached
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Box
+                      component="img"
+                      src={img}
+                      alt={`${angle.label} capture`}
+                      onError={() => setUnsupportedPreviewAngles((prev) => ({ ...prev, [angle.id]: true }))}
+                      sx={{
+                        position: 'absolute',
+                        inset: 0,
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                    />
+                  )}
                   <Box
                     sx={{
                       position: 'absolute',
@@ -1625,6 +1736,10 @@ export const ScanDevicePage: FC = () => {
             return
           }
           setValidationError(null)
+          isProceedingToAssessRef.current = true
+          try {
+            sessionStorage.setItem(SCAN_ANGLES_STORAGE_KEY, JSON.stringify(capturedImages))
+          } catch {}
           navigate('/assess')
         }}
         sx={{
@@ -1663,12 +1778,37 @@ export const ScanDevicePage: FC = () => {
         </DialogTitle>
         <DialogContent sx={{ p: 1.5 }}>
           {previewAngle && capturedImages[previewAngle] && (
-            <Box
-              component="img"
-              src={capturedImages[previewAngle]}
-              alt={`${previewAngle} preview`}
-              sx={{ width: '100%', maxHeight: 360, objectFit: 'contain', borderRadius: 1.5, backgroundColor: '#0f172a' }}
-            />
+            unsupportedPreviewAngles[previewAngle] ? (
+              <Box
+                sx={{
+                  py: 6,
+                  px: 2,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#0f172a',
+                  borderRadius: 1.5,
+                  gap: 1.25,
+                }}
+              >
+                <PhotoLibraryRoundedIcon sx={{ fontSize: 52, color: '#abf06b' }} />
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '1rem', color: '#ffffff' }}>
+                  {previewAngle.toUpperCase()} Image File Attached
+                </Typography>
+                <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.8125rem', color: '#94a3b8' }}>
+                  RAW / High-resolution format ready for assessment
+                </Typography>
+              </Box>
+            ) : (
+              <Box
+                component="img"
+                src={capturedImages[previewAngle]}
+                alt={`${previewAngle} preview`}
+                onError={() => previewAngle && setUnsupportedPreviewAngles((prev) => ({ ...prev, [previewAngle]: true }))}
+                sx={{ width: '100%', maxHeight: 360, objectFit: 'contain', borderRadius: 1.5, backgroundColor: '#0f172a' }}
+              />
+            )
           )}
         </DialogContent>
         <DialogActions sx={{ px: 2, pb: 2, justifyContent: 'space-between' }}>

@@ -10,6 +10,9 @@ import {
   DialogContent,
   DialogActions,
   Drawer,
+  Popover,
+  useMediaQuery,
+  useTheme,
   Button,
   ButtonBase,
   OutlinedInput,
@@ -37,12 +40,11 @@ import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded'
 import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded'
 import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded'
-import CropFreeRoundedIcon from '@mui/icons-material/CropFreeRounded'
 import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded'
-import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined'
 import EnergySavingsLeafOutlinedIcon from '@mui/icons-material/EnergySavingsLeafOutlined'
 import ArrowDropDownRoundedIcon from '@mui/icons-material/ArrowDropDownRounded'
 import AddRoundedIcon from '@mui/icons-material/AddRounded'
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import BookmarkBorderRoundedIcon from '@mui/icons-material/BookmarkBorderRounded'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
@@ -146,8 +148,20 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
   const location = useLocation()
   const path = location.pathname
 
+  const navigateWithScanCleanup = (target: string) => {
+    if (target !== '/assess' && target !== '/diagnostic') {
+      try {
+        sessionStorage.removeItem('ecobyte_scan_angles')
+      } catch {}
+    }
+    navigate(target)
+  }
+
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('lg'))
   const [profileOpen, setProfileOpen] = useState(false)
-  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [desktopNotifAnchor, setDesktopNotifAnchor] = useState<HTMLElement | null>(null)
+  const [mobileNotifOpen, setMobileNotifOpen] = useState(false)
   const [logoutOpen, setLogoutOpen] = useState(false)
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS)
   const [soundMuted, setSoundMuted] = useState<boolean>(() => isNotificationSoundMuted())
@@ -258,16 +272,6 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             })
           }
 
-          if (data.ecoPoints > 0) {
-            dynamicNotifications.push({
-              id: 'eco-points-earned',
-              title: `Eco-Points Earned • ${data.ecoPoints} pts`,
-              desc: `You have diverted ${data.divertedKg} kg of e-waste and reached ${data.ecoTier}.`,
-              time: 'Updated',
-              read: false,
-              type: 'points',
-            })
-          }
           if (data.activeRequest) {
             dynamicNotifications.push({
               id: `req-${data.activeRequest.requestId}`,
@@ -438,20 +442,14 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               label="Dashboard"
               icon={<GridViewRoundedIcon sx={{ fontSize: 19 }} />}
               active={path === '/' || path === '/dashboard'}
-              onClick={() => navigate('/dashboard')}
-            />
-            <SidebarNavItem
-              label="Scan & Assess E-Waste"
-              icon={<CropFreeRoundedIcon sx={{ fontSize: 19 }} />}
-              active={isActive('/scan') || isActive('/assess') || isActive('/diagnostic')}
-              onClick={() => navigate('/scan')}
+              onClick={() => navigateWithScanCleanup('/dashboard')}
             />
             <SidebarNavItem
               label="My Requests"
               icon={<ReceiptLongRoundedIcon sx={{ fontSize: 19 }} />}
               active={isActive('/requests')}
               badge={summary.activeRequestsCount > 0 ? summary.activeRequestsCount : undefined}
-              onClick={() => navigate('/requests')}
+              onClick={() => navigateWithScanCleanup('/requests')}
             />
             <SidebarNavItem
               label="Reuse Hub"
@@ -462,19 +460,13 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                 isActive('/reservation-code') ||
                 isActive('/proof-of-claim')
               }
-              onClick={() => navigate('/reuse')}
+              onClick={() => navigateWithScanCleanup('/reuse')}
             />
             <SidebarNavItem
               label="Drop-off Hubs Map"
               icon={<MapRoundedIcon sx={{ fontSize: 19 }} />}
               active={isActive('/drop-offs')}
-              onClick={() => navigate('/drop-offs')}
-            />
-            <SidebarNavItem
-              label="Reuse & Repair Guide"
-              icon={<MenuBookOutlinedIcon sx={{ fontSize: 19 }} />}
-              active={isActive('/reuse-guide')}
-              onClick={() => navigate('/reuse-guide')}
+              onClick={() => navigateWithScanCleanup('/drop-offs')}
             />
           </Box>
         </Box>
@@ -571,6 +563,9 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             pb: 2.5,
             px: 4,
             backgroundColor: '#FAF8F5',
+            width: '100%',
+            maxWidth: '1440px',
+            mx: 'auto',
           }}
         >
           {/* Left: Greeting & Subtitle */}
@@ -624,15 +619,18 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
 
             {/* Notification Bell */}
             <IconButton
-              onClick={() => setNotificationsOpen(true)}
+              id="desktop-notif-bell-btn"
+              onClick={(e) => setDesktopNotifAnchor(desktopNotifAnchor ? null : e.currentTarget)}
               aria-label="notifications"
               sx={{
                 width: 38,
                 height: 38,
-                backgroundColor: '#ffffff',
+                backgroundColor: desktopNotifAnchor ? '#F0ECE6' : '#ffffff',
                 border: '1px solid rgba(220, 207, 192, 0.7)',
                 borderRadius: '50%',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                transition: 'all 0.15s ease',
+                '&:hover': { backgroundColor: '#F8F6F2' },
               }}
             >
               <Badge
@@ -690,7 +688,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             {/* + Scan Device Button */}
             <Button
               variant="contained"
-              onClick={() => navigate('/scan')}
+              onClick={() => navigateWithScanCleanup('/scan')}
               startIcon={<AddRoundedIcon sx={{ fontSize: 18 }} />}
               sx={{
                 backgroundColor: '#0F2417',
@@ -790,7 +788,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             <IconButton
               size="small"
               aria-label="notifications"
-              onClick={() => setNotificationsOpen(true)}
+              onClick={() => setMobileNotifOpen(true)}
               sx={{
                 width: 36,
                 height: 36,
@@ -837,12 +835,14 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
           </Box>
         </Box>
 
-        {/* ── Page Content Container (Responsive Fluid Width) ── */}
+        {/* ── Page Content Container (Uniform Desktop Width across 1080p, 1440p, 4K) ── */}
         <Box
           component="main"
           sx={{
             flex: 1,
             width: '100%',
+            maxWidth: '1440px',
+            mx: 'auto',
             px: isDashboard ? { xs: 0, lg: 4 } : { xs: 2, sm: 3.5, lg: 4 },
             pb: { xs: 12, lg: 4 },
             overflowX: 'hidden',
@@ -885,7 +885,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               icon={<HomeRoundedIcon sx={{ fontSize: 24, color: isActive('/dashboard') ? '#1B3B18' : '#596556' }} />}
               label="Home"
               active={isActive('/dashboard')}
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigateWithScanCleanup('/dashboard')}
             />
 
             {/* Reuse */}
@@ -893,12 +893,12 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               icon={<RecyclingRoundedIcon sx={{ fontSize: 23, color: isActive('/reuse') ? '#1B3B18' : '#596556' }} />}
               label="Reuse"
               active={isActive('/reuse')}
-              onClick={() => navigate('/reuse')}
+              onClick={() => navigateWithScanCleanup('/reuse')}
             />
 
             {/* Scan – Center black circle elevated over the top edge of navigation bar (Image 1) */}
             <Box
-              onClick={() => navigate('/scan')}
+              onClick={() => navigateWithScanCleanup('/scan')}
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -948,7 +948,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               icon={<BookmarkBorderRoundedIcon sx={{ fontSize: 23, color: isActive('/requests') ? '#1B3B18' : '#596556' }} />}
               label="Requests"
               active={isActive('/requests')}
-              onClick={() => navigate('/requests')}
+              onClick={() => navigateWithScanCleanup('/requests')}
             />
 
             {/* Account */}
@@ -1026,55 +1026,17 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               {avatarInitial}
             </Avatar>
             <Box sx={{ flex: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>
-                  {fullName}
-                </Typography>
-                <Box
-                  sx={{
-                    px: 1,
-                    py: 0.2,
-                    borderRadius: '9999px',
-                    backgroundColor: '#e0f2fe',
-                    color: '#0284c7',
-                    fontSize: '0.625rem',
-                    fontWeight: 700,
-                  }}
-                >
-                  {summary.ecoTier}
-                </Box>
-              </Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>
+                {fullName}
+              </Typography>
               <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
                 {userEmail} • {areaLabel}
               </Typography>
             </Box>
           </Box>
 
-          {/* Points & Stats Banner */}
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: 1.5,
-              mb: 2.5,
-            }}
-          >
-            <Box
-              sx={{
-                p: 1.5,
-                borderRadius: '12px',
-                backgroundColor: '#f0fdf4',
-                border: '1px solid #bbf7d0',
-                textAlign: 'center',
-              }}
-            >
-              <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase' }}>
-                Eco-Points
-              </Typography>
-              <Typography sx={{ fontSize: '1.5rem', fontWeight: 800, color: '#15803d', mt: 0.25 }}>
-                {summary.ecoPoints} pts
-              </Typography>
-            </Box>
+          {/* Stats Banner */}
+          <Box sx={{ mb: 2.5 }}>
             <Box
               sx={{
                 p: 1.5,
@@ -1164,36 +1126,43 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
           </Box>
         </Drawer>
 
-        {/* ── Resident Notifications Drawer ── */}
-        <Drawer
-          anchor="bottom"
-          open={notificationsOpen}
-          onClose={() => setNotificationsOpen(false)}
+        {/* ── Desktop Facebook-style Notification Dropdown Popover ── */}
+        <Popover
+          open={Boolean(desktopNotifAnchor) && !isMobile}
+          anchorEl={desktopNotifAnchor}
+          onClose={() => setDesktopNotifAnchor(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
           slotProps={{
-            root: {
-              sx: {
-                zIndex: 1400,
-              },
-            },
             paper: {
               sx: {
-                borderTopLeftRadius: '20px',
-                borderTopRightRadius: '20px',
-                maxWidth: { xs: '100%', sm: 640, md: 720 },
-                width: '100%',
-                mx: 'auto',
-                maxHeight: '85vh',
-                overflowY: 'auto',
-                p: { xs: 2.5, sm: 3.5 },
-                pb: 'calc(env(safe-area-inset-bottom, 16px) + 24px)',
+                width: 410,
+                maxWidth: 'calc(100vw - 32px)',
+                maxHeight: 520,
+                borderRadius: '16px',
+                mt: 1.5,
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 16px 40px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(0,0,0,0.06)',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
                 backgroundColor: '#ffffff',
                 fontFamily: "'Quicksand', sans-serif",
-                boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.25)',
               },
             },
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+          {/* Facebook-style Top Header */}
+          <Box
+            sx={{
+              p: 2,
+              pb: 1.5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderBottom: '1px solid #f1f5f9',
+            }}
+          >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography sx={{ fontWeight: 800, fontSize: '1.125rem', color: '#0f172a' }}>
                 Notifications
@@ -1202,7 +1171,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                 <Box
                   sx={{
                     px: 1,
-                    py: 0.15,
+                    py: 0.2,
                     borderRadius: '9999px',
                     backgroundColor: '#fee2e2',
                     color: '#dc2626',
@@ -1228,36 +1197,62 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                 sx={{ color: soundMuted ? '#94a3b8' : '#16a34a' }}
               >
                 {soundMuted ? (
-                  <VolumeOffRoundedIcon sx={{ fontSize: 19 }} />
+                  <VolumeOffRoundedIcon sx={{ fontSize: 18 }} />
                 ) : (
-                  <VolumeUpRoundedIcon sx={{ fontSize: 19 }} />
+                  <VolumeUpRoundedIcon sx={{ fontSize: 18 }} />
                 )}
               </IconButton>
-              <IconButton size="small" onClick={() => setNotificationsOpen(false)}>
-                <CloseRoundedIcon sx={{ fontSize: 20 }} />
+              <IconButton size="small" onClick={() => setDesktopNotifAnchor(null)}>
+                <CloseRoundedIcon sx={{ fontSize: 18 }} />
               </IconButton>
             </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+          {/* Quick Actions Bar */}
+          <Box
+            sx={{
+              px: 2,
+              py: 0.75,
+              backgroundColor: '#f8fafc',
+              borderBottom: '1px solid #e2e8f0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
             <Button
               onClick={handleMarkAllRead}
               size="small"
-              sx={{ textTransform: 'none', fontSize: '0.75rem', fontWeight: 700, color: '#16a34a' }}
+              sx={{
+                textTransform: 'none',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                color: '#16a34a',
+                p: 0,
+                '&:hover': { backgroundColor: 'transparent', textDecoration: 'underline' },
+              }}
             >
               Mark all as read
             </Button>
             <Button
               onClick={handleClearNotifications}
               size="small"
-              startIcon={<DeleteOutlineRoundedIcon sx={{ fontSize: 15 }} />}
-              sx={{ textTransform: 'none', fontSize: '0.75rem', fontWeight: 600, color: '#64748b' }}
+              startIcon={<DeleteOutlineRoundedIcon sx={{ fontSize: 14 }} />}
+              sx={{
+                textTransform: 'none',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: '#64748b',
+                p: 0,
+                '&:hover': { backgroundColor: 'transparent', color: '#dc2626' },
+              }}
             >
               Clear
             </Button>
           </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+          {/* Scrollable Notification List */}
+          <Box sx={{ flex: 1, overflowY: 'auto', p: 1.25, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
             {notifications.length > 0 ? (
               notifications.map((n) => (
                 <Box
@@ -1273,21 +1268,28 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                     }
                   }}
                   sx={{
-                    p: 1.5,
+                    p: 1.25,
                     borderRadius: '12px',
                     backgroundColor: n.read ? '#ffffff' : '#f0fdf4',
                     border: '1px solid',
-                    borderColor: n.read ? '#e2e8f0' : '#bbf7d0',
+                    borderColor: n.read ? '#f1f5f9' : '#bbf7d0',
                     display: 'flex',
-                    gap: 1.5,
+                    alignItems: 'flex-start',
+                    gap: 1.25,
                     cursor: !n.read ? 'pointer' : 'default',
+                    transition: 'all 0.15s ease',
+                    position: 'relative',
+                    '&:hover': {
+                      backgroundColor: n.read ? '#f8fafc' : '#eafbf0',
+                      borderColor: n.read ? '#cbd5e1' : '#86efac',
+                    },
                   }}
                 >
                   <Box
                     sx={{
                       width: 32,
                       height: 32,
-                      borderRadius: '8px',
+                      borderRadius: '50%',
                       backgroundColor: n.type === 'points' ? '#dcfce7' : n.type === 'alert' ? '#fef3c7' : '#e0f2fe',
                       color: n.type === 'points' ? '#15803d' : n.type === 'alert' ? '#d97706' : '#0284c7',
                       display: 'flex',
@@ -1297,34 +1299,282 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                     }}
                   >
                     {n.type === 'points' ? (
-                      <StarRoundedIcon sx={{ fontSize: 18 }} />
+                      <StarRoundedIcon sx={{ fontSize: 17 }} />
                     ) : (
-                      <CheckCircleRoundedIcon sx={{ fontSize: 18 }} />
+                      <CheckCircleRoundedIcon sx={{ fontSize: 17 }} />
                     )}
                   </Box>
-                  <Box sx={{ flex: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
                       <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem', color: '#0f172a' }}>
                         {n.title}
                       </Typography>
-                      <Typography sx={{ fontSize: '0.6875rem', color: '#94a3b8' }}>{n.time}</Typography>
+                      <Typography sx={{ fontSize: '0.6875rem', color: '#94a3b8', flexShrink: 0 }}>
+                        {n.time}
+                      </Typography>
                     </Box>
                     <Typography sx={{ fontSize: '0.75rem', color: '#475569', mt: 0.25, lineHeight: 1.4 }}>
                       {n.desc}
                     </Typography>
                   </Box>
+                  {!n.read && (
+                    <Box
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        backgroundColor: '#16a34a',
+                        position: 'absolute',
+                        right: 12,
+                        bottom: 12,
+                      }}
+                    />
+                  )}
                 </Box>
               ))
             ) : (
-              <Box sx={{ py: 4, textAlign: 'center', color: '#64748b' }}>
-                <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>No notifications right now</Typography>
+              <Box sx={{ py: 5, textAlign: 'center', color: '#64748b' }}>
+                <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700 }}>No notifications right now</Typography>
                 <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8', mt: 0.5 }}>
                   Drop-off confirmations and pickup vouchers will appear here.
                 </Typography>
               </Box>
             )}
           </Box>
-        </Drawer>
+        </Popover>
+
+        {/* ── Mobile Fullscreen Notifications Page ── */}
+        <Dialog
+          fullScreen
+          open={mobileNotifOpen}
+          onClose={() => setMobileNotifOpen(false)}
+          sx={{ zIndex: 1450 }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100dvh',
+              backgroundColor: '#faf8f5',
+              fontFamily: "'Quicksand', sans-serif",
+            }}
+          >
+            {/* Mobile Fullscreen App Bar */}
+            <Box
+              component="header"
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                px: 2,
+                py: 1.5,
+                backgroundColor: '#0f2417',
+                color: '#ffffff',
+                borderBottom: '1px solid rgba(255,255,255,0.1)',
+                flexShrink: 0,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <IconButton
+                  size="small"
+                  onClick={() => setMobileNotifOpen(false)}
+                  aria-label="Back"
+                  sx={{ color: '#ffffff', p: 0.5 }}
+                >
+                  <ArrowBackRoundedIcon sx={{ fontSize: 22 }} />
+                </IconButton>
+                <Typography sx={{ fontWeight: 800, fontSize: '1.0625rem', color: '#ffffff' }}>
+                  Notifications
+                </Typography>
+                {unreadCount > 0 && (
+                  <Box
+                    sx={{
+                      px: 1,
+                      py: 0.2,
+                      borderRadius: '9999px',
+                      backgroundColor: '#ef4444',
+                      color: '#ffffff',
+                      fontSize: '0.6875rem',
+                      fontWeight: 800,
+                    }}
+                  >
+                    {unreadCount} new
+                  </Box>
+                )}
+              </Box>
+
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                <IconButton
+                  size="small"
+                  aria-label={soundMuted ? 'Enable sound' : 'Mute sound'}
+                  onClick={() => {
+                    const next = !soundMuted
+                    setSoundMuted(next)
+                    setNotificationSoundMuted(next)
+                    if (!next) playNotificationSound('default')
+                  }}
+                  sx={{ color: soundMuted ? 'rgba(255,255,255,0.5)' : '#abf06b' }}
+                >
+                  {soundMuted ? (
+                    <VolumeOffRoundedIcon sx={{ fontSize: 20 }} />
+                  ) : (
+                    <VolumeUpRoundedIcon sx={{ fontSize: 20 }} />
+                  )}
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={() => setMobileNotifOpen(false)}
+                  aria-label="Close"
+                  sx={{ color: '#ffffff' }}
+                >
+                  <CloseRoundedIcon sx={{ fontSize: 22 }} />
+                </IconButton>
+              </Box>
+            </Box>
+
+            {/* Mobile Quick Action Strip */}
+            <Box
+              sx={{
+                px: 2,
+                py: 1,
+                backgroundColor: '#ffffff',
+                borderBottom: '1px solid #e2e8f0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexShrink: 0,
+              }}
+            >
+              <Button
+                onClick={handleMarkAllRead}
+                size="small"
+                sx={{
+                  textTransform: 'none',
+                  fontSize: '0.8125rem',
+                  fontWeight: 700,
+                  color: '#16a34a',
+                  p: 0,
+                }}
+              >
+                Mark all as read
+              </Button>
+              <Button
+                onClick={handleClearNotifications}
+                size="small"
+                startIcon={<DeleteOutlineRoundedIcon sx={{ fontSize: 16 }} />}
+                sx={{
+                  textTransform: 'none',
+                  fontSize: '0.8125rem',
+                  fontWeight: 700,
+                  color: '#64748b',
+                  p: 0,
+                  '&:hover': { color: '#dc2626' },
+                }}
+              >
+                Clear all
+              </Button>
+            </Box>
+
+            {/* Mobile Scrollable Notifications List */}
+            <Box
+              sx={{
+                flex: 1,
+                overflowY: 'auto',
+                p: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1.25,
+                pb: 'calc(env(safe-area-inset-bottom, 16px) + 24px)',
+              }}
+            >
+              {notifications.length > 0 ? (
+                notifications.map((n) => (
+                  <Box
+                    key={n.id}
+                    onClick={() => {
+                      if (!n.read) {
+                        setNotifications((prev) =>
+                          prev.map((item) => (item.id === n.id ? { ...item, read: true } : item))
+                        )
+                        if (n.id.startsWith('db-')) {
+                          dropoffsApi.markNotificationRead(n.id.slice(3)).catch(() => {})
+                        }
+                      }
+                    }}
+                    sx={{
+                      p: 1.5,
+                      borderRadius: '14px',
+                      backgroundColor: n.read ? '#ffffff' : '#f0fdf4',
+                      border: '1.5px solid',
+                      borderColor: n.read ? '#e2e8f0' : '#86efac',
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 1.5,
+                      position: 'relative',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: '50%',
+                        backgroundColor:
+                          n.type === 'points' ? '#dcfce7' : n.type === 'alert' ? '#fef3c7' : '#e0f2fe',
+                        color: n.type === 'points' ? '#15803d' : n.type === 'alert' ? '#d97706' : '#0284c7',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {n.type === 'points' ? (
+                        <StarRoundedIcon sx={{ fontSize: 20 }} />
+                      ) : (
+                        <CheckCircleRoundedIcon sx={{ fontSize: 20 }} />
+                      )}
+                    </Box>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: '0.875rem', color: '#0f172a' }}>
+                          {n.title}
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.6875rem', color: '#94a3b8', flexShrink: 0 }}>
+                          {n.time}
+                        </Typography>
+                      </Box>
+                      <Typography sx={{ fontSize: '0.8125rem', color: '#475569', mt: 0.35, lineHeight: 1.45 }}>
+                        {n.desc}
+                      </Typography>
+                    </Box>
+                    {!n.read && (
+                      <Box
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          backgroundColor: '#16a34a',
+                          position: 'absolute',
+                          right: 14,
+                          bottom: 14,
+                        }}
+                      />
+                    )}
+                  </Box>
+                ))
+              ) : (
+                <Box sx={{ py: 8, textAlign: 'center', color: '#64748b' }}>
+                  <Typography sx={{ fontSize: '0.9375rem', fontWeight: 800 }}>
+                    No notifications right now
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.8125rem', color: '#94a3b8', mt: 0.5 }}>
+                    Drop-off confirmations and pickup vouchers will appear here.
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          </Box>
+        </Dialog>
 
         {/* ── Resident Logout Confirmation Dialog ── */}
         <Dialog
@@ -1365,7 +1615,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
 
           <DialogContent sx={{ px: 2.5, py: 1.5 }}>
             <Typography sx={{ fontSize: '0.875rem', color: '#475569', lineHeight: 1.5 }}>
-              Are you sure you want to log out of your resident account? You will need to sign in again to access your passes and eco-points.
+              Are you sure you want to log out of your resident account? You will need to sign in again to access your drop-off passes and requests.
             </Typography>
           </DialogContent>
 
@@ -1557,7 +1807,12 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             onClose={() => setLiveAlertBanner(null)}
             onClick={() => {
               setLiveAlertBanner(null)
-              setNotificationsOpen(true)
+              if (isMobile) {
+                setMobileNotifOpen(true)
+              } else {
+                const btn = document.getElementById('desktop-notif-bell-btn')
+                setDesktopNotifAnchor(btn)
+              }
             }}
             sx={{
               cursor: 'pointer',
