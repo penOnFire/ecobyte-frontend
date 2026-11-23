@@ -5,6 +5,7 @@ import {
   Button,
   Card,
   CircularProgress,
+  Collapse,
   Divider,
   FormControl,
   IconButton,
@@ -14,6 +15,7 @@ import {
   Typography,
 } from '@mui/material'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded'
 import ShareOutlinedIcon from '@mui/icons-material/ShareOutlined'
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded'
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded'
@@ -22,6 +24,12 @@ import BatteryAlertRoundedIcon from '@mui/icons-material/BatteryAlertRounded'
 import PhoneAndroidRoundedIcon from '@mui/icons-material/PhoneAndroidRounded'
 import CropFreeRoundedIcon from '@mui/icons-material/CropFreeRounded'
 import MemoryRoundedIcon from '@mui/icons-material/MemoryRounded'
+import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded'
+import KeyboardRoundedIcon from '@mui/icons-material/KeyboardRounded'
+import AirRoundedIcon from '@mui/icons-material/AirRounded'
+import CableRoundedIcon from '@mui/icons-material/CableRounded'
+import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded'
+import StorageRoundedIcon from '@mui/icons-material/StorageRounded'
 import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded'
 import BuildRoundedIcon from '@mui/icons-material/BuildRounded'
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
@@ -98,10 +106,50 @@ function loadInitialDiagnostic(assessmentIdParam: string | null): DiagnosticResu
             }
           : null,
         subsystems: [
-          { name: 'Battery Cell', status: hasHazard ? 'HEALTH_RISK' : powersOn ? 'OPTIMAL' : 'DEGRADED', score: hasHazard ? 32 : powersOn ? 90 : 58 },
-          { name: 'Display & Glass', status: visibleDamage.includes('cracked') ? 'DEGRADED' : 'OPTIMAL', score: visibleDamage.includes('cracked') ? 42 : 95 },
-          { name: 'Logic Board', status: powersOn ? 'INTACT' : 'DEGRADED', score: powersOn ? 88 : 46 },
-          { name: 'Enclosure & Ports', status: 'OPTIMAL', score: 90 },
+          {
+            name: 'Battery Cell',
+            status: hasHazard ? 'HEALTH_RISK' : powersOn ? 'OPTIMAL' : 'DEGRADED',
+            score: hasHazard ? 32 : powersOn ? 90 : 58,
+            details: hasHazard
+              ? 'Swollen or leaking cell reported in intake checklist'
+              : powersOn
+                ? 'Holds charge / passes power-on check'
+                : 'Requires MRF voltage & cell integrity check',
+            description: hasHazard
+              ? `High-risk thermal/chemical flag on ${deviceModel}: swollen or leaking battery reported during Stage 1 screening. Isolate in a non-conductive container and bring directly to a Barangay Eco-Hub.`
+              : powersOn
+                ? `Power-on screening for ${deviceModel} indicates stable battery discharge with no swelling or leakage reported.`
+                : `No active power response confirmed for ${deviceModel}. Barangay MRF staff should inspect cell voltage and physical integrity during intake.`,
+          },
+          {
+            name: 'Display & Glass',
+            status: visibleDamage.includes('cracked') ? 'DEGRADED' : 'OPTIMAL',
+            score: visibleDamage.includes('cracked') ? 42 : 95,
+            details: visibleDamage.includes('cracked')
+              ? 'Screen crack or display fault reported'
+              : 'No visible screen crack reported',
+            description: visibleDamage.includes('cracked')
+              ? `Screen cracking or display degradation was flagged on ${deviceModel}. Secure loose glass before station drop-off or bench evaluation.`
+              : `Display panel and protective glass on ${deviceModel} show no reported cracks across your submitted photos and checklist.`,
+          },
+          {
+            name: 'Logic Board',
+            status: powersOn ? 'INTACT' : 'DEGRADED',
+            score: powersOn ? 88 : 46,
+            details: powersOn
+              ? 'Boots / responds normally'
+              : 'No boot verified — technician bench test advised',
+            description: powersOn
+              ? `Core logic board on ${deviceModel} passed Stage 1 power-response screening with viable silicon and charging circuitry for reuse.`
+              : `Logic board functionality on ${deviceModel} could not be confirmed powered on; technician bench diagnostics are recommended at intake.`,
+          },
+          {
+            name: 'Enclosure & Ports',
+            status: 'OPTIMAL',
+            score: 90,
+            details: 'Ports and outer housing appear serviceable',
+            description: `Outer enclosure, chassis alignment, and ports on ${deviceModel} appear intact based on your Stage 1 intake details.`,
+          },
         ],
         recommendedRoute: hasHazard ? 'DROP_OFF' : powersOn ? 'REUSE' : 'REPAIR',
       }
@@ -132,6 +180,18 @@ function getSubsystemVisuals(sub: SubsystemHealth) {
     icon = <CropFreeRoundedIcon sx={{ fontSize: 20, color: iconColor }} />
   } else if (nameLower.includes('logic') || nameLower.includes('board')) {
     icon = <MemoryRoundedIcon sx={{ fontSize: 20, color: iconColor }} />
+  } else if (nameLower.includes('camera') || nameLower.includes('sensor') || nameLower.includes('optic')) {
+    icon = <CameraAltRoundedIcon sx={{ fontSize: 20, color: iconColor }} />
+  } else if (nameLower.includes('keyboard') || nameLower.includes('trackpad')) {
+    icon = <KeyboardRoundedIcon sx={{ fontSize: 20, color: iconColor }} />
+  } else if (nameLower.includes('thermal') || nameLower.includes('fan') || nameLower.includes('cool')) {
+    icon = <AirRoundedIcon sx={{ fontSize: 20, color: iconColor }} />
+  } else if (nameLower.includes('cable') || nameLower.includes('connector') || nameLower.includes('power') || nameLower.includes('cord')) {
+    icon = <CableRoundedIcon sx={{ fontSize: 20, color: iconColor }} />
+  } else if (nameLower.includes('audio') || nameLower.includes('speaker') || nameLower.includes('mic')) {
+    icon = <VolumeUpRoundedIcon sx={{ fontSize: 20, color: iconColor }} />
+  } else if (nameLower.includes('storage') || nameLower.includes('memory') || nameLower.includes('drive')) {
+    icon = <StorageRoundedIcon sx={{ fontSize: 20, color: iconColor }} />
   }
 
   const badgeLabel =
@@ -144,6 +204,45 @@ function getSubsystemVisuals(sub: SubsystemHealth) {
           : 'Needs Check'
 
   return { badgeVariant, iconBg, icon, badgeLabel }
+}
+
+function getSubsystemAiDescription(
+  sub: SubsystemHealth,
+  diagnostic: DiagnosticResult | null,
+  badgeLabel: string
+): string {
+  if (sub.description?.trim()) {
+    return sub.description.trim()
+  }
+
+  const deviceLabel = diagnostic?.deviceModel || 'this device'
+  const nameLower = sub.name.toLowerCase()
+  const details = sub.details?.trim()
+  const support = diagnostic?.supportingDetails
+  const damageList = support?.visibleDamage || []
+  const missingList = (support?.missingParts || []).filter((m) => m && m !== 'none')
+
+  if (nameLower.includes('battery')) {
+    if (sub.status === 'HEALTH_RISK' || damageList.some((v) => v.includes('swollen') || v.includes('battery_leak'))) {
+      return `AI triage flagged a battery safety risk on ${deviceLabel} (${sub.score}% health score). ${details ? `${details}. ` : ''}Avoid charging or puncturing the cell and place it in a non-conductive container before Barangay Eco-Hub drop-off.`
+    }
+    return `AI screening evaluated the battery subsystem of ${deviceLabel} as ${badgeLabel.toLowerCase()} (${sub.score}%). ${details ? `${details}. ` : ''}${support?.powersOn ? 'Stable power delivery supports safe handling or reuse evaluation.' : 'MRF staff will verify cell voltage and physical state during physical intake.'}`
+  }
+
+  if (nameLower.includes('display') || nameLower.includes('screen') || nameLower.includes('glass')) {
+    return `AI assessment rated the display assembly of ${deviceLabel} at ${sub.score}% (${badgeLabel.toLowerCase()}). ${details ? `${details}. ` : ''}${support?.displayIntact === false ? 'Protect any fractured glass before transport and review repair options if internal components are intact.' : 'Panel condition contributes positively to device reuse or spare-part recovery value.'}`
+  }
+
+  if (nameLower.includes('logic') || nameLower.includes('board')) {
+    return `AI analysis scored the main logic board of ${deviceLabel} at ${sub.score}% (${badgeLabel.toLowerCase()}). ${details ? `${details}. ` : ''}${support?.powersOn ? 'Power-on response indicates functional core circuitry suitable for refurbishment or reuse.' : 'No verified boot was detected; schedule station bench diagnostics or component recovery.'}`
+  }
+
+  if (nameLower.includes('enclosure') || nameLower.includes('port') || nameLower.includes('chassis')) {
+    const missingNote = missingList.length > 0 ? `Reported missing parts: ${missingList.join(', ')}. ` : ''
+    return `AI assessment scored ${sub.name} on ${deviceLabel} at ${sub.score}% (${badgeLabel.toLowerCase()}). ${details ? `${details}. ` : ''}${missingNote}Physical housing and connector alignment will be confirmed at your selected Barangay Eco-Hub.`
+  }
+
+  return `AI assessment evaluated ${sub.name} on ${deviceLabel} at ${sub.score}% (${badgeLabel.toLowerCase()}). ${details ? `${details}. ` : ''}This secondary component was flagged for ${deviceLabel} based on your device type and intake screening details.`
 }
 
 export const AiDiagnosticPage: FC = () => {
@@ -163,6 +262,11 @@ export const AiDiagnosticPage: FC = () => {
     searchParams.get('category') || MANUAL_CATEGORIES[0]
   )
   const [toastMsg, setToastMsg] = useState<string | null>(null)
+  const [expandedSubsystems, setExpandedSubsystems] = useState<Record<string, boolean>>({})
+
+  const toggleSubsystem = (name: string) => {
+    setExpandedSubsystems((prev) => ({ ...prev, [name]: !prev[name] }))
+  }
 
   const capturedAngles = useMemo(() => {
     try {
@@ -608,9 +712,38 @@ export const AiDiagnosticPage: FC = () => {
             <Card sx={{ borderRadius: 2, border: '1px solid #e2e8f0', overflow: 'hidden', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
               {(diagnostic?.subsystems || []).map((part, i, arr) => {
                 const visual = getSubsystemVisuals(part)
+                const isExpanded = Boolean(expandedSubsystems[part.name])
+                const aiDescription = getSubsystemAiDescription(part, diagnostic, visual.badgeLabel)
+                const accentColor =
+                  part.status === 'HEALTH_RISK'
+                    ? '#dc2626'
+                    : part.status === 'DEGRADED'
+                      ? '#d97706'
+                      : '#16a34a'
+
                 return (
                   <Box key={part.name}>
-                    <Box sx={{ p: 1.75, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                    <Box
+                      onClick={() => toggleSubsystem(part.name)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          toggleSubsystem(part.name)
+                        }
+                      }}
+                      sx={{
+                        p: 1.75,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 1,
+                        cursor: 'pointer',
+                        transition: 'background-color 0.15s ease',
+                        '&:hover': { backgroundColor: '#f8fafc' },
+                      }}
+                    >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
                         <Box
                           sx={{
@@ -635,8 +768,99 @@ export const AiDiagnosticPage: FC = () => {
                           </Typography>
                         </Box>
                       </Box>
-                      <StatusBadge label={visual.badgeLabel} variant={visual.badgeVariant} size="sm" />
+
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexShrink: 0 }}>
+                        <StatusBadge label={visual.badgeLabel} variant={visual.badgeVariant} size="sm" />
+                        <Button
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleSubsystem(part.name)
+                          }}
+                          aria-expanded={isExpanded}
+                          endIcon={
+                            <ExpandMoreRoundedIcon
+                              sx={{
+                                fontSize: 16,
+                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.2s ease',
+                              }}
+                            />
+                          }
+                          sx={{
+                            minWidth: 'auto',
+                            px: 1,
+                            py: 0.35,
+                            borderRadius: 1.25,
+                            textTransform: 'none',
+                            fontFamily: "'Quicksand', sans-serif",
+                            fontWeight: 700,
+                            fontSize: '0.6875rem',
+                            color: '#1e6c28',
+                            backgroundColor: isExpanded ? '#e8f5e9' : '#f1f5f9',
+                            '&:hover': { backgroundColor: '#e2e8f0' },
+                          }}
+                        >
+                          {isExpanded ? 'Hide' : 'View more'}
+                        </Button>
+                      </Box>
                     </Box>
+
+                    <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                      <Box
+                        sx={{
+                          px: 1.75,
+                          pb: 1.75,
+                          pt: 1.25,
+                          backgroundColor: '#f8fafc',
+                          borderTop: '1px solid #f1f5f9',
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            p: 1.35,
+                            borderRadius: 1.5,
+                            backgroundColor: '#ffffff',
+                            border: '1px solid #e2e8f0',
+                            borderLeft: `3.5px solid ${accentColor}`,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 0.75,
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                              <AutoAwesomeRoundedIcon sx={{ fontSize: 15, color: '#1e6c28' }} />
+                              <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 800, fontSize: '0.75rem', color: '#0f172a' }}>
+                                AI Assessment Result
+                              </Typography>
+                            </Box>
+                            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.6875rem', color: '#475569' }}>
+                              Score: {part.score}/100
+                            </Typography>
+                          </Box>
+
+                          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.78125rem', color: '#334155', lineHeight: 1.55, fontWeight: 500 }}>
+                            {aiDescription}
+                          </Typography>
+
+                          {diagnostic?.recommendedRoute && (
+                            <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>
+                              Assessed Device: <strong style={{ color: '#0f172a' }}>{deviceTitle}</strong>
+                              {' · '}Recommended Path:{' '}
+                              <strong style={{ color: '#0f172a' }}>
+                                {diagnostic.recommendedRoute === 'REUSE'
+                                  ? 'Community Reuse'
+                                  : diagnostic.recommendedRoute === 'REPAIR'
+                                    ? 'Refurbish & Repair'
+                                    : 'Safe Drop-Off'}
+                              </strong>
+                            </Typography>
+                          )}
+                        </Box>
+                      </Box>
+                    </Collapse>
+
                     {i < arr.length - 1 && <Divider sx={{ borderColor: '#f1f5f9' }} />}
                   </Box>
                 )

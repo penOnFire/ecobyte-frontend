@@ -29,6 +29,7 @@ import CameraswitchRoundedIcon from '@mui/icons-material/CameraswitchRounded'
 import FullscreenRoundedIcon from '@mui/icons-material/FullscreenRounded'
 import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded'
 import { useNavigate } from 'react-router-dom'
+import { ALLOWED_IMAGE_ACCEPT, validateResidentImageFile } from '@/lib/imageUploadValidation'
 
 export const SCAN_ANGLES_STORAGE_KEY = 'ecobyte_scan_angles'
 
@@ -313,6 +314,14 @@ export const ScanDevicePage: FC = () => {
     const file = e.target.files?.[0]
     if (!file) return
 
+    const validationErr = validateResidentImageFile(file)
+    if (validationErr) {
+      setValidationError(validationErr)
+      e.target.value = ''
+      return
+    }
+
+    setValidationError(null)
     const angleToSave = currentAngle
     const reader = new FileReader()
     reader.onload = () => {
@@ -356,7 +365,7 @@ export const ScanDevicePage: FC = () => {
       <input
         ref={cameraInputRef}
         type="file"
-        accept="image/*"
+        accept={ALLOWED_IMAGE_ACCEPT}
         capture="environment"
         style={{ display: 'none' }}
         onChange={handleFileCapture}
@@ -364,7 +373,7 @@ export const ScanDevicePage: FC = () => {
       <input
         ref={galleryInputRef}
         type="file"
-        accept="image/*"
+        accept={ALLOWED_IMAGE_ACCEPT}
         style={{ display: 'none' }}
         onChange={handleFileCapture}
       />

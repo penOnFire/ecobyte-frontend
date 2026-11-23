@@ -7,12 +7,17 @@ import {
   Card,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
   IconButton,
   Snackbar,
   Typography,
 } from '@mui/material'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import SmartphoneRoundedIcon from '@mui/icons-material/SmartphoneRounded'
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded'
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded'
@@ -311,6 +316,7 @@ export const DropoffSchedulerPage: FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [isLocating, setIsLocating] = useState(false)
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   useEffect(() => {
@@ -541,7 +547,9 @@ export const DropoffSchedulerPage: FC = () => {
         const storedAssessmentId =
           searchParams.get('assessmentId') ||
           sessionStorage.getItem('ecobyte_last_assessment_id') ||
-          undefined
+          (diagnostic?.assessmentId && diagnostic.assessmentId !== 'draft'
+            ? diagnostic.assessmentId
+            : undefined)
         const res = await dropoffsApi.scheduleIntake({
           assessmentId: storedAssessmentId,
           siteId: siteToBook.id,
@@ -550,8 +558,6 @@ export const DropoffSchedulerPage: FC = () => {
           courierOrSelf: 'SELF_DROPOFF',
         })
         if (res?.requestId) createdReqId = res.requestId
-        sessionStorage.removeItem('ecobyte_last_assessment_id')
-        sessionStorage.removeItem('ecobyte_scan_angles')
       }
 
       // Synchronize with local drop-off requests list for immediate visibility in official portal
@@ -663,10 +669,18 @@ export const DropoffSchedulerPage: FC = () => {
         console.warn('Failed to sync drop-off locally:', syncErr)
       }
 
+      if (!isRescheduling) {
+        sessionStorage.removeItem('ecobyte_last_assessment_id')
+        sessionStorage.removeItem('ecobyte_last_diagnostic')
+        sessionStorage.removeItem('ecobyte_assessment_draft')
+        sessionStorage.removeItem('ecobyte_scan_angles')
+      }
       localStorage.removeItem('ecobyte_ongoing_requests')
+      setConfirmModalOpen(false)
       navigate('/requests?tab=ongoing')
     } catch (err: any) {
       console.error('Failed to schedule drop-off:', err)
+      setConfirmModalOpen(false)
       setToastMessage(
         err?.message || 'Unable to confirm drop-off schedule. Please try again.'
       )
@@ -1437,7 +1451,7 @@ export const DropoffSchedulerPage: FC = () => {
           variant="contained"
           size="large"
           disabled={isSubmitting}
-          onClick={handleConfirmSchedule}
+          onClick={() => setConfirmModalOpen(true)}
           startIcon={isSubmitting ? <CircularProgress size={16} color="inherit" /> : <CalendarTodayRoundedIcon sx={{ fontSize: 18 }} />}
           endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
           sx={{
@@ -1474,6 +1488,139 @@ export const DropoffSchedulerPage: FC = () => {
           </Typography>
         </Box>
       </Box>
+
+      {/* Pre-Submit Confirmation Modal */}
+      <Dialog
+        open={confirmModalOpen}
+        onClose={() => {
+          if (!isSubmitting) setConfirmModalOpen(false)
+        }}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 2.5,
+              p: 0.5,
+              fontFamily: "'Quicksand', sans-serif",
+            },
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            pb: 1,
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: "'Quicksand', sans-serif",
+              fontWeight: 800,
+              fontSize: '1.0625rem',
+              color: '#0f172a',
+            }}
+          >
+            {isRescheduling ? 'Confirm Rescheduled Drop-off?' : 'Confirm Drop-off Schedule?'}
+          </Typography>
+          <IconButton
+            size="small"
+            disabled={isSubmitting}
+            onClick={() => setConfirmModalOpen(false)}
+            aria-label="Close confirmation dialog"
+          >
+            <CloseRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, py: 2 }}>
+          <Typography
+            sx={{
+              fontFamily: "'Quicksand', sans-serif",
+              fontSize: '0.8125rem',
+              color: '#475569',
+              fontWeight: 600,
+              lineHeight: 1.5,
+            }}
+          >
+            {isRescheduling
+              ? 'Please review your updated drop-off schedule before saving changes.'
+              : 'Please review your drop-off schedule details before confirming. Once confirmed, this item will move to your Ongoing requests.'}
+          </Typography>
+
+          <Box
+            sx={{
+              p: 1.5,
+              borderRadius: 1.75,
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 0.75,
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, fontSize: '0.8125rem' }}>
+              <span style={{ color: '#64748b' }}>Device:</span>
+              <strong style={{ color: '#0f172a', textAlign: 'right' }}>{displayDeviceTitle}</strong>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, fontSize: '0.8125rem' }}>
+              <span style={{ color: '#64748b' }}>Drop-off Base:</span>
+              <strong style={{ color: '#0f172a', textAlign: 'right' }}>{currentSite.name}</strong>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, fontSize: '0.8125rem' }}>
+              <span style={{ color: '#64748b' }}>Date:</span>
+              <strong style={{ color: '#0f172a', textAlign: 'right' }}>{formatReadableDate(selectedDateStr, 'short')}</strong>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, fontSize: '0.8125rem' }}>
+              <span style={{ color: '#64748b' }}>Time Slot:</span>
+              <strong style={{ color: '#0f172a', textAlign: 'right' }}>
+                {currentWindow.title} ({currentWindow.hours})
+              </strong>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 2.5, py: 1.75, gap: 1 }}>
+          <Button
+            variant="outlined"
+            disabled={isSubmitting}
+            onClick={() => setConfirmModalOpen(false)}
+            sx={{
+              borderColor: '#cbd5e1',
+              color: '#334155',
+              fontFamily: "'Quicksand', sans-serif",
+              fontWeight: 700,
+              textTransform: 'none',
+              borderRadius: 1.75,
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={isSubmitting}
+            onClick={handleConfirmSchedule}
+            startIcon={isSubmitting ? <CircularProgress size={16} color="inherit" /> : undefined}
+            sx={{
+              backgroundColor: '#0f172a',
+              color: '#ffffff',
+              fontFamily: "'Quicksand', sans-serif",
+              fontWeight: 800,
+              textTransform: 'none',
+              borderRadius: 1.75,
+              '&:hover': { backgroundColor: '#1e293b' },
+            }}
+          >
+            {isSubmitting
+              ? isRescheduling
+                ? 'Updating...'
+                : 'Confirming...'
+              : isRescheduling
+                ? 'Yes, Save Schedule'
+                : 'Yes, Confirm Drop-off'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Toast Notification */}
       <Snackbar

@@ -99,7 +99,7 @@ export const MyRequestsPage: FC = () => {
   const tabFromQuery = useMemo<'ongoing' | 'assessed' | 'completed' | null>(() => {
     const param = new URLSearchParams(location.search).get('tab')
     if (param === 'assessed') return 'assessed'
-    if (param === 'completed') return 'completed'
+    if (param === 'completed' || param === 'history') return 'completed'
     if (param === 'ongoing') return 'ongoing'
     return null
   }, [location.search])
@@ -109,7 +109,7 @@ export const MyRequestsPage: FC = () => {
 
   const handleSelectTab = (newTab: 'ongoing' | 'assessed' | 'completed') => {
     setTabSelection(newTab)
-    navigate(`/requests?tab=${newTab}`, { replace: true })
+    navigate(`/requests?tab=${newTab === 'completed' ? 'history' : newTab}`, { replace: true })
   }
 
   const [ongoing, setOngoing] = useState<EwasteRequestItem[]>([])
@@ -247,10 +247,8 @@ export const MyRequestsPage: FC = () => {
       .getMyAssessedItems()
       .then((items) => {
         if (!isMounted) return
-        if (Array.isArray(items) && items.length > 0) {
+        if (Array.isArray(items)) {
           setAssessedItems(items)
-        } else {
-          setAssessedItems(SAMPLE_ASSESSED_DEVICES)
         }
       })
       .catch((err) => {
@@ -475,7 +473,7 @@ export const MyRequestsPage: FC = () => {
             boxShadow: activeTab === 'completed' ? '0 1px 3px rgba(15,23,42,0.15)' : 'none',
           }}
         >
-          Completed ({completed.length})
+          History ({completed.length})
         </Box>
       </Box>
 
@@ -938,30 +936,16 @@ export const MyRequestsPage: FC = () => {
                   {/* Top Row: Device Name & Hazard Badge */}
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1 }}>
                     <Box sx={{ minWidth: 0 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
-                        <Typography
-                          sx={{
-                            fontFamily: "'Quicksand', sans-serif",
-                            fontWeight: 800,
-                            fontSize: '1rem',
-                            color: '#0f172a',
-                          }}
-                        >
-                          {item.deviceTitle}
-                        </Typography>
-                        <Chip
-                          size="small"
-                          label={`Ref #${item.assessmentId}`}
-                          sx={{
-                            fontFamily: "'Quicksand', sans-serif",
-                            fontWeight: 700,
-                            fontSize: '0.625rem',
-                            height: 20,
-                            backgroundColor: '#f1f5f9',
-                            color: '#64748b',
-                          }}
-                        />
-                      </Box>
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontWeight: 800,
+                          fontSize: '1rem',
+                          color: '#0f172a',
+                        }}
+                      >
+                        {item.deviceTitle}
+                      </Typography>
                       <Typography
                         sx={{
                           fontFamily: "'Quicksand', sans-serif",
@@ -1207,7 +1191,7 @@ export const MyRequestsPage: FC = () => {
                   color: '#0f172a',
                 }}
               >
-                No completed requests yet
+                No request history yet
               </Typography>
               <Typography
                 sx={{

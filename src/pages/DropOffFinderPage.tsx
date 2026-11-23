@@ -362,9 +362,6 @@ export const DropOffFinderPage: FC = () => {
           <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
             Accredited Drop Sites (Commonwealth)
           </Typography>
-          <Typography sx={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', color: '#64748b' }}>
-            {isLoading ? 'Loading...' : `${filteredSites.length} Locations Found`}
-          </Typography>
         </Box>
 
         {isLoading ? (

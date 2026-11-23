@@ -176,6 +176,7 @@ function fromAssessedRecord(rec: AssessedDeviceRecord): DiagnosticResult {
             : 'DEGRADED',
       score: s.score,
       details: s.details,
+      description: s.description,
     })),
     recommendedRoute: route,
   }

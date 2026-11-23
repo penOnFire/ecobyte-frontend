@@ -38,17 +38,15 @@ const ForcePasswordResetForm: FC<ForcePasswordResetFormProps> = ({
   onSuccess,
   onSignOut,
 }) => {
-  const [currentPassword, setCurrentPassword] = useState(initialCurrentPassword)
+  const [currentPassword] = useState(initialCurrentPassword)
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [showCurrent, setShowCurrent] = useState(false)
   const [showNew, setShowNew] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const strength = calculatePasswordStrength(newPassword)
-  const hasPrefilledCurrent = Boolean(initialCurrentPassword.trim())
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -59,15 +57,11 @@ const ForcePasswordResetForm: FC<ForcePasswordResetFormProps> = ({
     const trimmedNew = newPassword.trim()
     const trimmedConfirm = confirmPassword.trim()
 
-    if (!trimmedCurrent) {
-      setErrorMessage('Please enter your temporary or current password.')
-      return
-    }
     if (trimmedNew.length < 6) {
       setErrorMessage('New password must be at least 6 characters long.')
       return
     }
-    if (trimmedNew === trimmedCurrent) {
+    if (trimmedCurrent && trimmedNew === trimmedCurrent) {
       setErrorMessage('New password must be different from your temporary password.')
       return
     }
@@ -79,7 +73,7 @@ const ForcePasswordResetForm: FC<ForcePasswordResetFormProps> = ({
     setSubmitting(true)
     try {
       const res = await authApi.changePassword({
-        currentPassword: trimmedCurrent,
+        ...(trimmedCurrent ? { currentPassword: trimmedCurrent } : {}),
         newPassword: trimmedNew,
       })
       onSuccess(res.user)
@@ -187,45 +181,6 @@ const ForcePasswordResetForm: FC<ForcePasswordResetFormProps> = ({
           </Box>
         )}
 
-        {/* Current / Temporary Password */}
-        <Box>
-          <Typography
-            component="label"
-            htmlFor="force-reset-current-pw"
-            sx={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#334155', mb: 0.5 }}
-          >
-            Current or Temporary Password
-          </Typography>
-          <OutlinedInput
-            id="force-reset-current-pw"
-            fullWidth
-            size="small"
-            type={showCurrent ? 'text' : 'password'}
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            placeholder="Enter temporary password"
-            autoFocus={!hasPrefilledCurrent}
-            autoComplete="current-password"
-            endAdornment={
-              <InputAdornment position="end">
-                <IconButton
-                  size="small"
-                  onClick={() => setShowCurrent((prev) => !prev)}
-                  aria-label={showCurrent ? 'Hide current password' : 'Show current password'}
-                  edge="end"
-                >
-                  {showCurrent ? (
-                    <VisibilityOffOutlinedIcon sx={{ fontSize: 18 }} />
-                  ) : (
-                    <VisibilityOutlinedIcon sx={{ fontSize: 18 }} />
-                  )}
-                </IconButton>
-              </InputAdornment>
-            }
-            sx={{ borderRadius: '0.75rem', fontFamily: "'Quicksand', sans-serif", fontSize: '0.875rem' }}
-          />
-        </Box>
-
         {/* New Password */}
         <Box>
           <Typography
@@ -243,7 +198,7 @@ const ForcePasswordResetForm: FC<ForcePasswordResetFormProps> = ({
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             placeholder="Minimum 6 characters"
-            autoFocus={hasPrefilledCurrent}
+            autoFocus
             autoComplete="new-password"
             endAdornment={
               <InputAdornment position="end">
@@ -427,7 +382,7 @@ export const ForcePasswordResetModal: FC<ForcePasswordResetModalProps> = ({
     >
       {open && (
         <ForcePasswordResetForm
-          key={`${userEmail || ''}:${initialCurrentPassword}`}
+          key={`${userEmail || 'reset-form'}:${initialCurrentPassword}`}
           headingId={headingId}
           guardNoticeId={guardNoticeId}
           userEmail={userEmail}
