@@ -544,7 +544,6 @@ export const ScanDevicePage: FC = () => {
           justifyContent: 'space-between',
           backgroundColor: '#020617',
           overflow: 'hidden',
-          transition: 'all 0.2s ease',
         }}
       >
         {/* Live Video Feed Element */}
@@ -889,6 +888,9 @@ export const ScanDevicePage: FC = () => {
                   boxShadow: '0 0 10px #abf06b, 0 0 4px #abf06b',
                   top: '50%',
                   animation: 'scanSweep 2.2s ease-in-out infinite alternate',
+                  '@media (prefers-reduced-motion: reduce)': {
+                    animation: 'none',
+                  },
                   '@keyframes scanSweep': {
                     '0%': { top: '8%' },
                     '100%': { top: '92%' },
@@ -1006,11 +1008,13 @@ export const ScanDevicePage: FC = () => {
                 px: 1.25,
                 py: 0.5,
                 borderRadius: 9999,
-                transition: 'all 0.15s ease',
-                '&:hover': {
-                  backgroundColor: '#0f172a',
-                  color: '#abf06b',
-                  borderColor: '#abf06b',
+                transition: 'background-color 180ms ease, color 180ms ease, border-color 180ms ease',
+                '@media (hover: hover) and (pointer: fine)': {
+                  '&:hover': {
+                    backgroundColor: '#0f172a',
+                    color: '#abf06b',
+                    borderColor: '#abf06b',
+                  },
                 },
               }}
             >
@@ -1194,7 +1198,7 @@ export const ScanDevicePage: FC = () => {
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: 0.4,
-                      transition: 'all 0.15s ease',
+                      transition: 'background-color 180ms ease, border-color 180ms ease',
                     }}
                   >
                     <Typography
@@ -1478,7 +1482,7 @@ export const ScanDevicePage: FC = () => {
                   justifyContent: 'center',
                   gap: 0.75,
                   cursor: 'pointer',
-                  transition: 'all 0.15s ease',
+                  transition: 'background-color 180ms ease, border-color 180ms ease, color 180ms ease',
                   boxShadow: isActive ? '0 2px 6px rgba(15,23,42,0.16)' : 'none',
                 }}
               >

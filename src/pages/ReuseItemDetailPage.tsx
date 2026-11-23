@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { ViewTransition, useEffect, useMemo, useState } from 'react'
 import type { FC } from 'react'
 import {
   Box,
@@ -20,7 +20,7 @@ import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded'
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
 import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded'
 import BookmarkAddRoundedIcon from '@mui/icons-material/BookmarkAddRounded'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { resolveMediaUrl, reuseApi } from '@/lib/api'
 import type { ReuseItem } from '@/types'
@@ -210,7 +210,12 @@ export const ReuseItemDetailPage: FC = () => {
 
   const [selectedWindow, setSelectedWindow] = useState('01:00 PM')
   const [toastMsg, setToastMsg] = useState<string | null>(null)
-  const [liveItem, setLiveItem] = useState<ReuseItem | null>(null)
+  const location = useLocation()
+  const routeState = location.state as { reuseItem?: ReuseItem; reuseImage?: string } | null
+  const stateReuseItem = routeState?.reuseItem
+  const stateReuseImage =
+    stateReuseItem && id && String(stateReuseItem.id) === String(id) ? routeState?.reuseImage : undefined
+  const [fetchedItem, setFetchedItem] = useState<ReuseItem | null>(null)
   const [nowMs] = useState(() => Date.now())
 
   useEffect(() => {
@@ -219,15 +224,22 @@ export const ReuseItemDetailPage: FC = () => {
     reuseApi
       .getItemById(id)
       .then((item) => {
-        if (active && item) setLiveItem(item)
+        if (active && item) setFetchedItem(item)
       })
       .catch(() => {
-        // Keep default display if backend item lookup is offline
+        // Keep passed or default display if backend item lookup is offline
       })
     return () => {
       active = false
     }
   }, [id])
+
+  const liveItem =
+    fetchedItem && id && String(fetchedItem.id) === String(id)
+      ? fetchedItem
+      : stateReuseItem && id && String(stateReuseItem.id) === String(id)
+        ? stateReuseItem
+        : null
 
   const displayTitle = liveItem?.title || 'Lenovo ThinkPad T480 - Core i5 8th Gen'
   const displayCode = liveItem?.itemCode || 'CIR-84920'
@@ -236,7 +248,10 @@ export const ReuseItemDetailPage: FC = () => {
   const displayHubAddress = liveItem?.pickupHub?.address || '1.2 km away • Closes 6:00 PM'
   const displayDescription = liveItem?.specs?.description || 'Intel i5-8350U • 16GB RAM / 256GB SSD'
   const displayWeight = liveItem?.specs?.weightKg ? `${liveItem.specs.weightKg} kg` : '1.65 kg'
-  const displayImage = resolveDetailImage(liveItem)
+  const displayImage =
+    liveItem?.imageUrl && !liveItem.imageUrl.includes('placeholder') && !liveItem.imageUrl.includes('unsplash')
+      ? resolveDetailImage(liveItem)
+      : stateReuseImage || resolveDetailImage(liveItem)
 
   const isReserved = useMemo(() => {
     if (liveItem?.status && liveItem.status.toLowerCase() !== 'available') return true
@@ -344,18 +359,39 @@ export const ReuseItemDetailPage: FC = () => {
           boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
         }}
       >
-        <Box
-          component="img"
-          src={displayImage}
-          alt={displayTitle}
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-          }}
-        />
+        {liveItem && String(liveItem.id) === String(id) ? (
+          <ViewTransition
+            name={`reuse-item-image-${liveItem.id}`}
+            share="eco-shared-morph"
+            default="none"
+          >
+            <Box
+              component="img"
+              src={displayImage}
+              alt={displayTitle}
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
+          </ViewTransition>
+        ) : (
+          <Box
+            component="img"
+            src={displayImage}
+            alt={displayTitle}
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
+        )}
 
         {/* Top left badge */}
         <Box sx={{ zIndex: 1, position: 'relative' }}>
@@ -662,9 +698,11 @@ export const ReuseItemDetailPage: FC = () => {
                       cursor: 'pointer',
                       mx: 'auto',
                       boxShadow: isSelected ? '0 2px 6px rgba(15,23,42,0.2)' : 'none',
-                      transition: 'all 0.15s ease',
-                      '&:hover': {
-                        borderColor: '#0f172a',
+                      transition: 'background-color 180ms ease, border-color 180ms ease, color 180ms ease',
+                      '@media (hover: hover) and (pointer: fine)': {
+                        '&:hover': {
+                          borderColor: '#0f172a',
+                        },
                       },
                     }}
                   >

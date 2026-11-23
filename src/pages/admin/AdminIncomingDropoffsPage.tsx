@@ -240,9 +240,7 @@ export const AdminIncomingDropoffsPage: FC = () => {
   const handleMarkReceived = async (req: DropoffRecord) => {
     setIsProcessing(true)
     try {
-      await adminApi.markDropoffReceived(req.id).catch(() => {
-        // Fallback for local/offline prototype
-      })
+      await adminApi.markDropoffReceived(req.id)
 
       const staffUser = getCachedUser()
       const staffName = staffUser?.fullName || 'Barangay Official'
@@ -291,9 +289,9 @@ export const AdminIncomingDropoffsPage: FC = () => {
       })
       window.dispatchEvent(new Event('ecobyte:admin-badges-refresh'))
       setDetailModalOpen(false)
-    } catch {
+    } catch (err: unknown) {
       setToast({
-        message: 'Failed to mark device as received.',
+        message: (err as { message?: string })?.message || 'Failed to mark device as received.',
         severity: 'error',
       })
     } finally {
@@ -304,9 +302,7 @@ export const AdminIncomingDropoffsPage: FC = () => {
   const handleMarkMissed = async (req: DropoffRecord) => {
     setIsProcessing(true)
     try {
-      await adminApi.markDropoffMissed(req.id).catch(() => {
-        // Fallback for local/offline prototype
-      })
+      await adminApi.markDropoffMissed(req.id)
 
       const staffUser = getCachedUser()
       const staffName = staffUser?.fullName || 'Barangay Official'
@@ -355,9 +351,9 @@ export const AdminIncomingDropoffsPage: FC = () => {
       })
       window.dispatchEvent(new Event('ecobyte:admin-badges-refresh'))
       setDetailModalOpen(false)
-    } catch {
+    } catch (err: unknown) {
       setToast({
-        message: 'Failed to mark drop-off as missed.',
+        message: (err as { message?: string })?.message || 'Failed to mark drop-off as missed.',
         severity: 'error',
       })
     } finally {
@@ -406,7 +402,7 @@ export const AdminIncomingDropoffsPage: FC = () => {
                     fontSize: '0.8125rem',
                     fontWeight: 700,
                     whiteSpace: 'nowrap',
-                    transition: 'all 0.15s ease',
+                    transition: 'background-color 180ms ease, color 180ms ease, box-shadow 180ms ease',
                     backgroundColor: active ? '#ffffff' : 'transparent',
                     color: active ? '#0f172a' : '#64748b',
                     boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',

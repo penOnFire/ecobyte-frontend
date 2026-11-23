@@ -119,3 +119,26 @@ export async function apiFetch<T>(
   const result = (await response.json()) as ApiResponse<T>
   return result.data
 }
+
+export async function openAuthenticatedMedia(endpoint: string): Promise<void> {
+  const url = `${BASE_URL.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`
+  const token = typeof window !== 'undefined' ? localStorage.getItem('ecobyte_token') : null
+  const headers: Record<string, string> = {}
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
+  }
+
+  const response = await fetch(url, { headers })
+  if (!response.ok) {
+    throw new ApiErrorResponse(
+      response.status,
+      'MEDIA_FETCH_ERROR',
+      `Unable to open attachment (HTTP ${response.status}).`
+    )
+  }
+
+  const blob = await response.blob()
+  const objectUrl = URL.createObjectURL(blob)
+  window.open(objectUrl, '_blank', 'noopener,noreferrer')
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000)
+}

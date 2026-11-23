@@ -151,15 +151,8 @@ export const RegisterPage: FC = () => {
       setSuccessModalOpen(true)
     } catch (err: any) {
       console.error('Registration failed:', err)
-      const isNetworkError =
-        err?.message?.toLowerCase().includes('fetch') ||
-        err?.message?.toLowerCase().includes('network')
-
-      if (isNetworkError) {
-        localStorage.setItem('ecobyte_token', `offline_mock_token_resident_${Date.now()}`)
-        localStorage.setItem('ecobyte_user_role', 'RESIDENT')
-        localStorage.setItem('ecobyte_user_name', constructedFullName)
-        setSuccessModalOpen(true)
+      if (!err?.status || err.status >= 500) {
+        setErrorMessage('Unable to contact the server. Please try again.')
         return
       }
 
@@ -192,11 +185,10 @@ export const RegisterPage: FC = () => {
             src={ecobyteLogo}
             alt="EcoByte"
             sx={{
-              width: 58,
-              height: 58,
-              borderRadius: 2,
-              mb: 1.5,
-              boxShadow: '0 4px 16px rgba(15,23,42,0.12)',
+              width: 64,
+              height: 64,
+              mb: 1.25,
+              objectFit: 'contain',
             }}
           />
           <Typography
@@ -258,8 +250,10 @@ export const RegisterPage: FC = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                '&:hover': { color: '#0f172a' },
+                transition: 'color 180ms ease',
+                '@media (hover: hover) and (pointer: fine)': {
+                  '&:hover': { color: '#0f172a' },
+                },
               }}
             >
               <Typography

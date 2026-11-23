@@ -260,7 +260,7 @@ export const AdminReportsPage: FC = () => {
                     fontSize: '0.8125rem',
                     fontWeight: 700,
                     whiteSpace: 'nowrap',
-                    transition: 'all 0.15s ease',
+                    transition: 'background-color 180ms ease, color 180ms ease, box-shadow 180ms ease',
                     backgroundColor: active ? '#ffffff' : 'transparent',
                     color: active ? '#0f172a' : '#64748b',
                     boxShadow: active ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
@@ -338,8 +338,10 @@ export const AdminReportsPage: FC = () => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 1,
-                transition: 'all 0.15s ease',
-                '&:hover': { backgroundColor: '#f8fafc', borderColor: '#cbd5e1' },
+                transition: 'background-color 180ms ease, border-color 180ms ease',
+                '@media (hover: hover) and (pointer: fine)': {
+                  '&:hover': { backgroundColor: '#f8fafc', borderColor: '#cbd5e1' },
+                },
               }}
             >
               <DownloadRoundedIcon sx={{ fontSize: 18, color: '#4f8a24' }} />

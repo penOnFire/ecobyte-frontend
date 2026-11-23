@@ -33,7 +33,7 @@ export const StepperTracker: FC<StepperTrackerProps> = ({ steps, currentStep }) 
                 justifyContent: 'center',
                 backgroundColor: done ? '#000000' : active ? '#D5F5C3' : '#FFFFFF',
                 border: done ? 'none' : active ? '2px solid #BEEB64' : '1.5px solid rgba(220, 207, 192, 0.7)',
-                transition: 'all 0.2s ease',
+                transition: 'background-color 180ms ease, border-color 180ms ease',
               }}
             >
               {done ? (

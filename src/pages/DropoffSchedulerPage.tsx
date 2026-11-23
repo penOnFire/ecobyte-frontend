@@ -1105,8 +1105,10 @@ export const DropoffSchedulerPage: FC = () => {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    '&:hover': { borderColor: isSuggested ? '#16a34a' : '#0f172a' },
+                    transition: 'background-color 180ms ease, border-color 180ms ease',
+                    '@media (hover: hover) and (pointer: fine)': {
+                      '&:hover': { borderColor: isSuggested ? '#16a34a' : '#0f172a' },
+                    },
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
@@ -1294,9 +1296,11 @@ export const DropoffSchedulerPage: FC = () => {
                     cursor: 'pointer',
                     mx: 'auto',
                     boxShadow: isSelected ? '0 2px 6px rgba(15,23,42,0.2)' : 'none',
-                    transition: 'all 0.15s ease',
-                    '&:hover': {
-                      borderColor: '#0f172a',
+                    transition: 'background-color 180ms ease, border-color 180ms ease, color 180ms ease',
+                    '@media (hover: hover) and (pointer: fine)': {
+                      '&:hover': {
+                        borderColor: '#0f172a',
+                      },
                     },
                   }}
                 >
@@ -1370,7 +1374,7 @@ export const DropoffSchedulerPage: FC = () => {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
+                    transition: 'background-color 180ms ease, border-color 180ms ease, color 180ms ease',
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>

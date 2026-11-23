@@ -1,0 +1,100 @@
+:root {
+  --motion-press: 120ms;
+  --motion-fast: 180ms;
+  --motion-overlay: 240ms;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* Native React <ViewTransition>: never block pointer events during navigation */
+::view-transition {
+  pointer-events: none;
+}
+
+/* Keep the document root live so persistent shells do not freeze or flash */
+::view-transition-old(root) {
+  display: none;
+}
+
+::view-transition-new(root) {
+  animation: none;
+}
+
+/* Isolate fixed shell chrome with backdrop-filter above route crossfades */
+::view-transition-group(eco-admin-header),
+::view-transition-group(eco-mobile-nav) {
+  animation: none;
+  z-index: 100;
+}
+
+::view-transition-old(eco-admin-header),
+::view-transition-old(eco-mobile-nav) {
+  display: none;
+}
+
+::view-transition-new(eco-admin-header),
+::view-transition-new(eco-mobile-nav) {
+  animation: none;
+}
+
+@keyframes eco-vt-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Sequential 180ms route crossfade: old page clears before new page enters to avoid text double-exposure */
+::view-transition-old(.eco-route-exit) {
+  animation: 70ms var(--ease-out) both eco-vt-fade reverse;
+}
+
+::view-transition-new(.eco-route-enter) {
+  animation: 110ms var(--ease-out) 70ms both eco-vt-fade;
+}
+
+::view-transition-group(.eco-shared-morph) {
+  z-index: 2;
+  animation-duration: var(--motion-overlay);
+  animation-timing-function: var(--ease-out);
+  overflow: clip;
+  border-radius: 12px;
+}
+
+::view-transition-old(.eco-shared-morph),
+::view-transition-new(.eco-shared-morph) {
+  animation-duration: var(--motion-overlay);
+  animation-timing-function: var(--ease-out);
+  height: 100%;
+  object-fit: cover;
+  overflow: clip;
+  border-radius: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0s !important;
+  }
+
+  .eco-map-pulse {
+    animation: none !important;
+    transform: none !important;
+    opacity: 0.32 !important;
+  }
+
+  .MuiDialog-container,
+  .MuiDialog-paper,
+  .MuiDrawer-paper,
+  .MuiPopover-paper,
+  .MuiMenu-paper,
+  .MuiBackdrop-root,
+  .MuiSnackbar-root,
+  .MuiCollapse-root {
+    transition-duration: 0.001ms !important;
+  }
+}

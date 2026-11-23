@@ -35,6 +35,7 @@ export interface User {
   idCode?: string | null
   department?: string | null
   mustChangePassword?: boolean
+  walkthroughVersion?: number
   twoFactorEnabled?: boolean
   barangay: Barangay
 }
@@ -46,7 +47,6 @@ export interface ChangePasswordPayload {
 
 export interface AuthSession {
   accessToken: string
-  refreshToken: string
   redirectTo?: '/admin' | '/dashboard'
   user: User
 }

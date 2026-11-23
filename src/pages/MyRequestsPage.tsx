@@ -433,7 +433,7 @@ export const MyRequestsPage: FC = () => {
             fontSize: '0.8125rem',
             fontFamily: "'Quicksand', sans-serif",
             cursor: 'pointer',
-            transition: 'all 0.15s ease',
+            transition: 'background-color 180ms ease, color 180ms ease',
             boxShadow: activeTab === 'ongoing' ? '0 1px 3px rgba(15,23,42,0.15)' : 'none',
           }}
         >
@@ -451,7 +451,7 @@ export const MyRequestsPage: FC = () => {
             fontSize: '0.8125rem',
             fontFamily: "'Quicksand', sans-serif",
             cursor: 'pointer',
-            transition: 'all 0.15s ease',
+            transition: 'background-color 180ms ease, color 180ms ease',
             boxShadow: activeTab === 'assessed' ? '0 1px 3px rgba(15,23,42,0.15)' : 'none',
           }}
         >
@@ -469,7 +469,7 @@ export const MyRequestsPage: FC = () => {
             fontSize: '0.8125rem',
             fontFamily: "'Quicksand', sans-serif",
             cursor: 'pointer',
-            transition: 'all 0.15s ease',
+            transition: 'background-color 180ms ease, color 180ms ease',
             boxShadow: activeTab === 'completed' ? '0 1px 3px rgba(15,23,42,0.15)' : 'none',
           }}
         >
@@ -728,8 +728,10 @@ export const MyRequestsPage: FC = () => {
                     backgroundColor: '#ffffff',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    '&:hover': { borderColor: '#0f172a' },
+                    transition: 'border-color 180ms ease',
+                    '@media (hover: hover) and (pointer: fine)': {
+                      '&:hover': { borderColor: '#0f172a' },
+                    },
                   }}
                   onClick={() => setSelectedRequest(req)}
                 >

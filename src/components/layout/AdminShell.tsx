@@ -11,17 +11,21 @@ import {
   Button,
   Drawer,
 } from '@mui/material'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { adminApi, authApi, getCachedUser, resolveAuthRole, setCachedUser } from '@/lib/api'
 import { ForcePasswordResetModal } from '@/components/auth/ForcePasswordResetModal'
+import { Walkthrough } from '@/components/onboarding/Walkthrough'
+import { RouteContentTransition } from '@/components/layout/RouteContentTransition'
+import { usePrefersReducedMotion } from '@/lib/usePrefersReducedMotion'
+import { MOTION } from '@/theme/theme'
 import type { User } from '@/types'
 import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded'
 import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined'
 import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined'
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded'
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded'
-import RecyclingRoundedIcon from '@mui/icons-material/RecyclingRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
+import ecobyteLogo from '@/assets/ui/ecobyte_logo.svg'
 import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined'
 import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined'
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
@@ -36,7 +40,7 @@ import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded'
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded'
 
 interface AdminShellProps {
-  children: ReactNode
+  children?: ReactNode
 }
 
 interface NavItem {
@@ -50,8 +54,11 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
   const navigate = useNavigate()
   const location = useLocation()
   const path = location.pathname
+  const reducedMotion = usePrefersReducedMotion()
+  const overlayTransition = reducedMotion ? 0 : { enter: MOTION.overlay, exit: MOTION.fast }
 
   const [profileOpen, setProfileOpen] = useState(false)
+  const [walkthroughReplay, setWalkthroughReplay] = useState(0)
   const [logoutOpen, setLogoutOpen] = useState(false)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [toInspectBadge, setToInspectBadge] = useState<number>(0)
@@ -240,21 +247,17 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
             }}
           >
             <Box
+              role="img"
+              aria-label="EcoByte"
               sx={{
                 width: 36,
                 height: 36,
-                borderRadius: '0.75rem',
-                background: 'linear-gradient(135deg, #2e6022 0%, #70b822 100%)',
-                boxShadow: '0 2px 8px rgba(112, 184, 34, 0.35)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#ffffff',
+                backgroundColor: '#ABF06B',
+                WebkitMask: `url("${ecobyteLogo}") center / contain no-repeat`,
+                mask: `url("${ecobyteLogo}") center / contain no-repeat`,
                 flexShrink: 0,
               }}
-            >
-              <RecyclingRoundedIcon sx={{ fontSize: 21 }} />
-            </Box>
+            />
             <Box sx={{ lineHeight: 1.15 }}>
               <Typography
                 sx={{
@@ -360,6 +363,8 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
             return (
               <ButtonBase
                 key={item.path}
+                data-tour={`staff-${item.path.split('/').pop()}`}
+                aria-current={active ? 'page' : undefined}
                 onClick={() => {
                   navigate(item.path)
                   if (isMobile) setMobileNavOpen(false)
@@ -372,14 +377,22 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
                   px: 1.5,
                   py: 1.2,
                   borderRadius: '0.75rem',
-                  transition: 'all 0.15s ease',
+                  transition:
+                    'background-color 180ms ease, color 180ms ease, transform 120ms cubic-bezier(0.23, 1, 0.32, 1)',
                   backgroundColor: active ? 'rgba(132, 204, 22, 0.14)' : 'transparent',
                   color: active ? '#ffffff' : 'rgba(255, 255, 255, 0.70)',
                   fontWeight: active ? 700 : 600,
                   fontSize: '0.875rem',
-                  '&:hover': {
-                    backgroundColor: active ? 'rgba(132, 204, 22, 0.20)' : 'rgba(255, 255, 255, 0.06)',
-                    color: '#ffffff',
+                  '&:active': { transform: 'scale(0.98)' },
+                  '@media (hover: hover) and (pointer: fine)': {
+                    '&:hover': {
+                      backgroundColor: active ? 'rgba(132, 204, 22, 0.20)' : 'rgba(255, 255, 255, 0.06)',
+                      color: '#ffffff',
+                    },
+                  },
+                  '@media (prefers-reduced-motion: reduce)': {
+                    transition: 'none',
+                    '&:active': { transform: 'none' },
                   },
                 }}
               >
@@ -431,6 +444,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
         }}
       >
         <Box
+          data-tour="staff-account"
           onClick={() => setProfileOpen(true)}
           sx={{
             display: 'flex',
@@ -508,9 +522,16 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
             alignItems: 'center',
             justifyContent: 'center',
             gap: 1,
-            transition: 'all 0.15s ease',
-            '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.15)',
+            transition: 'background-color 180ms ease, transform 120ms cubic-bezier(0.23, 1, 0.32, 1)',
+            '&:active': { transform: 'scale(0.98)' },
+            '@media (hover: hover) and (pointer: fine)': {
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+              },
+            },
+            '@media (prefers-reduced-motion: reduce)': {
+              transition: 'none',
+              '&:active': { transform: 'none' },
             },
           }}
         >
@@ -556,6 +577,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
         anchor="left"
         open={mobileNavOpen}
         onClose={() => setMobileNavOpen(false)}
+        transitionDuration={overlayTransition}
         sx={{
           display: { xs: 'block', lg: 'none' },
           '& .MuiDrawer-paper': {
@@ -575,6 +597,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
       {/* ── Fixed Top Header (h-16 / 64px, adaptive left offset, matching prototype) ── */}
       <Box
         component="header"
+        style={{ viewTransitionName: 'eco-admin-header' }}
         sx={{
           position: 'fixed',
           top: 0,
@@ -590,7 +613,6 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
           justifyContent: 'space-between',
           px: { xs: 2, sm: 3, md: 4 },
           boxShadow: '0 1px 3px rgba(30, 46, 26, 0.02)',
-          transition: 'left 0.2s ease',
         }}
       >
         {/* Left: Mobile Menu + Page Title & Subtitle */}
@@ -691,12 +713,12 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
       {/* ── Main Content Area (Adaptive left padding) ── */}
       <Box
         component="main"
+        tabIndex={-1}
         sx={{
           pl: { xs: 0, lg: '256px' },
           pt: '64px',
           minHeight: '100vh',
           backgroundColor: '#f8f9ff',
-          transition: 'padding-left 0.2s ease',
         }}
       >
         <Box
@@ -706,7 +728,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
             p: { xs: 2, sm: 3, md: 4 },
           }}
         >
-          {children}
+          <RouteContentTransition>{children ?? <Outlet />}</RouteContentTransition>
         </Box>
       </Box>
 
@@ -714,6 +736,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
       <Dialog
         open={profileOpen}
         onClose={() => setProfileOpen(false)}
+        transitionDuration={overlayTransition}
         maxWidth="xs"
         fullWidth
         slotProps={{
@@ -831,6 +854,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
         </DialogContent>
 
         <DialogActions sx={{ p: 2, justifyContent: 'space-between' }}>
+          <Button onClick={() => { setProfileOpen(false); setWalkthroughReplay((value) => value + 1) }} size="small">Replay walkthrough</Button>
           <Button
             onClick={() => {
               setProfileOpen(false)
@@ -864,6 +888,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
       <Dialog
         open={logoutOpen}
         onClose={() => setLogoutOpen(false)}
+        transitionDuration={overlayTransition}
         maxWidth="xs"
         fullWidth
         slotProps={{
@@ -940,6 +965,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
         </DialogActions>
       </Dialog>
 
+      <Walkthrough user={currentUser} dashboard={path === '/admin' || path === '/admin/dashboard'} staff replay={walkthroughReplay} onStaffMenuChange={setMobileNavOpen} />
       <ForcePasswordResetModal
         open={Boolean(currentUser?.mustChangePassword)}
         userEmail={currentUser?.email}
@@ -948,6 +974,7 @@ export const AdminShell: FC<AdminShellProps> = ({ children }) => {
             ...updatedUser,
             role: resolveAuthRole(updatedUser.role, updatedUser.email),
             mustChangePassword: false,
+            walkthroughVersion: updatedUser.walkthroughVersion ?? currentUser?.walkthroughVersion,
           }
           setCachedUser(normalized)
           setCurrentUser(normalized)

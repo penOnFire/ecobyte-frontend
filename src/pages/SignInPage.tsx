@@ -30,7 +30,6 @@ import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-d
 import ecobyteLogo from '@/assets/ui/ecobyte_logo.svg'
 import {
   authApi,
-  buildFallbackMockUser,
   clearStaleLocalRequests,
   resolveAuthRole,
   setCachedUser,
@@ -127,6 +126,7 @@ export const SignInPage: FC = () => {
     rawRedirect && rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')
       ? rawRedirect
       : null
+  const requiresReauth = Boolean(safeRedirect) || searchParams.get('authRequired') === '1'
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -168,15 +168,15 @@ export const SignInPage: FC = () => {
 
       localStorage.setItem('ecobyte_user_role', effectiveRole)
 
-      const cachedSessionUser = res?.user
-        ? {
-          ...res.user,
-          role: effectiveRole.toLowerCase(),
-        }
-        : {
-          ...buildFallbackMockUser(effectiveRole, email),
-          role: effectiveRole.toLowerCase(),
-        }
+      if (!res?.user) {
+        setErrorMessage('Invalid authentication response from server. Please try again.')
+        return
+      }
+
+      const cachedSessionUser = {
+        ...res.user,
+        role: effectiveRole.toLowerCase(),
+      }
       setCachedUser(cachedSessionUser)
 
       const targetRoute = safeRedirect
@@ -198,32 +198,8 @@ export const SignInPage: FC = () => {
     } catch (err: any) {
       console.error('Authentication rejected by backend:', err)
 
-      // Fallback for offline development if fetch fails
-      const isNetworkError =
-        err?.message?.toLowerCase().includes('fetch') ||
-        err?.message?.toLowerCase().includes('network')
-
-      if (isNetworkError) {
-        const effectiveRole = resolveAuthRole(undefined, email)
-        const isSuperAdmin = effectiveRole === 'ADMIN'
-        const isOfficial = effectiveRole === 'BARANGAY_OFFICIAL'
-
-        clearStoredLockout()
-        localStorage.setItem('ecobyte_token', `offline_mock_token_${effectiveRole.toLowerCase()}`)
-        localStorage.setItem('ecobyte_user_role', effectiveRole)
-
-        setCachedUser({
-          ...buildFallbackMockUser(effectiveRole, email),
-          role: effectiveRole.toLowerCase(),
-        })
-
-        if (safeRedirect && (isSuperAdmin || isOfficial || !safeRedirect.startsWith('/admin'))) {
-          navigate(safeRedirect, { replace: true })
-        } else if (isSuperAdmin || isOfficial) {
-          navigate('/admin', { replace: true })
-        } else {
-          navigate('/dashboard', { replace: true })
-        }
+      if (!err?.status || err.status >= 500) {
+        setErrorMessage('Unable to contact the server. Please try again.')
         return
       }
 
@@ -287,10 +263,12 @@ export const SignInPage: FC = () => {
               fontWeight: 700,
               fontSize: '0.8125rem',
               color: '#0f172a',
-              transition: 'all 0.15s ease',
-              '&:hover': {
-                backgroundColor: '#eef3ed',
-                borderColor: '#4f5f4b',
+              transition: 'background-color 180ms ease, border-color 180ms ease',
+              '@media (hover: hover) and (pointer: fine)': {
+                '&:hover': {
+                  backgroundColor: '#eef3ed',
+                  borderColor: '#4f5f4b',
+                },
               },
             }}
           >
@@ -306,11 +284,10 @@ export const SignInPage: FC = () => {
             src={ecobyteLogo}
             alt="EcoByte"
             sx={{
-              width: 58,
-              height: 58,
-              borderRadius: 2,
-              mb: 1.5,
-              boxShadow: '0 4px 16px rgba(15,23,42,0.12)',
+              width: 64,
+              height: 64,
+              mb: 1.25,
+              objectFit: 'contain',
             }}
           />
           <Typography
@@ -396,8 +373,10 @@ export const SignInPage: FC = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                '&:hover': { color: '#0f172a' },
+                transition: 'color 180ms ease',
+                '@media (hover: hover) and (pointer: fine)': {
+                  '&:hover': { color: '#0f172a' },
+                },
               }}
             >
               <Typography
@@ -435,6 +414,32 @@ export const SignInPage: FC = () => {
           >
             Sign in to your circular tech account.
           </Typography>
+
+          {requiresReauth && !isLockedOut ? (
+            <Box
+              role="alert"
+              sx={{
+                p: 1.5,
+                mb: 2,
+                backgroundColor: '#fffbeb',
+                borderRadius: 1.5,
+                border: '1px solid #fde68a',
+                display: 'flex',
+                gap: 1.25,
+                alignItems: 'flex-start',
+              }}
+            >
+              <LockOutlinedIcon sx={{ color: '#d97706', fontSize: 20, mt: 0.15 }} />
+              <Box sx={{ flex: 1 }}>
+                <Typography sx={{ color: '#92400e', fontSize: '0.8125rem', fontWeight: 700 }}>
+                  We need you to log in again
+                </Typography>
+                <Typography sx={{ color: '#b45309', fontSize: '0.75rem', fontWeight: 600, mt: 0.25 }}>
+                  Please sign in to access{safeRedirect ? ` ${safeRedirect}` : ' that page'}.
+                </Typography>
+              </Box>
+            </Box>
+          ) : null}
 
           {isLockedOut ? (
             <Box

@@ -6,58 +6,66 @@ import TabletMacRoundedIcon from '@mui/icons-material/TabletMacRounded'
 import KeyboardRoundedIcon from '@mui/icons-material/KeyboardRounded'
 import PowerRoundedIcon from '@mui/icons-material/PowerRounded'
 import BatteryAlertRoundedIcon from '@mui/icons-material/BatteryAlertRounded'
-import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded'
+import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded'
 import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded'
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded'
+import StorefrontRoundedIcon from '@mui/icons-material/StorefrontRounded'
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
 import { Link as RouterLink } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { PhoneFrame } from '@/components/landing/PhoneFrame'
 import {
+  ACCEPTED_CATEGORIES,
   DEVICE_CATEGORY_PILLS,
   MARQUEE_ROW_ONE,
   MARQUEE_ROW_TWO,
-  SHOWCASE_DEVICES,
   getAuthHref,
 } from '@/components/landing/landingData'
 import type {
+  AcceptedCategoryId,
   CategoryPillIconKey,
   CategoryPillItem,
-  ShowcaseDeviceId,
 } from '@/components/landing/landingData'
+import type { ReuseItem } from '@/types'
 
 interface DeviceShowcaseSectionProps {
-  selectedDeviceId: ShowcaseDeviceId
-  onSelectDevice: (deviceId: ShowcaseDeviceId) => void
+  selectedCategoryId: AcceptedCategoryId
+  onSelectCategory: (categoryId: AcceptedCategoryId) => void
+  liveReuseItems: ReuseItem[]
 }
 
-const renderCategoryIcon = (icon: CategoryPillIconKey): ReactNode => {
+const renderCategoryIcon = (icon: CategoryPillIconKey, size = 18): ReactNode => {
   switch (icon) {
     case 'laptop':
-      return <LaptopMacRoundedIcon sx={{ fontSize: 18, color: 'var(--eco-mint-ink)' }} />
+      return <LaptopMacRoundedIcon sx={{ fontSize: size, color: 'var(--eco-mint-ink)' }} />
     case 'smartphone':
-      return <SmartphoneRoundedIcon sx={{ fontSize: 18, color: 'var(--eco-mint-ink)' }} />
+      return <SmartphoneRoundedIcon sx={{ fontSize: size, color: 'var(--eco-mint-ink)' }} />
     case 'tablet':
-      return <TabletMacRoundedIcon sx={{ fontSize: 18, color: 'var(--eco-mint-ink)' }} />
+      return <TabletMacRoundedIcon sx={{ fontSize: size, color: 'var(--eco-mint-ink)' }} />
     case 'keyboard':
-      return <KeyboardRoundedIcon sx={{ fontSize: 18, color: 'var(--eco-mint-ink)' }} />
+      return <KeyboardRoundedIcon sx={{ fontSize: size, color: 'var(--eco-mint-ink)' }} />
     case 'charger':
-      return <PowerRoundedIcon sx={{ fontSize: 18, color: 'var(--eco-mint-ink)' }} />
+      return <PowerRoundedIcon sx={{ fontSize: size, color: 'var(--eco-mint-ink)' }} />
     case 'battery':
-      return <BatteryAlertRoundedIcon sx={{ fontSize: 18, color: '#d97706' }} />
+      return <BatteryAlertRoundedIcon sx={{ fontSize: size, color: '#d97706' }} />
   }
 }
 
 export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
-  selectedDeviceId,
-  onSelectDevice,
+  selectedCategoryId,
+  onSelectCategory,
+  liveReuseItems,
 }) => {
-  const selectedDevice =
-    SHOWCASE_DEVICES.find((d) => d.id === selectedDeviceId) ?? SHOWCASE_DEVICES[0]
+  const selectedCategory =
+    ACCEPTED_CATEGORIES.find((c) => c.id === selectedCategoryId) ?? ACCEPTED_CATEGORIES[0]
+
+  const matchingLiveItems = liveReuseItems.filter((item) => {
+    const haystack = `${item.title} ${item.category}`.toLowerCase()
+    return selectedCategory.matchKeywords.some((kw) => haystack.includes(kw))
+  })
 
   const handleCategoryPillClick = (pill: CategoryPillItem) => {
-    if (pill.deviceId) {
-      onSelectDevice(pill.deviceId)
-    }
+    onSelectCategory(pill.categoryId)
     const targetEl = document.getElementById(pill.targetSectionId)
     if (targetEl) {
       targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -71,14 +79,14 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
         <div className="eco-container">
           <div className="eco-category-list">
             {DEVICE_CATEGORY_PILLS.map((pill) => {
-              const isActive = pill.deviceId === selectedDeviceId
+              const isActive = pill.categoryId === selectedCategoryId
               return (
                 <button
                   key={pill.id}
                   type="button"
                   onClick={() => handleCategoryPillClick(pill)}
                   className={`eco-category-pill ${isActive ? 'is-active' : ''}`}
-                  aria-pressed={pill.deviceId ? isActive : undefined}
+                  aria-pressed={isActive}
                 >
                   {renderCategoryIcon(pill.icon)}
                   <span>{pill.label}</span>
@@ -225,7 +233,7 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
         </Box>
       </section>
 
-      {/* Section 5: Interactive 5-Device Switcher + Live PhoneFrame */}
+      {/* Section 5: Interactive Accepted E-Waste Categories + 2-Angle Intake Guide */}
       <Box
         component="section"
         id="device-switcher"
@@ -254,41 +262,42 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                 lineHeight: 1.6,
               }}
             >
-              Select a household device to preview how EcoByte grades condition, checks battery
-              safety, and routes it locally.
+              Select an accepted e-waste category to see what the 2-angle scan checks, safety
+              handling guidance, and available Barangay MRF pathways.
             </Typography>
           </Box>
 
           <div className="eco-switcher-grid">
-            {/* Left Column: 5 Tactile Device Selector Cards */}
+            {/* Left Column: 6 Accepted E-Waste Category Selector Cards */}
             <Box
               data-scroll-reveal="stagger-group"
-              sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}
+              sx={{ display: 'flex', flexDirection: 'column', gap: 1.35 }}
             >
-              {SHOWCASE_DEVICES.map((device) => {
-                const isSelected = device.id === selectedDevice.id
+              {ACCEPTED_CATEGORIES.map((category) => {
+                const isSelected = category.id === selectedCategory.id
                 return (
                   <button
-                    key={device.id}
+                    key={category.id}
                     type="button"
-                    onClick={() => onSelectDevice(device.id)}
+                    onClick={() => onSelectCategory(category.id)}
                     aria-pressed={isSelected}
                     className={`eco-card eco-card-interactive eco-stagger-item ${isSelected ? 'is-active' : ''}`}
                   >
                     <Box
-                      component="img"
-                      src={device.image}
-                      alt={device.name}
                       sx={{
-                        width: 64,
-                        height: 64,
+                        width: 52,
+                        height: 52,
                         borderRadius: '14px',
-                        objectFit: 'cover',
                         border: '1.5px solid var(--eco-border)',
                         flexShrink: 0,
-                        backgroundColor: 'var(--eco-alabaster)',
+                        backgroundColor: category.isHazardPriority ? '#fef3c7' : '#eef3ed',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                       }}
-                    />
+                    >
+                      {renderCategoryIcon(category.icon, 24)}
+                    </Box>
 
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Box
@@ -304,15 +313,15 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                           sx={{
                             fontFamily: "'Rethink Sans', sans-serif",
                             fontWeight: 800,
-                            fontSize: '1.05rem',
+                            fontSize: '1.02rem',
                             color: 'var(--eco-ink)',
                           }}
                         >
-                          {device.name}
+                          {category.name}
                         </Typography>
                         <StatusBadge
-                          label={device.routingVerdict}
-                          variant={device.badgeVariant}
+                          label={category.routingOptions}
+                          variant={category.badgeVariant}
                           size="sm"
                         />
                       </Box>
@@ -323,328 +332,290 @@ export const DeviceShowcaseSection: FC<DeviceShowcaseSectionProps> = ({
                           fontWeight: 600,
                           fontSize: '0.8125rem',
                           color: 'var(--eco-ink-muted)',
-                          mt: 0.25,
+                          mt: 0.35,
                         }}
                       >
-                        {device.categoryLabel}
+                        {category.examples}
                       </Typography>
-
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                          mt: 1,
-                          flexWrap: 'wrap',
-                        }}
-                      >
-                        <Box
-                          component="span"
-                          sx={{
-                            backgroundColor: isSelected ? 'var(--eco-white)' : 'var(--eco-alabaster)',
-                            border: '1px solid var(--eco-border)',
-                            borderRadius: '8px',
-                            px: 1,
-                            py: 0.25,
-                            fontFamily: "'Quicksand', sans-serif",
-                            fontWeight: 700,
-                            fontSize: '0.75rem',
-                            color: 'var(--eco-ink)',
-                          }}
-                        >
-                          {device.conditionGrade}
-                        </Box>
-                        <Box
-                          component="span"
-                          className="eco-mono"
-                          sx={{
-                            backgroundColor: 'var(--eco-mint-pill)',
-                            border: '1px solid var(--eco-border)',
-                            borderRadius: '8px',
-                            px: 1,
-                            py: 0.25,
-                            fontWeight: 700,
-                            fontSize: '0.75rem',
-                            color: 'var(--eco-mint-ink)',
-                          }}
-                        >
-                          {device.ecoPoints}
-                        </Box>
-                      </Box>
                     </Box>
                   </button>
                 )
               })}
             </Box>
 
-            {/* Right Column: Live Re-keyed PhoneFrame */}
+            {/* Right Column: Re-keyed PhoneFrame showing Real 2-Angle Intake Criteria */}
             <div data-scroll-reveal="phone">
               <PhoneFrame>
-              <div
-                key={selectedDevice.id}
-                className="eco-screen-slide-up lang-screen-slide-up"
-                style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: '10px' }}
-              >
-                {/* Top Status Row */}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    pt: 0.5,
-                  }}
+                <div
+                  key={selectedCategory.id}
+                  className="eco-screen-slide-up lang-screen-slide-up"
+                  style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: '10px' }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                    <VerifiedRoundedIcon sx={{ fontSize: 16, color: '#4f5f4b' }} />
-                    <Typography
-                      sx={{
-                        fontFamily: "'Quicksand', sans-serif",
-                        fontWeight: 700,
-                        fontSize: '0.75rem',
-                        color: '#0f172a',
-                      }}
-                    >
-                      Inspection Result
-                    </Typography>
-                  </Box>
-                  <StatusBadge
-                    label={selectedDevice.routingVerdict}
-                    variant={selectedDevice.badgeVariant}
-                    size="sm"
-                  />
-                </Box>
-
-                {/* Device Photo Viewport */}
-                <Box
-                  sx={{
-                    position: 'relative',
-                    height: 152,
-                    borderRadius: '16px',
-                    overflow: 'hidden',
-                    border: '2px solid #dce4dc',
-                    backgroundColor: '#ffffff',
-                  }}
-                >
+                  {/* Top Status Row */}
                   <Box
-                    component="img"
-                    src={selectedDevice.image}
-                    alt={selectedDevice.name}
                     sx={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      display: 'block',
-                    }}
-                  />
-                  {selectedDevice.detailImage && (
-                    <Box
-                      component="img"
-                      src={selectedDevice.detailImage}
-                      alt={`${selectedDevice.name} close-up`}
-                      sx={{
-                        position: 'absolute',
-                        bottom: 8,
-                        right: 8,
-                        width: 48,
-                        height: 48,
-                        borderRadius: '10px',
-                        objectFit: 'cover',
-                        border: '2px solid #ffffff',
-                        boxShadow: '0 4px 10px rgba(15,23,42,0.22)',
-                      }}
-                    />
-                  )}
-                </Box>
-
-                {/* Device Title & Condition Card */}
-                <Box
-                  sx={{
-                    backgroundColor: '#ffffff',
-                    border: '1.5px solid #dce4dc',
-                    borderRadius: '14px',
-                    p: 1.5,
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontFamily: "'Rethink Sans', sans-serif",
-                      fontWeight: 800,
-                      fontSize: '1.05rem',
-                      color: '#0f172a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      pt: 0.5,
                     }}
                   >
-                    {selectedDevice.name}
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.75, flexWrap: 'wrap' }}>
-                    <Box
-                      component="span"
-                      sx={{
-                        backgroundColor: '#eef3ed',
-                        color: '#2d3e2c',
-                        borderRadius: '6px',
-                        px: 0.9,
-                        py: 0.2,
-                        fontFamily: "'Quicksand', sans-serif",
-                        fontWeight: 700,
-                        fontSize: '0.72rem',
-                      }}
-                    >
-                      {selectedDevice.conditionGrade}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                      <VerifiedRoundedIcon sx={{ fontSize: 16, color: '#266317' }} />
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontWeight: 700,
+                          fontSize: '0.75rem',
+                          color: '#0f172a',
+                        }}
+                      >
+                        2-Angle Intake Guide
+                      </Typography>
                     </Box>
-                    <Typography
-                      sx={{
-                        fontFamily: "'Quicksand', sans-serif",
-                        fontWeight: 600,
-                        fontSize: '0.75rem',
-                        color: '#475569',
-                      }}
-                    >
-                      {selectedDevice.conditionNote}
-                    </Typography>
+                    <StatusBadge
+                      label={selectedCategory.isHazardPriority ? 'Hazard Priority' : 'Accepted'}
+                      variant={selectedCategory.badgeVariant}
+                      size="sm"
+                    />
                   </Box>
-                </Box>
 
-                {/* 2-Column Telemetry Tiles */}
-                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+                  {/* Category Header Card */}
                   <Box
                     sx={{
                       backgroundColor: '#ffffff',
                       border: '1.5px solid #dce4dc',
-                      borderRadius: '12px',
-                      p: 1.25,
+                      borderRadius: '14px',
+                      p: 1.35,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.25,
                     }}
                   >
-                    <Typography
-                      sx={{
-                        fontFamily: "'Quicksand', sans-serif",
-                        fontWeight: 700,
-                        fontSize: '0.6875rem',
-                        color: '#64748b',
-                      }}
-                    >
-                      Battery Health
-                    </Typography>
-                    <Typography
-                      className="eco-mono"
-                      sx={{
-                        fontWeight: 700,
-                        fontSize: '0.8125rem',
-                        color: '#0f172a',
-                        mt: 0.4,
-                      }}
-                    >
-                      {selectedDevice.batteryHealth}
-                    </Typography>
                     <Box
                       sx={{
-                        mt: 0.75,
-                        height: 5,
-                        borderRadius: 9999,
-                        backgroundColor: '#e2e8f0',
-                        overflow: 'hidden',
+                        width: 46,
+                        height: 46,
+                        borderRadius: '12px',
+                        backgroundColor: selectedCategory.isHazardPriority ? '#fef3c7' : '#eef3ed',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
                       }}
                     >
-                      <Box
-                        className="eco-battery-fill"
+                      {renderCategoryIcon(selectedCategory.icon, 24)}
+                    </Box>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography
                         sx={{
-                          width: `${selectedDevice.batteryPercent}%`,
-                          height: '100%',
-                          backgroundColor: '#266317',
-                          borderRadius: 9999,
+                          fontFamily: "'Rethink Sans', sans-serif",
+                          fontWeight: 800,
+                          fontSize: '0.98rem',
+                          color: '#0f172a',
+                          lineHeight: 1.2,
                         }}
-                      />
+                      >
+                        {selectedCategory.name}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontWeight: 600,
+                          fontSize: '0.72rem',
+                          color: '#475569',
+                          mt: 0.25,
+                        }}
+                      >
+                        {selectedCategory.examples}
+                      </Typography>
                     </Box>
                   </Box>
 
+                  {/* 2-Angle Scan Checks Card (Front & Back only) */}
                   <Box
                     sx={{
-                      backgroundColor: '#f1f4f0',
-                      border: '1.5px solid #c5dcba',
-                      borderRadius: '12px',
-                      p: 1.25,
+                      backgroundColor: '#ffffff',
+                      border: '1.5px solid #dce4dc',
+                      borderRadius: '14px',
+                      p: 1.3,
                       display: 'flex',
                       flexDirection: 'column',
-                      justifyContent: 'space-between',
+                      gap: 0.9,
                     }}
                   >
-                    <Typography
-                      sx={{
-                        fontFamily: "'Quicksand', sans-serif",
-                        fontWeight: 700,
-                        fontSize: '0.6875rem',
-                        color: '#266317',
-                      }}
-                    >
-                      Reward Estimate
-                    </Typography>
-                    <Typography
-                      className="eco-mono"
-                      sx={{
-                        fontWeight: 700,
-                        fontSize: '0.875rem',
-                        color: '#0F2417',
-                        mt: 0.5,
-                      }}
-                    >
-                      {selectedDevice.ecoPoints}
-                    </Typography>
-                  </Box>
-                </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                      <CameraAltRoundedIcon sx={{ fontSize: 15, color: '#266317' }} />
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontWeight: 700,
+                          fontSize: '0.72rem',
+                          color: '#266317',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.03em',
+                        }}
+                      >
+                        2-Angle Scan Checks
+                      </Typography>
+                    </Box>
 
-                {/* Recommended Drop-Off Hub Strip */}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    backgroundColor: '#ffffff',
-                    border: '1.5px solid #dbe3d6',
-                    borderRadius: '12px',
-                    px: 1.25,
-                    py: 1,
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                    <LocationOnRoundedIcon sx={{ fontSize: 16, color: '#266317' }} />
-                    <Typography
+                    <Box
                       sx={{
-                        fontFamily: "'Quicksand', sans-serif",
-                        fontWeight: 700,
-                        fontSize: '0.75rem',
-                        color: '#0F2417',
+                        backgroundColor: '#f6f8f4',
+                        borderRadius: '10px',
+                        p: 0.9,
+                        border: '1px solid #dbe3d6',
                       }}
                     >
-                      {selectedDevice.recommendedHub}
-                    </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontWeight: 700,
+                          fontSize: '0.7rem',
+                          color: '#0F2417',
+                        }}
+                      >
+                        1. Front Angle
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontWeight: 500,
+                          fontSize: '0.68rem',
+                          color: '#425243',
+                          mt: 0.15,
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        {selectedCategory.frontScanFocus}
+                      </Typography>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        backgroundColor: '#f6f8f4',
+                        borderRadius: '10px',
+                        p: 0.9,
+                        border: '1px solid #dbe3d6',
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontWeight: 700,
+                          fontSize: '0.7rem',
+                          color: '#0F2417',
+                        }}
+                      >
+                        2. Back Angle
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontWeight: 500,
+                          fontSize: '0.68rem',
+                          color: '#425243',
+                          mt: 0.15,
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        {selectedCategory.backScanFocus}
+                      </Typography>
+                    </Box>
                   </Box>
-                  <Typography
-                    className="eco-mono"
+
+                  {/* Handling & Safety Note */}
+                  <Box
                     sx={{
-                      fontWeight: 700,
-                      fontSize: '0.72rem',
-                      color: '#266317',
-                      backgroundColor: '#CEEBC4',
-                      px: 0.8,
-                      py: 0.2,
-                      borderRadius: '6px',
+                      backgroundColor: selectedCategory.isHazardPriority ? '#fef3c7' : '#f1f4f0',
+                      border: selectedCategory.isHazardPriority
+                        ? '1.5px solid #fde68a'
+                        : '1.5px solid #c5dcba',
+                      borderRadius: '12px',
+                      p: 1.15,
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 0.85,
                     }}
                   >
-                    {selectedDevice.hubDistance}
-                  </Typography>
-                </Box>
+                    <WarningAmberRoundedIcon
+                      sx={{
+                        fontSize: 16,
+                        color: selectedCategory.isHazardPriority ? '#d97706' : '#266317',
+                        mt: 0.1,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <Typography
+                      sx={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontWeight: 500,
+                        fontSize: '0.6875rem',
+                        color: selectedCategory.isHazardPriority ? '#78350f' : '#26431e',
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      {selectedCategory.safetyNote}
+                    </Typography>
+                  </Box>
 
-                {/* In-Phone Action CTA */}
-                <Box sx={{ mt: 'auto', pt: 0.5 }}>
-                  <RouterLink
-                    to={getAuthHref(selectedDevice.ctaRoute)}
-                    className="eco-btn eco-btn-moss eco-btn-sm"
-                    style={{ width: '100%' }}
-                  >
-                    <span>{selectedDevice.ctaLabel}</span>
-                    <ArrowForwardRoundedIcon sx={{ fontSize: 16 }} />
-                  </RouterLink>
-                </Box>
-              </div>
+                  {/* Live Reuse Hub Match Indicator (Real API count only) */}
+                  {matchingLiveItems.length > 0 && (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        backgroundColor: '#ffffff',
+                        border: '1.5px solid #dbe3d6',
+                        borderRadius: '12px',
+                        px: 1.15,
+                        py: 0.85,
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7 }}>
+                        <StorefrontRoundedIcon sx={{ fontSize: 15, color: '#266317' }} />
+                        <Typography
+                          sx={{
+                            fontFamily: "'Quicksand', sans-serif",
+                            fontWeight: 700,
+                            fontSize: '0.72rem',
+                            color: '#0F2417',
+                          }}
+                        >
+                          Live in Reuse Hub
+                        </Typography>
+                      </Box>
+                      <Typography
+                        className="eco-mono"
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: '0.7rem',
+                          color: '#266317',
+                          backgroundColor: '#CEEBC4',
+                          px: 0.75,
+                          py: 0.15,
+                          borderRadius: '6px',
+                        }}
+                      >
+                        {matchingLiveItems.length} available
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {/* In-Phone Action CTA */}
+                  <Box sx={{ mt: 'auto', pt: 0.5 }}>
+                    <RouterLink
+                      to={getAuthHref(selectedCategory.ctaRoute)}
+                      className="eco-btn eco-btn-moss eco-btn-sm"
+                      style={{ width: '100%' }}
+                    >
+                      <span>{selectedCategory.ctaLabel}</span>
+                      <ArrowForwardRoundedIcon sx={{ fontSize: 16 }} />
+                    </RouterLink>
+                  </Box>
+                </div>
               </PhoneFrame>
             </div>
           </div>

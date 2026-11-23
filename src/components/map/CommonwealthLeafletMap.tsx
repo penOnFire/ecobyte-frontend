@@ -21,6 +21,7 @@ import SwapVertRoundedIcon from '@mui/icons-material/SwapVertRounded'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
 import type { DropOffSite } from '@/types'
+import { prefersReducedMotion } from '@/lib/usePrefersReducedMotion'
 import {
   COMMONWEALTH_BOUNDARY,
   COMMONWEALTH_PARTITIONS,
@@ -430,7 +431,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
         <div style="position: relative; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
           ${
             isSelected
-              ? `<div style="
+              ? `<div class="eco-map-pulse" style="
                   position: absolute;
                   width: 44px;
                   height: 44px;
@@ -454,7 +455,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
             font-family: 'Quicksand', sans-serif;
             font-weight: 800;
             font-size: ${isSelected ? '14px' : '12px'};
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1), background-color 180ms ease, color 180ms ease;
             transform: ${isSelected ? 'scale(1.1)' : 'scale(1)'};
           ">
             ${baseNum}
@@ -584,7 +585,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
       className: 'route-pin-start',
       html: `
         <div style="position: relative; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
-          <div style="position: absolute; width: 36px; height: 36px; border-radius: 50%; background: rgba(2, 132, 199, 0.35); animation: pulseBaseRing 1.8s infinite;"></div>
+          <div class="eco-map-pulse" style="position: absolute; width: 36px; height: 36px; border-radius: 50%; background: rgba(2, 132, 199, 0.35); animation: pulseBaseRing 1.8s infinite;"></div>
           <div style="width: 26px; height: 26px; border-radius: 50%; background: #0284c7; color: #ffffff; border: 2.5px solid #ffffff; display: flex; align-items: center; justify-content: center; font-family: 'Quicksand', sans-serif; font-weight: 800; font-size: 11px; box-shadow: 0 3px 8px rgba(0,0,0,0.3);">
             A
           </div>
@@ -607,7 +608,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
       className: 'route-pin-end',
       html: `
         <div style="position: relative; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
-          <div style="position: absolute; width: 38px; height: 38px; border-radius: 50%; background: rgba(16, 185, 129, 0.4); animation: pulseBaseRing 1.8s infinite;"></div>
+          <div class="eco-map-pulse" style="position: absolute; width: 38px; height: 38px; border-radius: 50%; background: rgba(16, 185, 129, 0.4); animation: pulseBaseRing 1.8s infinite;"></div>
           <div style="width: 28px; height: 28px; border-radius: 50%; background: #0f172a; color: #abf06b; border: 2.5px solid #abf06b; display: flex; align-items: center; justify-content: center; font-family: 'Quicksand', sans-serif; font-weight: 800; font-size: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.35);">
             B
           </div>
@@ -632,6 +633,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
     map.fitBounds(routeBounds, {
       padding: isFullscreen ? [140, 80] : [60, 45],
       maxZoom: 17,
+      animate: !prefersReducedMotion(),
     })
   }
 
@@ -689,7 +691,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
 
     if (targetCoords) {
       map.setView(targetCoords, 17, {
-        animate: true,
+        animate: !prefersReducedMotion(),
         duration: 0.5,
       })
     }
@@ -708,7 +710,7 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
     if (userLocation) {
       const userHtml = `
         <div style="position: relative; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
-          <div style="position: absolute; width: 28px; height: 28px; border-radius: 50%; background: rgba(2, 132, 199, 0.35); animation: pulseBaseRing 2s infinite;"></div>
+          <div class="eco-map-pulse" style="position: absolute; width: 28px; height: 28px; border-radius: 50%; background: rgba(2, 132, 199, 0.35); animation: pulseBaseRing 2s infinite;"></div>
           <div style="width: 14px; height: 14px; border-radius: 50%; background: #0284c7; border: 2.5px solid #ffffff; box-shadow: 0 0 6px rgba(0,0,0,0.3);"></div>
         </div>
       `
@@ -766,6 +768,13 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
           0% { transform: scale(0.7); opacity: 0.8; }
           70% { transform: scale(1.35); opacity: 0; }
           100% { transform: scale(1.35); opacity: 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .eco-map-pulse {
+            animation: none !important;
+            transform: none !important;
+            opacity: 0.32 !important;
+          }
         }
         .partition-clean-tooltip {
           background-color: rgba(255, 255, 255, 0.98) !important;
@@ -1469,11 +1478,20 @@ export const CommonwealthLeafletMap: FC<CommonwealthLeafletMapProps> = ({
                     border: isSelected ? '2px solid #0f172a' : '1.5px solid #e2e8f0',
                     backgroundColor: isSelected ? '#0f172a' : isHovered ? '#f1f5f9' : '#ffffff',
                     color: isSelected ? '#abf06b' : '#0f172a',
-                    transition: 'all 0.15s ease',
+                    transition:
+                      'background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 120ms cubic-bezier(0.23, 1, 0.32, 1)',
                     boxShadow: isSelected ? '0 2px 8px rgba(15,23,42,0.2)' : 'none',
-                    '&:hover': {
-                      borderColor: '#0f172a',
-                      transform: 'translateY(-1px)',
+                    '&:active': { transform: 'scale(0.96)' },
+                    '@media (hover: hover) and (pointer: fine)': {
+                      '&:hover': {
+                        borderColor: '#0f172a',
+                        transform: 'translateY(-1px)',
+                      },
+                    },
+                    '@media (prefers-reduced-motion: reduce)': {
+                      transition: 'none',
+                      '&:active': { transform: 'none' },
+                      '&:hover': { transform: 'none' },
                     },
                   }}
                 >

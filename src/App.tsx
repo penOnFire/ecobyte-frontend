@@ -1,4 +1,6 @@
-import type { FC, ReactNode } from 'react'
+import { useEffect, useState, type FC, type ReactNode } from 'react'
+import { apiFetch, ApiErrorResponse } from '@/lib/api/client'
+import type { User } from '@/types'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
 import { LandingPage } from '@/pages/LandingPage'
@@ -26,26 +28,85 @@ import { AdminAccessPage } from '@/pages/admin/AdminAccessPage'
 import { AdminTransactionsPage } from '@/pages/admin/AdminTransactionsPage'
 import { AdminReportsPage } from '@/pages/admin/AdminReportsPage'
 import { AdminActivityLogsPage } from '@/pages/admin/AdminActivityLogsPage'
+import { NotFoundPage } from '@/pages/NotFoundPage'
 
 const RequireAuth: FC<{ children: ReactNode; requireAdmin?: boolean }> = ({
   children,
   requireAdmin = false,
 }) => {
   const location = useLocation()
-  const token =
-    typeof window !== 'undefined' ? window.localStorage.getItem('ecobyte_token') : null
-  if (!token) {
-    const target = `${location.pathname}${location.search}`
-    return <Navigate to={`/signin?redirect=${encodeURIComponent(target)}`} replace />
+  const token = typeof window !== 'undefined' ? localStorage.getItem('ecobyte_token') : null
+  const [attempt, setAttempt] = useState(0)
+  const [session, setSession] = useState<{
+    token: string
+    status: 'valid' | 'invalid' | 'unavailable'
+    role?: string
+  } | null>(null)
+
+  useEffect(() => {
+    if (!token) return
+    let active = true
+    apiFetch<User>('/auth/me')
+      .then((user) => {
+        if (active) setSession({ token, status: 'valid', role: user.role?.toUpperCase() })
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          const invalid = error instanceof ApiErrorResponse && (error.status === 401 || error.status === 403)
+          setSession({ token, status: invalid ? 'invalid' : 'unavailable' })
+        }
+      })
+    return () => { active = false }
+  }, [token, attempt])
+
+  if (!token || (session?.token === token && session.status === 'invalid')) {
+    if (token) localStorage.removeItem('ecobyte_token')
+    const target = `${location.pathname}${location.search}${location.hash}`
+    return <Navigate to={`/signin?redirect=${encodeURIComponent(target)}&authRequired=1`} replace />
   }
-  const role =
-    typeof window !== 'undefined' ? window.localStorage.getItem('ecobyte_user_role') : null
-  const isStaff =
-    role === 'ADMIN' || role === 'BARANGAY_OFFICIAL' || role === 'OFFICIAL'
-  if (requireAdmin && !isStaff) {
-    return <Navigate to="/dashboard" replace />
+  if (session?.token !== token || !session) {
+    return <div role="status">Checking your session…</div>
   }
+  if (session.status === 'unavailable') {
+    return (
+      <main style={{ padding: '2rem' }}>
+        <p>Unable to verify your session. Check your connection and try again.</p>
+        <button type="button" onClick={() => { setSession(null); setAttempt((value) => value + 1) }}>Try again</button>
+      </main>
+    )
+  }
+  const isStaff = session.role === 'ADMIN' || session.role === 'BARANGAY_OFFICIAL' || session.role === 'OFFICIAL'
+  if (requireAdmin && !isStaff) return <Navigate to="/dashboard" replace />
   return <>{children}</>
+}
+
+const RequireGuest: FC<{ children: ReactNode }> = ({ children }) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('ecobyte_token') : null
+  const [status, setStatus] = useState<'valid' | 'invalid' | null>(null)
+
+  useEffect(() => {
+    if (!token) return
+    let active = true
+    apiFetch<User>('/auth/me')
+      .then((user) => {
+        if (active) {
+          if (user?.role) localStorage.setItem('ecobyte_user_role', user.role.toUpperCase())
+          setStatus('valid')
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          const invalid = error instanceof ApiErrorResponse && (error.status === 401 || error.status === 403)
+          if (invalid) localStorage.removeItem('ecobyte_token')
+          setStatus(invalid ? 'invalid' : 'valid')
+        }
+      })
+    return () => { active = false }
+  }, [token])
+
+  if (!token || status === 'invalid') return <>{children}</>
+  if (!status) return <div role="status">Checking your session…</div>
+  return <Navigate to="/dashboard" replace />
 }
 
 const PreserveQueryRedirect: FC<{ to: string }> = ({ to }) => {
@@ -57,218 +118,69 @@ export const App: FC = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Landing Page & Auth Routes */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/signin" element={<SignInPage />} />
+        {/* Public Landing Page & Auth Routes (Redirect logged-in users to /dashboard) */}
+        <Route path="/" element={<RequireGuest><LandingPage /></RequireGuest>} />
+        <Route path="/signin" element={<RequireGuest><SignInPage /></RequireGuest>} />
         <Route path="/login" element={<Navigate to="/signin" replace />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/register" element={<RequireGuest><RegisterPage /></RequireGuest>} />
 
         {/* Legacy Admin Auth Redirects -> unified /signin */}
         <Route path="/admin/signin" element={<PreserveQueryRedirect to="/signin" />} />
         <Route path="/admin/login" element={<PreserveQueryRedirect to="/signin" />} />
 
-        {/* Core Mobile Application Routes (Wrapped in RequireAuth + AppShell) */}
+        {/* Core Mobile Application Routes (Persistent RequireAuth + AppShell) */}
         <Route
-          path="/dashboard"
           element={
             <RequireAuth>
-              <AppShell>
-                <DashboardPage />
-              </AppShell>
+              <AppShell />
             </RequireAuth>
           }
-        />
+        >
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/scan" element={<ScanDevicePage />} />
+          <Route path="/assess" element={<AddDetailsPage />} />
+          <Route path="/diagnostic" element={<AiDiagnosticPage />} />
+          <Route path="/reuse-guide" element={<ReuseRepairGuidePage />} />
+          <Route path="/reuse" element={<ReuseHubPage />} />
+          <Route path="/reuse/:id" element={<ReuseItemDetailPage />} />
+          <Route path="/confirm-reservation" element={<ConfirmReservationPage />} />
+          <Route path="/reservation-code" element={<ReservationPassPage />} />
+          <Route path="/proof-of-claim" element={<ProofOfClaimPage />} />
+          <Route path="/drop-offs" element={<DropOffFinderPage />} />
+          <Route path="/dropoff-schedule" element={<DropoffSchedulerPage />} />
+          <Route path="/requests" element={<MyRequestsPage />} />
+        </Route>
+
         <Route path="/home" element={<Navigate to="/dashboard" replace />} />
-        <Route
-          path="/scan"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <ScanDevicePage />
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/assess"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <AddDetailsPage />
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/diagnostic"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <AiDiagnosticPage />
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/reuse-guide"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <ReuseRepairGuidePage />
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/reuse"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <ReuseHubPage />
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/reuse/:id"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <ReuseItemDetailPage />
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/confirm-reservation"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <ConfirmReservationPage />
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/reservation-code"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <ReservationPassPage />
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/proof-of-claim"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <ProofOfClaimPage />
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/drop-offs"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <DropOffFinderPage />
-              </AppShell>
-            </RequireAuth>
-          }
-        />
         <Route path="/dropoffs" element={<PreserveQueryRedirect to="/drop-offs" />} />
         <Route path="/drop-off" element={<PreserveQueryRedirect to="/drop-offs" />} />
         <Route path="/dropoff-finder" element={<PreserveQueryRedirect to="/drop-offs" />} />
-        <Route
-          path="/dropoff-schedule"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <DropoffSchedulerPage />
-              </AppShell>
-            </RequireAuth>
-          }
-        />
         <Route path="/schedule-dropoff" element={<PreserveQueryRedirect to="/dropoff-schedule" />} />
         <Route path="/schedule-drop-off" element={<PreserveQueryRedirect to="/dropoff-schedule" />} />
         <Route path="/schedule" element={<PreserveQueryRedirect to="/dropoff-schedule" />} />
         <Route path="/assessed" element={<PreserveQueryRedirect to="/requests?tab=assessed" />} />
         <Route path="/assessments" element={<PreserveQueryRedirect to="/requests?tab=assessed" />} />
-        <Route
-          path="/requests"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <MyRequestsPage />
-              </AppShell>
-            </RequireAuth>
-          }
-        />
 
-        {/* Desktop Admin Portal Routes (Wrapped in RequireAuth + AdminShell) */}
+        {/* Desktop Admin Portal Routes (Persistent RequireAuth + AdminShell) */}
         <Route
-          path="/admin"
           element={
             <RequireAuth requireAdmin>
-              <AdminShell>
-                <AdminDashboardPage />
-              </AdminShell>
+              <AdminShell />
             </RequireAuth>
           }
-        />
-        <Route
-          path="/admin/dashboard"
-          element={
-            <RequireAuth requireAdmin>
-              <AdminShell>
-                <AdminDashboardPage />
-              </AdminShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/incoming"
-          element={
-            <RequireAuth requireAdmin>
-              <AdminShell>
-                <AdminIncomingDropoffsPage />
-              </AdminShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/to-inspect"
-          element={
-            <RequireAuth requireAdmin>
-              <AdminShell>
-                <AdminToInspectPage />
-              </AdminShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/inspect"
-          element={
-            <RequireAuth requireAdmin>
-              <AdminShell>
-                <AdminToInspectPage />
-              </AdminShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/inspect/:id"
-          element={
-            <RequireAuth requireAdmin>
-              <AdminShell>
-                <AdminPhysicalInspectionPage />
-              </AdminShell>
-            </RequireAuth>
-          }
-        />
+        >
+          <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+          <Route path="/admin/incoming" element={<AdminIncomingDropoffsPage />} />
+          <Route path="/admin/to-inspect" element={<AdminToInspectPage />} />
+          <Route path="/admin/inspect" element={<AdminToInspectPage />} />
+          <Route path="/admin/inspect/:id" element={<AdminPhysicalInspectionPage />} />
+          <Route path="/admin/access" element={<AdminAccessPage />} />
+          <Route path="/admin/transactions" element={<AdminTransactionsPage />} />
+          <Route path="/admin/reports" element={<AdminReportsPage />} />
+          <Route path="/admin/activity-logs" element={<AdminActivityLogsPage />} />
+        </Route>
+
         <Route
           path="/admin/reuse-hub"
           element={<Navigate to="/admin/transactions?tab=reuse" replace />}
@@ -277,49 +189,9 @@ export const App: FC = () => {
           path="/admin/disposal"
           element={<Navigate to="/admin/to-inspect?tab=disposal" replace />}
         />
-        <Route
-          path="/admin/access"
-          element={
-            <RequireAuth requireAdmin>
-              <AdminShell>
-                <AdminAccessPage />
-              </AdminShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/transactions"
-          element={
-            <RequireAuth requireAdmin>
-              <AdminShell>
-                <AdminTransactionsPage />
-              </AdminShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/reports"
-          element={
-            <RequireAuth requireAdmin>
-              <AdminShell>
-                <AdminReportsPage />
-              </AdminShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/activity-logs"
-          element={
-            <RequireAuth requireAdmin>
-              <AdminShell>
-                <AdminActivityLogsPage />
-              </AdminShell>
-            </RequireAuth>
-          }
-        />
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Fallback 404 */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   )

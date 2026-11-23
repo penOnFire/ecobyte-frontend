@@ -982,7 +982,7 @@ export const InspectionWorkbench: FC<InspectionWorkbenchProps> = ({
                   alignItems: 'flex-start',
                   textAlign: 'left',
                   gap: 0.5,
-                  transition: 'all 0.15s ease',
+                  transition: 'background-color 180ms ease, border-color 180ms ease, color 180ms ease',
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>

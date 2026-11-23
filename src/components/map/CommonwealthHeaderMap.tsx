@@ -4,6 +4,7 @@ import ZoomInRoundedIcon from '@mui/icons-material/ZoomInRounded'
 import ZoomOutRoundedIcon from '@mui/icons-material/ZoomOutRounded'
 import MapRoundedIcon from '@mui/icons-material/MapRounded'
 import { useNavigate } from 'react-router-dom'
+import { usePrefersReducedMotion } from '@/lib/usePrefersReducedMotion'
 import {
   COMMONWEALTH_BOUNDARY,
   COMMONWEALTH_PARTITIONS,
@@ -169,6 +170,7 @@ export const CommonwealthHeaderMap: FC<CommonwealthHeaderMapProps> = ({
   variant = 'hero',
 }) => {
   const navigate = useNavigate()
+  const reducedMotion = usePrefersReducedMotion()
   const [manualSelection, setManualSelection] = useState<{
     forUserBase: number
     baseNum: number
@@ -285,13 +287,6 @@ export const CommonwealthHeaderMap: FC<CommonwealthHeaderMapProps> = ({
         }}
       >
         <defs>
-          {/* Active base gradient fill */}
-          <linearGradient id="activeBaseGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#abf06b" stopOpacity="0.45" />
-            <stop offset="60%" stopColor="#529c0d" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#1e3a15" stopOpacity="0.15" />
-          </linearGradient>
-
           {/* Technical grid pattern */}
           <pattern id="cartoGrid" width="20" height="20" patternUnits="userSpaceOnUse">
             <path
@@ -329,13 +324,13 @@ export const CommonwealthHeaderMap: FC<CommonwealthHeaderMapProps> = ({
             <g
               key={part.id}
               onClick={() => setManualSelection({ forUserBase: userBaseNumber, baseNum: part.num })}
-              style={{ cursor: 'pointer', transition: 'all 0.25s ease' }}
+              style={{ cursor: 'pointer' }}
             >
               <path
                 d={part.path}
                 fill={
                   isSelected
-                    ? 'url(#activeBaseGlow)'
+                    ? 'rgba(114, 186, 71, 0.32)'
                     : isUserBase
                       ? 'rgba(171, 240, 107, 0.18)'
                       : 'rgba(20, 36, 24, 0.5)'
@@ -437,17 +432,30 @@ export const CommonwealthHeaderMap: FC<CommonwealthHeaderMapProps> = ({
 
         {/* ── Active Base Facility Drop-off Pin with Concentric Radar Ping ── */}
         <g transform={`translate(${siteCoords[0]}, ${siteCoords[1]})`} pointerEvents="none">
-          {/* Animated Outer Radar Ring 1 */}
-          <circle r="14" fill="none" stroke="#abf06b" strokeWidth="1.5" opacity="0.8">
-            <animate attributeName="r" from="6" to="28" dur="2.4s" repeatCount="indefinite" />
-            <animate attributeName="opacity" from="0.9" to="0" dur="2.4s" repeatCount="indefinite" />
-          </circle>
+          {reducedMotion ? (
+            /* Static marker halo when user prefers reduced motion */
+            <circle
+              r="13"
+              fill="rgba(171, 240, 107, 0.14)"
+              stroke="#abf06b"
+              strokeWidth="1.25"
+              opacity="0.7"
+            />
+          ) : (
+            <>
+              {/* Animated Outer Radar Ring 1 */}
+              <circle r="14" fill="none" stroke="#abf06b" strokeWidth="1.5" opacity="0.8">
+                <animate attributeName="r" from="6" to="28" dur="2.4s" repeatCount="indefinite" />
+                <animate attributeName="opacity" from="0.9" to="0" dur="2.4s" repeatCount="indefinite" />
+              </circle>
 
-          {/* Animated Outer Radar Ring 2 */}
-          <circle r="14" fill="none" stroke="#bdff5b" strokeWidth="1" opacity="0.6">
-            <animate attributeName="r" from="6" to="40" dur="2.4s" begin="0.8s" repeatCount="indefinite" />
-            <animate attributeName="opacity" from="0.7" to="0" dur="2.4s" begin="0.8s" repeatCount="indefinite" />
-          </circle>
+              {/* Animated Outer Radar Ring 2 */}
+              <circle r="14" fill="none" stroke="#bdff5b" strokeWidth="1" opacity="0.6">
+                <animate attributeName="r" from="6" to="40" dur="2.4s" begin="0.8s" repeatCount="indefinite" />
+                <animate attributeName="opacity" from="0.7" to="0" dur="2.4s" begin="0.8s" repeatCount="indefinite" />
+              </circle>
+            </>
+          )}
 
           {/* Solid Center Pin Marker */}
           <circle r="6" fill="#abf06b" stroke="#000000" strokeWidth="2" filter="url(#mapGlow)" />
@@ -482,7 +490,7 @@ export const CommonwealthHeaderMap: FC<CommonwealthHeaderMapProps> = ({
         </g>
       </svg>
 
-      {/* ── Dark Vignette & Fade Gradient (Ensures foreground text legibility) ── */}
+      {/* Map overlay keeps foreground text legible. */}
       <Box
         sx={{
           position: 'absolute',
@@ -493,8 +501,8 @@ export const CommonwealthHeaderMap: FC<CommonwealthHeaderMapProps> = ({
           pointerEvents: 'none',
           background:
             variant === 'card'
-              ? 'linear-gradient(180deg, rgba(8, 18, 10, 0.25) 0%, rgba(12, 24, 14, 0.1) 40%, rgba(8, 16, 10, 0.35) 100%)'
-              : 'linear-gradient(180deg, rgba(8, 18, 10, 0.45) 0%, rgba(12, 24, 14, 0.2) 30%, rgba(10, 20, 12, 0.38) 60%, rgba(8, 16, 10, 0.88) 85%, rgba(6, 12, 8, 0.98) 100%)',
+              ? 'rgba(8, 18, 10, 0.2)'
+              : 'rgba(8, 18, 10, 0.58)',
         }}
       />
 
@@ -532,10 +540,12 @@ export const CommonwealthHeaderMap: FC<CommonwealthHeaderMapProps> = ({
             border: '1px solid rgba(171, 240, 107, 0.35)',
             height: 22,
             cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            '&:hover': {
-              backgroundColor: 'rgba(18, 36, 20, 0.92)',
-              borderColor: '#abf06b',
+            transition: 'background-color 180ms ease, border-color 180ms ease',
+            '@media (hover: hover) and (pointer: fine)': {
+              '&:hover': {
+                backgroundColor: 'rgba(18, 36, 20, 0.92)',
+                borderColor: '#abf06b',
+              },
             },
             '& .MuiChip-label': { px: 0.7 },
           }}
@@ -545,6 +555,7 @@ export const CommonwealthHeaderMap: FC<CommonwealthHeaderMapProps> = ({
         <Tooltip title="View All 9 Drop-off Locations" arrow placement="left">
           <IconButton
             size="small"
+            data-tour="resident-map"
             aria-label="Drop-off Locations Map"
             onClick={() => navigate('/drop-offs')}
             sx={{
@@ -555,10 +566,12 @@ export const CommonwealthHeaderMap: FC<CommonwealthHeaderMapProps> = ({
               boxShadow: '0 2px 10px rgba(0, 0, 0, 0.35)',
               border: '1.5px solid #266317',
               borderRadius: '50%',
-              transition: 'transform 0.15s ease, background-color 0.15s ease',
-              '&:hover': {
-                transform: 'scale(1.08)',
-                backgroundColor: '#F8F6F2',
+              transition: 'transform 120ms cubic-bezier(0.23, 1, 0.32, 1), background-color 180ms ease',
+              '@media (hover: hover) and (pointer: fine)': {
+                '&:hover': {
+                  transform: 'scale(1.06)',
+                  backgroundColor: '#F8F6F2',
+                },
               },
             }}
           >

@@ -1,5 +1,12 @@
 import { createTheme } from '@mui/material/styles'
 
+export const MOTION = {
+  press: 120,
+  fast: 180,
+  overlay: 240,
+  easeOut: 'cubic-bezier(0.23, 1, 0.32, 1)',
+} as const
+
 // EcoByte Design System — Figma Overhaul & Shadcn UI Aesthetic
 export const theme = createTheme({
   palette: {
@@ -63,6 +70,21 @@ export const theme = createTheme({
   shape: {
     borderRadius: 12,
   },
+  transitions: {
+    easing: {
+      easeOut: MOTION.easeOut,
+      easeInOut: MOTION.easeOut,
+      sharp: MOTION.easeOut,
+    },
+    duration: {
+      shortest: MOTION.press,
+      shorter: MOTION.fast,
+      short: MOTION.fast,
+      standard: MOTION.overlay,
+      enteringScreen: MOTION.overlay,
+      leavingScreen: MOTION.fast,
+    },
+  },
   components: {
     MuiCssBaseline: {
       styleOverrides: {
@@ -74,6 +96,31 @@ export const theme = createTheme({
           MozOsxFontSmoothing: 'grayscale',
         },
         '*': { boxSizing: 'border-box' },
+        'main[tabindex="-1"]:focus': {
+          outline: 'none',
+        },
+      },
+    },
+    MuiButtonBase: {
+      styleOverrides: {
+        root: {
+          '&:focus-visible': {
+            outline: '2px solid #266317',
+            outlineOffset: 2,
+          },
+        },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          transition: `transform ${MOTION.press}ms ${MOTION.easeOut}, background-color ${MOTION.fast}ms ease, color ${MOTION.fast}ms ease, border-color ${MOTION.fast}ms ease`,
+          '&:active:not(:disabled)': { transform: 'scale(0.95)' },
+          '@media (prefers-reduced-motion: reduce)': {
+            transition: 'none',
+            '&:active:not(:disabled)': { transform: 'none' },
+          },
+        },
       },
     },
     MuiButton: {
@@ -84,9 +131,14 @@ export const theme = createTheme({
           fontWeight: 700,
           letterSpacing: 0,
           boxShadow: 'none',
-          transition: 'all 0.15s ease',
-          '&:active': { transform: 'scale(0.98)' },
+          transition: `transform ${MOTION.press}ms ${MOTION.easeOut}, background-color ${MOTION.fast}ms ease, border-color ${MOTION.fast}ms ease, color ${MOTION.fast}ms ease, opacity ${MOTION.fast}ms ease`,
+          '&:active:not(:disabled)': { transform: 'scale(0.97)' },
           '&:hover': { boxShadow: 'none' },
+          '&.Mui-disabled': { opacity: 0.56 },
+          '@media (prefers-reduced-motion: reduce)': {
+            transition: 'none',
+            '&:active:not(:disabled)': { transform: 'none' },
+          },
         },
         sizeLarge: { padding: '14px 24px', fontSize: '0.9375rem' },
         sizeMedium: { padding: '10px 20px', fontSize: '0.875rem' },
@@ -94,20 +146,48 @@ export const theme = createTheme({
         contained: {
           backgroundColor: '#4f5f4b',
           color: '#ffffff',
-          '&:hover': {
-            backgroundColor: '#384735',
-            opacity: 0.95,
+          '@media (hover: hover) and (pointer: fine)': {
+            '&:hover': {
+              backgroundColor: '#384735',
+            },
           },
         },
         outlined: {
           borderColor: '#e2e8f0',
           color: '#0f172a',
           backgroundColor: '#ffffff',
-          '&:hover': {
-            borderColor: '#cbd5e1',
-            backgroundColor: '#f8fafc',
+          '@media (hover: hover) and (pointer: fine)': {
+            '&:hover': {
+              borderColor: '#cbd5e1',
+              backgroundColor: '#f8fafc',
+            },
           },
         },
+      },
+    },
+    MuiDialog: {
+      defaultProps: {
+        transitionDuration: { enter: MOTION.overlay, exit: MOTION.fast },
+      },
+    },
+    MuiDrawer: {
+      defaultProps: {
+        transitionDuration: { enter: MOTION.overlay, exit: MOTION.fast },
+      },
+    },
+    MuiPopover: {
+      defaultProps: {
+        transitionDuration: { enter: MOTION.overlay, exit: MOTION.fast },
+      },
+    },
+    MuiMenu: {
+      defaultProps: {
+        transitionDuration: { enter: MOTION.overlay, exit: MOTION.fast },
+      },
+    },
+    MuiSnackbar: {
+      defaultProps: {
+        transitionDuration: { enter: MOTION.overlay, exit: MOTION.fast },
       },
     },
     MuiCard: {
@@ -138,11 +218,14 @@ export const theme = createTheme({
           fontWeight: 500,
           fontSize: '0.875rem',
           color: '#0f172a',
-          '& fieldset': { borderColor: '#e2e8f0', transition: 'border-color 0.15s ease' },
+          '& fieldset': { borderColor: '#e2e8f0', transition: `border-color ${MOTION.fast}ms ease` },
           '&:hover fieldset': { borderColor: '#cbd5e1' },
           '&.Mui-focused fieldset': {
             borderColor: '#0f172a',
             borderWidth: '1.5px',
+          },
+          '@media (prefers-reduced-motion: reduce)': {
+            '& fieldset': { transition: 'none' },
           },
         },
         input: { padding: '12px 14px' },

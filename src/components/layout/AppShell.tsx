@@ -41,12 +41,15 @@ import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded'
 import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded'
 import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded'
 import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded'
-import EnergySavingsLeafOutlinedIcon from '@mui/icons-material/EnergySavingsLeafOutlined'
 import ArrowDropDownRoundedIcon from '@mui/icons-material/ArrowDropDownRounded'
 import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import BookmarkBorderRoundedIcon from '@mui/icons-material/BookmarkBorderRounded'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import ecobyteLogo from '@/assets/ui/ecobyte_logo.svg'
+import { RouteContentTransition } from '@/components/layout/RouteContentTransition'
+import { usePrefersReducedMotion } from '@/lib/usePrefersReducedMotion'
+import { MOTION } from '@/theme/theme'
 import {
   authApi,
   dropoffsApi,
@@ -57,6 +60,7 @@ import {
   type DashboardSummary,
 } from '@/lib/api'
 import { ForcePasswordResetModal } from '@/components/auth/ForcePasswordResetModal'
+import { Walkthrough } from '@/components/onboarding/Walkthrough'
 import {
   installAudioUnlockListener,
   isNotificationSoundMuted,
@@ -67,7 +71,7 @@ import {
 import type { User } from '@/types'
 
 interface AppShellProps {
-  children: ReactNode
+  children?: ReactNode
 }
 
 interface NotificationItem {
@@ -159,7 +163,10 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
 
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('lg'))
+  const reducedMotion = usePrefersReducedMotion()
+  const overlayTransition = reducedMotion ? 0 : { enter: MOTION.overlay, exit: MOTION.fast }
   const [profileOpen, setProfileOpen] = useState(false)
+  const [walkthroughReplay, setWalkthroughReplay] = useState(0)
   const [desktopNotifAnchor, setDesktopNotifAnchor] = useState<HTMLElement | null>(null)
   const [mobileNotifOpen, setMobileNotifOpen] = useState(false)
   const [logoutOpen, setLogoutOpen] = useState(false)
@@ -172,8 +179,13 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(() => getCachedUser())
   const [editProfileOpen, setEditProfileOpen] = useState(false)
   const [editPhone, setEditPhone] = useState(() => getCachedUser()?.phone || '')
+  const [savingProfile, setSavingProfile] = useState(false)
   const [smsAlerts, setSmsAlerts] = useState(true)
-  const [settingsSavedToast, setSettingsSavedToast] = useState(false)
+  const [settingsToast, setSettingsToast] = useState<{
+    open: boolean
+    severity: 'success' | 'error'
+    message: string
+  }>({ open: false, severity: 'success', message: '' })
   const [summary, setSummary] = useState<DashboardSummary>({
     activeRequestsCount: 0,
     assessedCount: 0,
@@ -339,8 +351,8 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
           top: 0,
           left: 0,
           bottom: 0,
-          width: 256,
-          backgroundColor: '#0F2417',
+          width: 'clamp(256px, 20vw, 370px)',
+          backgroundColor: '#0b1e17',
           color: '#ffffff',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -354,26 +366,23 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 2.5, px: 0.5 }}>
             <Box
+              role="img"
+              aria-label="EcoByte"
               sx={{
-                width: 34,
-                height: 34,
-                borderRadius: '9px',
-                backgroundColor: '#1E3E27',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#ABF06B',
-                boxShadow: '0 2px 8px rgba(171, 240, 107, 0.25)',
+                width: 36,
+                height: 36,
+                backgroundColor: '#ABF06B',
+                WebkitMask: `url("${ecobyteLogo}") center / contain no-repeat`,
+                mask: `url("${ecobyteLogo}") center / contain no-repeat`,
+                flexShrink: 0,
               }}
-            >
-              <EnergySavingsLeafOutlinedIcon sx={{ fontSize: 22, color: '#ABF06B' }} />
-            </Box>
+            />
             <Box>
               <Typography
                 sx={{
                   fontFamily: "'Quicksand', sans-serif",
                   fontWeight: 800,
-                  fontSize: '1.2rem',
+                  fontSize: { lg: '1.2rem', xl: '1.65rem' },
                   color: '#ffffff',
                   letterSpacing: '-0.02em',
                   lineHeight: 1.1,
@@ -404,16 +413,24 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               width: '100%',
               backgroundColor: '#183321',
               border: '1px solid rgba(171, 240, 107, 0.25)',
-              borderRadius: '12px',
+              borderRadius: '999px',
               px: 1.5,
-              py: 0.9,
+              py: 1.1,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               color: '#ffffff',
               mb: 2.5,
-              transition: 'all 0.15s ease',
-              '&:hover': { backgroundColor: '#1E3E27' },
+              transition:
+                'background-color 180ms ease, border-color 180ms ease, transform 120ms cubic-bezier(0.23, 1, 0.32, 1)',
+              '&:active': { transform: 'scale(0.98)' },
+              '@media (hover: hover) and (pointer: fine)': {
+                '&:hover': { backgroundColor: '#1E3E27' },
+              },
+              '@media (prefers-reduced-motion: reduce)': {
+                transition: 'none',
+                '&:active': { transform: 'none' },
+              },
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
@@ -439,12 +456,14 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
           {/* Navigation Links */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
             <SidebarNavItem
+              tour="resident-home"
               label="Dashboard"
               icon={<GridViewRoundedIcon sx={{ fontSize: 19 }} />}
               active={path === '/' || path === '/dashboard'}
               onClick={() => navigateWithScanCleanup('/dashboard')}
             />
             <SidebarNavItem
+              tour="resident-requests"
               label="My Requests"
               icon={<ReceiptLongRoundedIcon sx={{ fontSize: 19 }} />}
               active={isActive('/requests')}
@@ -452,6 +471,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               onClick={() => navigateWithScanCleanup('/requests')}
             />
             <SidebarNavItem
+              tour="resident-reuse"
               label="Reuse Hub"
               icon={<RecyclingRoundedIcon sx={{ fontSize: 19 }} />}
               active={
@@ -463,6 +483,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               onClick={() => navigateWithScanCleanup('/reuse')}
             />
             <SidebarNavItem
+              tour="resident-map"
               label="Drop-off Hubs Map"
               icon={<MapRoundedIcon sx={{ fontSize: 19 }} />}
               active={isActive('/drop-offs')}
@@ -475,6 +496,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
         <Box sx={{ pt: 2, borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box
+              data-tour="resident-account"
               onClick={() => setProfileOpen(true)}
               sx={{ display: 'flex', alignItems: 'center', gap: 1.25, cursor: 'pointer', flex: 1, minWidth: 0 }}
             >
@@ -544,9 +566,9 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
         sx={{
           flex: 1,
           minHeight: '100dvh',
-          pl: { xs: 0, lg: '256px' },
+          pl: { xs: 0, lg: 'clamp(256px, 20vw, 370px)' },
           width: '100%',
-          backgroundColor: isDashboard ? { xs: '#F0ECE6', lg: '#FAF8F5' } : '#FAF8F5',
+          backgroundColor: isDashboard ? { xs: '#F0ECE6', lg: '#f2f5f2' } : '#FAF8F5',
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
@@ -562,9 +584,9 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             pt: 3.5,
             pb: 2.5,
             px: 4,
-            backgroundColor: '#FAF8F5',
+            backgroundColor: isDashboard ? 'transparent' : '#FAF8F5',
             width: '100%',
-            maxWidth: '1440px',
+            maxWidth: '1600px',
             mx: 'auto',
           }}
         >
@@ -574,7 +596,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               sx={{
                 fontFamily: "'Quicksand', sans-serif",
                 fontWeight: 800,
-                fontSize: '1.75rem',
+                fontSize: { lg: '1.75rem', xl: '2.75rem' },
                 color: '#0F2417',
                 lineHeight: 1.15,
                 letterSpacing: '-0.02em',
@@ -586,7 +608,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               sx={{
                 fontFamily: "'Quicksand', sans-serif",
                 fontWeight: 600,
-                fontSize: '0.875rem',
+                fontSize: { lg: '0.875rem', xl: '1.25rem' },
                 color: '#596556',
                 mt: 0.35,
               }}
@@ -619,6 +641,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
 
             {/* Notification Bell */}
             <IconButton
+              data-tour="resident-notifications"
               id="desktop-notif-bell-btn"
               onClick={(e) => setDesktopNotifAnchor(desktopNotifAnchor ? null : e.currentTarget)}
               aria-label="notifications"
@@ -629,8 +652,11 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                 border: '1px solid rgba(220, 207, 192, 0.7)',
                 borderRadius: '50%',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                transition: 'all 0.15s ease',
-                '&:hover': { backgroundColor: '#F8F6F2' },
+                transition:
+                  'background-color 180ms ease, border-color 180ms ease, transform 120ms cubic-bezier(0.23, 1, 0.32, 1)',
+                '@media (hover: hover) and (pointer: fine)': {
+                  '&:hover': { backgroundColor: '#F8F6F2' },
+                },
               }}
             >
               <Badge
@@ -688,6 +714,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             {/* + Scan Device Button */}
             <Button
               variant="contained"
+              data-tour="resident-scan"
               onClick={() => navigateWithScanCleanup('/scan')}
               startIcon={<AddRoundedIcon sx={{ fontSize: 18 }} />}
               sx={{
@@ -730,9 +757,20 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
         >
           <Box
             onClick={() => navigate('/dashboard')}
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.75, cursor: 'pointer' }}
+            sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }}
           >
-            <LocationOnRoundedIcon sx={{ color: isDashboard ? '#ABF06B' : '#4F5F4B', fontSize: 20 }} />
+            <Box
+              role="img"
+              aria-label="EcoByte"
+              sx={{
+                width: 30,
+                height: 30,
+                backgroundColor: isDashboard ? '#ABF06B' : '#316000',
+                WebkitMask: `url("${ecobyteLogo}") center / contain no-repeat`,
+                mask: `url("${ecobyteLogo}") center / contain no-repeat`,
+                flexShrink: 0,
+              }}
+            />
             <Box>
               <Typography
                 sx={{
@@ -765,6 +803,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             {!isDashboard && (
               <IconButton
                 size="small"
+                data-tour="resident-map"
                 aria-label="Drop-off Locations Map"
                 onClick={() => navigate('/drop-offs')}
                 title="View 9 Drop-off Locations"
@@ -774,10 +813,12 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                   backgroundColor: '#ffffff',
                   border: '1px solid rgba(220, 207, 192, 0.6)',
                   borderRadius: '50%',
-                  transition: 'transform 0.15s ease, background-color 0.15s ease',
-                  '&:hover': {
-                    transform: 'scale(1.05)',
-                    backgroundColor: '#F8F6F2',
+                  transition: 'transform 120ms cubic-bezier(0.23, 1, 0.32, 1), background-color 180ms ease',
+                  '@media (hover: hover) and (pointer: fine)': {
+                    '&:hover': {
+                      transform: 'scale(1.05)',
+                      backgroundColor: '#F8F6F2',
+                    },
                   },
                 }}
               >
@@ -787,6 +828,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
 
             <IconButton
               size="small"
+              data-tour="resident-notifications"
               aria-label="notifications"
               onClick={() => setMobileNotifOpen(true)}
               sx={{
@@ -826,8 +868,15 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                 fontSize: '0.875rem',
                 cursor: 'pointer',
                 border: '2px solid #ABF06B',
-                transition: 'transform 0.15s ease',
-                '&:hover': { transform: 'scale(1.05)' },
+                transition: 'transform 120ms cubic-bezier(0.23, 1, 0.32, 1)',
+                '&:active': { transform: 'scale(0.95)' },
+                '@media (hover: hover) and (pointer: fine)': {
+                  '&:hover': { transform: 'scale(1.05)' },
+                },
+                '@media (prefers-reduced-motion: reduce)': {
+                  transition: 'none',
+                  '&:active': { transform: 'none' },
+                },
               }}
             >
               {avatarInitial}
@@ -838,22 +887,25 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
         {/* ── Page Content Container (Uniform Desktop Width across 1080p, 1440p, 4K) ── */}
         <Box
           component="main"
+          tabIndex={-1}
           sx={{
             flex: 1,
             width: '100%',
-            maxWidth: '1440px',
+            maxWidth: '1600px',
             mx: 'auto',
             px: isDashboard ? { xs: 0, lg: 4 } : { xs: 2, sm: 3.5, lg: 4 },
             pb: { xs: 12, lg: 4 },
             overflowX: 'hidden',
           }}
         >
-          {children}
+          <RouteContentTransition>{children ?? <Outlet />}</RouteContentTransition>
         </Box>
 
         {/* ── Mobile & Tablet Bottom Navigation with Elevated Center Camera Button (Image 1) ── */}
         <Box
           component="nav"
+          aria-label="Primary mobile navigation"
+          style={{ viewTransitionName: 'eco-mobile-nav' }}
           sx={{
             display: { xs: 'block', lg: 'none' },
             position: 'fixed',
@@ -883,6 +935,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             {/* Home */}
             <NavItem
               icon={<HomeRoundedIcon sx={{ fontSize: 24, color: isActive('/dashboard') ? '#1B3B18' : '#596556' }} />}
+              tour="resident-home"
               label="Home"
               active={isActive('/dashboard')}
               onClick={() => navigateWithScanCleanup('/dashboard')}
@@ -891,6 +944,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             {/* Reuse */}
             <NavItem
               icon={<RecyclingRoundedIcon sx={{ fontSize: 23, color: isActive('/reuse') ? '#1B3B18' : '#596556' }} />}
+              tour="resident-reuse"
               label="Reuse"
               active={isActive('/reuse')}
               onClick={() => navigateWithScanCleanup('/reuse')}
@@ -898,6 +952,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
 
             {/* Scan – Center black circle elevated over the top edge of navigation bar (Image 1) */}
             <Box
+              data-tour="resident-scan"
               onClick={() => navigateWithScanCleanup('/scan')}
               sx={{
                 display: 'flex',
@@ -923,9 +978,16 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                   justifyContent: 'center',
                   boxShadow: '0 6px 16px rgba(0, 0, 0, 0.35)',
                   border: '3.5px solid #ffffff',
-                  transition: 'transform 0.15s ease',
-                  '&:active': { transform: 'scale(0.92)' },
-                  '&:hover': { transform: 'translateY(-2px)' },
+                  transition: 'transform 120ms cubic-bezier(0.23, 1, 0.32, 1)',
+                  '&:active': { transform: 'scale(0.95)' },
+                  '@media (hover: hover) and (pointer: fine)': {
+                    '&:hover': { transform: 'translateY(-2px)' },
+                  },
+                  '@media (prefers-reduced-motion: reduce)': {
+                    transition: 'none',
+                    '&:active': { transform: 'none' },
+                    '&:hover': { transform: 'none' },
+                  },
                 }}
               >
                 <CameraAltRoundedIcon sx={{ fontSize: 25, color: '#ffffff' }} />
@@ -946,6 +1008,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             {/* Requests */}
             <NavItem
               icon={<BookmarkBorderRoundedIcon sx={{ fontSize: 23, color: isActive('/requests') ? '#1B3B18' : '#596556' }} />}
+              tour="resident-requests"
               label="Requests"
               active={isActive('/requests')}
               onClick={() => navigateWithScanCleanup('/requests')}
@@ -954,6 +1017,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             {/* Account */}
             <NavItem
               icon={<PersonOutlineRoundedIcon sx={{ fontSize: 23, color: profileOpen ? '#1B3B18' : '#596556' }} />}
+              tour="resident-account"
               label="Account"
               active={profileOpen}
               onClick={() => setProfileOpen(true)}
@@ -966,6 +1030,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
           anchor="bottom"
           open={profileOpen}
           onClose={() => setProfileOpen(false)}
+          transitionDuration={overlayTransition}
           slotProps={{
             root: {
               sx: {
@@ -1102,6 +1167,10 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
               </Button>
             )}
 
+            <Button variant="outlined" onClick={() => { setProfileOpen(false); setWalkthroughReplay((value) => value + 1) }}>
+              Replay walkthrough
+            </Button>
+
             <Button
               onClick={() => {
                 setProfileOpen(false)
@@ -1131,6 +1200,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
           open={Boolean(desktopNotifAnchor) && !isMobile}
           anchorEl={desktopNotifAnchor}
           onClose={() => setDesktopNotifAnchor(null)}
+          transitionDuration={overlayTransition}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
           transformOrigin={{ vertical: 'top', horizontal: 'right' }}
           slotProps={{
@@ -1277,11 +1347,13 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                     alignItems: 'flex-start',
                     gap: 1.25,
                     cursor: !n.read ? 'pointer' : 'default',
-                    transition: 'all 0.15s ease',
+                    transition: 'background-color 180ms ease, border-color 180ms ease',
                     position: 'relative',
-                    '&:hover': {
-                      backgroundColor: n.read ? '#f8fafc' : '#eafbf0',
-                      borderColor: n.read ? '#cbd5e1' : '#86efac',
+                    '@media (hover: hover) and (pointer: fine)': {
+                      '&:hover': {
+                        backgroundColor: n.read ? '#f8fafc' : '#eafbf0',
+                        borderColor: n.read ? '#cbd5e1' : '#86efac',
+                      },
                     },
                   }}
                 >
@@ -1348,6 +1420,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
           fullScreen
           open={mobileNotifOpen}
           onClose={() => setMobileNotifOpen(false)}
+          transitionDuration={overlayTransition}
           sx={{ zIndex: 1450 }}
         >
           <Box
@@ -1580,6 +1653,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
         <Dialog
           open={logoutOpen}
           onClose={() => setLogoutOpen(false)}
+          transitionDuration={overlayTransition}
           maxWidth="sm"
           fullWidth
           slotProps={{
@@ -1660,6 +1734,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
         <Dialog
           open={editProfileOpen}
           onClose={() => setEditProfileOpen(false)}
+          transitionDuration={overlayTransition}
           maxWidth="sm"
           fullWidth
           slotProps={{
@@ -1759,14 +1834,30 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             </Button>
             <Button
               variant="contained"
-              onClick={() => {
-                if (currentUser) {
-                  const updated: User = { ...currentUser, phone: editPhone }
+              disabled={savingProfile}
+              onClick={async () => {
+                setSavingProfile(true)
+                try {
+                  const updated = await authApi.updateProfile({ phone: editPhone })
                   setCurrentUser(updated)
-                  setCachedUser(updated)
+                  setEditPhone(updated.phone || '')
+                  setEditProfileOpen(false)
+                  setSettingsToast({
+                    open: true,
+                    severity: 'success',
+                    message: 'Preferences updated successfully!',
+                  })
+                } catch (err: unknown) {
+                  setSettingsToast({
+                    open: true,
+                    severity: 'error',
+                    message:
+                      (err as { message?: string })?.message ||
+                      'Could not save preferences. Please try again.',
+                  })
+                } finally {
+                  setSavingProfile(false)
                 }
-                setEditProfileOpen(false)
-                setSettingsSavedToast(true)
               }}
               sx={{
                 backgroundColor: '#0f172a',
@@ -1777,20 +1868,25 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
                 '&:hover': { backgroundColor: '#1e293b' },
               }}
             >
-              Save Preferences
+              {savingProfile ? 'Saving...' : 'Save Preferences'}
             </Button>
           </DialogActions>
         </Dialog>
 
         {/* ── Preferences Saved Toast ── */}
         <Snackbar
-          open={settingsSavedToast}
+          open={settingsToast.open}
           autoHideDuration={3000}
-          onClose={() => setSettingsSavedToast(false)}
+          onClose={() => setSettingsToast((prev) => ({ ...prev, open: false }))}
+          transitionDuration={overlayTransition}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         >
-          <Alert severity="success" variant="filled" onClose={() => setSettingsSavedToast(false)}>
-            Preferences updated successfully!
+          <Alert
+            severity={settingsToast.severity}
+            variant="filled"
+            onClose={() => setSettingsToast((prev) => ({ ...prev, open: false }))}
+          >
+            {settingsToast.message}
           </Alert>
         </Snackbar>
 
@@ -1799,6 +1895,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
           open={Boolean(liveAlertBanner)}
           autoHideDuration={6000}
           onClose={() => setLiveAlertBanner(null)}
+          transitionDuration={overlayTransition}
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         >
           <Alert
@@ -1833,6 +1930,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
         </Snackbar>
       </Box>
 
+      <Walkthrough user={currentUser} dashboard={isDashboard && !isStaff} staff={isStaff} replay={walkthroughReplay} />
       <ForcePasswordResetModal
         open={Boolean(currentUser?.mustChangePassword)}
         userEmail={currentUser?.email}
@@ -1841,6 +1939,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
             ...updatedUser,
             role: resolveAuthRole(updatedUser.role, updatedUser.email).toLowerCase(),
             mustChangePassword: false,
+            walkthroughVersion: updatedUser.walkthroughVersion ?? currentUser?.walkthroughVersion,
           }
           setCachedUser(normalized)
           setCurrentUser(normalized)
@@ -1855,6 +1954,7 @@ export const AppShell: FC<AppShellProps> = ({ children }) => {
 }
 
 interface SidebarNavItemProps {
+  tour?: string
   label: string
   icon: ReactNode
   active: boolean
@@ -1862,9 +1962,11 @@ interface SidebarNavItemProps {
   onClick: () => void
 }
 
-const SidebarNavItem: FC<SidebarNavItemProps> = ({ label, icon, active, badge, onClick }) => (
+const SidebarNavItem: FC<SidebarNavItemProps> = ({ label, icon, active, badge, onClick, tour }) => (
   <ButtonBase
+    data-tour={tour}
     onClick={onClick}
+    aria-current={active ? 'page' : undefined}
     sx={{
       width: '100%',
       display: 'flex',
@@ -1872,16 +1974,24 @@ const SidebarNavItem: FC<SidebarNavItemProps> = ({ label, icon, active, badge, o
       justifyContent: 'space-between',
       px: 1.75,
       py: 1.15,
-      borderRadius: '12px',
-      transition: 'all 0.15s ease',
+      borderRadius: '999px',
+      transition:
+        'background-color 180ms ease, color 180ms ease, transform 120ms cubic-bezier(0.23, 1, 0.32, 1)',
       backgroundColor: active ? '#ABF06B' : 'transparent',
       color: active ? '#0F2417' : 'rgba(255, 255, 255, 0.78)',
       fontWeight: active ? 800 : 600,
-      fontSize: '0.8125rem',
+      fontSize: { lg: '0.8125rem', xl: '1.125rem' },
       fontFamily: "'Quicksand', sans-serif",
-      '&:hover': {
-        backgroundColor: active ? '#B4F76E' : 'rgba(255, 255, 255, 0.08)',
-        color: active ? '#0F2417' : '#ffffff',
+      '&:active': { transform: 'scale(0.98)' },
+      '@media (hover: hover) and (pointer: fine)': {
+        '&:hover': {
+          backgroundColor: active ? '#B4F76E' : 'rgba(255, 255, 255, 0.08)',
+          color: active ? '#0F2417' : '#ffffff',
+        },
+      },
+      '@media (prefers-reduced-motion: reduce)': {
+        transition: 'none',
+        '&:active': { transform: 'none' },
       },
     }}
   >
@@ -1912,25 +2022,34 @@ const SidebarNavItem: FC<SidebarNavItemProps> = ({ label, icon, active, badge, o
 )
 
 interface NavItemProps {
+  tour?: string
   icon: ReactNode
   label: string
   active: boolean
   onClick: () => void
 }
 
-const NavItem: FC<NavItemProps> = ({ icon, label, active, onClick }) => (
-  <Box
+const NavItem: FC<NavItemProps> = ({ icon, label, active, onClick, tour }) => (
+  <ButtonBase
+    data-tour={tour}
     onClick={onClick}
+    aria-current={active ? 'page' : undefined}
     sx={{
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      cursor: 'pointer',
       px: 1.5,
       py: 0.75,
+      borderRadius: '10px',
       color: active ? '#1B3B18' : '#596556',
       minWidth: 52,
       position: 'relative',
+      transition: 'color 180ms ease, transform 120ms cubic-bezier(0.23, 1, 0.32, 1)',
+      '&:active': { transform: 'scale(0.95)' },
+      '@media (prefers-reduced-motion: reduce)': {
+        transition: 'none',
+        '&:active': { transform: 'none' },
+      },
       '&::after': active
         ? {
             content: '""',
@@ -1956,5 +2075,5 @@ const NavItem: FC<NavItemProps> = ({ icon, label, active, onClick }) => (
     >
       {label}
     </Typography>
-  </Box>
+  </ButtonBase>
 )

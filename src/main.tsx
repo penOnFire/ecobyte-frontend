@@ -4,6 +4,7 @@ import { CssBaseline, ThemeProvider } from '@mui/material'
 import { theme } from '@/theme/theme'
 import App from '@/App'
 import 'leaflet/dist/leaflet.css'
+import '@/styles/motion.css'
 
 const container = document.getElementById('root')
 

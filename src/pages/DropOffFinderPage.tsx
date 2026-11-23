@@ -394,7 +394,7 @@ export const DropOffFinderPage: FC = () => {
                 border: selectedSiteId === site.id ? '2px solid #0f172a' : '1px solid #e2e8f0',
                 backgroundColor: selectedSiteId === site.id ? '#f8fafc' : '#ffffff',
                 boxShadow: selectedSiteId === site.id ? '0 4px 12px rgba(15,23,42,0.1)' : '0 1px 3px rgba(0,0,0,0.05)',
-                transition: 'all 0.2s ease',
+                transition: 'background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease',
                 cursor: 'pointer',
               }}
             >

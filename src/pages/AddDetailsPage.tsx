@@ -652,7 +652,7 @@ export const AddDetailsPage: FC = () => {
                 alignItems: 'center',
                 gap: 0.75,
                 cursor: 'pointer',
-                transition: 'all 0.15s ease',
+                transition: 'background-color 180ms ease, border-color 180ms ease, color 180ms ease',
               }}
             >
               <SmartphoneRoundedIcon sx={{ fontSize: 16 }} />
@@ -676,7 +676,7 @@ export const AddDetailsPage: FC = () => {
                 alignItems: 'center',
                 gap: 0.75,
                 cursor: 'pointer',
-                transition: 'all 0.15s ease',
+                transition: 'background-color 180ms ease, border-color 180ms ease, color 180ms ease',
               }}
             >
               <WhatshotRoundedIcon sx={{ fontSize: 16 }} />
@@ -823,7 +823,7 @@ export const AddDetailsPage: FC = () => {
                     alignItems: 'center',
                     gap: 0.6,
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
+                    transition: 'background-color 180ms ease, border-color 180ms ease, color 180ms ease',
                   }}
                 >
                   <BatteryAlertRoundedIcon sx={{ fontSize: 16 }} />
@@ -1046,6 +1046,10 @@ export const AddDetailsPage: FC = () => {
                     background:
                       'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.28) 50%, rgba(255,255,255,0) 100%)',
                     animation: 'ecobyteBarShimmer 1.35s ease-in-out infinite',
+                    '@media (prefers-reduced-motion: reduce)': {
+                      animation: 'none',
+                      display: 'none',
+                    },
                   }}
                 />
               )}
@@ -1080,6 +1084,9 @@ export const AddDetailsPage: FC = () => {
                     color: '#ffffff',
                     filter: 'drop-shadow(0 1px 2px rgba(15,23,42,0.45))',
                     animation: 'ecobyteSparklePulse 1.2s ease-in-out infinite',
+                    '@media (prefers-reduced-motion: reduce)': {
+                      animation: 'none',
+                    },
                     flexShrink: 0,
                   }}
                 />

@@ -4,6 +4,8 @@ import { Box, Typography } from '@mui/material'
 import CameraAltRoundedIcon from '@mui/icons-material/CameraAltRounded'
 import StorefrontRoundedIcon from '@mui/icons-material/StorefrontRounded'
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
+import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded'
+import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded'
 import { Link as RouterLink } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { StepperTracker } from '@/components/ui/StepperTracker'
@@ -14,18 +16,64 @@ import { DeviceShowcaseSection } from '@/components/landing/DeviceShowcaseSectio
 import { FeatureShowcases } from '@/components/landing/FeatureShowcases'
 import { PilotAndFooterSection } from '@/components/landing/PilotAndFooterSection'
 import {
-  HERO_PROOF_THUMBNAILS,
+  DEFAULT_COMMONWEALTH_SITES,
   LANDING_ASSETS,
   LANDING_TRACKER_STEPS,
+  SCAN_TWO_ANGLES,
   getAuthHref,
 } from '@/components/landing/landingData'
-import type { ShowcaseDeviceId } from '@/components/landing/landingData'
+import type { AcceptedCategoryId, LandingSiteSummary } from '@/components/landing/landingData'
+import { dropoffsApi, resolveMediaUrl, reuseApi } from '@/lib/api'
+import type { ReuseItem } from '@/types'
 import '@/components/landing/landing.css'
 
 export const LandingPage: FC = () => {
-  const [selectedDeviceId, setSelectedDeviceId] = useState<ShowcaseDeviceId>('thinkpad-t480')
+  const [selectedCategoryId, setSelectedCategoryId] = useState<AcceptedCategoryId>('laptops')
+  const [liveReuseItems, setLiveReuseItems] = useState<ReuseItem[]>([])
+  const [liveSites, setLiveSites] = useState<LandingSiteSummary[]>(DEFAULT_COMMONWEALTH_SITES)
+
+  // Fetch public live Reuse Hub listings and Barangay drop-off stations (no fake fallback records)
+  useEffect(() => {
+    let active = true
+
+    reuseApi
+      .getItems()
+      .then((res) => {
+        if (!active || !res) return
+        if (Array.isArray(res.items)) {
+          setLiveReuseItems(res.items)
+        }
+      })
+      .catch(() => {
+        // Keep empty state cleanly if API is unreachable
+      })
+
+    dropoffsApi
+      .getSites()
+      .then((sites) => {
+        if (!active || !Array.isArray(sites) || sites.length === 0) return
+        setLiveSites(
+          sites.map((site) => ({
+            id: site.id,
+            name: site.name,
+            address: site.address,
+            hours: site.hours,
+            accessType: site.type,
+            isOpen: site.isOpen,
+          })),
+        )
+      })
+      .catch(() => {
+        // Retain official Barangay Commonwealth base directory
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   useEffect(() => {
+    const root = document.querySelector<HTMLElement>('.eco-landing-root')
     const remaining = new Set(
       Array.from(document.querySelectorAll<HTMLElement>('[data-scroll-reveal]')),
     )
@@ -39,6 +87,9 @@ export const LandingPage: FC = () => {
       remaining.forEach((el) => el.setAttribute('data-visible', 'true'))
       return
     }
+
+    // Opt into scroll-reveal hiding only when JS + IntersectionObserver are active
+    root?.classList.add('eco-reveal-ready')
 
     let observer: IntersectionObserver | null = null
 
@@ -92,8 +143,14 @@ export const LandingPage: FC = () => {
       if (rafId !== 0) window.cancelAnimationFrame(rafId)
       window.removeEventListener('scroll', onScroll)
       observer?.disconnect()
+      root?.classList.remove('eco-reveal-ready')
     }
   }, [])
+
+  const featuredLiveItem = liveReuseItems[0] ?? null
+  const featuredLiveImg = featuredLiveItem?.imageUrl
+    ? resolveMediaUrl(featuredLiveItem.imageUrl)
+    : undefined
 
   return (
     <Box className="eco-landing-root">
@@ -106,7 +163,7 @@ export const LandingPage: FC = () => {
 
           <div className="eco-container">
             <div className="eco-hero-grid">
-              {/* Left Column: Headline, Subcopy, Tactile 3D CTAs & Proof Strip */}
+              {/* Left Column: Headline, Subcopy, Tactile 3D CTAs & Barangay Badge */}
               <div className="eco-hero-copy">
                 <h1 className="eco-display-h1 eco-hero-enter-1">
                   Give Old Tech
@@ -114,7 +171,7 @@ export const LandingPage: FC = () => {
                 </h1>
 
                 <Typography
-                  className="eco-hero-enter-2"
+                  className="eco-hero-enter-2 eco-hero-description"
                   sx={{
                     fontFamily: "'Inter', sans-serif",
                     fontWeight: 500,
@@ -125,13 +182,15 @@ export const LandingPage: FC = () => {
                     mt: 2.5,
                   }}
                 >
-                  Scan a laptop, phone, or charger in four angles, verify battery safety in seconds,
-                  and drop it off or claim working gear across Barangay Commonwealth.
+                  Scan your device in two guided angles (Front and Back), screen for battery
+                  safety in seconds, and drop it off or claim verified working gear across Barangay
+                  Commonwealth.
                 </Typography>
 
                 {/* Primary 3D Action Row & Inline Sign In Link */}
                 <div className="eco-hero-enter-3">
                   <Box
+                    className="eco-hero-actions"
                     sx={{
                       display: 'flex',
                       flexWrap: 'wrap',
@@ -142,7 +201,7 @@ export const LandingPage: FC = () => {
                   >
                     <RouterLink to={getAuthHref('/scan')} className="eco-btn eco-btn-lime eco-btn-lg">
                       <CameraAltRoundedIcon sx={{ fontSize: 20 }} />
-                      <span>Start 4-Angle Scan</span>
+                      <span>Start 2-Angle Scan</span>
                     </RouterLink>
                     <RouterLink to={getAuthHref('/reuse')} className="eco-btn eco-btn-white eco-btn-lg">
                       <StorefrontRoundedIcon sx={{ fontSize: 20, color: 'var(--eco-mint-ink)' }} />
@@ -151,7 +210,7 @@ export const LandingPage: FC = () => {
                   </Box>
 
                   {/* Secondary Inline Sign In Link */}
-                  <Box sx={{ mt: 2 }}>
+                  <Box className="eco-hero-signin" sx={{ mt: 2 }}>
                     <RouterLink
                       to="/signin"
                       style={{
@@ -171,37 +230,22 @@ export const LandingPage: FC = () => {
                   </Box>
                 </div>
 
-                {/* Resident & Device Proof Strip */}
+                {/* Official Barangay Coverage Pill (no fake device thumbnails) */}
                 <Box
-                  className="eco-hero-enter-4"
+                  className="eco-hero-enter-4 eco-hero-coverage"
                   sx={{
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: 1.75,
+                    gap: 1,
                     mt: 3.5,
+                    px: 1.75,
+                    py: 0.9,
+                    borderRadius: '9999px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+                    border: '1.5px solid var(--eco-border)',
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', pl: 1 }}>
-                    {HERO_PROOF_THUMBNAILS.map((thumb, idx) => (
-                      <Box
-                        key={thumb.alt}
-                        component="img"
-                        src={thumb.src}
-                        alt={thumb.alt}
-                        sx={{
-                          width: 38,
-                          height: 38,
-                          borderRadius: '10px',
-                          objectFit: 'cover',
-                          border: '2px solid var(--eco-white)',
-                          boxShadow: '0 2px 6px rgba(15, 36, 23, 0.14)',
-                          ml: idx === 0 ? -1 : -1.25,
-                          backgroundColor: 'var(--eco-white)',
-                        }}
-                      />
-                    ))}
-                  </Box>
+                  <LocationOnRoundedIcon sx={{ fontSize: 18, color: 'var(--eco-mint-ink)' }} />
                   <Typography
                     sx={{
                       fontFamily: "'Quicksand', sans-serif",
@@ -210,13 +254,13 @@ export const LandingPage: FC = () => {
                       color: 'var(--eco-ink)',
                     }}
                   >
-                    9 Barangay Bases serving Commonwealth, Quezon City
+                    9 Barangay Bases serving Barangay Commonwealth, Quezon City
                   </Typography>
                 </Box>
               </div>
 
-              {/* Right Column: Rising Phone Mockup */}
-              <div>
+              {/* Right Column: Rising Phone Mockup (Workflow + Live Reuse Hub, zero fake records) */}
+              <div className="eco-hero-phone">
                 <PhoneFrame dockedBottom animateRise>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, flex: 1 }}>
                     {/* Phone Header */}
@@ -236,8 +280,7 @@ export const LandingPage: FC = () => {
                           sx={{
                             width: 24,
                             height: 24,
-                            borderRadius: '6px',
-                            border: '1px solid #dce4dc',
+                            objectFit: 'contain',
                           }}
                         />
                         <Typography
@@ -251,69 +294,94 @@ export const LandingPage: FC = () => {
                           Commonwealth Hub
                         </Typography>
                       </Box>
-                      <StatusBadge label="Hub Live" variant="live" size="sm" />
+                      <StatusBadge
+                        label={
+                          liveReuseItems.length > 0
+                            ? `${liveReuseItems.length} Live in Hub`
+                            : 'Bases 1–9'
+                        }
+                        variant="green-pill"
+                        size="sm"
+                      />
                     </Box>
 
-                    {/* Active Pickup Pass Card */}
+                    {/* Card 1: 2-Angle Scan Workflow Card */}
                     <Box
                       sx={{
                         backgroundColor: '#ffffff',
                         border: '1.5px solid #dbe3d6',
                         borderRadius: '14px',
                         p: 1.25,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1.25,
                       }}
                     >
                       <Box
-                        component="img"
-                        src={LANDING_ASSETS.keychronImg}
-                        alt="Keychron K2 V2"
                         sx={{
-                          width: 52,
-                          height: 52,
-                          borderRadius: '10px',
-                          objectFit: 'cover',
-                          border: '1px solid #dbe3d6',
-                          flexShrink: 0,
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          mb: 1,
                         }}
-                      />
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Typography
-                            className="eco-mono"
-                            sx={{ fontWeight: 700, fontSize: '0.72rem', color: '#266317' }}
-                          >
-                            #ECO-4821
-                          </Typography>
-                          <StatusBadge label="Active Pass" variant="green-pill" size="sm" />
-                        </Box>
+                      >
                         <Typography
                           sx={{
                             fontFamily: "'Rethink Sans', sans-serif",
                             fontWeight: 800,
-                            fontSize: '0.9rem',
+                            fontSize: '0.85rem',
                             color: '#0F2417',
-                            mt: 0.2,
                           }}
                         >
-                          Keychron K2 V2
+                          2-Angle Guided Scan
                         </Typography>
-                        <Typography
-                          sx={{
-                            fontFamily: "'Quicksand', sans-serif",
-                            fontWeight: 600,
-                            fontSize: '0.7rem',
-                            color: '#425243',
-                          }}
-                        >
-                          Base 1 - Brgy. Hall Complex Eco-Hub
-                        </Typography>
+                        <StatusBadge label="Front & Back" variant="available" size="sm" />
+                      </Box>
+
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0.85 }}>
+                        {SCAN_TWO_ANGLES.map((slot) => (
+                          <Box
+                            key={slot.id}
+                            sx={{
+                              backgroundColor: '#f6f8f4',
+                              border: '1px dashed #b6c6af',
+                              borderRadius: '10px',
+                              p: 0.9,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.75,
+                            }}
+                          >
+                            <CameraAltRoundedIcon
+                              sx={{ fontSize: 16, color: '#266317', flexShrink: 0 }}
+                            />
+                            <Box sx={{ minWidth: 0 }}>
+                              <Typography
+                                sx={{
+                                  fontFamily: "'Quicksand', sans-serif",
+                                  fontWeight: 700,
+                                  fontSize: '0.72rem',
+                                  color: '#0F2417',
+                                  lineHeight: 1.15,
+                                }}
+                              >
+                                {slot.label}
+                              </Typography>
+                              <Typography
+                                sx={{
+                                  fontFamily: "'Inter', sans-serif",
+                                  fontWeight: 500,
+                                  fontSize: '0.62rem',
+                                  color: '#596556',
+                                  lineHeight: 1.2,
+                                }}
+                              >
+                                Required
+                              </Typography>
+                            </Box>
+                          </Box>
+                        ))}
                       </Box>
                     </Box>
 
-                    {/* Latest Verified Reuse Item Card */}
+                    {/* Card 2: Live Community Reuse Hub Card (Real API item or honest empty state) */}
                     <Box
                       sx={{
                         backgroundColor: '#ffffff',
@@ -322,70 +390,122 @@ export const LandingPage: FC = () => {
                         p: 1.25,
                       }}
                     >
-                      <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'center' }}>
-                        <Box
-                          component="img"
-                          src={LANDING_ASSETS.ipadImg}
-                          alt="iPad Air 64GB"
-                          sx={{
-                            width: 56,
-                            height: 56,
-                            borderRadius: '10px',
-                            objectFit: 'cover',
-                            border: '1px solid #dbe3d6',
-                            flexShrink: 0,
-                          }}
-                        />
-                        <Box sx={{ flex: 1 }}>
+                      {featuredLiveItem ? (
+                        <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'center' }}>
+                          {featuredLiveImg ? (
+                            <Box
+                              component="img"
+                              src={featuredLiveImg}
+                              alt={featuredLiveItem.title}
+                              sx={{
+                                width: 52,
+                                height: 52,
+                                borderRadius: '10px',
+                                objectFit: 'cover',
+                                border: '1px solid #dbe3d6',
+                                flexShrink: 0,
+                              }}
+                            />
+                          ) : (
+                            <Box
+                              sx={{
+                                width: 52,
+                                height: 52,
+                                borderRadius: '10px',
+                                backgroundColor: '#eef3ed',
+                                border: '1px solid #dbe3d6',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                              }}
+                            >
+                              <StorefrontRoundedIcon sx={{ fontSize: 22, color: '#266317' }} />
+                            </Box>
+                          )}
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                gap: 0.5,
+                              }}
+                            >
+                              <Typography
+                                noWrap
+                                sx={{
+                                  fontFamily: "'Rethink Sans', sans-serif",
+                                  fontWeight: 800,
+                                  fontSize: '0.86rem',
+                                  color: '#0F2417',
+                                }}
+                              >
+                                {featuredLiveItem.title}
+                              </Typography>
+                              <StatusBadge label="Available" variant="available" size="sm" />
+                            </Box>
+                            <Typography
+                              noWrap
+                              sx={{
+                                fontFamily: "'Quicksand', sans-serif",
+                                fontWeight: 600,
+                                fontSize: '0.7rem',
+                                color: '#425243',
+                                mt: 0.25,
+                              }}
+                            >
+                              {featuredLiveItem.condition || featuredLiveItem.category}
+                              {featuredLiveItem.location ? ` • ${featuredLiveItem.location}` : ''}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      ) : (
+                        <Box sx={{ display: 'flex', gap: 1.15, alignItems: 'flex-start' }}>
                           <Box
                             sx={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: '10px',
+                              backgroundColor: '#eef3ed',
                               display: 'flex',
-                              justifyContent: 'space-between',
                               alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
                             }}
                           >
+                            <VerifiedRoundedIcon sx={{ fontSize: 20, color: '#266317' }} />
+                          </Box>
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
                             <Typography
                               sx={{
                                 fontFamily: "'Rethink Sans', sans-serif",
                                 fontWeight: 800,
-                                fontSize: '0.9rem',
+                                fontSize: '0.85rem',
                                 color: '#0F2417',
                               }}
                             >
-                              iPad Air 64GB
+                              Community Reuse Hub
                             </Typography>
-                            <Box
-                              component="span"
-                              className="eco-mono"
+                            <Typography
                               sx={{
-                                backgroundColor: '#CEEBC4',
-                                color: '#266317',
-                                borderRadius: '6px',
-                                px: 0.75,
-                                py: 0.2,
-                                fontWeight: 700,
-                                fontSize: '0.6875rem',
+                                fontFamily: "'Quicksand', sans-serif",
+                                fontWeight: 600,
+                                fontSize: '0.7rem',
+                                color: '#425243',
+                                mt: 0.25,
+                                lineHeight: 1.4,
                               }}
                             >
-                              Verified Reuse
-                            </Box>
+                              MRF-verified electronics appear here as residents turn in working
+                              devices.
+                            </Typography>
                           </Box>
-                          <Typography
-                            sx={{
-                              fontFamily: "'Quicksand', sans-serif",
-                              fontWeight: 600,
-                              fontSize: '0.72rem',
-                              color: '#425243',
-                              mt: 0.35,
-                            }}
-                          >
-                            100% Functional, ready for resident claim
-                          </Typography>
                         </Box>
-                      </Box>
+                      )}
                     </Box>
 
-                    {/* Mini StepperTracker Card */}
+                    {/* Card 3: 5-Stage Drop-Off Lifecycle Legend */}
                     <Box
                       sx={{
                         backgroundColor: '#ffffff',
@@ -403,9 +523,9 @@ export const LandingPage: FC = () => {
                           mb: 1,
                         }}
                       >
-                        Drop-Off Status
+                        5-Stage Drop-Off Lifecycle
                       </Typography>
-                      <StepperTracker steps={LANDING_TRACKER_STEPS} currentStep={3} />
+                      <StepperTracker steps={LANDING_TRACKER_STEPS} currentStep={1} />
                     </Box>
                   </Box>
                 </PhoneFrame>
@@ -414,14 +534,15 @@ export const LandingPage: FC = () => {
           </div>
         </header>
 
-        {/* Sections 3, 4 & 5: Category Pills, Commonwealth Marquee & 5-Device Switcher */}
+        {/* Sections 3, 4 & 5: Category Pills, Commonwealth Marquee & Accepted E-Waste Guide */}
         <DeviceShowcaseSection
-          selectedDeviceId={selectedDeviceId}
-          onSelectDevice={setSelectedDeviceId}
+          selectedCategoryId={selectedCategoryId}
+          onSelectCategory={setSelectedCategoryId}
+          liveReuseItems={liveReuseItems}
         />
 
         {/* Sections 6 & 7: 3 Alternating Feature Showcases & 3-Tab Walkthrough */}
-        <FeatureShowcases />
+        <FeatureShowcases liveReuseItems={liveReuseItems} liveSites={liveSites} />
 
         {/* Sections 8 & 9: Barangay Commonwealth Program, Bottom CTA Banner & 4-Column Footer */}
         <PilotAndFooterSection />

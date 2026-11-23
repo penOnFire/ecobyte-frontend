@@ -146,9 +146,9 @@ export const PilotAndFooterSection: FC = () => {
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2, mt: 2.5, mb: 3.5 }}>
                 {[
-                  '4-angle device triage before drop-off or hub scheduling',
-                  'Verified Reuse Hub claims with Reservation Pass #ECO-4821',
-                  'Household diversion ledger credited at MRF turn-over',
+                  '2-angle device triage (Front & Back) before drop-off or hub scheduling',
+                  'Verified Reuse Hub claims with a resident-locked digital pickup pass',
+                  'Household diversion ledger updated at MRF turn-over',
                 ].map((item) => (
                   <Box key={item} sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
                     <CheckCircleRoundedIcon sx={{ fontSize: 19, color: 'var(--eco-mint-ink)', flexShrink: 0 }} />
@@ -210,7 +210,7 @@ export const PilotAndFooterSection: FC = () => {
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.75, mt: 3.5 }}>
                 <RouterLink to={getAuthHref('/scan')} className="eco-btn eco-btn-lime eco-btn-lg">
                   <CameraAltRoundedIcon sx={{ fontSize: 20 }} />
-                  <span>Start 4-Angle Scan</span>
+                  <span>Start 2-Angle Scan</span>
                 </RouterLink>
                 <RouterLink
                   to={getAuthHref('/drop-offs')}
@@ -222,91 +222,154 @@ export const PilotAndFooterSection: FC = () => {
               </Box>
             </Box>
 
-            {/* Right Docked PhoneFrame */}
+            {/* Right Docked PhoneFrame (Real 2-Angle Intake Summary, zero fake device/pass) */}
             <div data-scroll-reveal="phone">
               <PhoneFrame dockedBottom>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, flex: 1 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                    <VerifiedRoundedIcon sx={{ fontSize: 16, color: '#4f5f4b' }} />
-                    <Typography
-                      sx={{
-                        fontFamily: "'Quicksand', sans-serif",
-                        fontWeight: 700,
-                        fontSize: '0.75rem',
-                        color: '#0f172a',
-                      }}
-                    >
-                      Turn-Over Complete
-                    </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, flex: 1 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                      <Box
+                        component="img"
+                        src={LANDING_ASSETS.ecobyteLogo}
+                        alt="EcoByte"
+                        sx={{ width: 22, height: 22, objectFit: 'contain' }}
+                      />
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontWeight: 700,
+                          fontSize: '0.75rem',
+                          color: '#0f172a',
+                        }}
+                      >
+                        Ready for Intake
+                      </Typography>
+                    </Box>
+                    <StatusBadge label="2-Angle Flow" variant="electric" size="sm" />
                   </Box>
-                  <StatusBadge label="Verified Intake" variant="electric" size="sm" />
-                </Box>
 
-                <Box
-                  component="img"
-                  src={LANDING_ASSETS.thinkpadDetailImg}
-                  alt="Lenovo ThinkPad T480 hardware inspection"
-                  sx={{
-                    width: '100%',
-                    height: 164,
-                    objectFit: 'cover',
-                    borderRadius: '14px',
-                    border: '2px solid #dce4dc',
-                    display: 'block',
-                  }}
-                />
-
-                <Box
-                  sx={{
-                    backgroundColor: '#ffffff',
-                    border: '1.5px solid #dce4dc',
-                    borderRadius: '14px',
-                    p: 1.5,
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontFamily: "'Rethink Sans', sans-serif",
-                      fontWeight: 800,
-                      fontSize: '1rem',
-                      color: '#0F2417',
-                    }}
-                  >
-                    Lenovo ThinkPad T480
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontFamily: "'Quicksand', sans-serif",
-                      fontWeight: 600,
-                      fontSize: '0.75rem',
-                      color: '#425243',
-                      mt: 0.3,
-                    }}
-                  >
-                    Turned over at Base 1 - Brgy. Hall Complex Eco-Hub
-                  </Typography>
                   <Box
                     sx={{
-                      mt: 1,
-                      pt: 1,
-                      borderTop: '1px solid #dbe3d6',
+                      backgroundColor: '#ffffff',
+                      border: '1.5px solid #dce4dc',
+                      borderRadius: '14px',
+                      p: 1.5,
                       display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
+                      flexDirection: 'column',
+                      gap: 1.15,
                     }}
                   >
                     <Typography
-                      className="eco-mono"
-                      sx={{ fontWeight: 700, fontSize: '0.75rem', color: '#266317' }}
+                      sx={{
+                        fontFamily: "'Rethink Sans', sans-serif",
+                        fontWeight: 800,
+                        fontSize: '0.96rem',
+                        color: '#0F2417',
+                      }}
                     >
-                      Pass #ECO-4821
+                      Barangay Commonwealth MRF
                     </Typography>
-                    <StatusBadge label="Verified" variant="available" size="sm" />
+
+                    {[
+                      {
+                        step: '01',
+                        title: 'Front & Back 2-Angle Scan',
+                        detail: 'Snap both sides and answer quick condition prompts.',
+                      },
+                      {
+                        step: '02',
+                        title: 'AI-Assisted Safety Triage',
+                        detail: 'Screen battery risk and get your recommended route.',
+                      },
+                      {
+                        step: '03',
+                        title: 'Verified Base Turn-Over',
+                        detail: 'Confirm drop-off across Commonwealth Bases 1 to 9.',
+                      },
+                    ].map((row) => (
+                      <Box
+                        key={row.step}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: 1,
+                          backgroundColor: '#f6f8f4',
+                          border: '1px solid #dbe3d6',
+                          borderRadius: '10px',
+                          p: 1,
+                        }}
+                      >
+                        <Typography
+                          className="eco-mono"
+                          sx={{
+                            fontWeight: 700,
+                            fontSize: '0.68rem',
+                            color: '#266317',
+                            backgroundColor: '#CEEBC4',
+                            px: 0.7,
+                            py: 0.2,
+                            borderRadius: '6px',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {row.step}
+                        </Typography>
+                        <Box>
+                          <Typography
+                            sx={{
+                              fontFamily: "'Quicksand', sans-serif",
+                              fontWeight: 700,
+                              fontSize: '0.76rem',
+                              color: '#0F2417',
+                            }}
+                          >
+                            {row.title}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontFamily: "'Inter', sans-serif",
+                              fontSize: '0.67rem',
+                              color: '#425243',
+                              lineHeight: 1.35,
+                            }}
+                          >
+                            {row.detail}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+
+                  <Box
+                    sx={{
+                      mt: 'auto',
+                      backgroundColor: '#eef3ed',
+                      border: '1px solid #c5dcba',
+                      borderRadius: '12px',
+                      px: 1.25,
+                      py: 0.9,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.65 }}>
+                      <VerifiedRoundedIcon sx={{ fontSize: 16, color: '#266317' }} />
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontWeight: 700,
+                          fontSize: '0.72rem',
+                          color: '#266317',
+                        }}
+                      >
+                        DENR-EMB Aligned Intake
+                      </Typography>
+                    </Box>
+                    <StatusBadge label="Bases 1–9" variant="available" size="sm" />
                   </Box>
                 </Box>
-              </Box>
-            </PhoneFrame>
+              </PhoneFrame>
             </div>
           </div>
         </div>
@@ -335,9 +398,7 @@ export const PilotAndFooterSection: FC = () => {
                   sx={{
                     width: 36,
                     height: 36,
-                    borderRadius: '10px',
-                    border: '1.5px solid var(--eco-border)',
-                    backgroundColor: '#ffffff',
+                    objectFit: 'contain',
                   }}
                 />
                 <Typography

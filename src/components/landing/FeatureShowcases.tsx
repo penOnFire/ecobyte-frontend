@@ -8,26 +8,40 @@ import MapRoundedIcon from '@mui/icons-material/MapRounded'
 import QrCode2RoundedIcon from '@mui/icons-material/QrCode2Rounded'
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded'
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
+import AssignmentTurnedInRoundedIcon from '@mui/icons-material/AssignmentTurnedInRounded'
+import StorefrontRoundedIcon from '@mui/icons-material/StorefrontRounded'
 import { Link as RouterLink } from 'react-router-dom'
 import { StepperTracker } from '@/components/ui/StepperTracker'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { PhoneFrame } from '@/components/landing/PhoneFrame'
+import { CommonwealthHeaderMap } from '@/components/map/CommonwealthHeaderMap'
 import {
-  COMMONWEALTH_SHOWCASE_SITES,
-  LANDING_ASSETS,
   LANDING_TRACKER_STEPS,
   RECOVERY_LOOP_STEPS,
-  SHOWCASE_ANGLE_THUMBS,
+  SCAN_TWO_ANGLES,
   WALKTHROUGH_MODES,
   getAuthHref,
 } from '@/components/landing/landingData'
-import type { WalkthroughModeId } from '@/components/landing/landingData'
+import type { LandingSiteSummary, WalkthroughModeId } from '@/components/landing/landingData'
+import { resolveMediaUrl } from '@/lib/api'
+import type { ReuseItem } from '@/types'
 
-export const FeatureShowcases: FC = () => {
+interface FeatureShowcasesProps {
+  liveReuseItems: ReuseItem[]
+  liveSites: LandingSiteSummary[]
+}
+
+export const FeatureShowcases: FC<FeatureShowcasesProps> = ({ liveReuseItems, liveSites }) => {
   const [activeWalkthroughTab, setActiveWalkthroughTab] = useState<WalkthroughModeId>('diagnostic')
 
   const activeMode =
     WALKTHROUGH_MODES.find((m) => m.id === activeWalkthroughTab) ?? WALKTHROUGH_MODES[0]
+
+  const previewSites = liveSites.slice(0, 3)
+  const featuredLiveItem = liveReuseItems[0] ?? null
+  const featuredLiveImg = featuredLiveItem?.imageUrl
+    ? resolveMediaUrl(featuredLiveItem.imageUrl)
+    : undefined
 
   return (
     <>
@@ -59,13 +73,13 @@ export const FeatureShowcases: FC = () => {
                 lineHeight: 1.6,
               }}
             >
-              Every stage of EcoByte is built around physical accountability, from guided camera
+              Every stage of EcoByte is built around physical accountability, from guided 2-angle
               diagnostics to neighborhood hub handoffs.
             </Typography>
           </Box>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 7, md: 10 } }}>
-            {/* Showcase A: 4-Angle AI Device Diagnostic (Phone Left | Copy Right) */}
+            {/* Showcase A: 2-Angle AI Device Diagnostic (Phone Left | Copy Right) */}
             <div id="ai-triage" className="eco-showcase-block eco-showcase-block--phone-left">
               <div className="eco-showcase-phone-col" data-scroll-reveal="phone">
                 <PhoneFrame>
@@ -78,8 +92,8 @@ export const FeatureShowcases: FC = () => {
                       }}
                     >
                       <Typography
-                        className="eco-mono"
                         sx={{
+                          fontFamily: "'Quicksand', sans-serif",
                           fontWeight: 700,
                           fontSize: '0.75rem',
                           color: '#0f172a',
@@ -89,47 +103,36 @@ export const FeatureShowcases: FC = () => {
                           borderRadius: '6px',
                         }}
                       >
-                        #SCAN-9042
+                        Guided Scanner
                       </Typography>
-                      <StatusBadge label="98.4% Confidence" variant="available" size="sm" />
+                      <StatusBadge label="2-Angle Scan" variant="available" size="sm" />
                     </Box>
 
-                    {/* Dark AI Camera Viewport */}
+                    {/* Clean Dark Camera Viewfinder Mock (no fake photo or fake score) */}
                     <Box
                       className="eco-reveal-clip"
                       sx={{
                         position: 'relative',
-                        height: 138,
+                        height: 136,
                         borderRadius: '14px',
                         overflow: 'hidden',
-                        backgroundColor: '#0f172a',
-                        border: '1.5px solid #1e293b',
+                        background: 'linear-gradient(145deg, #0F2417 0%, #183321 100%)',
+                        border: '1.5px solid #24462f',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 0.75,
                       }}
                     >
+                      {/* Viewfinder Corner Reticles */}
                       <Box
-                        component="img"
-                        src={LANDING_ASSETS.diagnosticViewImg}
-                        alt="4-angle diagnostic camera frame"
-                        sx={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          opacity: 0.62,
-                          display: 'block',
-                        }}
-                      />
-                      <Box
-                        component="img"
-                        src={LANDING_ASSETS.cameraViewfinderSvg}
-                        alt=""
                         aria-hidden="true"
                         sx={{
                           position: 'absolute',
-                          inset: '12%',
-                          width: '76%',
-                          height: '76%',
-                          objectFit: 'contain',
-                          opacity: 0.85,
+                          inset: 14,
+                          border: '1.5px dashed rgba(171, 240, 107, 0.45)',
+                          borderRadius: '10px',
                           pointerEvents: 'none',
                         }}
                       />
@@ -148,83 +151,84 @@ export const FeatureShowcases: FC = () => {
                           borderRadius: '6px',
                         }}
                       >
-                        4/4 ANGLES
+                        2 ANGLES
                       </Box>
+                      <CameraAltRoundedIcon sx={{ fontSize: 30, color: '#abf06b' }} />
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontWeight: 700,
+                          fontSize: '0.72rem',
+                          color: '#ffffff',
+                        }}
+                      >
+                        Align Front &amp; Back Inside Frame
+                      </Typography>
                     </Box>
 
-                    {/* 4-Photo Angle Grid */}
-                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0.75 }}>
-                      {SHOWCASE_ANGLE_THUMBS.map((angle) => (
+                    {/* 2-Angle Capture Grid (Front & Back ONLY) */}
+                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1 }}>
+                      {SCAN_TWO_ANGLES.map((angle, idx) => (
                         <Box
-                          key={angle.label}
+                          key={angle.id}
                           className="eco-stagger-item"
                           sx={{
                             backgroundColor: '#ffffff',
-                            border: '1px solid #dce4dc',
-                            borderRadius: '10px',
-                            overflow: 'hidden',
-                            p: 0.4,
-                            textAlign: 'center',
+                            border: '1.5px solid #dce4dc',
+                            borderRadius: '12px',
+                            p: 1,
                           }}
                         >
                           <Box
-                            component="img"
-                            src={angle.src}
-                            alt={`${angle.label} angle capture`}
                             sx={{
-                              width: '100%',
-                              height: 44,
-                              objectFit: 'cover',
-                              borderRadius: '6px',
-                              display: 'block',
-                            }}
-                          />
-                          <Typography
-                            sx={{
-                              fontFamily: "'Quicksand', sans-serif",
-                              fontWeight: 700,
-                              fontSize: '0.625rem',
-                              color: '#2d3e2c',
-                              mt: 0.3,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              mb: 0.4,
                             }}
                           >
-                            {angle.label} ✓
+                            <Typography
+                              className="eco-mono"
+                              sx={{ fontWeight: 700, fontSize: '0.65rem', color: '#266317' }}
+                            >
+                              0{idx + 1}
+                            </Typography>
+                            <CheckCircleRoundedIcon sx={{ fontSize: 14, color: '#266317' }} />
+                          </Box>
+                          <Typography
+                            sx={{
+                              fontFamily: "'Rethink Sans', sans-serif",
+                              fontWeight: 800,
+                              fontSize: '0.8rem',
+                              color: '#0F2417',
+                            }}
+                          >
+                            {angle.label}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontFamily: "'Inter', sans-serif",
+                              fontWeight: 500,
+                              fontSize: '0.64rem',
+                              color: '#596556',
+                              lineHeight: 1.3,
+                              mt: 0.2,
+                            }}
+                          >
+                            {angle.detail}
                           </Typography>
                         </Box>
                       ))}
                     </Box>
 
-                    {/* 4-Angle Capture Readiness Strip */}
-                    <Box sx={{ display: 'flex', gap: 0.75 }}>
-                      {['Front & Back Required ✓', 'Left & Right Side ✓'].map((slot) => (
-                        <Box
-                          key={slot}
-                          sx={{
-                            flex: 1,
-                            backgroundColor: '#eef3ed',
-                            border: '1px solid #c4d9c0',
-                            borderRadius: '8px',
-                            py: 0.5,
-                            textAlign: 'center',
-                            fontFamily: "'Quicksand', sans-serif",
-                            fontWeight: 700,
-                            fontSize: '0.65rem',
-                            color: '#2d3e2c',
-                          }}
-                        >
-                          {slot}
-                        </Box>
-                      ))}
-                    </Box>
-
-                    {/* Amber Lithium Battery Diagnostic Alert */}
+                    {/* Battery Hazard Screening Banner (no fake percentage) */}
                     <Box
                       sx={{
                         mt: 'auto',
                         backgroundColor: '#fef3c7',
                         border: '1.5px solid #fde68a',
                         borderRadius: '12px',
-                        p: 1.25,
+                        p: 1.2,
                         display: 'flex',
                         alignItems: 'flex-start',
                         gap: 1,
@@ -242,7 +246,7 @@ export const FeatureShowcases: FC = () => {
                             color: '#92400e',
                           }}
                         >
-                          Lithium Battery Check
+                          Lithium Battery Safety Check
                         </Typography>
                         <Typography
                           sx={{
@@ -254,10 +258,8 @@ export const FeatureShowcases: FC = () => {
                             mt: 0.2,
                           }}
                         >
-                          <span className="eco-mono" style={{ fontWeight: 700 }}>
-                            68%
-                          </span>{' '}
-                          capacity detected. Isolate cell before MRF transport.
+                          Swollen or leaking cells are flagged early for isolated Barangay MRF
+                          drop-off.
                         </Typography>
                       </Box>
                     </Box>
@@ -266,7 +268,7 @@ export const FeatureShowcases: FC = () => {
               </div>
 
               <div className="eco-showcase-copy-col" data-scroll-reveal="header">
-                <h3 className="eco-display-h3">4-Angle AI Device Diagnostic</h3>
+                <h3 className="eco-display-h3">2-Angle AI Device Diagnostic</h3>
                 <Typography
                   sx={{
                     fontFamily: "'Inter', sans-serif",
@@ -277,9 +279,9 @@ export const FeatureShowcases: FC = () => {
                     lineHeight: 1.65,
                   }}
                 >
-                  Snap Front, Back, Left, and Right views using guided camera framing. EcoByte checks
-                  casing stress, screen integrity, and lithium battery swelling before you walk to a
-                  drop-off bin.
+                  Snap Front and Back views using guided camera framing and answer a quick
+                  condition checklist. EcoByte screens for visible damage and lithium battery
+                  swelling before you head to a drop-off base.
                 </Typography>
 
                 <Box
@@ -287,9 +289,9 @@ export const FeatureShowcases: FC = () => {
                   sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, mt: 2.5, mb: 3 }}
                 >
                   {[
-                    'Guided 4-slot capture covering Front, Back, Left, and Right',
+                    'Guided 2-angle capture covering Front and Back views',
                     'Lithium battery swelling and thermal hazard screening',
-                    'Instant route recommendation for Reuse, Repair, or Safe Recovery',
+                    'Stage 1 route recommendation for Reuse, Repair, or Safe Drop-Off',
                   ].map((item) => (
                     <Box
                       key={item}
@@ -313,7 +315,7 @@ export const FeatureShowcases: FC = () => {
 
                 <RouterLink to={getAuthHref('/scan')} className="eco-btn eco-btn-moss">
                   <CameraAltRoundedIcon sx={{ fontSize: 18 }} />
-                  <span>Try 4-Angle Scanner</span>
+                  <span>Try 2-Angle Scanner</span>
                 </RouterLink>
               </div>
             </div>
@@ -401,50 +403,58 @@ export const FeatureShowcases: FC = () => {
               <div className="eco-showcase-phone-col" data-scroll-reveal="phone">
                 <PhoneFrame>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, flex: 1 }}>
-                    {/* Active Request Header */}
+                    {/* Structural Request Tracking Header (zero fake request ID or fake device) */}
                     <Box
                       sx={{
                         backgroundColor: '#ffffff',
                         border: '1.5px solid #dce4dc',
                         borderRadius: '14px',
-                        p: 1.25,
+                        p: 1.35,
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: 1.25,
+                        alignItems: 'flex-start',
+                        gap: 1.15,
                       }}
                     >
                       <Box
-                        component="img"
-                        src={LANDING_ASSETS.thinkpadImg}
-                        alt="Lenovo ThinkPad T480"
                         sx={{
-                          width: 48,
-                          height: 48,
+                          width: 40,
+                          height: 40,
                           borderRadius: '10px',
-                          objectFit: 'cover',
-                          border: '1px solid #dce4dc',
+                          backgroundColor: '#eef3ed',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
                         }}
-                      />
+                      >
+                        <AssignmentTurnedInRoundedIcon sx={{ fontSize: 21, color: '#266317' }} />
+                      </Box>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <Typography
-                            className="eco-mono"
-                            sx={{ fontWeight: 700, fontSize: '0.72rem', color: '#4f5f4b' }}
+                            sx={{
+                              fontFamily: "'Rethink Sans', sans-serif",
+                              fontWeight: 800,
+                              fontSize: '0.88rem',
+                              color: '#0f172a',
+                            }}
                           >
-                            Req #2041
+                            Tracked Drop-Off Record
                           </Typography>
-                          <StatusBadge label="Scheduled" variant="active" size="sm" />
+                          <StatusBadge label="Verified" variant="active" size="sm" />
                         </Box>
                         <Typography
                           sx={{
-                            fontFamily: "'Rethink Sans', sans-serif",
-                            fontWeight: 800,
-                            fontSize: '0.9rem',
-                            color: '#0f172a',
-                            mt: 0.2,
+                            fontFamily: "'Inter', sans-serif",
+                            fontWeight: 500,
+                            fontSize: '0.7rem',
+                            color: '#475569',
+                            mt: 0.35,
+                            lineHeight: 1.4,
                           }}
                         >
-                          Lenovo ThinkPad T480
+                          Every scheduled turn-over is logged under your resident account with base
+                          and schedule details.
                         </Typography>
                       </Box>
                     </Box>
@@ -467,19 +477,19 @@ export const FeatureShowcases: FC = () => {
                           mb: 1.25,
                         }}
                       >
-                        Recovery Chain Progress
+                        5-Stage Recovery Chain
                       </Typography>
-                      <StepperTracker steps={LANDING_TRACKER_STEPS} currentStep={3} />
+                      <StepperTracker steps={LANDING_TRACKER_STEPS} currentStep={1} />
                     </Box>
 
-                    {/* Digital Pickup Pass Card */}
+                    {/* Structural Digital Pickup Pass Card (no fake pass ID or fake points) */}
                     <Box
                       sx={{
                         mt: 'auto',
                         backgroundColor: '#f1f4f0',
                         border: '2px dashed #266317',
                         borderRadius: '16px',
-                        p: 1.75,
+                        p: 1.5,
                       }}
                     >
                       <Box
@@ -487,6 +497,7 @@ export const FeatureShowcases: FC = () => {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
+                          mb: 0.75,
                         }}
                       >
                         <Typography
@@ -499,45 +510,21 @@ export const FeatureShowcases: FC = () => {
                         >
                           Digital Pickup Pass
                         </Typography>
-                        <StatusBadge label="Reserved" variant="available" size="sm" />
+                        <StatusBadge label="48-Hour Hold" variant="available" size="sm" />
                       </Box>
-                      <Typography
-                        className="eco-mono"
-                        sx={{
-                          fontWeight: 800,
-                          fontSize: '1.35rem',
-                          color: '#0F2417',
-                          mt: 0.6,
-                          letterSpacing: '0.04em',
-                        }}
-                      >
-                        #ECO-4821
-                      </Typography>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          mt: 1,
-                          pt: 1,
-                          borderTop: '1px solid #c5dcba',
-                        }}
-                      >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.15 }}>
+                        <QrCode2RoundedIcon sx={{ fontSize: 38, color: '#0F2417', flexShrink: 0 }} />
                         <Typography
                           sx={{
-                            fontFamily: "'Quicksand', sans-serif",
-                            fontWeight: 700,
-                            fontSize: '0.75rem',
-                            color: '#266317',
+                            fontFamily: "'Inter', sans-serif",
+                            fontWeight: 500,
+                            fontSize: '0.7rem',
+                            color: '#26431e',
+                            lineHeight: 1.4,
                           }}
                         >
-                          Base 1 - Brgy. Hall Complex Eco-Hub
-                        </Typography>
-                        <Typography
-                          className="eco-mono"
-                          sx={{ fontWeight: 700, fontSize: '0.72rem', color: '#0F2417' }}
-                        >
-                          +180 pts
+                          A unique verification code is issued when you reserve an available Reuse
+                          Hub item for barangay desk pickup.
                         </Typography>
                       </Box>
                     </Box>
@@ -546,36 +533,27 @@ export const FeatureShowcases: FC = () => {
               </div>
             </div>
 
-            {/* Showcase C: Commonwealth 9-Area Drop-Off Finder (Phone Left | Copy Right) */}
+            {/* Showcase C: Commonwealth 9-Base Drop-Off Finder (Phone Left | Copy Right) */}
             <div id="commonwealth-map" className="eco-showcase-block eco-showcase-block--phone-left">
               <div className="eco-showcase-phone-col" data-scroll-reveal="phone">
                 <PhoneFrame>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.15, flex: 1 }}>
+                    {/* Real Interactive Barangay Commonwealth Vector Map */}
                     <Box
                       className="eco-reveal-clip"
                       sx={{
                         position: 'relative',
-                        height: 118,
+                        height: 132,
                         borderRadius: '14px',
                         overflow: 'hidden',
                         border: '1.5px solid #dce4dc',
-                        backgroundColor: '#e8f0e6',
+                        backgroundColor: '#0a140d',
                       }}
                     >
-                      <Box
-                        component="img"
-                        src={LANDING_ASSETS.dropoffMapSvg}
-                        alt="Barangay Commonwealth 9-Area Drop-Off Map"
-                        sx={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          display: 'block',
-                        }}
-                      />
+                      <CommonwealthHeaderMap userBaseNumber={1} variant="card" />
                     </Box>
 
-                    {COMMONWEALTH_SHOWCASE_SITES.map((site) => (
+                    {previewSites.map((site) => (
                       <Box
                         key={site.id}
                         className="eco-stagger-item"
@@ -583,52 +561,36 @@ export const FeatureShowcases: FC = () => {
                           backgroundColor: '#ffffff',
                           border: '1.5px solid #dce4dc',
                           borderRadius: '12px',
-                          p: 1.15,
+                          p: 1.1,
                         }}
                       >
+                        <Typography
+                          sx={{
+                            fontFamily: "'Rethink Sans', sans-serif",
+                            fontWeight: 800,
+                            fontSize: '0.8rem',
+                            color: '#0f172a',
+                            lineHeight: 1.25,
+                          }}
+                        >
+                          {site.name}
+                        </Typography>
+
                         <Box
                           sx={{
                             display: 'flex',
-                            alignItems: 'flex-start',
+                            alignItems: 'center',
                             justifyContent: 'space-between',
-                            gap: 1,
+                            gap: 0.75,
+                            mt: 0.55,
+                            flexWrap: 'wrap',
                           }}
                         >
                           <Typography
                             sx={{
-                              fontFamily: "'Rethink Sans', sans-serif",
-                              fontWeight: 800,
-                              fontSize: '0.8125rem',
-                              color: '#0f172a',
-                              lineHeight: 1.25,
-                            }}
-                          >
-                            {site.name}
-                          </Typography>
-                          <Box
-                            component="span"
-                            className="eco-mono"
-                            sx={{
-                              backgroundColor: '#eef3ed',
-                              color: '#2d3e2c',
-                              borderRadius: '6px',
-                              px: 0.75,
-                              py: 0.2,
-                              fontWeight: 700,
-                              fontSize: '0.6875rem',
-                              flexShrink: 0,
-                            }}
-                          >
-                            {site.distance}
-                          </Box>
-                        </Box>
-
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.6, flexWrap: 'wrap' }}>
-                          <Typography
-                            sx={{
                               fontFamily: "'Quicksand', sans-serif",
                               fontWeight: 600,
-                              fontSize: '0.6875rem',
+                              fontSize: '0.68rem',
                               color: '#475569',
                             }}
                           >
@@ -644,7 +606,7 @@ export const FeatureShowcases: FC = () => {
                               py: 0.15,
                               fontFamily: "'Quicksand', sans-serif",
                               fontWeight: 700,
-                              fontSize: '0.65rem',
+                              fontSize: '0.64rem',
                             }}
                           >
                             {site.accessType}
@@ -669,9 +631,9 @@ export const FeatureShowcases: FC = () => {
                     lineHeight: 1.65,
                   }}
                 >
-                  Filter staffed Material Recovery Facilities and 24/7 Smart Bins across all nine
-                  Barangay Commonwealth bases by Open Now, Staffed, 24/7 Smart Bin, and live
-                  distance.
+                  Explore staffed Material Recovery Facilities and 24/7 Smart Bins across all nine
+                  Barangay Commonwealth bases, filtered by Open Now, Staffed desk, or 24/7 Smart
+                  Bin access.
                 </Typography>
 
                 <RouterLink to={getAuthHref('/drop-offs')} className="eco-btn eco-btn-white">
@@ -710,8 +672,8 @@ export const FeatureShowcases: FC = () => {
                 lineHeight: 1.6,
               }}
             >
-              Switch views to inspect the diagnostic report, digital pickup pass, and nearest
-              Commonwealth drop-off station.
+              Switch views to preview the 2-angle diagnostic workflow, digital pickup pass, and
+              Barangay Commonwealth drop-off directory.
             </Typography>
           </Box>
 
@@ -751,59 +713,116 @@ export const FeatureShowcases: FC = () => {
                   <>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography
-                        className="eco-mono"
-                        sx={{ fontWeight: 700, fontSize: '0.75rem', color: '#0f172a' }}
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontWeight: 700,
+                          fontSize: '0.75rem',
+                          color: '#0f172a',
+                        }}
                       >
-                        #SCAN-9042
+                        Stage 1 Triage
                       </Typography>
-                      <StatusBadge label="4/4 Angles Verified" variant="available" size="sm" />
+                      <StatusBadge label="2 Angles: Front & Back" variant="available" size="sm" />
+                    </Box>
+
+                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+                      {SCAN_TWO_ANGLES.map((angle) => (
+                        <Box
+                          key={angle.id}
+                          sx={{
+                            backgroundColor: '#ffffff',
+                            border: '1.5px solid #dce4dc',
+                            borderRadius: '12px',
+                            p: 1.15,
+                            textAlign: 'center',
+                          }}
+                        >
+                          <CameraAltRoundedIcon sx={{ fontSize: 22, color: '#266317', mb: 0.4 }} />
+                          <Typography
+                            sx={{
+                              fontFamily: "'Rethink Sans', sans-serif",
+                              fontWeight: 800,
+                              fontSize: '0.78rem',
+                              color: '#0F2417',
+                            }}
+                          >
+                            {angle.label}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontFamily: "'Inter', sans-serif",
+                              fontSize: '0.64rem',
+                              color: '#596556',
+                              mt: 0.2,
+                            }}
+                          >
+                            {angle.detail}
+                          </Typography>
+                        </Box>
+                      ))}
                     </Box>
 
                     <Box
-                      component="img"
-                      src={LANDING_ASSETS.diagnosticViewImg}
-                      alt="Diagnostic scan preview"
                       sx={{
-                        width: '100%',
-                        height: 156,
-                        objectFit: 'cover',
-                        borderRadius: '14px',
+                        backgroundColor: '#ffffff',
                         border: '1.5px solid #dce4dc',
-                      }}
-                    />
-
-                    <Box
-                      sx={{
-                        backgroundColor: '#fef3c7',
-                        border: '1.5px solid #fde68a',
                         borderRadius: '12px',
-                        p: 1.25,
+                        p: 1.15,
                       }}
                     >
                       <Typography
                         sx={{
                           fontFamily: "'Quicksand', sans-serif",
                           fontWeight: 700,
-                          fontSize: '0.75rem',
+                          fontSize: '0.72rem',
+                          color: '#0F2417',
+                          mb: 0.5,
+                        }}
+                      >
+                        Guided Condition Checklist
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: '0.68rem',
+                          color: '#475569',
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        Power state, display glass, port condition, visible damage, and missing
+                        parts are combined for your triage result.
+                      </Typography>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        backgroundColor: '#fef3c7',
+                        border: '1.5px solid #fde68a',
+                        borderRadius: '12px',
+                        p: 1.15,
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontWeight: 700,
+                          fontSize: '0.74rem',
                           color: '#92400e',
                         }}
                       >
-                        Battery Telemetry Alert
+                        Battery Safety Routing
                       </Typography>
                       <Typography
                         sx={{
                           fontFamily: "'Inter', sans-serif",
                           fontWeight: 500,
-                          fontSize: '0.72rem',
+                          fontSize: '0.7rem',
                           color: '#78350f',
-                          mt: 0.4,
+                          mt: 0.3,
+                          lineHeight: 1.35,
                         }}
                       >
-                        Cell capacity at{' '}
-                        <span className="eco-mono" style={{ fontWeight: 700 }}>
-                          68%
-                        </span>
-                        . Assigned to isolated MRF battery tray.
+                        Flags high-risk lithium damage for isolated MRF drop-off before transport.
                       </Typography>
                     </Box>
 
@@ -813,7 +832,7 @@ export const FeatureShowcases: FC = () => {
                         className="eco-btn eco-btn-moss eco-btn-sm"
                         style={{ width: '100%' }}
                       >
-                        Start 4-Angle Scan
+                        Start 2-Angle Scan
                       </RouterLink>
                     </Box>
                   </>
@@ -832,51 +851,71 @@ export const FeatureShowcases: FC = () => {
                       >
                         Reuse Claim Pass
                       </Typography>
-                      <StatusBadge label="Reserved" variant="available" size="sm" />
+                      <StatusBadge label="Resident-Locked" variant="available" size="sm" />
                     </Box>
 
                     <Box
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 1.25,
+                        gap: 1.15,
                         backgroundColor: '#ffffff',
                         border: '1.5px solid #dce4dc',
                         borderRadius: '14px',
                         p: 1.15,
                       }}
                     >
-                      <Box
-                        component="img"
-                        src={LANDING_ASSETS.keychronImg}
-                        alt="Keychron K2 V2"
-                        sx={{
-                          width: 54,
-                          height: 54,
-                          borderRadius: '10px',
-                          objectFit: 'cover',
-                        }}
-                      />
-                      <Box>
+                      {featuredLiveImg ? (
+                        <Box
+                          component="img"
+                          src={featuredLiveImg}
+                          alt={featuredLiveItem?.title || 'Verified Reuse Item'}
+                          sx={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: '10px',
+                            objectFit: 'cover',
+                            flexShrink: 0,
+                          }}
+                        />
+                      ) : (
+                        <Box
+                          sx={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: '10px',
+                            backgroundColor: '#eef3ed',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <StorefrontRoundedIcon sx={{ fontSize: 22, color: '#266317' }} />
+                        </Box>
+                      )}
+                      <Box sx={{ minWidth: 0 }}>
                         <Typography
+                          noWrap
                           sx={{
                             fontFamily: "'Rethink Sans', sans-serif",
                             fontWeight: 800,
-                            fontSize: '0.92rem',
+                            fontSize: '0.88rem',
                             color: '#0f172a',
                           }}
                         >
-                          Keychron K2 V2
+                          {featuredLiveItem ? featuredLiveItem.title : 'MRF-Verified Hardware'}
                         </Typography>
                         <Typography
+                          noWrap
                           sx={{
                             fontFamily: "'Quicksand', sans-serif",
                             fontWeight: 600,
-                            fontSize: '0.72rem',
+                            fontSize: '0.7rem',
                             color: '#425243',
                           }}
                         >
-                          Base 1 - Brgy. Hall Complex Eco-Hub
+                          {featuredLiveItem?.location || 'Barangay Commonwealth Eco-Hubs'}
                         </Typography>
                       </Box>
                     </Box>
@@ -886,22 +925,31 @@ export const FeatureShowcases: FC = () => {
                         backgroundColor: '#f1f4f0',
                         border: '2px dashed #266317',
                         borderRadius: '16px',
-                        p: 1.75,
+                        p: 1.5,
                         textAlign: 'center',
                       }}
                     >
-                      <QrCode2RoundedIcon sx={{ fontSize: 56, color: '#0F2417' }} />
+                      <QrCode2RoundedIcon sx={{ fontSize: 52, color: '#0F2417' }} />
                       <Typography
-                        className="eco-mono"
                         sx={{
-                          fontWeight: 800,
-                          fontSize: '1.35rem',
+                          fontFamily: "'Quicksand', sans-serif",
+                          fontWeight: 700,
+                          fontSize: '0.78rem',
                           color: '#0F2417',
-                          letterSpacing: '0.06em',
                           mt: 0.4,
                         }}
                       >
-                        ECO-4821
+                        Unique Code Issued on Reservation
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: '0.68rem',
+                          color: '#425243',
+                          mt: 0.2,
+                        }}
+                      >
+                        48-hour hold window with desk identity check
                       </Typography>
                     </Box>
 
@@ -920,88 +968,84 @@ export const FeatureShowcases: FC = () => {
                 {activeWalkthroughTab === 'dropoff' && (
                   <>
                     <Box sx={{ display: 'flex', gap: 0.75 }}>
-                      <StatusBadge label="All Sites (9)" variant="slate" size="sm" />
+                      <StatusBadge label={`All Sites (${liveSites.length})`} variant="slate" size="sm" />
                       <StatusBadge label="24/7 Smart Bin" variant="green-pill" size="sm" />
                     </Box>
 
                     <Box
-                      component="img"
-                      src={LANDING_ASSETS.dropoffMapSvg}
-                      alt="Commonwealth drop-off stations map"
                       sx={{
+                        position: 'relative',
                         width: '100%',
                         height: 132,
-                        objectFit: 'cover',
                         borderRadius: '14px',
+                        overflow: 'hidden',
                         border: '1.5px solid #dbe3d6',
-                      }}
-                    />
-
-                    <Box
-                      sx={{
-                        backgroundColor: '#ffffff',
-                        border: '1.5px solid #dbe3d6',
-                        borderRadius: '12px',
-                        p: 1.15,
+                        backgroundColor: '#0a140d',
                       }}
                     >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography
-                          sx={{
-                            fontFamily: "'Rethink Sans', sans-serif",
-                            fontWeight: 800,
-                            fontSize: '0.82rem',
-                            color: '#0F2417',
-                          }}
-                        >
-                          Base 1 - Brgy. Hall Complex
-                        </Typography>
-                        <StatusBadge label="Open Now" variant="available" size="sm" />
-                      </Box>
-                      <Typography
+                      <CommonwealthHeaderMap userBaseNumber={1} variant="card" />
+                    </Box>
+
+                    {liveSites.slice(0, 2).map((site) => (
+                      <Box
+                        key={site.id}
                         sx={{
-                          fontFamily: "'Quicksand', sans-serif",
-                          fontWeight: 600,
-                          fontSize: '0.72rem',
-                          color: '#425243',
-                          mt: 0.3,
+                          backgroundColor: '#ffffff',
+                          border: '1.5px solid #dbe3d6',
+                          borderRadius: '12px',
+                          p: 1.05,
                         }}
                       >
-                        Commonwealth Area 1 Eco-Hub
-                      </Typography>
-                    </Box>
-
-                    <Box
-                      sx={{
-                        backgroundColor: '#ffffff',
-                        border: '1.5px solid #dbe3d6',
-                        borderRadius: '12px',
-                        p: 1.15,
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                        <LocationOnRoundedIcon sx={{ fontSize: 16, color: '#266317' }} />
-                        <Typography
+                        <Box
                           sx={{
-                            fontFamily: "'Quicksand', sans-serif",
-                            fontWeight: 700,
-                            fontSize: '0.75rem',
-                            color: '#0F2417',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: 0.5,
                           }}
                         >
-                          Base 3 - Don Fabian Smart Bin
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
+                            <LocationOnRoundedIcon
+                              sx={{ fontSize: 15, color: '#266317', flexShrink: 0 }}
+                            />
+                            <Typography
+                              noWrap
+                              sx={{
+                                fontFamily: "'Rethink Sans', sans-serif",
+                                fontWeight: 800,
+                                fontSize: '0.78rem',
+                                color: '#0F2417',
+                              }}
+                            >
+                              {site.name}
+                            </Typography>
+                          </Box>
+                          <Typography
+                            className="eco-mono"
+                            sx={{
+                              fontWeight: 700,
+                              fontSize: '0.64rem',
+                              color: '#266317',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {site.accessType === '24/7 Smart Bin' ? '24/7' : 'Staffed'}
+                          </Typography>
+                        </Box>
+                        <Typography
+                          noWrap
+                          sx={{
+                            fontFamily: "'Quicksand', sans-serif",
+                            fontWeight: 600,
+                            fontSize: '0.68rem',
+                            color: '#425243',
+                            mt: 0.25,
+                          }}
+                        >
+                          {site.address}
                         </Typography>
                       </Box>
-                      <Typography
-                        className="eco-mono"
-                        sx={{ fontWeight: 700, fontSize: '0.7rem', color: '#266317' }}
-                      >
-                        24/7
-                      </Typography>
-                    </Box>
+                    ))}
 
                     <Box sx={{ mt: 'auto' }}>
                       <RouterLink
@@ -1009,7 +1053,7 @@ export const FeatureShowcases: FC = () => {
                         className="eco-btn eco-btn-moss eco-btn-sm"
                         style={{ width: '100%' }}
                       >
-                        Browse All 9 Bases
+                        Browse All {liveSites.length} Bases
                       </RouterLink>
                     </Box>
                   </>

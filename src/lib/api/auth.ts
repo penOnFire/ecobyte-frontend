@@ -8,12 +8,6 @@ import type {
   User,
 } from '@/types'
 
-const DEFAULT_BARANGAY: Barangay = {
-  id: '1',
-  name: 'Base 1 - Brgy. Hall Complex (Barangay Commonwealth)',
-  city: 'Quezon City',
-}
-
 export const COMMONWEALTH_BASES_FALLBACK: Barangay[] = [
   { id: '1', name: 'Base 1 - Brgy. Hall Complex (Barangay Commonwealth)', city: 'Quezon City' },
   { id: '2', name: 'Base 2 - Martan St. (Barangay Commonwealth)', city: 'Quezon City' },
@@ -109,117 +103,23 @@ export function resolveAuthRole(
   return 'RESIDENT'
 }
 
-/** Builds a fallback mock user matching all three canonical roles when the backend is unreachable. */
-export function buildFallbackMockUser(
-  role: CanonicalAuthRole,
-  email?: string
-): User {
-  if (role === 'ADMIN') {
-    return {
-      id: 'usr-admin-01',
-      fullName: 'System Administrator',
-      firstName: 'Administrator',
-      email: email?.trim() || 'admin@ecobyte.gov',
-      phone: '+63 917 888 9999',
-      role: 'ADMIN',
-      barangay: DEFAULT_BARANGAY,
-    }
-  }
-  if (role === 'BARANGAY_OFFICIAL') {
-    return {
-      id: 'usr-official-01',
-      fullName: 'Barangay Official',
-      firstName: 'Official',
-      email: email?.trim() || 'official@barangay.gov.ph',
-      phone: '+63 918 777 6666',
-      role: 'BARANGAY_OFFICIAL',
-      barangay: DEFAULT_BARANGAY,
-    }
-  }
-  return {
-    id: 'usr-resident-01',
-    fullName: 'Alex Rivera',
-    firstName: 'Alex',
-    email: email?.trim() || 'resident@ecobyte.ph',
-    phone: '+63 917 123 4567',
-    role: 'RESIDENT',
-    barangay: DEFAULT_BARANGAY,
-  }
-}
-
 export const authApi = {
-  login: async (payload: LoginPayload): Promise<AuthSession> => {
-    try {
-      return await apiFetch<AuthSession>('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      })
-    } catch (err: any) {
-      // If backend is offline or network fails (e.g. "Failed to fetch"), check for demo/valid credentials
-      // and provide offline fallback authentication so frontend development & testing works seamlessly.
-      const isNetworkError =
-        err?.message?.includes('fetch') ||
-        err?.message?.includes('NetworkError') ||
-        err?.status === 500 ||
-        err?.status === 502 ||
-        err?.status === 503 ||
-        err?.status === 504 ||
-        err?.status === 404 ||
-        !err?.status
+  finishWalkthrough: (outcome: 'completed' | 'skipped') =>
+    apiFetch<{ walkthroughVersion: number; outcome: string }>('/auth/walkthrough', {
+      method: 'PATCH',
+      body: JSON.stringify({ outcome }),
+    }),
+  login: (payload: LoginPayload): Promise<AuthSession> =>
+    apiFetch<AuthSession>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
 
-      if (isNetworkError) {
-        console.warn('Backend unavailable or offline. Falling back to offline mock authentication for:', payload.email)
-        const role = resolveAuthRole(undefined, payload.email)
-        const tokenTag =
-          role === 'ADMIN' ? 'admin' : role === 'BARANGAY_OFFICIAL' ? 'official' : 'resident'
-
-        return {
-          accessToken: `mock_jwt_token_${tokenTag}_${Date.now()}`,
-          refreshToken: `mock_refresh_${Date.now()}`,
-          user: buildFallbackMockUser(role, payload.email),
-        }
-      }
-
-      throw err
-    }
-  },
-
-  register: async (payload: RegisterPayload): Promise<AuthSession> => {
-    try {
-      return await apiFetch<AuthSession>('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      })
-    } catch (err: any) {
-      const isNetworkError =
-        err?.message?.includes('fetch') ||
-        err?.message?.includes('NetworkError') ||
-        err?.status === 500 ||
-        err?.status === 502 ||
-        err?.status === 503 ||
-        err?.status === 504 ||
-        err?.status === 404 ||
-        !err?.status
-
-      if (isNetworkError) {
-        console.warn('Backend unavailable or offline. Falling back to local registration for:', payload.email)
-        return {
-          accessToken: `mock_jwt_token_resident_${Date.now()}`,
-          refreshToken: `mock_refresh_${Date.now()}`,
-          user: {
-            id: `usr-reg-${Date.now().toString().slice(-4)}`,
-            fullName: payload.fullName,
-            email: payload.email,
-            phone: payload.phone || '+63 917 123 4567',
-            role: 'RESIDENT',
-            barangay: DEFAULT_BARANGAY,
-          },
-        }
-      }
-
-      throw err
-    }
-  },
+  register: (payload: RegisterPayload): Promise<AuthSession> =>
+    apiFetch<AuthSession>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
 
   getProfile: async (): Promise<User> => {
     try {
@@ -227,18 +127,26 @@ export const authApi = {
       if (profile) setCachedUser(profile)
       return profile
     } catch (err: any) {
-      const isNetworkError =
-        err?.message?.includes('fetch') ||
-        err?.message?.includes('NetworkError') ||
-        !err?.status
-      if (isNetworkError) {
+      const isTransportFailure =
+        !err?.status &&
+        (err?.message?.includes('fetch') || err?.message?.includes('NetworkError'))
+      if (isTransportFailure) {
         const cached = getCachedUser()
         if (cached) return cached
-        const storedRole = localStorage.getItem('ecobyte_user_role') || 'RESIDENT'
-        return buildFallbackMockUser(resolveAuthRole(storedRole))
       }
       throw err
     }
+  },
+
+  updateProfile: async (payload: { phone?: string }): Promise<User> => {
+    const updated = await apiFetch<User>('/auth/me', {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    })
+    if (updated) {
+      setCachedUser(updated)
+    }
+    return updated
   },
 
   getBarangays: async (): Promise<Barangay[]> => {
@@ -253,38 +161,14 @@ export const authApi = {
   changePassword: async (
     payload: ChangePasswordPayload
   ): Promise<{ message: string; user: User }> => {
-    try {
-      const res = await apiFetch<{ message: string; user: User }>('/auth/change-password', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      })
-      if (res?.user) {
-        setCachedUser(res.user)
-      }
-      return res
-    } catch (err: any) {
-      const isNetworkError =
-        err?.message?.includes('fetch') ||
-        err?.message?.includes('NetworkError') ||
-        err?.status === 502 ||
-        err?.status === 503 ||
-        err?.status === 504 ||
-        !err?.status
-
-      if (isNetworkError) {
-        const cached = getCachedUser()
-        const updatedUser: User = {
-          ...(cached || buildFallbackMockUser('RESIDENT')),
-          mustChangePassword: false,
-        }
-        setCachedUser(updatedUser)
-        return {
-          message: 'Password updated locally in offline mode.',
-          user: updatedUser,
-        }
-      }
-      throw err
+    const res = await apiFetch<{ message: string; user: User }>('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+    if (res?.user) {
+      setCachedUser(res.user)
     }
+    return res
   },
 
   logout: () => {

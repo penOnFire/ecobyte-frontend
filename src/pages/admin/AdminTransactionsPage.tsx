@@ -35,8 +35,7 @@ import BadgeRoundedIcon from '@mui/icons-material/BadgeRounded'
 import {
   adminApi,
   getCachedUser,
-  isNetworkError,
-  resolveMediaUrl,
+  openAuthenticatedMedia,
   type AdminTransactionItem,
   type PickupLookupResponse,
 } from '@/lib/api'
@@ -440,44 +439,6 @@ export const AdminTransactionsPage: FC = () => {
       setIdentityConfirmed(false)
       setVerifyStep('identity')
     } catch (err: unknown) {
-      if (isNetworkError(err) && verifyingClaim) {
-        const cleanInput = normalized.replace(/[^A-Z0-9]/g, '')
-        const cleanTarget = (verifyingClaim.pickupCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
-        if (cleanTarget && cleanInput === cleanTarget) {
-          setLookupResult({
-            success: true,
-            matched: true,
-            claimId: verifyingClaim.rawId || verifyingClaim.id,
-            transactionNumber: verifyingClaim.id,
-            pickupCode: normalized,
-            item: {
-              id: verifyingClaim.listingId,
-              title: verifyingClaim.itemName,
-              category: verifyingClaim.type,
-              condition: verifyingClaim.condition,
-            },
-            reservation: {
-              reservedAt: verifyingClaim.reservedAt,
-              expiresAt: verifyingClaim.expiresAt ?? null,
-              siteName: verifyingClaim.siteName,
-            },
-            claimant: {
-              id: '',
-              fullName: verifyingClaim.residentName,
-              email: verifyingClaim.residentEmail,
-              phone: verifyingClaim.residentPhone || '',
-              address: verifyingClaim.residentAddress || '',
-              idCode: verifyingClaim.residentIdCode || '',
-              validIdType: verifyingClaim.validIdType || '',
-              validIdNumber: verifyingClaim.validIdNumber || '',
-              baseName: verifyingClaim.barangay,
-            },
-          })
-          setIdentityConfirmed(false)
-          setVerifyStep('identity')
-          return
-        }
-      }
       setVerifyError(
         (err as { message?: string })?.message ||
           'Reject: Verification code does not match this reservation.'
@@ -577,29 +538,10 @@ export const AdminTransactionsPage: FC = () => {
       setVerifyModalOpen(false)
       setRefreshTick((t) => t + 1)
     } catch (err: unknown) {
-      if (isNetworkError(err) && verifyingClaim) {
-        setClaims((prev) =>
-          prev.map((c) =>
-            c.id === verifyingClaim.id
-              ? {
-                  ...c,
-                  status: 'Picked Up',
-                  resolvedAt: 'Verified Just Now',
-                }
-              : c
-          )
-        )
-        setToast({
-          message: `Pick-up verified for ${verifyingClaim.itemName}! Status updated to Picked Up.`,
-          severity: 'success',
-        })
-        setVerifyModalOpen(false)
-      } else {
-        setVerifyError(
-          (err as { message?: string })?.message ||
-            'Unable to confirm pick-up right now. Please try again.'
-        )
-      }
+      setVerifyError(
+        (err as { message?: string })?.message ||
+          'Unable to confirm pick-up right now. Please try again.'
+      )
     } finally {
       setIsVerifying(false)
     }
@@ -946,7 +888,7 @@ export const AdminTransactionsPage: FC = () => {
                 backgroundColor: tab === 'claims' ? '#ffffff' : 'transparent',
                 color: tab === 'claims' ? '#0f172a' : '#64748b',
                 boxShadow: tab === 'claims' ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
-                transition: 'all 0.15s ease',
+                transition: 'background-color 180ms ease, color 180ms ease, box-shadow 180ms ease',
               }}
             >
               <span>Pick-up Claims</span>
@@ -978,7 +920,7 @@ export const AdminTransactionsPage: FC = () => {
                 backgroundColor: tab === 'listings' ? '#ffffff' : 'transparent',
                 color: tab === 'listings' ? '#0f172a' : '#64748b',
                 boxShadow: tab === 'listings' ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
-                transition: 'all 0.15s ease',
+                transition: 'background-color 180ms ease, color 180ms ease, box-shadow 180ms ease',
               }}
             >
               <span>Reuse Hub Listings</span>
@@ -995,7 +937,7 @@ export const AdminTransactionsPage: FC = () => {
                 backgroundColor: tab === 'disposals' ? '#ffffff' : 'transparent',
                 color: tab === 'disposals' ? '#0f172a' : '#64748b',
                 boxShadow: tab === 'disposals' ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
-                transition: 'all 0.15s ease',
+                transition: 'background-color 180ms ease, color 180ms ease, box-shadow 180ms ease',
               }}
             >
               <span>Disposal Records</span>
@@ -1712,14 +1654,34 @@ export const AdminTransactionsPage: FC = () => {
                           <PhotoCameraRoundedIcon sx={{ fontSize: 16 }} /> Uploaded &amp; Stored
                         </span>
                         {selectedClaim.proofUrl && (
-                          <a
-                            href={resolveMediaUrl(selectedClaim.proofUrl)}
-                            target="_blank"
-                            rel="noreferrer"
-                            style={{ fontSize: '0.75rem', color: '#0369a1', fontWeight: 700, textDecoration: 'underline' }}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              openAuthenticatedMedia(
+                                `/reuse/reservations/${selectedClaim.rawId || selectedClaim.id}/proof-of-claim`
+                              ).catch((err: unknown) => {
+                                setToast({
+                                  message:
+                                    (err as { message?: string })?.message ||
+                                    'Unable to load proof of claim photo.',
+                                  severity: 'error',
+                                })
+                              })
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              padding: 0,
+                              cursor: 'pointer',
+                              fontSize: '0.75rem',
+                              color: '#0369a1',
+                              fontWeight: 700,
+                              textDecoration: 'underline',
+                              fontFamily: 'inherit',
+                            }}
                           >
                             View Photo
-                          </a>
+                          </button>
                         )}
                       </Box>
                     ) : selectedClaim.status === 'Picked Up' ? (

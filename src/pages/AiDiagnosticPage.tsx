@@ -957,8 +957,15 @@ export const AiDiagnosticPage: FC = () => {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    '&:hover': { backgroundColor: '#d3ecc0', transform: 'translateY(-1px)' },
+                    transition:
+                      'background-color 180ms ease, transform 120ms cubic-bezier(0.23, 1, 0.32, 1)',
+                    '@media (hover: hover) and (pointer: fine)': {
+                      '&:hover': { backgroundColor: '#d3ecc0', transform: 'translateY(-1px)' },
+                    },
+                    '@media (prefers-reduced-motion: reduce)': {
+                      transition: 'none',
+                      '&:hover': { transform: 'none' },
+                    },
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -1002,8 +1009,15 @@ export const AiDiagnosticPage: FC = () => {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    '&:hover': { backgroundColor: '#d3ecc0', transform: 'translateY(-1px)' },
+                    transition:
+                      'background-color 180ms ease, transform 120ms cubic-bezier(0.23, 1, 0.32, 1)',
+                    '@media (hover: hover) and (pointer: fine)': {
+                      '&:hover': { backgroundColor: '#d3ecc0', transform: 'translateY(-1px)' },
+                    },
+                    '@media (prefers-reduced-motion: reduce)': {
+                      transition: 'none',
+                      '&:hover': { transform: 'none' },
+                    },
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -1047,8 +1061,15 @@ export const AiDiagnosticPage: FC = () => {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    '&:hover': { backgroundColor: '#d3ecc0', transform: 'translateY(-1px)' },
+                    transition:
+                      'background-color 180ms ease, transform 120ms cubic-bezier(0.23, 1, 0.32, 1)',
+                    '@media (hover: hover) and (pointer: fine)': {
+                      '&:hover': { backgroundColor: '#d3ecc0', transform: 'translateY(-1px)' },
+                    },
+                    '@media (prefers-reduced-motion: reduce)': {
+                      transition: 'none',
+                      '&:hover': { transform: 'none' },
+                    },
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>

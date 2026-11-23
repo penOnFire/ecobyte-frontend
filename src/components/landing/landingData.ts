@@ -1,44 +1,19 @@
 import type { BadgeVariant } from '@/components/ui/StatusBadge'
 import type { StepItem } from '@/components/ui/StepperTracker'
-
+import { COMMONWEALTH_FALLBACK_SITES } from '@/components/map/commonwealthData'
 import ecobyteLogo from '@/assets/ui/ecobyte_logo.svg'
-import thinkpadImg from '@/assets/ui/thinkpad.jpeg'
-import thinkpadDetailImg from '@/assets/ui/thinkpad_detail.jpeg'
-import galaxyImg from '@/assets/ui/galaxy_s10.jpeg'
-import ipadImg from '@/assets/ui/ipad.jpeg'
-import keychronImg from '@/assets/ui/keychron.jpeg'
-import chargerImg from '@/assets/ui/charger.jpeg'
-import diagnosticViewImg from '@/assets/ui/diagnostic_view.jpeg'
-import angleFrontImg from '@/assets/ui/angle_front.jpeg'
-import angleBackImg from '@/assets/ui/angle_back.jpeg'
-import angleLeftImg from '@/assets/ui/angle_left.jpeg'
-import angleRightImg from '@/assets/ui/angle_right.jpeg'
-import cameraViewfinderSvg from '@/assets/ui/camera_viewfinder.svg'
-import dropoffMapSvg from '@/assets/ui/dropoff_map.svg'
 
 export const LANDING_ASSETS = {
   ecobyteLogo,
-  thinkpadImg,
-  thinkpadDetailImg,
-  galaxyImg,
-  ipadImg,
-  keychronImg,
-  chargerImg,
-  diagnosticViewImg,
-  angleFrontImg,
-  angleBackImg,
-  angleLeftImg,
-  angleRightImg,
-  cameraViewfinderSvg,
-  dropoffMapSvg,
 } as const
 
-export type ShowcaseDeviceId =
-  | 'thinkpad-t480'
-  | 'galaxy-s10'
-  | 'ipad-air'
-  | 'keychron-k2'
-  | 'gan-charger-65w'
+export type AcceptedCategoryId =
+  | 'laptops'
+  | 'smartphones'
+  | 'tablets'
+  | 'peripherals'
+  | 'chargers'
+  | 'batteries'
 
 export type CategoryPillIconKey =
   | 'laptop'
@@ -58,7 +33,7 @@ export interface CategoryPillItem {
   label: string
   icon: CategoryPillIconKey
   targetSectionId: string
-  deviceId?: ShowcaseDeviceId
+  categoryId: AcceptedCategoryId
 }
 
 export interface MarqueeLocationBadge {
@@ -67,21 +42,18 @@ export interface MarqueeLocationBadge {
   label: string
 }
 
-export interface ShowcaseDeviceItem {
-  id: ShowcaseDeviceId
+export interface AcceptedCategoryItem {
+  id: AcceptedCategoryId
   name: string
-  categoryLabel: string
-  image: string
-  detailImage?: string
-  conditionGrade: string
-  conditionNote: string
-  batteryHealth: string
-  batteryPercent: number
-  ecoPoints: string
-  routingVerdict: string
+  icon: CategoryPillIconKey
+  examples: string
+  frontScanFocus: string
+  backScanFocus: string
+  safetyNote: string
+  isHazardPriority?: boolean
+  routingOptions: string
   badgeVariant: BadgeVariant
-  recommendedHub: string
-  hubDistance: string
+  matchKeywords: string[]
   ctaLabel: string
   ctaRoute: string
 }
@@ -92,12 +64,13 @@ export interface RecoveryLoopStep {
   description: string
 }
 
-export interface CommonwealthSiteSummary {
+export interface LandingSiteSummary {
   id: string
   name: string
-  distance: string
+  address: string
   hours: string
   accessType: string
+  isOpen: boolean
 }
 
 export type WalkthroughModeId = 'diagnostic' | 'pass' | 'dropoff'
@@ -130,18 +103,11 @@ export function getAuthHref(targetRoute: string): string {
 }
 
 export const NAV_LINKS: NavLinkItem[] = [
-  { label: 'How It Works', href: '#how-it-works' },
+  { label: 'Accepted Devices', href: '#device-switcher' },
   { label: 'AI Triage', href: '#ai-triage' },
-  { label: 'Reuse Hub', href: '#device-switcher' },
+  { label: 'How It Works', href: '#how-it-works' },
   { label: 'Commonwealth Map', href: '#commonwealth-map' },
   { label: 'Program', href: '#pilot' },
-]
-
-export const HERO_PROOF_THUMBNAILS: { src: string; alt: string }[] = [
-  { src: thinkpadImg, alt: 'Inspected Lenovo ThinkPad T480' },
-  { src: galaxyImg, alt: 'Tested Samsung Galaxy S10' },
-  { src: ipadImg, alt: 'Verified iPad Air' },
-  { src: keychronImg, alt: 'Keychron K2 mechanical keyboard' },
 ]
 
 export const DEVICE_CATEGORY_PILLS: CategoryPillItem[] = [
@@ -150,41 +116,42 @@ export const DEVICE_CATEGORY_PILLS: CategoryPillItem[] = [
     label: 'Laptops & PCs',
     icon: 'laptop',
     targetSectionId: 'device-switcher',
-    deviceId: 'thinkpad-t480',
+    categoryId: 'laptops',
   },
   {
     id: 'cat-smartphones',
     label: 'Smartphones',
     icon: 'smartphone',
     targetSectionId: 'device-switcher',
-    deviceId: 'galaxy-s10',
+    categoryId: 'smartphones',
   },
   {
     id: 'cat-tablets',
     label: 'Tablets',
     icon: 'tablet',
     targetSectionId: 'device-switcher',
-    deviceId: 'ipad-air',
+    categoryId: 'tablets',
   },
   {
     id: 'cat-keyboards',
-    label: 'Keyboards',
+    label: 'Keyboards & Peripherals',
     icon: 'keyboard',
     targetSectionId: 'device-switcher',
-    deviceId: 'keychron-k2',
+    categoryId: 'peripherals',
   },
   {
     id: 'cat-chargers',
     label: 'Chargers & Cables',
     icon: 'charger',
     targetSectionId: 'device-switcher',
-    deviceId: 'gan-charger-65w',
+    categoryId: 'chargers',
   },
   {
     id: 'cat-batteries',
     label: 'Batteries & E-Waste',
     icon: 'battery',
-    targetSectionId: 'ai-triage',
+    targetSectionId: 'device-switcher',
+    categoryId: 'batteries',
   },
 ]
 
@@ -202,119 +169,118 @@ export const MARQUEE_ROW_TWO: MarqueeLocationBadge[] = [
   { id: 'm2-base8', zoneTag: 'Base 8', label: 'Pilot Area' },
   { id: 'm2-base9', zoneTag: 'Base 9', label: 'Lupang Pangako' },
   { id: 'm2-mrf', zoneTag: 'Central', label: 'MRF Central Commonwealth' },
-  { id: 'm2-epwmd', zoneTag: 'Quezon City', label: 'QC EPWMD Partner' },
-  { id: 'm2-denr', zoneTag: 'Accredited', label: 'DENR-EMB Recovery Line' },
+  { id: 'm2-denr', zoneTag: 'Workflow', label: 'DENR-EMB Aligned Recovery' },
   { id: 'm2-residents', zoneTag: 'Exclusive', label: 'Barangay Commonwealth Residents' },
-  { id: 'm2-bins', zoneTag: '24/7 Access', label: 'Smart Bin Stations' },
+  { id: 'm2-bins', zoneTag: 'Drop-Off', label: 'Staffed Eco-Hubs & Smart Bins' },
 ]
 
-export const SHOWCASE_DEVICES: ShowcaseDeviceItem[] = [
+export const ACCEPTED_CATEGORIES: AcceptedCategoryItem[] = [
   {
-    id: 'thinkpad-t480',
-    name: 'Lenovo ThinkPad T480',
-    categoryLabel: '14" Business Laptop',
-    image: thinkpadImg,
-    detailImage: thinkpadDetailImg,
-    conditionGrade: 'Grade B+',
-    conditionNote: 'Inspected chassis & hinges',
-    batteryHealth: '85% Healthy',
-    batteryPercent: 85,
-    ecoPoints: '2.1 kg Diverted',
-    routingVerdict: 'Community Reuse',
+    id: 'laptops',
+    name: 'Laptops & PCs',
+    icon: 'laptop',
+    examples: 'Notebooks, netbooks, monitors, and desktop units',
+    frontScanFocus: 'Display panel, hinges, keyboard deck, and trackpad condition',
+    backScanFocus: 'Bottom chassis integrity, vents, battery compartment, and model label',
+    safetyNote: 'Checked for battery swelling or warped casings before MRF intake.',
+    routingOptions: 'Reuse · Repair · Recovery',
     badgeVariant: 'available',
-    recommendedHub: 'Base 1 - Brgy. Hall Complex',
-    hubDistance: '0.8 km',
-    ctaLabel: 'View in Reuse Hub',
-    ctaRoute: '/reuse',
-  },
-  {
-    id: 'galaxy-s10',
-    name: 'Samsung Galaxy S10',
-    categoryLabel: '128GB Android Smartphone',
-    image: galaxyImg,
-    conditionGrade: 'Grade B',
-    conditionNote: 'Screen glass verified intact',
-    batteryHealth: '79% Normal',
-    batteryPercent: 79,
-    ecoPoints: '0.3 kg Diverted',
-    routingVerdict: 'Community Reuse',
-    badgeVariant: 'available',
-    recommendedHub: 'Base 5 - Riverside',
-    hubDistance: '1.8 km',
-    ctaLabel: 'View in Reuse Hub',
-    ctaRoute: '/reuse',
-  },
-  {
-    id: 'ipad-air',
-    name: 'iPad Air 64GB',
-    categoryLabel: '10.9" Wi-Fi Tablet',
-    image: ipadImg,
-    conditionGrade: 'Grade A-',
-    conditionNote: 'Minor rear bezel mark only',
-    batteryHealth: '91% Healthy',
-    batteryPercent: 91,
-    ecoPoints: '0.5 kg Diverted',
-    routingVerdict: 'Community Reuse',
-    badgeVariant: 'available',
-    recommendedHub: 'Base 1 - Brgy. Hall Complex',
-    hubDistance: '0.8 km',
-    ctaLabel: 'Claim in Reuse Hub',
-    ctaRoute: '/reuse',
-  },
-  {
-    id: 'keychron-k2',
-    name: 'Keychron K2 V2',
-    categoryLabel: '75% Wireless Mechanical Keyboard',
-    image: keychronImg,
-    conditionGrade: 'Grade A',
-    conditionNote: 'All tactile switches tested',
-    batteryHealth: '94% Healthy',
-    batteryPercent: 94,
-    ecoPoints: '0.8 kg Diverted',
-    routingVerdict: 'Repair Guide / Reuse',
-    badgeVariant: 'green-pill',
-    recommendedHub: 'Base 1 - Brgy. Hall Complex',
-    hubDistance: '0.8 km',
-    ctaLabel: 'Open Repair Guide',
-    ctaRoute: '/reuse-guide',
-  },
-  {
-    id: 'gan-charger-65w',
-    name: '65W GaN USB-C Charger',
-    categoryLabel: 'Dual-Port Power Adapter',
-    image: chargerImg,
-    conditionGrade: 'Safe & Tested',
-    conditionNote: 'No thermal or prong damage',
-    batteryHealth: 'No Internal Cell',
-    batteryPercent: 100,
-    ecoPoints: '0.2 kg Diverted',
-    routingVerdict: 'Safe Recovery',
-    badgeVariant: 'electric',
-    recommendedHub: 'Base 3 - Don Fabian Smart Bin',
-    hubDistance: '1.1 km',
-    ctaLabel: 'Scan Similar Accessory',
+    matchKeywords: ['laptop', 'computer', 'pc', 'desktop', 'monitor'],
+    ctaLabel: 'Start 2-Angle Scan',
     ctaRoute: '/scan',
+  },
+  {
+    id: 'smartphones',
+    name: 'Smartphones',
+    icon: 'smartphone',
+    examples: 'Working, cracked, or non-booting Android and iOS handsets',
+    frontScanFocus: 'Touchscreen glass cracks, display integrity, and front bezel seams',
+    backScanFocus: 'Rear housing, camera module, and signs of battery bulging',
+    safetyNote: 'Sign out of accounts and remove SIM/SD cards before drop-off.',
+    routingOptions: 'Reuse · Repair · Safe Drop-Off',
+    badgeVariant: 'available',
+    matchKeywords: ['phone', 'mobile', 'smartphone'],
+    ctaLabel: 'Start 2-Angle Scan',
+    ctaRoute: '/scan',
+  },
+  {
+    id: 'tablets',
+    name: 'Tablets',
+    icon: 'tablet',
+    examples: 'Wi-Fi tablets, cellular tablets, and e-readers',
+    frontScanFocus: 'Screen surface, glass cracks, and frame separation',
+    backScanFocus: 'Back shell flatness, serial/model print, and charging port edge',
+    safetyNote: 'Large flat lithium packs are screened for bulging or bent frames.',
+    routingOptions: 'Reuse · Repair · Recovery',
+    badgeVariant: 'available',
+    matchKeywords: ['tablet', 'ipad', 'reader'],
+    ctaLabel: 'Start 2-Angle Scan',
+    ctaRoute: '/scan',
+  },
+  {
+    id: 'peripherals',
+    name: 'Keyboards & Peripherals',
+    icon: 'keyboard',
+    examples: 'Keyboards, mice, webcams, routers, and audio accessories',
+    frontScanFocus: 'Keycaps, buttons, indicators, and surface wear',
+    backScanFocus: 'Underside label, battery cover, and cable or dongle ports',
+    safetyNote: 'Remove disposable AA/AAA cells separately if corroded.',
+    routingOptions: 'Reuse · Repair · Recovery',
+    badgeVariant: 'green-pill',
+    matchKeywords: ['keyboard', 'mouse', 'peripheral', 'audio', 'router', 'speaker'],
+    ctaLabel: 'Start 2-Angle Scan',
+    ctaRoute: '/scan',
+  },
+  {
+    id: 'chargers',
+    name: 'Chargers & Cables',
+    icon: 'charger',
+    examples: 'Power adapters, USB-C bricks, charging cords, and power strips',
+    frontScanFocus: 'Prongs, connector tips, and casing seams',
+    backScanFocus: 'Rating plate, cord strain relief, and heat/burn marks',
+    safetyNote: 'Scorched or frayed adapters are routed strictly to material recovery.',
+    routingOptions: 'Reuse · Material Recovery',
+    badgeVariant: 'electric',
+    matchKeywords: ['charger', 'cable', 'adapter', 'cord', 'power'],
+    ctaLabel: 'Start 2-Angle Scan',
+    ctaRoute: '/scan',
+  },
+  {
+    id: 'batteries',
+    name: 'Batteries & Hazardous E-Waste',
+    icon: 'battery',
+    examples: 'Power banks, loose lithium-ion cells, and swollen-battery units',
+    frontScanFocus: 'Front casing warping, separation, or fluid residue',
+    backScanFocus: 'Rear swelling, vents, and exposed terminals',
+    safetyNote:
+      'Do not puncture, compress, or charge. Pack in a non-conductive container and bring directly to a staffed Barangay MRF desk.',
+    isHazardPriority: true,
+    routingOptions: 'Isolated Safe Drop-Off',
+    badgeVariant: 'hazard',
+    matchKeywords: ['battery', 'power bank', 'lithium', 'hazard'],
+    ctaLabel: 'Schedule Safe Drop-Off',
+    ctaRoute: '/dropoff-schedule',
   },
 ]
 
 export const RECOVERY_LOOP_STEPS: RecoveryLoopStep[] = [
   {
     stepNumber: '01',
-    title: '4-Angle Scan & AI Triage',
+    title: '2-Angle Scan & AI Triage',
     description:
-      'Capture Front, Back, Left, and Right views to receive a condition grade and lithium battery safety check.',
+      'Capture Front and Back views and complete a short intake checklist for battery hazard screening and Stage 1 routing.',
   },
   {
     stepNumber: '02',
     title: 'Drop-Off Hub or Smart Bin Schedule',
     description:
-      'Schedule a staffed Eco-Hub slot or drop off at a 24/7 Smart Bin across Barangay Commonwealth.',
+      'Schedule a staffed Eco-Hub slot or drop off at a 24/7 Smart Bin across Barangay Commonwealth Bases 1 to 9.',
   },
   {
     stepNumber: '03',
     title: 'Physical Turn-Over & Verified Intake',
     description:
-      'Desk officers confirm physical intake at the barangay facility and credit verified diversion to your resident ledger.',
+      'Barangay MRF officers physically inspect your device on site and log verified recovery or Reuse Hub eligibility.',
   },
 ]
 
@@ -326,36 +292,30 @@ export const LANDING_TRACKER_STEPS: StepItem[] = [
   { id: 5, label: 'Turned over' },
 ]
 
-export const SHOWCASE_ANGLE_THUMBS: { label: string; src: string }[] = [
-  { label: 'Front', src: angleFrontImg },
-  { label: 'Back', src: angleBackImg },
-  { label: 'Left', src: angleLeftImg },
-  { label: 'Right', src: angleRightImg },
+export const SCAN_TWO_ANGLES: { id: 'front' | 'back'; label: string; detail: string }[] = [
+  {
+    id: 'front',
+    label: 'Front View',
+    detail: 'Screen, display & front bezel',
+  },
+  {
+    id: 'back',
+    label: 'Back View',
+    detail: 'Rear casing, label & battery panel',
+  },
 ]
 
-export const COMMONWEALTH_SHOWCASE_SITES: CommonwealthSiteSummary[] = [
-  {
-    id: 'cw-site-1',
-    name: 'Base 1 - Brgy. Hall Complex Eco-Hub',
-    distance: '0.8 km',
-    hours: '8:00 AM - 5:00 PM',
-    accessType: 'Staffed Hub',
-  },
-  {
-    id: 'cw-site-3',
-    name: 'Base 3 - Don Fabian Smart Bin',
-    distance: '1.1 km',
-    hours: '24/7 Smart Bin Access',
-    accessType: '24/7 Smart Bin',
-  },
-  {
-    id: 'cw-site-5',
-    name: 'Base 5 - Riverside Eco-Station',
-    distance: '1.8 km',
-    hours: '8:00 AM - 5:00 PM',
-    accessType: 'Staffed Hub',
-  },
-]
+/** Official Barangay Commonwealth base directory without synthetic distances. */
+export const DEFAULT_COMMONWEALTH_SITES: LandingSiteSummary[] = COMMONWEALTH_FALLBACK_SITES.map(
+  (site) => ({
+    id: site.id,
+    name: site.name,
+    address: site.address,
+    hours: site.hours,
+    accessType: site.type,
+    isOpen: site.isOpen,
+  }),
+)
 
 export const WALKTHROUGH_MODES: WalkthroughModeItem[] = [
   {
@@ -363,25 +323,25 @@ export const WALKTHROUGH_MODES: WalkthroughModeItem[] = [
     tabLabel: 'Diagnostic Report',
     title: 'Screen Battery Hazards Before Transport',
     summary:
-      'Four guided angles let EcoByte inspect casing gaps, port wear, and lithium swelling risk before an item enters a neighborhood bin.',
+      'Two guided angles (Front and Back) paired with quick intake questions let EcoByte flag casing wear and lithium swelling risk before an item enters a neighborhood station.',
     highlights: [
-      'Session #SCAN-9042 verifies all 4 exterior angles',
-      'Flags 68% battery wear for isolated MRF handling',
-      'Assigns circular recovery path before you leave home',
+      'Guided 2-angle capture covering Front and Back views',
+      'Flags swollen or leaking lithium cells for isolated MRF handling',
+      'Recommends Reuse, Repair, or Safe Drop-Off before you leave home',
     ],
-    ctaLabel: 'Start 4-Angle Scan',
+    ctaLabel: 'Start 2-Angle Scan',
     ctaRoute: '/scan',
   },
   {
     id: 'pass',
-    tabLabel: 'Reuse Pass #ECO-4821',
+    tabLabel: 'Reuse Pickup Pass',
     title: 'Claim Working Tech with a Verified Pickup Pass',
     summary:
-      'Verified Barangay Commonwealth residents reserve tested hardware from the Community Reuse Hub and present a digital pass at the Base 1 Eco-Hub desk for accountable handoff.',
+      'Verified Barangay Commonwealth residents can reserve MRF-tested hardware from the Community Reuse Hub and present a digital pickup pass at the barangay desk for accountable handoff.',
     highlights: [
-      'Digital pass #ECO-4821 locked to your resident account',
-      '48-hour reservation window at Barangay Commonwealth MRF',
-      'Photo proof-of-claim closes the circular loop',
+      'Unique digital pickup pass locked to your resident account',
+      '48-hour reservation window at Barangay Commonwealth Eco-Hubs',
+      'Photo proof-of-claim closes the circular recovery loop',
     ],
     ctaLabel: 'Browse Reuse Hub',
     ctaRoute: '/reuse',
@@ -389,11 +349,11 @@ export const WALKTHROUGH_MODES: WalkthroughModeItem[] = [
   {
     id: 'dropoff',
     tabLabel: 'Barangay Drop-Off',
-    title: 'Nine Commonwealth Bases Within Walking Reach',
+    title: 'Nine Commonwealth Bases Across the Barangay',
     summary:
-      'Locate the closest staffed Material Recovery Facility or 24/7 Smart Bin cluster across Brgy. Hall Complex, Katuparan, Don Fabian, and Lupang Pangako.',
+      'Locate staffed Material Recovery Facilities and 24/7 Smart Bin stations across Barangay Commonwealth, from Brgy. Hall Complex and Katuparan to Lupang Pangako.',
     highlights: [
-      'Live distance sorting across all 9 barangay bases',
+      'Official coverage across all 9 Barangay Commonwealth bases',
       'Filter by Open Now, Staffed desk, or 24/7 Smart Bin',
       'One-tap slot scheduling synced with MRF intake queues',
     ],
@@ -406,7 +366,7 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
   {
     heading: 'Resident Tools',
     links: [
-      { label: '4-Angle Device Scanner', to: '/scan' },
+      { label: '2-Angle Device Scanner', to: '/scan' },
       { label: 'Schedule a Drop-Off', to: '/dropoff-schedule' },
       { label: 'Community Reuse Hub', to: '/reuse' },
       { label: '9-Base Drop-Off Finder', to: '/drop-offs' },

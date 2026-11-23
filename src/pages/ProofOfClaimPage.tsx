@@ -412,10 +412,12 @@ export const ProofOfClaimPage: FC = () => {
               gap: 1,
               cursor: 'pointer',
               mb: 1.5,
-              transition: 'all 0.15s ease',
-              '&:hover': {
-                borderColor: '#0f172a',
-                backgroundColor: '#f1f5f9',
+              transition: 'background-color 180ms ease, border-color 180ms ease',
+              '@media (hover: hover) and (pointer: fine)': {
+                '&:hover': {
+                  borderColor: '#0f172a',
+                  backgroundColor: '#f1f5f9',
+                },
               },
             }}
           >

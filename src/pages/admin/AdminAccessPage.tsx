@@ -76,7 +76,20 @@ export const AdminAccessPage: FC = () => {
   const [cuDepartment, setCuDepartment] = useState(
     `${COMMONWEALTH_BASES[0].name} • Intake & Drop-Off Station`
   )
-  const [cuPassword, setCuPassword] = useState('official123')
+  const generateTempPassword = (): string => {
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%'
+    const bytes = new Uint8Array(12)
+    if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+      crypto.getRandomValues(bytes)
+    } else {
+      for (let i = 0; i < bytes.length; i++) {
+        bytes[i] = Math.floor(Math.random() * 256)
+      }
+    }
+    return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join('')
+  }
+
+  const [cuPassword, setCuPassword] = useState(() => generateTempPassword())
   const [cuMustChangePassword, setCuMustChangePassword] = useState(true)
   const [cuTwoFactorEnabled, setCuTwoFactorEnabled] = useState(false)
   const [cuNotes, setCuNotes] = useState('')
@@ -130,7 +143,7 @@ export const AdminAccessPage: FC = () => {
     setCuRole('Official')
     setCuBaseId(1)
     setCuDepartment(`${COMMONWEALTH_BASES[0].name} • Intake & Drop-Off Station`)
-    setCuPassword('official123')
+    setCuPassword(generateTempPassword())
     setCuMustChangePassword(true)
     setCuTwoFactorEnabled(false)
     setCuNotes('')
@@ -193,9 +206,14 @@ export const AdminAccessPage: FC = () => {
       setCuError('Please specify an Employee / Badge ID.')
       return null
     }
+    const passwordTrimmed = cuPassword.trim()
+    if (passwordTrimmed.length < 8) {
+      setCuError('Temporary password must be at least 8 characters long.')
+      return null
+    }
 
     setCuError(null)
-    return { fn, mn, ln, sfx, emailTrimmed, phoneTrimmed, badgeTrimmed }
+    return { fn, mn, ln, sfx, emailTrimmed, phoneTrimmed, badgeTrimmed, passwordTrimmed }
   }
 
   const handleRequestConfirmCreate = () => {
@@ -210,7 +228,7 @@ export const AdminAccessPage: FC = () => {
       setConfirmCreateModalOpen(false)
       return
     }
-    const { fn, mn, ln, sfx, emailTrimmed, phoneTrimmed, badgeTrimmed } = validated
+    const { fn, mn, ln, sfx, emailTrimmed, phoneTrimmed, badgeTrimmed, passwordTrimmed } = validated
 
     setIsSaving(true)
 
@@ -222,7 +240,6 @@ export const AdminAccessPage: FC = () => {
     const assignedDept =
       cuDepartment.trim() ||
       (cuRole === 'Admin' ? 'Central Administration Office' : `${selectedBase.name} (${selectedBase.facility})`)
-    const initials = `${fn[0] || ''}${ln[0] || ''}`.toUpperCase() || 'EB'
 
     try {
       const backendRecord = await adminApi.createUser({
@@ -238,7 +255,7 @@ export const AdminAccessPage: FC = () => {
         department: assignedDept,
         unitAreaId: assignedBaseId,
         barangayId: String(assignedBaseId),
-        password: cuPassword || 'official123',
+        password: passwordTrimmed,
         mustChangePassword: cuMustChangePassword,
         twoFactorEnabled: cuTwoFactorEnabled,
         notes: cuNotes.trim() || undefined,
@@ -249,46 +266,15 @@ export const AdminAccessPage: FC = () => {
       setUsers((prev) => [mapped, ...prev])
       setFeedbackBanner({
         type: 'success',
-        message: `Account registered successfully for ${mapped.name} (${mapped.idCode}) • Assigned: ${assignedBrgy} (temp password: "${cuPassword || 'official123'}").`,
+        message: `Account registered successfully for ${mapped.name} (${mapped.idCode}) • Assigned: ${assignedBrgy} (temp password: "${passwordTrimmed}").`,
       })
       setConfirmCreateModalOpen(false)
       setCreateModalOpen(false)
     } catch (err: any) {
-      if (err?.status === 400 || err?.status === 403 || err?.status === 409) {
-        setConfirmCreateModalOpen(false)
-        setCuError(err?.message || 'Unable to register account. Please review the entered details.')
-        return
-      }
-      // Local fallback when backend is offline
-      const newLocalUser: OfficialUser = {
-        id: `USR-${Math.floor(1000 + Math.random() * 9000)}`,
-        name: fullName,
-        firstName: fn,
-        middleName: mn || undefined,
-        lastName: ln,
-        suffix: sfx || undefined,
-        email: emailTrimmed,
-        phone: phoneTrimmed,
-        idCode: badgeTrimmed,
-        role: cuRole,
-        department: assignedDept,
-        unitAreaId: cuRole === 'Admin' ? undefined : assignedBaseId,
-        barangay: assignedBrgy,
-        status: 'Active',
-        twoFactorEnabled: cuTwoFactorEnabled,
-        mustChangePassword: cuMustChangePassword,
-        lastActive: 'Just now',
-        initials,
-        notes: cuNotes.trim() || `Registered via Admin Access directory · Assigned to ${assignedBrgy}`,
-      }
-
-      setUsers((prev) => [newLocalUser, ...prev])
-      setFeedbackBanner({
-        type: 'success',
-        message: `Account registered successfully for ${newLocalUser.name} (${newLocalUser.idCode}) • Assigned: ${assignedBrgy} (temp password: "${cuPassword || 'official123'}").`,
-      })
       setConfirmCreateModalOpen(false)
-      setCreateModalOpen(false)
+      setCuError(
+        err?.message || 'Unable to register account. Please ensure the backend server is reachable.'
+      )
     } finally {
       setIsSaving(false)
     }
@@ -964,7 +950,7 @@ export const AdminAccessPage: FC = () => {
                     p: 2,
                     borderRadius: '1rem',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
+                    transition: 'background-color 180ms ease, border-color 180ms ease',
                     border: '2px solid',
                     borderColor: cuRole === 'Official' ? '#70b822' : '#dbe3d6',
                     backgroundColor: cuRole === 'Official' ? '#f4f9ec' : '#ffffff',
@@ -1010,7 +996,7 @@ export const AdminAccessPage: FC = () => {
                     p: 2,
                     borderRadius: '1rem',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
+                    transition: 'background-color 180ms ease, border-color 180ms ease',
                     border: '2px solid',
                     borderColor: cuRole === 'Admin' ? '#7c3aed' : '#dbe3d6',
                     backgroundColor: cuRole === 'Admin' ? '#f5f3ff' : '#ffffff',
@@ -1174,25 +1160,44 @@ export const AdminAccessPage: FC = () => {
                       Issued to the official for initial setup.
                     </Typography>
                   </Box>
-                  <input
-                    type="text"
-                    value={cuPassword}
-                    onChange={(e) => setCuPassword(e.target.value)}
-                    style={{
-                      marginTop: 10,
-                      width: '100%',
-                      height: 36,
-                      padding: '0 12px',
-                      borderRadius: '0.5rem',
-                      border: '1px solid #c5dcba',
-                      backgroundColor: '#ffffff',
-                      fontFamily: 'monospace',
-                      fontWeight: 700,
-                      fontSize: '0.875rem',
-                      color: '#1e2e1a',
-                      outline: 'none',
-                    }}
-                  />
+                  <Box sx={{ display: 'flex', gap: 1, mt: 1.25 }}>
+                    <input
+                      type="text"
+                      value={cuPassword}
+                      onChange={(e) => setCuPassword(e.target.value)}
+                      placeholder="Min 8 characters"
+                      style={{
+                        flex: 1,
+                        minWidth: 0,
+                        height: 36,
+                        padding: '0 12px',
+                        borderRadius: '0.5rem',
+                        border: '1px solid #c5dcba',
+                        backgroundColor: '#ffffff',
+                        fontFamily: 'monospace',
+                        fontWeight: 700,
+                        fontSize: '0.875rem',
+                        color: '#1e2e1a',
+                        outline: 'none',
+                      }}
+                    />
+                    <ButtonBase
+                      onClick={() => setCuPassword(generateTempPassword())}
+                      sx={{
+                        px: 1.5,
+                        height: 36,
+                        borderRadius: '0.5rem',
+                        backgroundColor: '#2e6022',
+                        color: '#ffffff',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        whiteSpace: 'nowrap',
+                        '&:hover': { backgroundColor: '#244d1a' },
+                      }}
+                    >
+                      Generate
+                    </ButtonBase>
+                  </Box>
                 </Box>
 
                 {/* Checkboxes Policy Card */}
@@ -1589,7 +1594,7 @@ export const AdminAccessPage: FC = () => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1.5 }}>
               <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Temp Password</Typography>
               <Typography sx={{ fontSize: '0.78125rem', color: '#0f172a', fontWeight: 700, fontFamily: 'monospace' }}>
-                {cuPassword || 'official123'}
+                {cuPassword.trim()}
               </Typography>
             </Box>
           </Box>

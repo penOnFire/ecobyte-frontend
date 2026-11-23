@@ -1,4 +1,4 @@
-import { useEffect, useState, type MouseEvent } from 'react'
+import { ViewTransition, useEffect, useState, type MouseEvent } from 'react'
 import type { FC } from 'react'
 import {
   Box,
@@ -82,6 +82,7 @@ interface UIReuseItem {
   category: string
   status: string
   price: string
+  raw: ApiReuseItem
 }
 
 /*
@@ -195,6 +196,7 @@ export const ReuseHubPage: FC = () => {
               category: it.category || 'Laptops',
               status: it.status || 'Available',
               price: it.price || 'Free Claim',
+              raw: it,
             }))
 
           setItems(mapped)
@@ -565,36 +567,55 @@ export const ReuseHubPage: FC = () => {
                 backgroundColor: '#ffffff',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
                 cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                '&:hover': { borderColor: '#0f172a', transform: 'translateY(-1px)' },
+                transition:
+                  'border-color 180ms ease, transform 120ms cubic-bezier(0.23, 1, 0.32, 1)',
+                '&:active': { transform: 'scale(0.98)' },
+                '@media (hover: hover) and (pointer: fine)': {
+                  '&:hover': { borderColor: '#0f172a', transform: 'translateY(-1px)' },
+                },
+                '@media (prefers-reduced-motion: reduce)': {
+                  transition: 'none',
+                  '&:active': { transform: 'none' },
+                  '&:hover': { transform: 'none' },
+                },
               }}
-              onClick={() => navigate(`/reuse/${item.id}`)}
+              onClick={() =>
+                navigate(`/reuse/${item.id}`, {
+                  state: { reuseItem: item.raw, reuseImage: item.image },
+                })
+              }
             >
               <Box sx={{ display: 'flex', gap: 1.75 }}>
                 {/* Product Thumbnail */}
-                <Box
-                  sx={{
-                    width: 90,
-                    height: 90,
-                    borderRadius: 1.25,
-                    overflow: 'hidden',
-                    backgroundColor: '#f1f5f9',
-                    border: '1px solid #e2e8f0',
-                    flexShrink: 0,
-                    position: 'relative',
-                  }}
+                <ViewTransition
+                  name={`reuse-item-image-${item.id}`}
+                  share="eco-shared-morph"
+                  default="none"
                 >
                   <Box
-                    component="img"
-                    src={item.image}
-                    alt={item.title}
                     sx={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
+                      width: 90,
+                      height: 90,
+                      borderRadius: 1.25,
+                      overflow: 'hidden',
+                      backgroundColor: '#f1f5f9',
+                      border: '1px solid #e2e8f0',
+                      flexShrink: 0,
+                      position: 'relative',
                     }}
-                  />
-                </Box>
+                  >
+                    <Box
+                      component="img"
+                      src={item.image}
+                      alt={item.title}
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                    />
+                  </Box>
+                </ViewTransition>
 
                 {/* Item Info */}
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
